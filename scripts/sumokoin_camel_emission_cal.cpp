@@ -1,5 +1,5 @@
 // Sumokoin Block Reward Emission
-// Short URL: http://cpp.sh/4il7p
+// Short URL: http://cpp.sh/6eeyr
 
 #include <iostream>
 #include <iomanip>
@@ -9,8 +9,7 @@
 #define MONEY_SUPPLY                                    ((uint64_t)88888888000000000)
 #define EMISSION_SPEED_FACTOR                           19
 #define FINAL_SUBSIDY                                   ((uint64_t)4000000000) // 4 * pow(10, 9)
-#define DEV_BLOCK_REWARD                                ((uint64_t)8800000000000000) // 10% block reward reserved for dev (test/premine) emitted from block #1 -> DEV_BLOCK_HEIGHT
-#define DEV_BLOCK_HEIGHT                                1000
+#define GENESIS_BLOCK_REWARD                            ((uint64_t)8800000000000000)
 
 #define DIFFICULTY_TARGET                               240  // seconds
 
@@ -49,8 +48,8 @@ int main()
       count++;
     }
 
-    if (height >= 1 && height <= DEV_BLOCK_HEIGHT){
-      block_reward = DEV_BLOCK_REWARD / DEV_BLOCK_HEIGHT;
+    if (height == 0){
+      block_reward = GENESIS_BLOCK_REWARD;
     }
     else{
       block_reward = cal_block_reward / round_factor * round_factor;
