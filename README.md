@@ -227,9 +227,14 @@ application.
 
 ### On FreeBSD:
 
-The project can be built from scratch by following instructions for Linux above.
+* Update packages and install the dependencies (on FreeBSD 11.0 x64):
+		
+		pkg update; pkg install wget git pkgconf gcc49 cmake db6 icu libevent unbound googletest ldns expat bison boost-libs;
 
-We expect to add Sumokoin into the ports tree in the near future, which will aid in managing installations using ports or packages.
+* Clone source code, change to the root of the source code directory and build:
+
+        git clone https://github.com/sumoprojects/sumokoin; cd sumokoin; make release-static;
+
 
 ### On OpenBSD:
 
