@@ -589,11 +589,17 @@ namespace cryptonote
       LOG_PRINT_RED_L1("tx is too large " << get_object_blobsize(tx) << ", expected not bigger than " << m_blockchain_storage.get_current_cumulative_blocksize_limit() - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE);
       return false;
     }
-
+    
     //check if tx use different key images
     if(!check_tx_inputs_keyimages_diff(tx))
     {
       LOG_PRINT_RED_L1("tx uses a single key image more than once");
+      return false;
+    }
+    
+    if (!check_tx_inputs_keyimages_domain(tx))
+    {
+      LOG_PRINT_RED_L1("tx uses key image not in the valid domain");
       return false;
     }
 
@@ -655,6 +661,19 @@ namespace cryptonote
     }
     return true;
   }
+  //-----------------------------------------------------------------------------------------------
+  bool core::check_tx_inputs_keyimages_domain(const transaction& tx) const
+  {
+    std::unordered_set<crypto::key_image> ki;
+    for(const auto& in: tx.vin)
+    {
+      CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, tokey_in, false);
+      if (!(rct::scalarmultKey(rct::ki2rct(tokey_in.k_image), rct::curveOrder()) == rct::identity()))
+        return false;
+    }
+    return true;
+  }
+  
   //-----------------------------------------------------------------------------------------------
   bool core::add_new_tx(const transaction& tx, tx_verification_context& tvc, bool keeped_by_block, bool relayed)
   {
