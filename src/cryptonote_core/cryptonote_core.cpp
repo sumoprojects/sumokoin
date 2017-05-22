@@ -625,8 +625,6 @@ namespace cryptonote
   std::pair<uint64_t, uint64_t> core::get_coinbase_tx_sum(const uint64_t start_offset, const size_t count)
   {
     std::list<block> blocks;
-    std::list<transaction> txs;
-    std::list<crypto::hash> missed_txs;
     uint64_t coinbase_amount = 0;
     uint64_t emission_amount = 0;
     uint64_t total_fee_amount = 0;
@@ -635,6 +633,8 @@ namespace cryptonote
     BOOST_FOREACH(auto& b, blocks)
     {
       coinbase_amount = get_outs_money_amount(b.miner_tx);
+      std::list<transaction> txs;
+      std::list<crypto::hash> missed_txs;
       this->get_transactions(b.tx_hashes, txs, missed_txs);      
       BOOST_FOREACH(const auto& tx, txs)
       {

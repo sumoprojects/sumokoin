@@ -463,19 +463,19 @@ bool t_command_parser_executor::print_coinbase_tx_sum(const std::vector<std::str
 {
   if(!args.size())
   {
-    std::cout << "need block height parameter" << std::endl;
+    std::cout << "expected: <block_height> [<block_count>] parameter(s)" << std::endl;
     return false;
   }
   uint64_t height = 0;
-  uint64_t count = 0;
+  uint64_t count = 1;
   if(!epee::string_tools::get_xtype_from_string(height, args[0]))
   {
-    std::cout << "wrong starter block height parameter" << std::endl;
+    std::cout << "wrong starter <block_height> parameter" << std::endl;
     return false;
   }
   if(args.size() >1 && !epee::string_tools::get_xtype_from_string(count, args[1]))
   {
-    std::cout << "wrong count parameter" << std::endl;
+    std::cout << "wrong <block_count> parameter" << std::endl;
     return false;
   }
 

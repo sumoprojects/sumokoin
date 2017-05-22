@@ -223,7 +223,7 @@ t_command_server::t_command_server(
     m_command_lookup.set_handler(
       "print_coinbase_tx_sum"
     , std::bind(&t_command_parser_executor::print_coinbase_tx_sum, &m_parser, p::_1)
-    , "Print sum of coinbase transactions (start height, block count)"
+    , "Print sum of coinbase transactions, print_coinbase_tx_sum <start_height> [<block_count>]"
     );
 }
 
