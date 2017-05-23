@@ -41,6 +41,7 @@ using namespace epee;
 #include "common/base58.h"
 #include "crypto/hash.h"
 #include "common/int-util.h"
+#include "common/dns_utils.h"
 
 
 namespace cryptonote {
@@ -171,6 +172,35 @@ namespace cryptonote {
       config::testnet::CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX : config::CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX;
 
     return tools::base58::encode_addr(address_prefix, t_serializable_object_to_blob(adr));
+  }
+  //--------------------------------------------------------------------------------
+  bool get_account_address_from_str_or_url(
+    cryptonote::account_public_address& address
+    , bool& has_payment_id
+    , crypto::hash8& payment_id
+    , bool testnet
+    , const std::string& str_or_url
+    , bool cli_confirm
+    )
+  {
+    if (get_account_integrated_address_from_str(address, has_payment_id, payment_id, testnet, str_or_url))
+      return true;
+    bool dnssec_valid;
+    std::string address_str = tools::dns_utils::get_account_address_as_str_from_url(str_or_url, dnssec_valid, cli_confirm);
+    return !address_str.empty() &&
+      get_account_integrated_address_from_str(address, has_payment_id, payment_id, testnet, address_str);
+  }
+  //--------------------------------------------------------------------------------
+  bool get_account_address_from_str_or_url(
+    cryptonote::account_public_address& address
+    , bool testnet
+    , const std::string& str_or_url
+    , bool cli_confirm
+    )
+  {
+    bool has_payment_id;
+    crypto::hash8 payment_id;
+    return get_account_address_from_str_or_url(address, has_payment_id, payment_id, testnet, str_or_url, cli_confirm);
   }
   //-----------------------------------------------------------------------
   std::string get_account_integrated_address_as_str(

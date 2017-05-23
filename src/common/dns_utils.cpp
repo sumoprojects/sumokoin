@@ -26,6 +26,8 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "common/command_line.h"
+#include "common/i18n.h"
 #include "common/dns_utils.h"
 #include <cstring>
 #include <sstream>
@@ -34,6 +36,7 @@
 
 #include <stdlib.h>
 #include "include_base_utils.h"
+#include <random>
 #include <boost/filesystem/fstream.hpp>
 using namespace epee;
 namespace bf = boost::filesystem;
@@ -322,5 +325,235 @@ bool DNSResolver::check_address_syntax(const char *addr) const
   }
   return true;
 }
+
+namespace dns_utils
+{
+
+  const char *tr(const char *str) { return i18n_translate(str, "tools::dns_utils"); }
+
+  //-----------------------------------------------------------------------
+  // TODO: parse the string in a less stupid way, probably with regex
+  std::string address_from_txt_record(const std::string& s)
+  {
+    // make sure the txt record has "oa1:xmr" and find it
+    auto pos = s.find("oa1:sumo");
+    if (pos == std::string::npos)
+      return{};
+    // search from there to find "recipient_address="
+    pos = s.find("recipient_address=", pos);
+    if (pos == std::string::npos)
+      return{};
+    pos += 18; // move past "recipient_address="
+    // find the next semicolon
+    auto pos2 = s.find(";", pos);
+    if (pos2 != std::string::npos)
+    {
+      // length of address == 95, we can at least validate that much here
+      if (pos2 - pos == 95)
+      {
+        return s.substr(pos, 95);
+      }
+      else if (pos2 - pos == 106) // length of address == 106 --> integrated address
+      {
+        return s.substr(pos, 106);
+      }
+    }
+    return{};
+  }
+  /**
+  * @brief gets a sumokoin address from the TXT record of a DNS entry
+  *
+  * gets the monero address from the TXT record of the DNS entry associated
+  * with <url>.  If this lookup fails, or the TXT record does not contain an
+  * XMR address in the correct format, returns an empty string.  <dnssec_valid>
+  * will be set true or false according to whether or not the DNS query passes
+  * DNSSEC validation.
+  *
+  * @param url the url to look up
+  * @param dnssec_valid return-by-reference for DNSSEC status of query
+  *
+  * @return a monero address (as a string) or an empty string
+  */
+  std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec_valid)
+  {
+    std::vector<std::string> addresses;
+    // get txt records
+    bool dnssec_available, dnssec_isvalid;
+    std::string oa_addr = DNSResolver::instance().get_dns_format_from_oa_address(url);
+    auto records = DNSResolver::instance().get_txt_record(oa_addr, dnssec_available, dnssec_isvalid);
+
+    // TODO: update this to allow for conveying that dnssec was not available
+    if (dnssec_available && dnssec_isvalid)
+    {
+      dnssec_valid = true;
+    }
+    else dnssec_valid = false;
+
+    // for each txt record, try to find a monero address in it.
+    for (auto& rec : records)
+    {
+      std::string addr = address_from_txt_record(rec);
+      if (addr.size())
+      {
+        addresses.push_back(addr);
+      }
+    }
+    return addresses;
+  }
+
+  std::string get_account_address_as_str_from_url(const std::string& url, bool& dnssec_valid, bool cli_confirm)
+  {
+    // attempt to get address from dns query
+    auto addresses = addresses_from_url(url, dnssec_valid);
+    if (addresses.empty())
+    {
+      LOG_ERROR("wrong address: " << url);
+      return{};
+    }
+    // for now, move on only if one address found
+    if (addresses.size() > 1)
+    {
+      LOG_ERROR("not yet supported: Multiple Sumokoin addresses found for given URL: " << url);
+      return{};
+    }
+    if (!cli_confirm)
+      return addresses[0];
+    // prompt user for confirmation.
+    // inform user of DNSSEC validation status as well.
+    std::string dnssec_str;
+    if (dnssec_valid)
+    {
+      dnssec_str = tr("DNSSEC validation passed");
+    }
+    else
+    {
+      dnssec_str = tr("WARNING: DNSSEC validation was unsuccessful, this address may not be correct!");
+    }
+    std::stringstream prompt;
+    prompt << tr("For URL: ") << url
+      << ", " << dnssec_str << std::endl
+      << tr(" Monero Address = ") << addresses[0]
+      << std::endl
+      << tr("Is this OK? (Y/n) ")
+      ;
+    // prompt the user for confirmation given the dns query and dnssec status
+    std::string confirm_dns_ok = command_line::input_line(prompt.str());
+    if (std::cin.eof())
+    {
+      return{};
+    }
+    if (!command_line::is_yes(confirm_dns_ok))
+    {
+      std::cout << tr("you have cancelled the transfer request") << std::endl;
+      return{};
+    }
+    return addresses[0];
+  }
+
+  namespace
+  {
+    bool dns_records_match(const std::vector<std::string>& a, const std::vector<std::string>& b)
+    {
+      if (a.size() != b.size()) return false;
+
+      for (const auto& record_in_a : a)
+      {
+        bool ok = false;
+        for (const auto& record_in_b : b)
+        {
+          if (record_in_a == record_in_b)
+          {
+            ok = true;
+            break;
+          }
+        }
+        if (!ok) return false;
+      }
+
+      return true;
+    }
+  }
+
+  bool load_txt_records_from_dns(std::vector<std::string> &good_records, const std::vector<std::string> &dns_urls)
+  {
+    // Prevent infinite recursion when distributing
+    if (dns_urls.empty()) return false;
+
+    std::vector<std::vector<std::string> > records;
+    records.resize(dns_urls.size());
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(0, dns_urls.size() - 1);
+    size_t first_index = dis(gen);
+
+    bool avail, valid;
+    size_t cur_index = first_index;
+    do
+    {
+      std::string url = dns_urls[cur_index];
+
+      records[cur_index] = tools::DNSResolver::instance().get_txt_record(url, avail, valid);
+      if (!avail)
+      {
+        records[cur_index].clear();
+        LOG_PRINT_L2("DNSSEC not available for checkpoint update at URL: " << url << ", skipping.");
+      }
+      if (!valid)
+      {
+        records[cur_index].clear();
+        LOG_PRINT_L2("DNSSEC validation failed for checkpoint update at URL: " << url << ", skipping.");
+      }
+
+      cur_index++;
+      if (cur_index == dns_urls.size())
+      {
+        cur_index = 0;
+      }
+    } while (cur_index != first_index);
+
+    size_t num_valid_records = 0;
+
+    for (const auto& record_set : records)
+    {
+      if (record_set.size() != 0)
+      {
+        num_valid_records++;
+      }
+    }
+
+    if (num_valid_records < 2)
+    {
+      LOG_PRINT_L0("WARNING: no two valid MoneroPulse DNS checkpoint records were received");
+      return false;
+    }
+
+    int good_records_index = -1;
+    for (size_t i = 0; i < records.size() - 1; ++i)
+    {
+      if (records[i].size() == 0) continue;
+
+      for (size_t j = i + 1; j < records.size(); ++j)
+      {
+        if (dns_records_match(records[i], records[j]))
+        {
+          good_records_index = i;
+          break;
+        }
+      }
+      if (good_records_index >= 0) break;
+    }
+
+    if (good_records_index < 0)
+    {
+      LOG_PRINT_L0("WARNING: no two MoneroPulse DNS checkpoint records matched");
+      return false;
+    }
+
+    good_records = records[good_records_index];
+    return true;
+  }
+
+}  // namespace tools::dns_utils
 
 }  // namespace tools
