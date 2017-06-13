@@ -34,10 +34,15 @@
 #include <cstdint>
 #include <vector>
 
+#include "include_base_utils.h"
 #include "common/int-util.h"
 #include "crypto/hash.h"
 #include "cryptonote_config.h"
+#include "misc_language.h"
 #include "difficulty.h"
+
+#define MAX_AVERGAE_TIMESPAN          (uint64_t) 2400 // 40 minutes
+#define MIN_AVERAGE_TIMESPAN          (uint64_t) 12 // 12s
 
 namespace cryptonote {
 
@@ -157,6 +162,72 @@ namespace cryptonote {
       return 0;
     }
     return (low + time_span - 1) / time_span;
+  }
+
+  difficulty_type next_difficulty_v2(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds) {
+
+	  if (timestamps.size() > DIFFICULTY_WINDOW_V2)
+	  {
+		  timestamps.resize(DIFFICULTY_WINDOW_V2);
+		  cumulative_difficulties.resize(DIFFICULTY_WINDOW_V2);
+	  }
+
+	  size_t length = timestamps.size();
+	  assert(length == cumulative_difficulties.size());
+	  if (length <= 1) {
+		  return 1;
+	  }
+	
+	  sort(timestamps.begin(), timestamps.end());
+	  std::vector<std::uint64_t> time_spans;
+	  for (size_t i = 0; i < length - 1; i++){
+		  uint64_t time_span = timestamps[i + 1] - timestamps[i];
+		  if (time_span == 0) {
+			  time_span = 1;
+		  }
+		  time_spans.push_back(time_span);
+
+		  //LOG_PRINT_L1("Timespan " << i << ": " << (time_span / 60) / 60 << ":" << (time_span > 3600 ? (time_span % 3600) / 60 : time_span/60)  << ":" << time_span % 60 << " (" << time_span << ")");
+	  }
+	
+	  uint64_t timespan_median = epee::misc_utils::median(time_spans);
+    uint64_t timespan_average = (timestamps[length - 1] - timestamps[0]) / (length - 1);
+  
+    uint64_t actual_average_timespan = timespan_median;
+    uint64_t average_adjust = 0;
+    if (timespan_average < timespan_median)
+      average_adjust = (timespan_median - timespan_average) / 2;
+    if (timespan_average > timespan_median)
+      average_adjust = (timespan_average - timespan_median) / 2;
+
+    if (average_adjust > actual_average_timespan/2)
+      average_adjust = actual_average_timespan/2;
+    
+    actual_average_timespan += average_adjust;
+
+    if (actual_average_timespan > MAX_AVERGAE_TIMESPAN)
+      actual_average_timespan = MAX_AVERGAE_TIMESPAN;
+    if (actual_average_timespan < MIN_AVERAGE_TIMESPAN)
+      actual_average_timespan = MIN_AVERAGE_TIMESPAN;
+
+    LOG_PRINT_L2("Timespan Median: " << timespan_median << ", Timespan Average: " << timespan_average << ", Actual Average Timespan (after adjusted/bounds): " << actual_average_timespan);
+
+	  difficulty_type total_work = cumulative_difficulties[length - 1] - cumulative_difficulties[0];
+	  assert(total_work > 0);
+	  
+	  uint64_t low, high;
+    mul(total_work, target_seconds, low, high);
+	  if (high != 0) {
+		  return 0;
+	  }
+
+    uint64_t next_diff = low / (actual_average_timespan * (length - 1));
+    if (next_diff < DIFFICULTY_TARGET) next_diff = DIFFICULTY_TARGET;
+
+    LOG_PRINT_L2("Actual Timespan: " << actual_average_timespan * (length - 1) << ", Total work: " << total_work << ", Next diff: " << next_diff << ", Hashrate (H/s): " << next_diff / target_seconds);
+
+    return next_diff;
+  
   }
 
 }
