@@ -42,7 +42,7 @@
 #include "difficulty.h"
 
 #define MAX_AVERGAE_TIMESPAN          (uint64_t) 2400 // 40 minutes
-#define MIN_AVERAGE_TIMESPAN          (uint64_t) 12 // 12s
+#define MIN_AVERAGE_TIMESPAN          (uint64_t) 3 // 3s
 
 namespace cryptonote {
 
@@ -191,8 +191,6 @@ namespace cryptonote {
 			  time_span = 1;
 		  }
 		  time_spans.push_back(time_span);
-
-		  LOG_PRINT_L0("Timespan " << i << ": " << (time_span / 60) / 60 << ":" << (time_span > 3600 ? (time_span % 3600) / 60 : time_span/60)  << ":" << time_span % 60 << " (" << time_span << ")");
 	  }
 	
 	  uint64_t timespan_median = epee::misc_utils::median(time_spans);
@@ -208,14 +206,17 @@ namespace cryptonote {
     if (average_adjust > timespan_median * 2)
       average_adjust = timespan_median * 2;
     
-    actual_average_timespan += average_adjust;
+    if (timespan_average < timespan_median)
+      actual_average_timespan -= average_adjust;
+    if (timespan_average > timespan_median)
+      actual_average_timespan += average_adjust;
 
     if (actual_average_timespan > MAX_AVERGAE_TIMESPAN)
       actual_average_timespan = MAX_AVERGAE_TIMESPAN;
     if (actual_average_timespan < MIN_AVERAGE_TIMESPAN)
       actual_average_timespan = MIN_AVERAGE_TIMESPAN;
 
-    LOG_PRINT_L0("Timespan Median: " << timespan_median << ", Timespan Average: " << timespan_average << ", Actual Average Timespan (after adjusted/bounds): " << actual_average_timespan);
+    LOG_PRINT_L2("Timespan Median: " << timespan_median << ", Timespan Average: " << timespan_average << ", Actual Average Timespan (after adjusted/bounds): " << actual_average_timespan);
 
     difficulty_type total_work = cumulative_difficulties[length - 1] - cumulative_difficulties[cut_end];
 	  assert(total_work > 0);
@@ -226,10 +227,11 @@ namespace cryptonote {
 		  return 0;
 	  }
 
-    uint64_t next_diff = low / (actual_average_timespan * (length - cut_end - 1));
+    uint64_t total_actual_timespan = actual_average_timespan * (length - cut_end - 1);
+    uint64_t next_diff = low / total_actual_timespan;
     if (next_diff < 1) next_diff = 1;
 
-    LOG_PRINT_L0("Actual Timespan: " << actual_average_timespan * (length - 1) << ", Total work: " << total_work << ", Next diff: " << next_diff << ", Hashrate (H/s): " << next_diff / target_seconds);
+    LOG_PRINT_L2("Total actual timespan: " << total_actual_timespan << ", Total work: " << total_work << ", Next diff: " << next_diff << ", Hashrate (H/s): " << next_diff / target_seconds);
 
     return next_diff;
   
