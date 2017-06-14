@@ -47,8 +47,10 @@
 #define CURRENT_BLOCK_MINOR_VERSION                     1
 #define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT              60*60*2
 #define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
-
 #define BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW               60
+
+#define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V2           60*30
+#define BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V2            15
 
 // MONEY_SUPPLY - total number coins to be generated
 #define MONEY_SUPPLY                                    ((uint64_t)88888888000000000)
@@ -75,8 +77,10 @@
 #define DIFFICULTY_CUT                                  60   // timestamps to cut after sorting
 #define DIFFICULTY_BLOCKS_COUNT                         DIFFICULTY_WINDOW + DIFFICULTY_LAG
 
-#define DIFFICULTY_WINDOW_V2							              35
-#define DIFFICULTY_BLOCKS_COUNT_V2                      DIFFICULTY_WINDOW_V2
+#define DIFFICULTY_WINDOW_V2							              17
+#define DIFFICULTY_CUT_V2                               8
+#define DIFFICULTY_BLOCKS_COUNT_V2                      DIFFICULTY_WINDOW_V2 + DIFFICULTY_CUT_V2
+
 
 
 #define CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS       1
