@@ -41,8 +41,8 @@
 #include "misc_language.h"
 #include "difficulty.h"
 
-#define MAX_AVERGAE_TIMESPAN          (uint64_t) 2400 // 40 minutes
-#define MIN_AVERAGE_TIMESPAN          (uint64_t) 3 // 3s
+#define MAX_AVERGAE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET*10   // 40 minutes
+#define MIN_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET/10   // 24s
 
 namespace cryptonote {
 
@@ -196,20 +196,17 @@ namespace cryptonote {
 	  uint64_t timespan_median = epee::misc_utils::median(time_spans);
     uint64_t timespan_average = (timestamps[length - 1] - timestamps[cut_end]) / (length - cut_end - 1);
   
-    uint64_t actual_average_timespan = timespan_median;
+    uint64_t actual_average_timespan = timespan_average;
     uint64_t average_adjust = 0;
     if (timespan_average < timespan_median)
-      average_adjust = (timespan_median - timespan_average)*2/3;
+      average_adjust = (timespan_median - timespan_average)/4;
     if (timespan_average > timespan_median)
-      average_adjust = (timespan_average - timespan_median)*2/3;
+      average_adjust = (timespan_average - timespan_median)/4;
 
-    if (average_adjust > timespan_median * 2)
-      average_adjust = timespan_median * 2;
-    
     if (timespan_average < timespan_median)
-      actual_average_timespan -= average_adjust;
-    if (timespan_average > timespan_median)
       actual_average_timespan += average_adjust;
+    if (timespan_average > timespan_median)
+      actual_average_timespan -= average_adjust;
 
     if (actual_average_timespan > MAX_AVERGAE_TIMESPAN)
       actual_average_timespan = MAX_AVERGAE_TIMESPAN;
