@@ -41,8 +41,8 @@
 #include "misc_language.h"
 #include "difficulty.h"
 
-#define MAX_AVERGAE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET*10   // 40 minutes
-#define MIN_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET/10   // 24s
+#define MAX_AVERGAE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET*5   // 20 minutes
+#define MIN_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET/20   // 12s
 
 namespace cryptonote {
 
@@ -178,25 +178,38 @@ namespace cryptonote {
 		  return 1;
 	  }
 
-    size_t cut_end = 0;
-    if (length > DIFFICULTY_WINDOW_V2) {
-      cut_end = length - DIFFICULTY_WINDOW_V2;
-    }
-    
     sort(timestamps.begin(), timestamps.end());
+    size_t cut_begin, cut_end;
+    static_assert(2 * DIFFICULTY_CUT_V2 <= DIFFICULTY_BLOCKS_COUNT_V2 - 2, "Cut length is too large");
+    if (length <= DIFFICULTY_BLOCKS_COUNT_V2 - 2 * DIFFICULTY_CUT_V2) {
+      cut_begin = 0;
+      cut_end = length;
+    }
+    else {
+      cut_begin = (length - (DIFFICULTY_BLOCKS_COUNT_V2 - 2 * DIFFICULTY_CUT_V2) + 1) / 2;
+      cut_end = cut_begin + (DIFFICULTY_BLOCKS_COUNT_V2 - 2 * DIFFICULTY_CUT_V2);
+    }
+    assert(/*cut_begin >= 0 &&*/ cut_begin + 2 <= cut_end && cut_end <= length);
+    uint64_t total_timespan = timestamps[cut_end - 1] - timestamps[cut_begin];
+    if (total_timespan == 0) {
+      total_timespan = 1;
+    }
+
     std::vector<std::uint64_t> time_spans;
-    for (size_t i = cut_end; i < length - 1; i++){
+    for (size_t i = cut_begin; i < cut_end - 1; i++){
 		  uint64_t time_span = timestamps[i + 1] - timestamps[i];
 		  if (time_span == 0) {
 			  time_span = 1;
 		  }
 		  time_spans.push_back(time_span);
+
+		  LOG_PRINT_L2("Timespan " << i << ": " << (time_span / 60) / 60 << ":" << (time_span > 3600 ? (time_span % 3600) / 60 : time_span/60)  << ":" << time_span % 60 << " (" << time_span << ")");
 	  }
 	
 	  uint64_t timespan_median = epee::misc_utils::median(time_spans);
-    uint64_t timespan_average = (timestamps[length - 1] - timestamps[cut_end]) / (length - cut_end - 1);
+    uint64_t timespan_average = total_timespan / (length - cut_begin * 2 - 1);
   
-    uint64_t actual_average_timespan = timespan_average;
+    uint64_t adjusted_average_timespan = timespan_average;
     uint64_t average_adjust = 0;
     if (timespan_average < timespan_median)
       average_adjust = (timespan_median - timespan_average)/4;
@@ -204,31 +217,31 @@ namespace cryptonote {
       average_adjust = (timespan_average - timespan_median)/4;
 
     if (timespan_average < timespan_median)
-      actual_average_timespan += average_adjust;
+      adjusted_average_timespan += average_adjust;
     if (timespan_average > timespan_median)
-      actual_average_timespan -= average_adjust;
+      adjusted_average_timespan -= average_adjust;
 
-    if (actual_average_timespan > MAX_AVERGAE_TIMESPAN)
-      actual_average_timespan = MAX_AVERGAE_TIMESPAN;
-    if (actual_average_timespan < MIN_AVERAGE_TIMESPAN)
-      actual_average_timespan = MIN_AVERAGE_TIMESPAN;
+    if (adjusted_average_timespan > MAX_AVERGAE_TIMESPAN)
+      adjusted_average_timespan = MAX_AVERGAE_TIMESPAN;
+    if (adjusted_average_timespan < MIN_AVERAGE_TIMESPAN)
+      adjusted_average_timespan = MIN_AVERAGE_TIMESPAN;
 
-    LOG_PRINT_L2("Timespan Median: " << timespan_median << ", Timespan Average: " << timespan_average << ", Actual Average Timespan (after adjusted/bounds): " << actual_average_timespan);
+    LOG_PRINT_L2("Timespan Median: " << timespan_median << ", Timespan Average: " << timespan_average << ", Actual Average Timespan (after adjusted/bounds): " << adjusted_average_timespan);
 
-    difficulty_type total_work = cumulative_difficulties[length - 1] - cumulative_difficulties[cut_end];
+    difficulty_type total_work = cumulative_difficulties[cut_end - 1] - cumulative_difficulties[cut_begin];
 	  assert(total_work > 0);
 	  
 	  uint64_t low, high;
     mul(total_work, target_seconds, low, high);
 	  if (high != 0) {
-		  return 0;
+		  return 1;
 	  }
 
-    uint64_t total_actual_timespan = actual_average_timespan * (length - cut_end - 1);
-    uint64_t next_diff = low / total_actual_timespan;
+    uint64_t adjusted_total_timespan = adjusted_average_timespan * (length - cut_begin * 2 - 1);
+    uint64_t next_diff = low / adjusted_total_timespan;
     if (next_diff < 1) next_diff = 1;
 
-    LOG_PRINT_L2("Total actual timespan: " << total_actual_timespan << ", Total work: " << total_work << ", Next diff: " << next_diff << ", Hashrate (H/s): " << next_diff / target_seconds);
+    LOG_PRINT_L2("Total timespan: " << total_timespan << ", Adjusted total timespan: " << adjusted_total_timespan << ", Total work: " << total_work << ", Next diff: " << next_diff << ", Hashrate (H/s): " << next_diff / target_seconds);
 
     return next_diff;
   

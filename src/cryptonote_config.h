@@ -78,8 +78,8 @@
 #define DIFFICULTY_BLOCKS_COUNT                         DIFFICULTY_WINDOW + DIFFICULTY_LAG
 
 #define DIFFICULTY_WINDOW_V2							              17
-#define DIFFICULTY_CUT_V2                               8
-#define DIFFICULTY_BLOCKS_COUNT_V2                      DIFFICULTY_WINDOW_V2 + DIFFICULTY_CUT_V2
+#define DIFFICULTY_CUT_V2                               6
+#define DIFFICULTY_BLOCKS_COUNT_V2                      DIFFICULTY_WINDOW_V2 + DIFFICULTY_CUT_V2*2
 
 
 
