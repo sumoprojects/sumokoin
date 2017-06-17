@@ -41,8 +41,8 @@
 #include "misc_language.h"
 #include "difficulty.h"
 
-#define MAX_AVERGAE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET*5   // 20 minutes
-#define MIN_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET/20   // 12s
+#define MAX_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET*6   // 24 minutes
+#define MIN_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET/12  // 20s
 
 namespace cryptonote {
 
@@ -101,21 +101,21 @@ namespace cryptonote {
   }
 
   static inline bool cadc(uint64_t a, uint64_t b, bool c) {
-    return a + b < a || (c && a + b == (uint64_t) -1);
+    return a + b < a || (c && a + b == (uint64_t)-1);
   }
 
   bool check_hash(const crypto::hash &hash, difficulty_type difficulty) {
     uint64_t low, high, top, cur;
     // First check the highest word, this will most likely fail for a random hash.
-    mul(swap64le(((const uint64_t *) &hash)[3]), difficulty, top, high);
+    mul(swap64le(((const uint64_t *)&hash)[3]), difficulty, top, high);
     if (high != 0) {
       return false;
     }
-    mul(swap64le(((const uint64_t *) &hash)[0]), difficulty, low, cur);
-    mul(swap64le(((const uint64_t *) &hash)[1]), difficulty, low, high);
+    mul(swap64le(((const uint64_t *)&hash)[0]), difficulty, low, cur);
+    mul(swap64le(((const uint64_t *)&hash)[1]), difficulty, low, high);
     bool carry = cadd(cur, low);
     cur = high;
-    mul(swap64le(((const uint64_t *) &hash)[2]), difficulty, low, high);
+    mul(swap64le(((const uint64_t *)&hash)[2]), difficulty, low, high);
     carry = cadc(cur, low, carry);
     carry = cadc(high, top, carry);
     return !carry;
@@ -123,7 +123,7 @@ namespace cryptonote {
 
   difficulty_type next_difficulty(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds) {
 
-    if(timestamps.size() > DIFFICULTY_WINDOW)
+    if (timestamps.size() > DIFFICULTY_WINDOW)
     {
       timestamps.resize(DIFFICULTY_WINDOW);
       cumulative_difficulties.resize(DIFFICULTY_WINDOW);
@@ -143,7 +143,8 @@ namespace cryptonote {
     if (length <= DIFFICULTY_WINDOW - 2 * DIFFICULTY_CUT) {
       cut_begin = 0;
       cut_end = length;
-    } else {
+    }
+    else {
       cut_begin = (length - (DIFFICULTY_WINDOW - 2 * DIFFICULTY_CUT) + 1) / 2;
       cut_end = cut_begin + (DIFFICULTY_WINDOW - 2 * DIFFICULTY_CUT);
     }
@@ -167,16 +168,16 @@ namespace cryptonote {
   difficulty_type next_difficulty_v2(std::vector<std::uint64_t> timestamps, std::vector<difficulty_type> cumulative_difficulties, size_t target_seconds) {
 
     if (timestamps.size() > DIFFICULTY_BLOCKS_COUNT_V2)
-	  {
+    {
       timestamps.resize(DIFFICULTY_BLOCKS_COUNT_V2);
       cumulative_difficulties.resize(DIFFICULTY_BLOCKS_COUNT_V2);
-	  }
+    }
 
-	  size_t length = timestamps.size();
-	  assert(length == cumulative_difficulties.size());
-	  if (length <= 1) {
-		  return 1;
-	  }
+    size_t length = timestamps.size();
+    assert(length == cumulative_difficulties.size());
+    if (length <= 1) {
+      return 1;
+    }
 
     sort(timestamps.begin(), timestamps.end());
     size_t cut_begin, cut_end;
@@ -197,54 +198,43 @@ namespace cryptonote {
 
     std::vector<std::uint64_t> time_spans;
     for (size_t i = cut_begin; i < cut_end - 1; i++){
-		  uint64_t time_span = timestamps[i + 1] - timestamps[i];
-		  if (time_span == 0) {
-			  time_span = 1;
-		  }
-		  time_spans.push_back(time_span);
+    uint64_t time_span = timestamps[i + 1] - timestamps[i];
+      if (time_span == 0) {
+        time_span = 1;
+      }
+      time_spans.push_back(time_span);
 
-		  LOG_PRINT_L2("Timespan " << i << ": " << (time_span / 60) / 60 << ":" << (time_span > 3600 ? (time_span % 3600) / 60 : time_span/60)  << ":" << time_span % 60 << " (" << time_span << ")");
-	  }
-	
-	  uint64_t timespan_median = epee::misc_utils::median(time_spans);
-    uint64_t timespan_average = total_timespan / (length - cut_begin * 2 - 1);
-  
-    uint64_t adjusted_average_timespan = timespan_average;
-    uint64_t average_adjust = 0;
-    if (timespan_average < timespan_median)
-      average_adjust = (timespan_median - timespan_average)/4;
-    if (timespan_average > timespan_median)
-      average_adjust = (timespan_average - timespan_median)/4;
+      LOG_PRINT_L2("Timespan " << i << ": " << (time_span / 60) / 60 << ":" << (time_span > 3600 ? (time_span % 3600) / 60 : time_span / 60) << ":" << time_span % 60 << " (" << time_span << ")");
+    }
+    
+    uint64_t timespan_length = length - cut_begin * 2 - 1;
+    uint64_t timespan_median = epee::misc_utils::median(time_spans);
+    LOG_PRINT_L2("Timespan Median: " << timespan_median << ", Timespan Average: " << total_timespan / timespan_length);
 
-    if (timespan_average < timespan_median)
-      adjusted_average_timespan += average_adjust;
-    if (timespan_average > timespan_median)
-      adjusted_average_timespan -= average_adjust;
-
-    if (adjusted_average_timespan > MAX_AVERGAE_TIMESPAN)
-      adjusted_average_timespan = MAX_AVERGAE_TIMESPAN;
-    if (adjusted_average_timespan < MIN_AVERAGE_TIMESPAN)
-      adjusted_average_timespan = MIN_AVERAGE_TIMESPAN;
-
-    LOG_PRINT_L2("Timespan Median: " << timespan_median << ", Timespan Average: " << timespan_average << ", Actual Average Timespan (after adjusted/bounds): " << adjusted_average_timespan);
+    uint64_t total_timespan_median = timespan_median * timespan_length;
+    uint64_t adjusted_total_timespan = (total_timespan * 3 + total_timespan_median) / 4; //  0.75A + 0.25M
+    if (adjusted_total_timespan > MAX_AVERAGE_TIMESPAN * timespan_length){
+      adjusted_total_timespan = MAX_AVERAGE_TIMESPAN * timespan_length;
+    }
+    if (adjusted_total_timespan < MIN_AVERAGE_TIMESPAN * timespan_length){
+      adjusted_total_timespan = MIN_AVERAGE_TIMESPAN * timespan_length;
+    }
 
     difficulty_type total_work = cumulative_difficulties[cut_end - 1] - cumulative_difficulties[cut_begin];
-	  assert(total_work > 0);
-	  
-	  uint64_t low, high;
-    mul(total_work, target_seconds, low, high);
-	  if (high != 0) {
-		  return 1;
-	  }
+    assert(total_work > 0);
 
-    uint64_t adjusted_total_timespan = adjusted_average_timespan * (length - cut_begin * 2 - 1);
-    uint64_t next_diff = low / adjusted_total_timespan;
+    uint64_t low, high;
+    mul(total_work, target_seconds, low, high);
+    if (high != 0) {
+      return 1;
+    }
+
+    uint64_t next_diff = (low + adjusted_total_timespan - 1) / adjusted_total_timespan;
     if (next_diff < 1) next_diff = 1;
 
     LOG_PRINT_L2("Total timespan: " << total_timespan << ", Adjusted total timespan: " << adjusted_total_timespan << ", Total work: " << total_work << ", Next diff: " << next_diff << ", Hashrate (H/s): " << next_diff / target_seconds);
 
     return next_diff;
-  
   }
 
 }
