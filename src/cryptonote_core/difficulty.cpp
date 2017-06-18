@@ -204,7 +204,7 @@ namespace cryptonote {
       }
       time_spans.push_back(time_span);
 
-      LOG_PRINT_L2("Timespan " << i << ": " << (time_span / 60) / 60 << ":" << (time_span > 3600 ? (time_span % 3600) / 60 : time_span / 60) << ":" << time_span % 60 << " (" << time_span << ")");
+      LOG_PRINT_L3("Timespan " << i << ": " << (time_span / 60) / 60 << ":" << (time_span > 3600 ? (time_span % 3600) / 60 : time_span / 60) << ":" << time_span % 60 << " (" << time_span << ")");
     }
     
     uint64_t timespan_length = length - cut_begin * 2 - 1;
@@ -219,19 +219,26 @@ namespace cryptonote {
     if (adjusted_total_timespan < MIN_AVERAGE_TIMESPAN * timespan_length){
       adjusted_total_timespan = MIN_AVERAGE_TIMESPAN * timespan_length;
     }
-
+    
     difficulty_type total_work = cumulative_difficulties[cut_end - 1] - cumulative_difficulties[cut_begin];
     assert(total_work > 0);
 
     uint64_t low, high;
     mul(total_work, target_seconds, low, high);
     if (high != 0) {
-      return 1;
+      return 0;
     }
 
     uint64_t next_diff = (low + adjusted_total_timespan - 1) / adjusted_total_timespan;
+    uint64_t diff_low, diff_high;
+    /* adjustment suggested by @zawy12's research */
+    mul(next_diff, 9, diff_low, diff_high);
+    if (diff_high != 0) {
+      return next_diff;
+    }
+    next_diff = (diff_low + 9)/10;
+    
     if (next_diff < 1) next_diff = 1;
-
     LOG_PRINT_L2("Total timespan: " << total_timespan << ", Adjusted total timespan: " << adjusted_total_timespan << ", Total work: " << total_work << ", Next diff: " << next_diff << ", Hashrate (H/s): " << next_diff / target_seconds);
 
     return next_diff;

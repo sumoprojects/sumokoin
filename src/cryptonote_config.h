@@ -78,7 +78,7 @@
 #define DIFFICULTY_BLOCKS_COUNT                         DIFFICULTY_WINDOW + DIFFICULTY_LAG
 
 #define DIFFICULTY_WINDOW_V2							              31
-#define DIFFICULTY_CUT_V2                               3
+#define DIFFICULTY_CUT_V2                               6
 #define DIFFICULTY_BLOCKS_COUNT_V2                      DIFFICULTY_WINDOW_V2 + DIFFICULTY_CUT_V2*2
 
 #define CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS       1
