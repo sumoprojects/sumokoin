@@ -212,7 +212,7 @@ namespace cryptonote {
     LOG_PRINT_L2("Timespan Median: " << timespan_median << ", Timespan Average: " << total_timespan / timespan_length);
 
     uint64_t total_timespan_median = timespan_median * timespan_length;
-    uint64_t adjusted_total_timespan = (total_timespan * 3 + total_timespan_median) / 4; //  0.75A + 0.25M
+    uint64_t adjusted_total_timespan = (total_timespan * 15 + total_timespan_median * 7) / 20; //  0.75A + 0.35M
     if (adjusted_total_timespan > MAX_AVERAGE_TIMESPAN * timespan_length){
       adjusted_total_timespan = MAX_AVERAGE_TIMESPAN * timespan_length;
     }
@@ -230,14 +230,6 @@ namespace cryptonote {
     }
 
     uint64_t next_diff = (low + adjusted_total_timespan - 1) / adjusted_total_timespan;
-    uint64_t diff_low, diff_high;
-    /* adjustment suggested by @zawy12's research */
-    mul(next_diff, 9, diff_low, diff_high);
-    if (diff_high != 0) {
-      return next_diff;
-    }
-    next_diff = (diff_low + 9)/10;
-    
     if (next_diff < 1) next_diff = 1;
     LOG_PRINT_L2("Total timespan: " << total_timespan << ", Adjusted total timespan: " << adjusted_total_timespan << ", Total work: " << total_work << ", Next diff: " << next_diff << ", Hashrate (H/s): " << next_diff / target_seconds);
 
