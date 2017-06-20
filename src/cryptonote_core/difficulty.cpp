@@ -197,8 +197,8 @@ namespace cryptonote {
     }
 
     std::vector<std::uint64_t> time_spans;
-    for (size_t i = cut_begin; i < cut_end - 1; i++){
-    uint64_t time_span = timestamps[i + 1] - timestamps[i];
+    for (size_t i = length - cut_begin * 2 - 2; i < length - 1; i++){
+      uint64_t time_span = timestamps[i + 1] - timestamps[i];
       if (time_span == 0) {
         time_span = 1;
       }
