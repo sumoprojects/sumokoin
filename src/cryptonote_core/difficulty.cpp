@@ -42,7 +42,7 @@
 #include "difficulty.h"
 
 #define MAX_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET*6   // 24 minutes
-#define MIN_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET/12  // 20s
+#define MIN_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET/24  // 10s
 
 namespace cryptonote {
 
@@ -196,23 +196,26 @@ namespace cryptonote {
       total_timespan = 1;
     }
 
-    std::vector<std::uint64_t> time_spans;
-    for (size_t i = cut_begin; i < cut_end - 1; i++){
-    uint64_t time_span = timestamps[i + 1] - timestamps[i];
-      if (time_span == 0) {
-        time_span = 1;
-      }
-      time_spans.push_back(time_span);
+    uint64_t timespan_median = 0;
+    if (cut_begin > 0 && length >= cut_begin * 2 + 3){
+      std::vector<std::uint64_t> time_spans;
+      for (size_t i = length - cut_begin * 2 - 3; i < length - 1; i++){
+        uint64_t time_span = timestamps[i + 1] - timestamps[i];
+        if (time_span == 0) {
+          time_span = 1;
+        }
+        time_spans.push_back(time_span);
 
-      LOG_PRINT_L3("Timespan " << i << ": " << (time_span / 60) / 60 << ":" << (time_span > 3600 ? (time_span % 3600) / 60 : time_span / 60) << ":" << time_span % 60 << " (" << time_span << ")");
+        LOG_PRINT_L3("Timespan " << i << ": " << (time_span / 60) / 60 << ":" << (time_span > 3600 ? (time_span % 3600) / 60 : time_span / 60) << ":" << time_span % 60 << " (" << time_span << ")");
+      }
+      timespan_median = epee::misc_utils::median(time_spans);
     }
-    
+
     uint64_t timespan_length = length - cut_begin * 2 - 1;
-    uint64_t timespan_median = epee::misc_utils::median(time_spans);
     LOG_PRINT_L2("Timespan Median: " << timespan_median << ", Timespan Average: " << total_timespan / timespan_length);
 
-    uint64_t total_timespan_median = timespan_median * timespan_length;
-    uint64_t adjusted_total_timespan = (total_timespan * 3 + total_timespan_median) / 4; //  0.75A + 0.25M
+    uint64_t total_timespan_median = timespan_median > 0 ? timespan_median * timespan_length : total_timespan * 7 / 10;
+    uint64_t adjusted_total_timespan = (total_timespan * 8 + total_timespan_median * 3) / 10; //  0.8A + 0.3M (the median of a poisson distribution is 70% of the mean, so 0.25A = 0.25/0.7 = 0.285M)
     if (adjusted_total_timespan > MAX_AVERAGE_TIMESPAN * timespan_length){
       adjusted_total_timespan = MAX_AVERAGE_TIMESPAN * timespan_length;
     }
@@ -230,14 +233,6 @@ namespace cryptonote {
     }
 
     uint64_t next_diff = (low + adjusted_total_timespan - 1) / adjusted_total_timespan;
-    uint64_t diff_low, diff_high;
-    /* adjustment suggested by @zawy12's research */
-    mul(next_diff, 9, diff_low, diff_high);
-    if (diff_high != 0) {
-      return next_diff;
-    }
-    next_diff = (diff_low + 9)/10;
-    
     if (next_diff < 1) next_diff = 1;
     LOG_PRINT_L2("Total timespan: " << total_timespan << ", Adjusted total timespan: " << adjusted_total_timespan << ", Total work: " << total_work << ", Next diff: " << next_diff << ", Hashrate (H/s): " << next_diff / target_seconds);
 
