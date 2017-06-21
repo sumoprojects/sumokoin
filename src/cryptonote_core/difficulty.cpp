@@ -42,7 +42,7 @@
 #include "difficulty.h"
 
 #define MAX_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET*6   // 24 minutes
-#define MIN_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET/12  // 20s
+#define MIN_AVERAGE_TIMESPAN          (uint64_t) DIFFICULTY_TARGET/24  // 10s
 
 namespace cryptonote {
 
@@ -215,7 +215,7 @@ namespace cryptonote {
     LOG_PRINT_L2("Timespan Median: " << timespan_median << ", Timespan Average: " << total_timespan / timespan_length);
 
     uint64_t total_timespan_median = timespan_median > 0 ? timespan_median * timespan_length : total_timespan * 7 / 10;
-    uint64_t adjusted_total_timespan = (total_timespan * 20 + total_timespan_median * 7) / 25; //  0.8A + 0.28M (the median of a poisson distribution is 70% of the mean, so 0.25A = 0.25/0.7 = 0.285M)
+    uint64_t adjusted_total_timespan = (total_timespan * 8 + total_timespan_median * 3) / 10; //  0.8A + 0.3M (the median of a poisson distribution is 70% of the mean, so 0.25A = 0.25/0.7 = 0.285M)
     if (adjusted_total_timespan > MAX_AVERAGE_TIMESPAN * timespan_length){
       adjusted_total_timespan = MAX_AVERAGE_TIMESPAN * timespan_length;
     }
