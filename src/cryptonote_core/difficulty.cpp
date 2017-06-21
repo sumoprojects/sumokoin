@@ -196,23 +196,26 @@ namespace cryptonote {
       total_timespan = 1;
     }
 
-    std::vector<std::uint64_t> time_spans;
-    for (size_t i = length - cut_begin * 2 - 2; i < length - 1; i++){
-      uint64_t time_span = timestamps[i + 1] - timestamps[i];
-      if (time_span == 0) {
-        time_span = 1;
-      }
-      time_spans.push_back(time_span);
+    uint64_t timespan_median = 0;
+    if (cut_begin > 0 && length >= cut_begin * 2 + 3){
+      std::vector<std::uint64_t> time_spans;
+      for (size_t i = length - cut_begin * 2 - 3; i < length - 1; i++){
+        uint64_t time_span = timestamps[i + 1] - timestamps[i];
+        if (time_span == 0) {
+          time_span = 1;
+        }
+        time_spans.push_back(time_span);
 
-      LOG_PRINT_L3("Timespan " << i << ": " << (time_span / 60) / 60 << ":" << (time_span > 3600 ? (time_span % 3600) / 60 : time_span / 60) << ":" << time_span % 60 << " (" << time_span << ")");
+        LOG_PRINT_L3("Timespan " << i << ": " << (time_span / 60) / 60 << ":" << (time_span > 3600 ? (time_span % 3600) / 60 : time_span / 60) << ":" << time_span % 60 << " (" << time_span << ")");
+      }
+      timespan_median = epee::misc_utils::median(time_spans);
     }
-    
+
     uint64_t timespan_length = length - cut_begin * 2 - 1;
-    uint64_t timespan_median = epee::misc_utils::median(time_spans);
     LOG_PRINT_L2("Timespan Median: " << timespan_median << ", Timespan Average: " << total_timespan / timespan_length);
 
-    uint64_t total_timespan_median = timespan_median * timespan_length;
-    uint64_t adjusted_total_timespan = (total_timespan * 15 + total_timespan_median * 7) / 20; //  0.75A + 0.35M
+    uint64_t total_timespan_median = timespan_median > 0 ? timespan_median * timespan_length : total_timespan * 7 / 10;
+    uint64_t adjusted_total_timespan = (total_timespan * 20 + total_timespan_median * 7) / 25; //  0.8A + 0.28M (the median of a poisson distribution is 70% of the mean, so 0.25A = 0.25/0.7 = 0.285M)
     if (adjusted_total_timespan > MAX_AVERAGE_TIMESPAN * timespan_length){
       adjusted_total_timespan = MAX_AVERAGE_TIMESPAN * timespan_length;
     }
