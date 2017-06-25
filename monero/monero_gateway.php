@@ -4,7 +4,7 @@ Plugin Name: Monero - WooCommerce Gateway
 Plugin URI: http://monerointegrations.com
 Description: Extends WooCommerce by Adding the Monero Gateway
 Version: 1.0
-Author: Nicolò Altamura
+Author: SerHack
 Author URI: http://monerointegrations.com
 */
 if ( ! defined( 'ABSPATH' ) ) {
