@@ -339,7 +339,7 @@ namespace tools
     try
     {
       uint64_t mixin = req.mixin;
-      
+      uint64_t ptx_amount;
       if (mixin < DEFAULT_MIXIN){
         LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << DEFAULT_MIXIN);
         mixin = DEFAULT_MIXIN;
@@ -362,6 +362,12 @@ namespace tools
         {
           res.tx_key_list.push_back(epee::string_tools::pod_to_hex(ptx.tx_key));
         }
+        // Compute amount leaving wallet in tx. By convention dests does not include change outputs
+        ptx_amount = 0;
+        for (auto & dt : ptx.dests)
+          ptx_amount += dt.amount;
+        res.amount_list.push_back(ptx_amount);
+
         res.fee_list.push_back(ptx.fee);
       }
 
