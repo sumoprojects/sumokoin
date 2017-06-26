@@ -2192,9 +2192,9 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
         if (transfer_type == TransferLocked)
         {
 					// Fixme: Need a better time expression in words
-          float days = locked_blocks / 1440.0f;
-					float minutes = locked_blocks * 1.0f;
-					prompt << boost::format(tr(".\nThis transaction will unlock on block %llu, in approximately %s minutes or %s days (assuming 1 minute per block)")) % ((unsigned long long)unlock_block) % minutes % days;
+          float days = locked_blocks / 360.0f;
+					float minutes = locked_blocks * 4.0f;
+					prompt << boost::format(tr(".\nThis transaction will unlock on block %llu, in approximately %s minutes or %s days (assuming 4 minutes per block)")) % ((unsigned long long)unlock_block) % minutes % days;
         }
         prompt << tr(".") << ENDL << tr("Is this okay?  (Y/Yes/N/No): ");
         
