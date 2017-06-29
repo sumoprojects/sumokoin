@@ -188,7 +188,7 @@ class Monero_Gateway extends WC_Payment_Gateway {
         $currency = $order->currency;
         $amount_xmr2 = $this->changeto($amount, $currency);
         $address = $this->address;
-        $monero_library = new Monero($this->host, $this->port);
+        $monero_library = new Monero_Payments($this->host, $this->port);
         $uri = $monero_library->make_uri($address,$amount_xmr2, '', '');
         // Generate a QR code
         echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
@@ -264,7 +264,7 @@ public function thankyou_page() {
     public function connect_daemon(){
         $host = $this->settings['daemon_host'];
         $port = $this->settings['daemon_port'];
-        $monero_library = new Monero($host, $port);
+        $monero_library = new Monero_Payments($host, $port);
         if( $monero_library->works() == true){
             echo "<div class=\"notice notice-success is-dismissible\"><p>Everything works! Congratulations and Welcome aboard Monero. <button type=\"button\" class=\"notice-dismiss\">
 		<span class=\"screen-reader-text\">Dismiss this notice.</span>
