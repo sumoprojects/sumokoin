@@ -15,9 +15,9 @@ class Monero_Gateway extends WC_Payment_Gateway {
         
     
 		$this->init_form_fields();
-        $this->host = $this->get_option('daemon_host');
-        $this->port = $this->get_option('daemon_port');
-        $this->address = $this->get_option('monero_address');
+        	$this->host = $this->get_option('daemon_host');
+       		$this->port = $this->get_option('daemon_port');
+        	$this->address = $this->get_option('monero_address');
 
 		// After init_settings() is called, you can get the settings and load them into variables, e.g:
 		// $this->title = $this->get_option('title' );
@@ -30,21 +30,11 @@ class Monero_Gateway extends WC_Payment_Gateway {
 		
        
 		add_action('admin_notices', array( $this,	'do_ssl_check' ) );
-        add_action('admin_notices', array( $this, 'validate_fields'));
+        	add_action('admin_notices', array( $this, 'validate_fields'));
         //if($this->get_option('light_mode') != true){
-         add_action('admin_notices', array( $this, 'connect_daemon'));
-      //  }
-        
-        
-        
-			
-	
-        
-        add_action('woocommerce_thankyou_' . $this->id, array( $this, 'thankyou_page' ) );
-        add_action('woocommerce_thankyou_' . $this->id, array( $this, 'instruction' ) );
-
- 
-
+         	add_action('admin_notices', array( $this, 'connect_daemon'));
+        	add_action('woocommerce_thankyou_' . $this->id, array( $this, 'thankyou_page' ) );
+        	add_action('woocommerce_thankyou_' . $this->id, array( $this, 'instruction' ) ));
 		if ( is_admin() ) {
             /* Save Settings */
 			add_action('woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
@@ -52,7 +42,7 @@ class Monero_Gateway extends WC_Payment_Gateway {
 	} 
     
     public function admin_options(){
-        echo "<h1>Monerooo</h1>";
+        echo "<h1>Monero Payment Gateway</h1>";
         echo "<p>Welcome to Monero Extension for WooCommerce. Getting started: set up a daemon, edit your settings and we can go on! Remember that you need a wallet rpc online, if you haven't it, you can use 'Light Mode'. Please attention, with light mode some features like QR code generating doesn't work. <a href='#'>Support Me</a>";
         echo "<table class='form-table'>";
         $this->generate_settings_html();
