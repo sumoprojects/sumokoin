@@ -80,7 +80,7 @@ class Monero_Gateway extends WC_Payment_Gateway {
 				'title'		=> __('Title', 'monero_gateway' ),
 				'type'		=> 'text',
 				'desc_tip'	=> __('Payment title the customer will see during the checkout process.', 'monero_gateway' ),
-				'default'	=> __('Monero XMR Payment', 'spyr-authorizenet-aim' ),
+				'default'	=> __('Monero XMR Payment', 'monero_gateway' ),
 			),
 			'description' => array(
 				'title'		=> __('Description', 'monero_gateway' ),
@@ -93,7 +93,7 @@ class Monero_Gateway extends WC_Payment_Gateway {
 				'title'		=> __('Monero Address', 'monero_gateway' ),
                 'label'     => __('Useful for people that have not a daemon online'),
 				'type'		=> 'text',
-				'desc_tip'	=> __('This is the API Login provided by Authorize.net when you signed up for an account.', 'monero_gateway' ),
+				'desc_tip'	=> __('Monero Wallet Address', 'monero_gateway' ),
 			),
             'daemon_host' => array(
                 'title'     => __('Daemon Host/ IP', 'monero_gateway'),
