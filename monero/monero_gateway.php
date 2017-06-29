@@ -18,6 +18,7 @@ function monero_init() {
 	
 	/* If we made it this far, then include our Gateway Class */
 	include_once( 'gateway.php' );
+	require_once( 'library.php');
 
 	// Lets add it too WooCommerce
     add_filter( 'woocommerce_payment_gateways', 'monero_gateway' );
