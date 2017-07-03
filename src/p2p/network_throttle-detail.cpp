@@ -78,7 +78,6 @@
 #include "../../src/p2p/network_throttle-detail.hpp"
 
 #include "../../contrib/otshell_utils/utils.hpp"
-#include "data_logger.hpp"
 using namespace nOT::nUtils;
 
 // ################################################################################################
@@ -241,9 +240,7 @@ network_time_seconds network_throttle::get_sleep_time_after_tick(size_t packet_s
 }
 
 void network_throttle::logger_handle_net(const std::string &filename, double time, size_t size) {
-	if (! epee::net_utils::data_logger::m_save_graph)
-		return;
-    boost::mutex mutex;
+	  boost::mutex mutex;
     mutex.lock(); {
         std::fstream file;
         file.open(filename.c_str(), std::ios::app | std::ios::out );

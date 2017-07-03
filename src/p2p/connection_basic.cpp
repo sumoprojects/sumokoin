@@ -78,7 +78,6 @@
 #include "../../contrib/epee/include/net/abstract_tcp_server2.h"
 
 #include "../../contrib/otshell_utils/utils.hpp"
-#include "data_logger.hpp"
 using namespace nOT::nUtils;
 
 // TODO:
@@ -220,18 +219,6 @@ uint64_t connection_basic::get_rate_down_limit() {
 
 void connection_basic::save_limit_to_file(int limit) {
     // saving limit to file
-    if (!epee::net_utils::data_logger::m_save_graph)
-		return;
-
-    {
-         CRITICAL_REGION_LOCAL(        network_throttle_manager::m_lock_get_global_throttle_out );
-               epee::net_utils::data_logger::get_instance().add_data("upload_limit", network_throttle_manager::get_global_throttle_out().get_target_speed() / 1024);
-	}
-	
-    {
-         CRITICAL_REGION_LOCAL(        network_throttle_manager::m_lock_get_global_throttle_in );
-               epee::net_utils::data_logger::get_instance().add_data("download_limit", network_throttle_manager::get_global_throttle_in().get_target_speed() / 1024);
-	}
 }
  
 void connection_basic::set_tos_flag(int tos) {
@@ -261,7 +248,6 @@ void connection_basic::sleep_before_packet(size_t packet_size, int phase,  int q
             long int ms = (long int)(delay * 1000);
 			_info_c("net/sleep", "Sleeping in " << __FUNCTION__ << " for " << ms << " ms before packet_size="<<packet_size); // debug sleep
 			_dbg1("sleep in sleep_before_packet");
-			epee::net_utils::data_logger::get_instance().add_data("sleep_up", ms);
 			boost::this_thread::sleep(boost::posix_time::milliseconds( ms ) );
 		}
 	} while(delay > 0);
@@ -292,13 +278,11 @@ void connection_basic::do_send_handler_write_from_queue( const boost::system::er
 }
 
 void connection_basic::logger_handle_net_read(size_t size) { // network data read
-    size /= 1024;
-    epee::net_utils::data_logger::get_instance().add_data("download", size);
+    
 }
 
 void connection_basic::logger_handle_net_write(size_t size) {
-    size /= 1024;
-    epee::net_utils::data_logger::get_instance().add_data("upload", size);	
+    
 }
 
 double connection_basic::get_sleep_time(size_t cb) {
@@ -308,7 +292,6 @@ double connection_basic::get_sleep_time(size_t cb) {
 }
 
 void connection_basic::set_save_graph(bool save_graph) {
-	epee::net_utils::data_logger::m_save_graph = save_graph;
 }
 
 

@@ -52,7 +52,6 @@
 #include "../../../../src/cryptonote_core/cryptonote_core.h" // e.g. for the send_stop_signal()
 
 #include "../../../../contrib/otshell_utils/utils.hpp"
-#include "../../../../src/p2p/data_logger.hpp"
 using namespace nOT::nUtils; // TODO
 
 #define CONNECTION_CLEANUP_TIME 30 // seconds
@@ -306,7 +305,6 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 				delay *= 0.5;
 				if (delay > 0) {
 					long int ms = (long int)(delay * 100);
-					epee::net_utils::data_logger::get_instance().add_data("sleep_down", ms);
 					boost::this_thread::sleep_for(boost::chrono::milliseconds(ms));
 				}
 			} while(delay > 0);
