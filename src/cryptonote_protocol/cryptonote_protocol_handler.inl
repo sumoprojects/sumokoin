@@ -43,7 +43,6 @@
 #include "profile_tools.h"
 #include "../../contrib/otshell_utils/utils.hpp"
 #include "../../src/p2p/network_throttle-detail.hpp"
-#include "../../src/p2p/data_logger.hpp"
 using namespace nOT::nUtils;
 
 namespace cryptonote
@@ -913,9 +912,6 @@ namespace cryptonote
 
           TIME_MEASURE_FINISH(block_process_time);
           LOG_PRINT_CCONTEXT_L2("Block process time: " << block_process_time + transactions_process_time << "(" << transactions_process_time << "/" << block_process_time << ")ms");
-
-          epee::net_utils::data_logger::get_instance().add_data("calc_time", block_process_time + transactions_process_time);
-          epee::net_utils::data_logger::get_instance().add_data("block_processing", 1);
 
         } // each download block
         m_core.cleanup_handle_incoming_blocks();

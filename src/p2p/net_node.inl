@@ -48,7 +48,6 @@
 #include "net/local_ip.h"
 #include "crypto/crypto.h"
 #include "storages/levin_abstract_invoke2.h"
-#include "data_logger.hpp"
 
 // We have to look for miniupnpc headers in different places, dependent on if its compiled or external
 #ifdef UPNP_STATIC
@@ -599,11 +598,6 @@ namespace nodetool
           if (!cntxt.m_is_income) ++number_of_peers;
           return true;
         }); // lambda
-
-        m_current_number_of_out_peers = number_of_peers;
-        if (epee::net_utils::data_logger::is_dying())
-          break;
-        epee::net_utils::data_logger::get_instance().add_data("peers", number_of_peers);
 
         boost::this_thread::sleep_for(boost::chrono::seconds(1));
       } // main loop of thread
@@ -1596,10 +1590,8 @@ namespace nodetool
   {
     if(max == -1) {
       m_config.m_net_config.connections_count = P2P_DEFAULT_CONNECTIONS_COUNT;
-      epee::net_utils::data_logger::get_instance().add_data("peers_limit", m_config.m_net_config.connections_count);
       return true;
     }
-    epee::net_utils::data_logger::get_instance().add_data("peers_limit", max);
     m_config.m_net_config.connections_count = max;
     return true;
   }
