@@ -318,9 +318,8 @@ namespace tools
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  bool wallet_rpc_server::on_transfer_split(const wallet_rpc::COMMAND_RPC_TRANSFER_SPLIT::request& req, wallet_rpc::COMMAND_RPC_TRANSFER_SPLIT::response& res, epee::json_rpc::error& er, bool retry, float tx_size_target_factor)
+  bool wallet_rpc_server::on_transfer_split(const wallet_rpc::COMMAND_RPC_TRANSFER_SPLIT::request& req, wallet_rpc::COMMAND_RPC_TRANSFER_SPLIT::response& res, epee::json_rpc::error& er, float tx_size_target_factor)
   {
-
     std::vector<cryptonote::tx_destination_entry> dsts;
     std::vector<uint8_t> extra;
 
@@ -337,6 +336,7 @@ namespace tools
       return false;
     }
 
+    bool retry = false;
     try
     {
       uint64_t mixin = req.mixin;
@@ -400,7 +400,7 @@ namespace tools
     }
 
     if (retry){
-      on_transfer_split(req, res, er, retry, tx_size_target_factor);
+      on_transfer_split(req, res, er, tx_size_target_factor);
     }
 
     return true;
