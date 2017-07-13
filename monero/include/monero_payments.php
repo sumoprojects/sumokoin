@@ -15,8 +15,8 @@ class Monero_Gateway extends WC_Payment_Gateway {
         
     
 		$this->init_form_fields();
-        	$this->host = $this->get_option('daemon_host');
-       		$this->port = $this->get_option('daemon_port');
+        	//$this->host = $this->get_option('daemon_host');
+       		//$this->port = $this->get_option('daemon_port');
         	$this->address = $this->get_option('monero_address');
 
 		// After init_settings() is called, you can get the settings and load them into variables, e.g:
@@ -32,8 +32,8 @@ class Monero_Gateway extends WC_Payment_Gateway {
 		add_action('admin_notices', array( $this,	'do_ssl_check' ) );
         	add_action('admin_notices', array( $this, 'validate_fields'));
         //if($this->get_option('light_mode') != true){
-         	add_action('admin_notices', array( $this, 'connect_daemon'));
-        	add_action('woocommerce_thankyou_' . $this->id, array( $this, 'thankyou_page' ) );
+         	
+        	
         	add_action('woocommerce_thankyou_' . $this->id, array( $this, 'instruction' ) ));
 		if ( is_admin() ) {
             /* Save Settings */
@@ -43,7 +43,7 @@ class Monero_Gateway extends WC_Payment_Gateway {
     
     public function admin_options(){
         echo "<h1>Monero Payment Gateway</h1>";
-        echo "<p>Welcome to Monero Extension for WooCommerce. Getting started: set up a daemon, edit your settings and we can go on! Remember that you need a wallet rpc online, if you haven't it, you can use 'Light Mode'. Please attention, with light mode some features like QR code generating doesn't work. <a href='#'>Support Me</a>";
+        echo "<p>Welcome to Monero Extension for WooCommerce. Getting started: Add your address :D <a href='https://reddit.com/u/serhack'>Support Me</a>";
         echo "<table class='form-table'>";
         $this->generate_settings_html();
         echo "</table>";
@@ -60,12 +60,7 @@ class Monero_Gateway extends WC_Payment_Gateway {
 				'type'		=> 'checkbox',
 				'default'	=> 'no',
 			),
-            'light_mode' => array(
-                'title'     => __('Enable Light Mode', 'monero_gateway'),
-                'label'     => __('Enable light mode without a wallet rpc', 'monero_gateway' ),
-                'type'      => 'checkbox',
-                'default'   => 'no',
-            ),
+           
 			'title' => array(
 				'title'		=> __('Title', 'monero_gateway' ),
 				'type'		=> 'text',
@@ -85,7 +80,7 @@ class Monero_Gateway extends WC_Payment_Gateway {
 				'type'		=> 'text',
 				'desc_tip'	=> __('Monero Wallet Address', 'monero_gateway' ),
 			),
-            'daemon_host' => array(
+    /*        'daemon_host' => array(
                 'title'     => __('Daemon Host/ IP', 'monero_gateway'),
                 'type'      => 'text',
                 'desc_tip'  => __('This is the Daemon Host/IP to authorize the payment with port', 'monero_gateway'),
@@ -96,7 +91,7 @@ class Monero_Gateway extends WC_Payment_Gateway {
                 'type'      => 'text',
                 'desc_tip'  => __('This is the Daemon Host/IP to authorize the payment with port', 'monero_gateway'),
                 'default'   => 'localhost',
-            ),
+            ), */
      
 			'environment' => array(
 				'title'		=> __(' Test Mode', 'monero_gateway' ),
@@ -126,14 +121,9 @@ class Monero_Gateway extends WC_Payment_Gateway {
         return $new_amount;
     }
     
-    public function changetoxmr($price, $product){
-    
-    }
+  
 	// Submit payment and handle response
 	public function process_payment( $order_id ) {
-
-     
-	
     $order = wc_get_order( $order_id );
     $order->update_status('on-hold', __('Awaiting offline payment', 'monero_gateway' ) );
     // Reduce stock levels
@@ -178,8 +168,9 @@ class Monero_Gateway extends WC_Payment_Gateway {
         $currency = $order->currency;
         $amount_xmr2 = $this->changeto($amount, $currency);
         $address = $this->address;
-        $monero_library = new Monero_Payments($this->host, $this->port);
-        $uri = $monero_library->make_uri($address,$amount_xmr2, '', '');
+       // $monero_library = new Monero_Payments($this->host, $this->port);
+        //$uri = $monero_library->make_uri($address,$amount_xmr2, '', '');
+	    $uri = "monero:$address?amount=$amount";
         // Generate a QR code
         echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
         <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
@@ -223,7 +214,11 @@ class Monero_Gateway extends WC_Payment_Gateway {
           <h4 class='modal-title'>How to pay with Monero</h4>
         </div>
         <div class='modal-body container'>
-            <h5>Instruction Here</h5>
+           <b>Paying with Monero</b>
+	   <p>If you don't have Monero, you can buy it in some markets. If you have, please follow instructions<p>
+	   <p>Scan QR Code with Monero App, if you don't have Monero App, please copy the url on your browser.. It will open Monero Wallet GUI. 
+	   Submit payment with a click and finish!
+	   My english is so poor, please write me suggestions!! :D
         </div>
         <div class='modal-footer'>
           <button type='button' class='btn btn-default' data-dismiss='modal'>Close</button>
@@ -233,13 +228,7 @@ class Monero_Gateway extends WC_Payment_Gateway {
       </div>
         ";
     }
-/**
- * Output for the order received page.
- */
-public function thankyou_page() {
-    $payment_id = bin2hex(openssl_random_pseudo_bytes(32));
-  
-}
+
     
 	// Check if we are forcing SSL on checkout pages
 	// Custom function not required by the Gateway
@@ -251,20 +240,6 @@ public function thankyou_page() {
 		}		
 	}
     
-    public function connect_daemon(){
-        $host = $this->settings['daemon_host'];
-        $port = $this->settings['daemon_port'];
-        $monero_library = new Monero_Payments($host, $port);
-        if( $monero_library->works() == true){
-            echo "<div class=\"notice notice-success is-dismissible\"><p>Everything works! Congratulations and Welcome aboard Monero. <button type=\"button\" class=\"notice-dismiss\">
-		<span class=\"screen-reader-text\">Dismiss this notice.</span>
-	</button></p></div>";
-         
-        }
-        else{
-            echo "<div class=\" notice notice-error\"><p>Error with connection of daemon, see documentation!</p></div>";
-        } 
-        
-    }
+    
     
 } 
