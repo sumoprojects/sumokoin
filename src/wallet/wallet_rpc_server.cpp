@@ -28,6 +28,7 @@
 // 
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 #include <boost/asio/ip/address.hpp>
+#include <boost/format.hpp>
 #include <cstdint>
 #include "include_base_utils.h"
 using namespace epee;
@@ -317,9 +318,8 @@ namespace tools
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  bool wallet_rpc_server::on_transfer_split(const wallet_rpc::COMMAND_RPC_TRANSFER_SPLIT::request& req, wallet_rpc::COMMAND_RPC_TRANSFER_SPLIT::response& res, epee::json_rpc::error& er)
+  bool wallet_rpc_server::on_transfer_split(const wallet_rpc::COMMAND_RPC_TRANSFER_SPLIT::request& req, wallet_rpc::COMMAND_RPC_TRANSFER_SPLIT::response& res, epee::json_rpc::error& er, float tx_size_target_factor)
   {
-
     std::vector<cryptonote::tx_destination_entry> dsts;
     std::vector<uint8_t> extra;
 
@@ -336,6 +336,7 @@ namespace tools
       return false;
     }
 
+    bool retry = false;
     try
     {
       uint64_t mixin = req.mixin;
@@ -350,7 +351,7 @@ namespace tools
       }
       
       std::vector<wallet2::pending_tx> ptx_vector;
-      ptx_vector = m_wallet.create_transactions_2(dsts, mixin, req.unlock_time, req.priority, extra, req.trusted_daemon);
+      ptx_vector = m_wallet.create_transactions_2(dsts, mixin, req.unlock_time, req.priority, extra, req.trusted_daemon, tx_size_target_factor);
 
       m_wallet.commit_tx(ptx_vector);
 
@@ -379,6 +380,12 @@ namespace tools
       er.message = e.what();
       return false;
     }
+    catch (const tools::error::tx_too_big& e)
+    {
+      tx_size_target_factor = floorf((tx_size_target_factor * e.tx_size_limit() / get_object_blobsize(e.tx())) * 100) / 100;
+      LOG_ERROR( boost::format(tr("constructed tx too big: tx size = %s bytes, limit = %s bytes; retrying with smaller tx_size_target_factor = %s...")) % get_object_blobsize(e.tx()) % e.tx_size_limit() % tx_size_target_factor );
+      retry = true;
+    }
     catch (const std::exception& e)
     {
       er.code = WALLET_RPC_ERROR_CODE_GENERIC_TRANSFER_ERROR;
@@ -391,6 +398,11 @@ namespace tools
       er.message = "WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR";
       return false;
     }
+
+    if (retry){
+      on_transfer_split(req, res, er, tx_size_target_factor);
+    }
+
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
