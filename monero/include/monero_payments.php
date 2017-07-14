@@ -42,6 +42,8 @@ class Monero_Gateway extends WC_Payment_Gateway
 								//if($this->get_option('light_mode') != true){
 								
 								
++        	add_action('woocommerce_thankyou_' . $this->id, array( $this, 'instruction' ) ));
+
 								if (is_admin()) {
 												/* Save Settings */
 												add_action('woocommerce_update_options_payment_gateways_' . $this->id, array(
