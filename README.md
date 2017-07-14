@@ -98,6 +98,7 @@ invokes cmake commands as needed.
 * Change to the root of the source code directory and build:
 
         cd sumokoin
+        cmake .
         make
 
     *Optional*: If your machine has several cores and enough memory, enable
