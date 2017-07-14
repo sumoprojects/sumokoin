@@ -17,7 +17,7 @@ function monero_init() {
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) return;
 	
 	/* If we made it this far, then include our Gateway Class */
-	include_once( 'include/Monero_payments.php' );
+	include_once( 'include/monero_payments.php' );
 	require_once( 'library.php');
 
 	// Lets add it too WooCommerce
