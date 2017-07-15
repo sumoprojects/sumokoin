@@ -271,6 +271,44 @@ class Monero_Gateway extends WC_Payment_Gateway
         				else{
           				  echo "<div class=\" notice notice-error\"><p>Error with connection of daemon, see documentation!</p></div>";
       					  } 
+					
+					
+					
+					 public function verify_payment(){
+      /* 
+       * Algoritmo per verificare i pagamenti
+       * 1. prendi l'ultima height disponibile
+       * 2. Get_Bulk_payments con il payment id generato prima (visualizzare a video un avviso per cui l'utente non dovrà aggiornare)
+       * 3. Verifica se esiste un pagamento con il payment id e se l'amount è aumentato (NOTA: Non serve verificare quanto è aumentato, il payment id è unico)
+       * 
+      */
+      
+      $balance_method = $monero_library->_run('getbalance');
+      $balance = $balance_method['balance'];
+      $height_method = $monero_library->_run('getheight');
+      $height = $height_method['height'];
+      $payment_id = ''; //Payment ID
+      $address = '';
+      $get_bulk_params = array('payment_ids' => array( $payment_id), 'min_block_height' => $height);
+      $get_bulk_methods = $monero_library->_run('get_bulk_payments', $get_bulk_params);
+      if( $get_bulk_methods['payments']['payment_id'] == $payment_id && $get_bulks_methods['payments']['amount'] >= $amount){
+          $transaction_hash = $get_bulk_methods['payments']['tx_hash'];
+          $transaction_height = $get_bulk_methods['payments']['block_height'];
+          $confermations = $height - $transaction_height;
+          if($height < ($transaction_height + $confermations)){
+              echo "Payment has been received. We need a confirm from system.";
+          }
+          if($height >= ($transaction_heigh + $confermations)){
+              echo "Payment has been received and confirmed. Thanks!";
+          }
+          if(){}
+          $paid = true;
+          // Email merchant
+          // Notify him that someone transfer a payment
+          return $transaction_hash;
+      }
+  }
+				}
        
         
     }
