@@ -188,8 +188,8 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$currency    = $order->currency;
 								$amount_xmr2 = $this->changeto($amount, $currency);
 								$address     = $this->address;
-								
-								$uri         = "monero:$address?amount=$amount";
+								$payment_id  = bin2hex(openssl_random_pseudo_bytes(32));
+								$uri         = "monero:$address?amount=$amount?payment_id=$payment_id";
 								// Generate a QR code
 								echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
         								<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
