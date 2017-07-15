@@ -191,9 +191,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$payment_id  = bin2hex(openssl_random_pseudo_bytes(32));
 								$uri         = "monero:$address?amount=$amount?payment_id=$payment_id";
 								// Generate a QR code
-								echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
-        								<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
- 										 <script src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'></script>";
+								echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
 								
 								echo "<div class='row'>
 				
@@ -210,7 +208,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 					<div class='col-sm-9 col-md-9 col-lg-9' style='padding:10px;'>
 						Send <b>" . $amount_xmr2 . " XMR</b> to<br/><input type='text'  class='form-control' value='" . $this->address . "'>
 						or scan QR Code with your mobile device<br/><br/>
-                        <input type='text' value='" . $uri . "
+                        <input type='text' value='" . $payment_id . "'>
 						<small>If you don't know how to pay with monero, click instructions button. </small>
 					</div>
 					<div class='col-sm-12 col-md-12 col-lg-12'>
