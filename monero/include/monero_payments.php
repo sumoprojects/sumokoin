@@ -308,7 +308,7 @@ class Monero_Gateway extends WC_Payment_Gateway
           return $transaction_hash;
       }
   }
-				}
+				
        
         
     }
