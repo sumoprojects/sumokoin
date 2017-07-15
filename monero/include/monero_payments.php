@@ -40,11 +40,11 @@ class Monero_Gateway extends WC_Payment_Gateway
 												'validate_fields'
 								));
 					
-								add_action('admin_notices', array( $this, 'connect_daemon'));
 								
 								
 								
-       								add_action('woocommerce_thankyou_' . $this->id, array( $this, 'instruction' ) ));
+								
+       								add_action('woocommerce_thankyou_' . $this->id, array( $this, 'instruction' ) );
 
 								if (is_admin()) {
 												/* Save Settings */
