@@ -17,8 +17,8 @@ class Monero_Gateway extends WC_Payment_Gateway
 								
 								
 								$this->init_form_fields();
-								//$this->host = $this->get_option('daemon_host');
-								//$this->port = $this->get_option('daemon_port');
+								$this->host = $this->get_option('daemon_host');
+								$this->port = $this->get_option('daemon_port');
 								$this->address = $this->get_option('monero_address');
 								
 								// After init_settings() is called, you can get the settings and load them into variables, e.g:
@@ -39,10 +39,12 @@ class Monero_Gateway extends WC_Payment_Gateway
 												$this,
 												'validate_fields'
 								));
-								//if($this->get_option('light_mode') != true){
+					
+								add_action('admin_notices', array( $this, 'connect_daemon'));
 								
 								
-+        	add_action('woocommerce_thankyou_' . $this->id, array( $this, 'instruction' ) ));
+								
+       								add_action('woocommerce_thankyou_' . $this->id, array( $this, 'instruction' ) ));
 
 								if (is_admin()) {
 												/* Save Settings */
@@ -56,7 +58,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 				public function admin_options()
 				{
 								echo "<h1>Monero Payment Gateway</h1>";
-								echo "<p>Welcome to Monero Extension for WooCommerce. Getting started: Add your address :D <a href='https://reddit.com/u/serhack'>Support Me</a>";
+								echo "<p>Welcome to Monero Extension for WooCommerce. Getting started: Make a connection with daemon <a href='https://reddit.com/u/serhack'>Contact Me</a>";
 								echo "<table class='form-table'>";
 								$this->generate_settings_html();
 								echo "</table>";
@@ -94,7 +96,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 																'type' => 'text',
 																'desc_tip' => __('Monero Wallet Address', 'monero_gateway')
 												),
-												/*        'daemon_host' => array(
+												        'daemon_host' => array(
 												'title'     => __('Daemon Host/ IP', 'monero_gateway'),
 												'type'      => 'text',
 												'desc_tip'  => __('This is the Daemon Host/IP to authorize the payment with port', 'monero_gateway'),
@@ -104,8 +106,8 @@ class Monero_Gateway extends WC_Payment_Gateway
 												'title'     => __('Daemon PORT', 'monero_gateway'),
 												'type'      => 'text',
 												'desc_tip'  => __('This is the Daemon Host/IP to authorize the payment with port', 'monero_gateway'),
-												'default'   => 'localhost',
-												), */
+												'default'   => '18080',
+												), 
 												
 												'environment' => array(
 																'title' => __(' Test Mode', 'monero_gateway'),
@@ -186,8 +188,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$currency    = $order->currency;
 								$amount_xmr2 = $this->changeto($amount, $currency);
 								$address     = $this->address;
-								// $monero_library = new Monero_Payments($this->host, $this->port);
-								//$uri = $monero_library->make_uri($address,$amount_xmr2, '', '');
+								
 								$uri         = "monero:$address?amount=$amount";
 								// Generate a QR code
 								echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>
@@ -259,6 +260,22 @@ class Monero_Gateway extends WC_Payment_Gateway
 								}
 				}
 				
+				public function connect_daemon(){
+      					  $host = $this->settings['daemon_host'];
+      					  $port = $this->settings['daemon_port'];
+        				  $monero_library = new Monero($host, $port);
+      					  if( $monero_library->works() == true){
+         				   echo "<div class=\"notice notice-success is-dismissible\"><p>Everything works! Congratulations and Welcome aboard Monero. <button type=\"button\" class=\"notice-dismiss\">
+						<span class=\"screen-reader-text\">Dismiss this notice.</span>
+						</button></p></div>";
+         
+        				}
+        				else{
+          				  echo "<div class=\" notice notice-error\"><p>Error with connection of daemon, see documentation!</p></div>";
+      					  } 
+       
+        
+    }
 				
 				
 }
