@@ -306,8 +306,8 @@ class Monero_Gateway extends WC_Payment_Gateway
           // Email merchant
           // Notify him that someone transfer a payment
           return $transaction_hash;
-      }*/
-  } 
+      }
+  }*/ 
        
         
     }
