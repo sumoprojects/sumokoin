@@ -281,7 +281,7 @@ class Monero_Gateway extends WC_Payment_Gateway
        * 2. Get_Bulk_payments con il payment id generato prima (visualizzare a video un avviso per cui l'utente non dovrà aggiornare)
        * 3. Verifica se esiste un pagamento con il payment id e se l'amount è aumentato (NOTA: Non serve verificare quanto è aumentato, il payment id è unico)
        * 
-      */
+      
       
       $balance_method = $monero_library->_run('getbalance');
       $balance = $balance_method['balance'];
@@ -306,9 +306,8 @@ class Monero_Gateway extends WC_Payment_Gateway
           // Email merchant
           // Notify him that someone transfer a payment
           return $transaction_hash;
-      }
-  }
-				
+      }*/
+  } 
        
         
     }
