@@ -270,7 +270,7 @@ class Monero_Gateway extends WC_Payment_Gateway
         				}
         				else{
           				  echo "<div class=\" notice notice-error\"><p>Error with connection of daemon, see documentation!</p></div>";
-      					  } 
+      					  } }
 					
 					
 					
