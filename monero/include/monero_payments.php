@@ -232,10 +232,8 @@ class Monero_Gateway extends WC_Payment_Gateway
         </div>
         <div class='modal-body container'>
            <b>Paying with Monero</b>
-	   <p>If you don't have Monero, you can buy it in some markets. If you have, please follow instructions<p>
-	   <p>Scan QR Code with Monero App, if you don't have Monero App, please copy the url on your browser.. It will open Monero Wallet GUI. 
-	   Submit payment with a click and finish!
-	   My english is so poor, please write me suggestions!! :D
+	   <p>If you don't have Monero, you can buy it at a trusted exchange. If you already have some, please follow instructions</p>
+	   <p>Scan the QR code into your monero app or copy and paste the address above into your Monero Wallet</p>
         </div>
         <div class='modal-footer'>
           <button type='button' class='btn btn-default' data-dismiss='modal'>Close</button>
