@@ -3,16 +3,8 @@
 
 class Monero_Gateway extends WC_Payment_Gateway
 {
-    private $monero_daemon;
-
-    private function _run($method,$params = null) {
-      $result = $this->monero_daemon->_run($method, $params);
-       return $result;
-    }
-    private function _print($json){
-        $json_encoded = json_encode($json,  JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        echo $json_encoded;
-    }		
+	private $monero_daemon;
+	
 				function __construct()
 				{
 								
@@ -62,7 +54,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 																'process_admin_options'
 												));
 								}
-					$this->monero_daemon = new jsonRPCClient($this->host . ':' . $this->port . '/json_rpc');
+					$this->monero_daemon = new Monero_Library($this->host . ':' . $this->port . '/json_rpc');
 				}
 				
 				public function admin_options()
@@ -146,7 +138,8 @@ class Monero_Gateway extends WC_Payment_Gateway
 				{
 								$xmr_live_price = $this->retriveprice($currency);
 								$new_amount     = $amount / $xmr_live_price;
-								return $new_amount;
+								$rounded_amount = round($new_amount, 12); //the moneo wallet can't handle decimals smaller than 0.000000000001
+								return $rounded_amount;
 				}
 				
 				
@@ -188,15 +181,8 @@ class Monero_Gateway extends WC_Payment_Gateway
 												return true;
 								}
 								return false;
-				}
+				} 
 				
-				public function make_integrated_address($payment_id)
-				{
-					$integrate_address_parameters = array('payment_id' => $payment_id);
-					$integrate_address_method = $this->_run('make_integrated_address', $integrate_address_parameters);
-					return $integrate_address_method;
-				}
-
 				public function instruction($order_id)
 				{
 								$order       = wc_get_order($order_id);
@@ -206,7 +192,8 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$address     = $this->address;
 								$payment_id  = bin2hex(openssl_random_pseudo_bytes(8));
 								$uri         = "monero:$address?amount=$amount?payment_id=$payment_id";
-								$array_integrated_address = $this->make_integrated_address($payment_id);
+								$array_integrated_address = $this->monero_daemon->make_integrated_address($payment_id);
+								
 								// Generate a QR code
 								echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
 								
@@ -223,7 +210,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 						<img src='https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=" . $uri . "' class='img-responsive'>
 					</div>
 					<div class='col-sm-9 col-md-9 col-lg-9' style='padding:10px;'>
-						Send <b>" . $amount_xmr2 . " XMR</b> to<br/><input type='text'  class='form-control' value='" . $array_integrated_address["integrated_address"] . "'>
+						Send <b>" . $amount_xmr2 . " XMR</b> to<br/><input type='text'  class='form-control' value='" . $array_integrated_address["integrated_address"]."'>
 						or scan QR Code with your mobile device<br/><br/>
 						<small>If you don't know how to pay with monero, click instructions button. </small>
 					</div>
@@ -256,8 +243,7 @@ class Monero_Gateway extends WC_Payment_Gateway
         </div>
       </div>
       </div>
-      </div>
-        ";
+      </div>";
 				}
 				
 				
@@ -324,6 +310,6 @@ class Monero_Gateway extends WC_Payment_Gateway
   }*/ 
        
         
-    }
-								
+    }			
+				
 }
