@@ -276,10 +276,10 @@ class Monero_Gateway extends WC_Payment_Gateway
 					
 					 public function verify_payment(){
       /* 
-       * Algoritmo per verificare i pagamenti
-       * 1. prendi l'ultima height disponibile
-       * 2. Get_Bulk_payments con il payment id generato prima (visualizzare a video un avviso per cui l'utente non dovrà aggiornare)
-       * 3. Verifica se esiste un pagamento con il payment id e se l'amount è aumentato (NOTA: Non serve verificare quanto è aumentato, il payment id è unico)
+       * function for verifying payments
+       * 1. Get the latest block height available
+       * 2. Get_Bulk_payments with the first payment id generated 
+       * 3. Verify that a payment has been made with the given payment id
        * 
       
       
