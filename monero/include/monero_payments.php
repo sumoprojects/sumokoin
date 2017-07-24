@@ -114,7 +114,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 													'title' => __('username',  'monero_gateway'),
 													'desc_tip' => __('This is the username that you used with your monero wallet-rpc', 'monero_gateway'),
 													'type' => __('text'),
-													'default' => __('username')
+													'default' => __('username','monero_gateway'),
 													
 												),
 												'password' => array(
@@ -122,7 +122,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 													'desc_tip' => __('This is the password that you used with your monero wallet-rpc', 'monero_gateway'),
 													'description' => __('you can leave these fields empty if you did not set', 'monero_gateway'),
 													'type' => __('text'),
-													'default' => __('password')
+													'default' => ''
 													
 												),
 												'environment' => array(
