@@ -27,7 +27,7 @@ This Monero plugin is an extension of WooCommerce, which works with WordPress
 
 * Start the monero daemon on your server and leave it running in the background. This can be accomplished by running `./monerod` inside your monero downloads folder.
 
-* Start the Wallet RPC and leave it running in the background. This can be accomplished by running `monero-wallet-rpc --rpc-bind-port 18081 --disable-rpc-login --wallet-file /path/walletfile` where "/path/walletfile" is your actual wallet file.
+* Start the Wallet RPC and leave it running in the background. This can be accomplished by running `monero-wallet-rpc --rpc-bind-port 18081 --rpc-login username:password --wallet-file /path/walletfile` where "username:password" is the username and password that you want to use, seperated by a colon and  "/path/walletfile" is your actual wallet file.
 
 ## Step 3: Setup Monero Gateway in WooCommerce
 
@@ -45,4 +45,9 @@ This Monero plugin is an extension of WooCommerce, which works with WordPress
 
 * Enter the port number of the Wallet RPC in the box labeled "Daemon PORT" (will be `18081` if you used the above example).
 
+* Enter the username and password that you want to use in their respective feilds
+
 * Click on "Save changes"
+
+## Info on server authentication
+It is reccommended that you specify a username/password with your wallet rpc. This can be done by starting your wallet rpc with `monero-wallet-rpc --rpc-bind-port 18081 --rpc-login username:password --wallet-file /path/walletfile` where "username:password" is the username and password that you want to use, seperated by a colon. Alternatively, you can use the `--restricted-rpc` flag with the wallet rpc like so `./monero-wallet-rpc --testnet --rpc-bind-port 2808 --restricted-rpc --wallet-file testnetWallet`.
