@@ -4,7 +4,6 @@
 class Monero_Gateway extends WC_Payment_Gateway
 {
 	private $monero_daemon;
-	
 				function __construct()
 				{
 								
@@ -21,6 +20,8 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$this->host = $this->get_option('daemon_host');
 								$this->port = $this->get_option('daemon_port');
 								$this->address = $this->get_option('monero_address');
+								$this->username = $this->get_option('username');
+								$this->password = $this->get_option('password');
 								
 								// After init_settings() is called, you can get the settings and load them into variables, e.g:
 								// $this->title = $this->get_option('title' );
@@ -30,7 +31,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								foreach ($this->settings as $setting_key => $value) {
 												$this->$setting_key = $value;
 								}
-								
+
 								
 								add_action('admin_notices', array(
 												$this,
@@ -44,7 +45,6 @@ class Monero_Gateway extends WC_Payment_Gateway
 								
 								
 								
-								
        								add_action('woocommerce_thankyou_' . $this->id, array( $this, 'instruction' ) );
 
 								if (is_admin()) {
@@ -54,7 +54,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 																'process_admin_options'
 												));
 								}
-					$this->monero_daemon = new Monero_Library($this->host . ':' . $this->port . '/json_rpc');
+					$this->monero_daemon = new Monero_Library($this->host . ':' . $this->port . '/json_rpc', $this->username, $this->password);
 				}
 				
 				public function admin_options()
@@ -64,7 +64,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								echo "<table class='form-table'>";
 								$this->generate_settings_html();
 								echo "</table>";
-								
+								echo "<h4>Learn more about using a password with the monero wallet-rpc <a href=\"https://github.com/cryptochangements34/monerowp/blob/master/README.md\">here</a></h4>";
 				}
 				
 				
@@ -98,7 +98,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 																'type' => 'text',
 																'desc_tip' => __('Monero Wallet Address', 'monero_gateway')
 												),
-												        'daemon_host' => array(
+												'daemon_host' => array(
 												'title'     => __('Daemon Host/ IP', 'monero_gateway'),
 												'type'      => 'text',
 												'desc_tip'  => __('This is the Daemon Host/IP to authorize the payment with port', 'monero_gateway'),
@@ -110,14 +110,28 @@ class Monero_Gateway extends WC_Payment_Gateway
 												'desc_tip'  => __('This is the Daemon Host/IP to authorize the payment with port', 'monero_gateway'),
 												'default'   => '18080',
 												), 
-												
+												'username' => array(
+													'title' => __('username',  'monero_gateway'),
+													'desc_tip' => __('This is the username that you used with your monero wallet-rpc', 'monero_gateway'),
+													'type' => __('text'),
+													'default' => __('username')
+													
+												),
+												'password' => array(
+													'title' => __('password',  'monero_gateway'),
+													'desc_tip' => __('This is the password that you used with your monero wallet-rpc', 'monero_gateway'),
+													'description' => __('you can leave these fields empty if you did not set', 'monero_gateway'),
+													'type' => __('text'),
+													'default' => __('password')
+													
+												),
 												'environment' => array(
 																'title' => __(' Test Mode', 'monero_gateway'),
 																'label' => __('Enable Test Mode', 'monero_gateway'),
 																'type' => 'checkbox',
-																'description' => __('Place the payment gateway in test mode.', 'monero_gateway'),
+																'description' => __('Check this box if you are using testnet', 'monero_gateway'),
 																'default' => 'no'
-												)
+												),
 								);
 				}
 				
@@ -193,7 +207,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$payment_id  = bin2hex(openssl_random_pseudo_bytes(8));
 								$uri         = "monero:$address?amount=$amount?payment_id=$payment_id";
 								$array_integrated_address = $this->monero_daemon->make_integrated_address($payment_id);
-								
+
 								// Generate a QR code
 								echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
 								
@@ -310,6 +324,5 @@ class Monero_Gateway extends WC_Payment_Gateway
   }*/ 
        
         
-    }			
-				
+    }						
 }
