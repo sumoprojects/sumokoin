@@ -27,9 +27,7 @@ function monero_init() {
 		return $methods;
 	}
 	
-	if(!function_exists('curl_version')) {
-        echo "You need CURL Extension in order to use this plugin";
-      }
+	
 }
 
 /*
