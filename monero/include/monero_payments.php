@@ -15,6 +15,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$this->icon               = apply_filters('woocommerce_offline_icon', '');
 								$this->has_fields         = false;
 								
+								$this->log = new WC_Logger();
 								
 								$this->init_form_fields();
 								$this->host = $this->get_option('daemon_host');
@@ -141,6 +142,9 @@ class Monero_Gateway extends WC_Payment_Gateway
 				{
 								$xmr_price = file_get_contents('https://min-api.cryptocompare.com/data/price?fsym=XMR&tsyms=BTC,USD,EUR&extraParams=your_app_name');
 								$l         = json_decode($xmr_price, TRUE);
+								if(isset($l)){
+									$this->log->add('Monero_Gateway', 'API ERROR: Unable to get a price ');
+								}
 								if ($currency == 'USD') {
 												return $l['USD'];
 								}
@@ -208,7 +212,9 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$payment_id  = bin2hex(openssl_random_pseudo_bytes(8));
 								$uri         = "monero:$address?amount=$amount?payment_id=$payment_id";
 								$array_integrated_address = $this->monero_daemon->make_integrated_address($payment_id);
-
+								if(isset($array_integrated_address)){
+									$this->log->add('Monero_Gateway', 'Error. Unable to getting integrated address ');
+								}
 								// Generate a QR code
 								echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
 								
