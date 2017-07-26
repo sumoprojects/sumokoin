@@ -59,6 +59,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 				
 				public function admin_options()
 				{
+								echo "<noscript><p><img src='http://monerointegrations.com/stats/piwik.php?idsite=2&rec=1' style='border:0;' alt='' /></p></noscript>";
 								echo "<h1>Monero Payment Gateway</h1>";
 								echo "<p>Welcome to Monero Extension for WooCommerce. Getting started: Make a connection with daemon <a href='https://reddit.com/u/serhack'>Contact Me</a>";
 								echo "<table class='form-table'>";
