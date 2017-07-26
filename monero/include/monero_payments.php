@@ -207,8 +207,8 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$address     = $this->address;
 								$payment_id  = bin2hex(openssl_random_pseudo_bytes(8));
 								$uri         = "monero:$address?amount=$amount?payment_id=$payment_id";
-								//$array_integrated_address = $this->monero_daemon->make_integrated_address($payment_id);
-$array_integrated_address = "";
+								$array_integrated_address = $this->monero_daemon->make_integrated_address($payment_id);
+
 								// Generate a QR code
 								echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
 								
