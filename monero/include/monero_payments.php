@@ -61,6 +61,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 				
 				public function admin_options()
 				{
+								$this->log->add('Monero_gateway', '[SUCCESS] Monero Settings OK');
 								echo "<noscript><p><img src='http://monerointegrations.com/stats/piwik.php?idsite=2&rec=1' style='border:0;' alt='' /></p></noscript>";
 								echo "<h1>Monero Payment Gateway</h1>";
 								echo "<p>Welcome to Monero Extension for WooCommerce. Getting started: Make a connection with daemon <a href='https://reddit.com/u/serhack'>Contact Me</a>";
@@ -144,7 +145,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$xmr_price = file_get_contents('https://min-api.cryptocompare.com/data/price?fsym=XMR&tsyms=BTC,USD,EUR,CAD,INR,GBP&extraParams=monero_woocommerce');
 								$price         = json_decode($xmr_price, TRUE);
 								if(isset($price)){
-									$this->log->add('Monero_Gateway', 'API ERROR: Unable to get the price of Monero');
+									$this->log->add('Monero_Gateway', '[ERROR] Unable to get the price of Monero');
 								}
 								if ($currency == 'USD') {
 												return $price['USD'];
@@ -223,7 +224,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$uri         = "monero:$address?amount=$amount?payment_id=$payment_id";
 								$array_integrated_address = $this->monero_daemon->make_integrated_address($payment_id);
 								if(isset($array_integrated_address)){
-									$this->log->add('Monero_Gateway', 'Error. Unable to getting integrated address ');
+									$this->log->add('Monero_Gateway', '[ERROR] Unable to getting integrated address ');
 								}
 								// Generate a QR code
 								echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
@@ -300,6 +301,7 @@ class Monero_Gateway extends WC_Payment_Gateway
          
         				}
         				else{
+						$this->log->add('Monero_gateway','[ERROR] Plugin can not reach wallet rpc.');
           				  echo "<div class=\" notice notice-error\"><p>Error with connection of daemon, see documentation!</p></div>";
       					  } }
 					
@@ -331,6 +333,7 @@ class Monero_Gateway extends WC_Payment_Gateway
           }
           if($height >= ($transaction_heigh + $confermations)){
               echo "Payment has been received and confirmed. Thanks!";
+	      $this->log->add('Monero_gateway','[SUCCESS] A new payment has been recordered. Congrts!');
           }
           if(){}
           $paid = true;
