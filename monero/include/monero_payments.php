@@ -11,6 +11,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$this->method_title       = __("Monero GateWay", 'monero_gateway');
 								$this->method_description = __("Monero Payment Gateway Plug-in for WooCommerce. You can find more information about this payment gateway in our website. WARN: You'll need a daemon online for your address.", 'monero_gateway');
 								$this->title              = __("Monero Gateway", 'monero_gateway');
+								$this->version		  = "0.2";
 								//
 								$this->icon               = apply_filters('woocommerce_offline_icon', '');
 								$this->has_fields         = false;
@@ -140,16 +141,25 @@ class Monero_Gateway extends WC_Payment_Gateway
 				
 				public function retriveprice($currency)
 				{
-								$xmr_price = file_get_contents('https://min-api.cryptocompare.com/data/price?fsym=XMR&tsyms=BTC,USD,EUR&extraParams=your_app_name');
-								$l         = json_decode($xmr_price, TRUE);
-								if(isset($l)){
-									$this->log->add('Monero_Gateway', 'API ERROR: Unable to get a price ');
+								$xmr_price = file_get_contents('https://min-api.cryptocompare.com/data/price?fsym=XMR&tsyms=BTC,USD,EUR,CAD,INR,GBP&extraParams=monero_woocommerce');
+								$price         = json_decode($xmr_price, TRUE);
+								if(isset($price)){
+									$this->log->add('Monero_Gateway', 'API ERROR: Unable to get the price of Monero');
 								}
 								if ($currency == 'USD') {
-												return $l['USD'];
+												return $price['USD'];
 								}
 								if ($currency == 'EUR') {
-												return $l['EUR'];
+												return $price['EUR'];
+								}
+								if ($currency == 'CAD'){
+												return $price['CAD'];
+								}
+								if ($currency == 'GBP'){
+												return $price['GBP'];
+								}
+								if ($currency == 'INR'){
+												return $price['INR'];
 								}
 				}
 				
