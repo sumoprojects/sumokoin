@@ -6,7 +6,6 @@ class Monero_Gateway extends WC_Payment_Gateway
 	private $monero_daemon;
 				function __construct()
 				{
-								
 								$this->id                 = "monero_gateway";
 								$this->method_title       = __("Monero GateWay", 'monero_gateway');
 								$this->method_description = __("Monero Payment Gateway Plug-in for WooCommerce. You can find more information about this payment gateway in our website. WARN: You'll need a daemon online for your address.", 'monero_gateway');
@@ -35,25 +34,13 @@ class Monero_Gateway extends WC_Payment_Gateway
 								}
 
 								
-								add_action('admin_notices', array(
-												$this,
-												'do_ssl_check'
-								));
-								add_action('admin_notices', array(
-												$this,
-												'validate_fields'
-								));
-					
-								
-								
-								
-       								add_action('woocommerce_thankyou_' . $this->id, array( $this, 'instruction' ) );
+				                add_action('admin_notices', array($this,'do_ssl_check'));
+								add_action('admin_notices', array($this,'validate_fields'));
+					            add_action('woocommerce_thankyou_' . $this->id, array($this,'instruction'));
 
 								if (is_admin()) {
 												/* Save Settings */
-												add_action('woocommerce_update_options_payment_gateways_' . $this->id, array(
-																$this,
-																'process_admin_options'
+												add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this,'process_admin_options'
 												));
 								}
 					$this->monero_daemon = new Monero_Library($this->host . ':' . $this->port . '/json_rpc', $this->username, $this->password);
@@ -232,47 +219,49 @@ class Monero_Gateway extends WC_Payment_Gateway
 								echo "<div class='row'>
 				
 									<div class='col-sm-12 col-md-12 col-lg-12'>
-				<div class='panel panel-default' id='PaymentBox_de3a227fb470475'>
-        			<div class='panel-body'>
-				<div class='row'>
-					<div class='col-sm-12 col-md-12 col-lg-12'>
-						<h3><span class='text text-warning'><img src='https://pbs.twimg.com/profile_images/473825289630257152/PzHu2yli.png' width='32px' height='32px'></span> Monero Payment Box</h3>
-					</div>
-					<div class='col-sm-3 col-md-3 col-lg-3'>
-						<img src='https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=" . $uri . "' class='img-responsive'>
-					</div>
-					<div class='col-sm-9 col-md-9 col-lg-9' style='padding:10px;'>
-						Send <b>" . $amount_xmr2 . " XMR</b> to<br/><input type='text'  class='form-control' value='" . $array_integrated_address["integrated_address"]."'>
-						or scan QR Code with your mobile device<br/><br/>
-						<small>If you don't know how to pay with monero, click instructions button. </small>
-					</div>
-					<div class='col-sm-12 col-md-12 col-lg-12'>
+				                        <div class='panel panel-default' id='PaymentBox_de3a227fb470475'>
+        			                         <div class='panel-body'>
+				                                <div class='row'>
+					                               <div class='col-sm-12 col-md-12 col-lg-12'>
+						                                  <h3><span class='text text-warning'><img src='https://pbs.twimg.com/profile_images/473825289630257152/PzHu2yli.png' width='32px' height='32px'></span> Monero Payment Box</h3>
+					                               </div>
+					                           <div class='col-sm-3 col-md-3 col-lg-3'>
+						                          <img src='https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=" . $uri . "' class='img-responsive'>
+					                           </div>
+					                           <div class='col-sm-9 col-md-9 col-lg-9' style='padding:10px;'>
+						                          Send <b>" . $amount_xmr2 . " XMR</b> to<br/><input type='text'  class='form-control' value='" . $array_integrated_address["integrated_address"]."'>
+                                                or scan QR Code with your mobile device<br/><br/>
+                                                <small>If you don't know how to pay with monero, click instructions button. </small>
+					                           </div>
+					                           <div class='col-sm-12 col-md-12 col-lg-12'>
 				
-						<input type='hidden' id='payment_boxID' value='de3a227fb470475'>
-					</div>
-				</div>
-			</div>
-            <div class='panel-footer'>
-                        <a  class='btn btn-info btn-lg' style='width: 100%; font-size: 14px; ' data-toggle='modal' data-target='#myModal'>Instructions</a>
+						                      <input type='hidden' id='payment_boxID' value='de3a227fb470475'>
+					                       </div>
+				                        </div>
+			                         </div>
+                                    <div class='panel-footer'>
+                                    <a  class='btn btn-info btn-lg' style='width: 100%; font-size: 14px; ' data-toggle='modal' data-target='#myModal'>Instructions</a>
+                                    </div>
+		              </div>
                     </div>
-		</div></div></div>
+                </div>
         
-         <div class='modal fade' id='myModal' role='dialog'>
-    <div class='modal-dialog'>
+                    <div class='modal fade' id='myModal' role='dialog'>
+                        <div class='modal-dialog'>
     
-      <!-- Modal content-->
-      <div class='modal-content'>
-        <div class='modal-header'>
-          <h4 class='modal-title'>How to pay with Monero</h4>
-        </div>
-        <div class='modal-body container'>
-           <b>Paying with Monero</b>
-	   <p>If you don't have Monero, you can buy it at a trusted exchange. If you already have some, please follow instructions</p>
-	   <p>Scan the QR code into your monero app or copy and paste the address above into your Monero Wallet</p>
-        </div>
-        <div class='modal-footer'>
-          <button type='button' class='btn btn-default' data-dismiss='modal'>Close</button>
-        </div>
+                            <!-- Modal content-->
+                              <div class='modal-content'>
+                                <div class='modal-header'>
+                                    <h4 class='modal-title'>How to pay with Monero</h4>
+                                </div>
+                                <div class='modal-body container'>
+                                    <b>Paying with Monero</b>
+                                    <p>If you don't have Monero, you can buy it at a trusted exchange. If you already have some, please follow instructions</p>
+                                    <p>Scan the QR code into your monero app or copy and paste the address above into your Monero Wallet</p>
+                                 </div>
+                              <div class='modal-footer'>
+                            <button type='button' class='btn btn-default' data-dismiss='modal'>Close</button>
+                              </div>
       </div>
       </div>
       </div>";
