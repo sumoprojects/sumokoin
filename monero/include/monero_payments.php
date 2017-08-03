@@ -200,6 +200,18 @@ class Monero_Gateway extends WC_Payment_Gateway
 								return false;
 				} 
 				
+				private function set_paymentid_cookie()
+				{
+					if(!isset($_COOKIE['payment_id']))
+					{ 
+						$payment_id  = bin2hex(openssl_random_pseudo_bytes(8));
+						setcookie('payment_id', $payment_id, time()+2700);
+					}
+					else
+						$payment_id = $_COOKIE['payment_id'];
+					return $payment_id;
+				}
+				
 				public function instruction($order_id)
 				{
 								$order       = wc_get_order($order_id);
@@ -207,7 +219,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$currency    = $order->currency;
 								$amount_xmr2 = $this->changeto($amount, $currency);
 								$address     = $this->address;
-								$payment_id  = bin2hex(openssl_random_pseudo_bytes(8));
+								$payment_id  = $this->set_paymentid_cookie();
 								$uri         = "monero:$address?amount=$amount?payment_id=$payment_id";
 								$array_integrated_address = $this->monero_daemon->make_integrated_address($payment_id);
 								if(isset($array_integrated_address)){
