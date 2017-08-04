@@ -225,7 +225,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								if(isset($array_integrated_address)){
 									$this->log->add('Monero_Gateway', '[ERROR] Unable to getting integrated address ');
 								}
-								$message = $this->verify_payment($payment_id);
+								$message = $this->verify_payment($payment_id, $amount_xmr2);
 					echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
 								
 								echo "<div class='row'>
@@ -277,7 +277,7 @@ class Monero_Gateway extends WC_Payment_Gateway
       </div>
       </div>
       </div>
-      <script type="text/javascript">
+      <script type='text/javascript'>
   setTimeout(function () { location.reload(true); }, 5000);
 </script>";
 				}
@@ -311,45 +311,29 @@ class Monero_Gateway extends WC_Payment_Gateway
 					
 					
 					
-					 public function verify_payment($payment_id){
+      public function verify_payment($payment_id, $amount){
       /* 
        * function for verifying payments
-       * 1. Get the latest block height available
-       * 2. Get_Bulk_payments with the first payment id generated 
-       * 3. Verify that a payment has been made with the given payment id
+       * Check if a payment has been made with this payment id then notify the merchant
        */
-      
-      
-      $balance_method = $monero_library->_run('getbalance');
-      $balance = $balance_method['balance'];
-      $height_method = $monero_library->_run('getheight');
-      $height = $height_method['height'];
-    
-      $get_bulk_params = array('payment_ids' => array( $payment_id), 'min_block_height' => $height);
-      $get_bulk_methods = $monero_library->_run('get_bulk_payments', $get_bulk_params);
-      if( $get_bulk_methods['payments'][0]['payment_id'] == $payment_id && $get_bulks_methods['payments'][0]['amount'] >= $amount){
-          $transaction_hash = $get_bulk_methods['payments']['tx_hash'];
-          $transaction_height = $get_bulk_methods['payments']['block_height'];
-          $confermations = $height - $transaction_height;
-          if($height < ($transaction_height + $confermations)){
-              $message =  "Payment has been received. We need a confirm from system.";
-	      $this->log->add('Monero_gateway','[SUCCESS] Payment has been received. Waiting for a confirm');
-          }
-          if($height >= ($transaction_heigh + $confermations)){
-              $message = "Payment has been received and confirmed. Thanks!";
-	      $this->log->add('Monero_gateway','[SUCCESS] A new payment has been recordered. Congrts!');
-          }
-          $paid = true;
-          // Email merchant
-          // Notify him that someone transfer a payment
-          return $transaction_hash;
-      }
-      else{
-      			$message = "No payment received."
-			return $message;
-      }
-  }
        
-        
-    }						
-}
+      $amount_atomic_units = $amount * 1000000000000;
+      $get_payments_method = $this->monero_daemon->get_payments($payment_id);
+      if(isset($get_payments_method["payments"][0]["amount"]))
+      { 
+		if($get_payments_method["payments"][0]["amount"] >= $amount_atomic_units)
+		{
+			$message = "Payment has been received and confirmed. Thanks!";
+			$this->log->add('Monero_gateway','[SUCCESS] A new payment has been recordered. Congrats!');
+			$paid = true;
+			// Notify the merchant
+                        // Notify him that someone transfer a payment
+		}  
+       }
+       else
+       {
+	   $message = "We are waiting for your payment to be confirmed";
+       }
+      return $message;  
+  }
+}						
