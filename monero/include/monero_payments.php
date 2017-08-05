@@ -225,7 +225,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								if(isset($array_integrated_address)){
 									$this->log->add('Monero_Gateway', '[ERROR] Unable to getting integrated address ');
 								}
-								$message = $this->verify_payment($payment_id, $amount_xmr2);
+								$message = $this->verify_payment($payment_id, $amount_xmr2, $order);
 					echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
 								
 								echo "<div class='row'>
@@ -311,7 +311,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 					
 					
 					
-      public function verify_payment($payment_id, $amount){
+	public function verify_payment($payment_id, $amount, $order_id){
       /* 
        * function for verifying payments
        * Check if a payment has been made with this payment id then notify the merchant
@@ -324,16 +324,16 @@ class Monero_Gateway extends WC_Payment_Gateway
 		if($get_payments_method["payments"][0]["amount"] >= $amount_atomic_units)
 		{
 			$message = "Payment has been received and confirmed. Thanks!";
-			$this->log->add('Monero_gateway','[SUCCESS] A new payment has been recordered. Congrats!');
+			$this->log->add('Monero_gateway','[SUCCESS] Payment has been recorded. Congrats!');
 			$paid = true;
-			// Notify the merchant
-                        // Notify him that someone transfer a payment
+			$order = wc_get_order($order_id);
+			$order->update_status('completed', __('Payment has been received', 'monero_gateway'));	
 		}  
-       }
-       else
-       {
-	   $message = "We are waiting for your payment to be confirmed";
-       }
-      return $message;  
+	  }
+	  else
+	  {
+		  $message = "We are waiting for your payment to be confirmed";
+	  }
+	  return $message;  
   }
 }						
