@@ -153,10 +153,32 @@ class Monero_Gateway extends WC_Payment_Gateway
 				
 				public function changeto($amount, $currency)
 				{
+							if(!isset($_COOKIE['rate']))
+							{
 								$xmr_live_price = $this->retriveprice($currency);
+								setcookie('rate', $xmr_live_price, time()+2700);
 								$new_amount     = $amount / $xmr_live_price;
 								$rounded_amount = round($new_amount, 12); //the moneo wallet can't handle decimals smaller than 0.000000000001
 								return $rounded_amount;
+							}
+							else
+							{
+								$rate_cookie = $_COOKIE['rate'];
+								$xmr_live_price = $this->retriveprice($currency);
+								if($xmr_live_price - $rate_cookie >= 1) //reset rate if there is a difference of 1 EURO/DOLLAR/ETC between the live rate and the cookie rate
+								{										//this is so that the merchant does not lose money from exchange market forces or cookie tampering
+									$new_amount     = $amount / $rate_cookie;
+									$rounded_amount = round($new_amount, 12);
+									return $rounded_amount;
+								}
+								else
+								{
+									setcookie('rate', $xmr_live_price, time()+2700);
+									$new_amount     = $amount / $xmr_live_price;
+									$rounded_amount = round($new_amount, 12);
+									return $rounded_amount;
+								}	
+							}	
 				}
 				
 				
@@ -226,6 +248,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 									$this->log->add('Monero_Gateway', '[ERROR] Unable to getting integrated address ');
 								}
 								$message = $this->verify_payment($payment_id, $amount_xmr2, $order);
+								echo "<h4>".$message."</h4>";
 					echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
 								
 								echo "<div class='row'>
@@ -278,7 +301,7 @@ class Monero_Gateway extends WC_Payment_Gateway
       </div>
       </div>
       <script type='text/javascript'>
-  setTimeout(function () { location.reload(true); }, 5000);
+  setTimeout(function () { location.reload(true); }, 30000);
 </script>";
 				}
 				
