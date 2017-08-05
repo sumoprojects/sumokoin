@@ -165,7 +165,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 							{
 								$rate_cookie = $_COOKIE['rate'];
 								$xmr_live_price = $this->retriveprice($currency);
-								if($xmr_live_price - $rate_cookie <= 1) //reset rate if there is a difference of 1 EURO/DOLLAR/ETC between the live rate and the cookie rate
+								if($xmr_live_price - $rate_cookie >= 1) //reset rate if there is a difference of 1 EURO/DOLLAR/ETC between the live rate and the cookie rate
 								{										//this is so that the merchant does not lose money from exchange market forces or cookie tampering
 									$new_amount     = $amount / $rate_cookie;
 									$rounded_amount = round($new_amount, 12);
