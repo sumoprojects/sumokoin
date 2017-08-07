@@ -244,7 +244,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$payment_id  = $this->set_paymentid_cookie();
 								$uri         = "monero:$address?amount=$amount?payment_id=$payment_id";
 								$array_integrated_address = $this->monero_daemon->make_integrated_address($payment_id);
-								if(isset($array_integrated_address)){
+								if(!isset($array_integrated_address)){
 									$this->log->add('Monero_Gateway', '[ERROR] Unable to getting integrated address ');
 								}
 								$message = $this->verify_payment($payment_id, $amount_xmr2, $order);
