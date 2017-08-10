@@ -5,7 +5,7 @@ Plugin URI: http://monerointegrations.com
 Description: Extends WooCommerce by Adding the Monero Gateway
 Version: 1.0
 Author: SerHack
-Author URI: http://monerointegrations.com
+Author URI: http://serhack.me
 */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
