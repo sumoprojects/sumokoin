@@ -3,6 +3,7 @@
 class Monero_Gateway extends WC_Payment_Gateway
 {
 	private $reloadTime = 30000;
+	private $discount;
 	private $monero_daemon;
 				function __construct()
 				{
@@ -23,6 +24,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 								$this->address = $this->get_option('monero_address');
 								$this->username = $this->get_option('username');
 								$this->password = $this->get_option('password');
+								$this->discount = $this->get_option('discount');
 								
 								// After init_settings() is called, you can get the settings and load them into variables, e.g:
 								// $this->title = $this->get_option('title' );
@@ -114,6 +116,13 @@ class Monero_Gateway extends WC_Payment_Gateway
 													'default' => ''
 													
 												),
+												'discount' => array(
+													'title' => __('% discount for using XMR',  'monero_gateway'),
+													'desc_tip' => __('Provide a descount to your customers for paying privatly with XMR!', 'monero_gateway'),
+													'description' => __('Leave this empty if you do not wish to provide a discount for using XMR', 'monero_gateway'),
+													'type' => __('text'),
+													
+												),
 												'environment' => array(
 																'title' => __(' Test Mode', 'monero_gateway'),
 																'label' => __('Enable Test Mode', 'monero_gateway'),
@@ -164,8 +173,18 @@ class Monero_Gateway extends WC_Payment_Gateway
 							
 								$stored_rate_transformed = $stored_rate[0]->rate / 100; //this will turn the stored rate back into a decimaled number
 								
-								$new_amount     = $amount / $stored_rate_transformed;
-								$rounded_amount = round($new_amount, 12); //the moneo wallet can't handle decimals smaller than 0.000000000001
+								if(isset($this->discount))
+								{
+									$discount_decimal = $this->discount / 100;
+									$new_amount     = $amount / $stored_rate_transformed;
+									$discount = $new_amount * $discount_decimal;
+									$final_amount = $new_amount - $discount;
+									$rounded_amount = round($final_amount, 12);
+								}
+								else{
+									$new_amount     = $amount / $stored_rate_transformed;
+									$rounded_amount = round($new_amount, 12); //the moneo wallet can't handle decimals smaller than 0.000000000001
+								}
 							}
 							else // If the row has not been created then the live exchange rate will be grabbed and stored
 							{
