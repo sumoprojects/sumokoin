@@ -42,3 +42,17 @@ function monero_payment( $links ) {
 
 	return array_merge( $plugin_links, $links );	
 }
+add_action( 'admin_menu',   'monero_create_menu' );
+ function monero_create_menu(){
+        add_menu_page(
+        __( 'Monero', 'textdomain' ),
+        'Monero',
+        'manage_options',
+        'admin.php?page=wc-settings&tab=checkout&section=monero_gateway',
+        '',
+        plugins_url( 'monero/assets/icon.png' )
+        
+    );
+}
+
+
