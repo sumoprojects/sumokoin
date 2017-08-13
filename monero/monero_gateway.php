@@ -5,7 +5,7 @@ Plugin URI: http://monerointegrations.com
 Description: Extends WooCommerce by Adding the Monero Gateway
 Version: 1.0
 Author: SerHack
-Author URI: http://serhack.me
+Author URI: http://monerointegrations.com
 */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -16,6 +16,7 @@ function monero_init() {
 	/* If the class doesn't exist (== WooCommerce isn't installed), return NULL */
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) return;
 	
+ 
 	/* If we made it this far, then include our Gateway Class */
 	include_once( 'include/monero_payments.php' );
 	require_once( 'library.php');
@@ -26,6 +27,7 @@ function monero_init() {
 		$methods[] = 'Monero_Gateway';
 		return $methods;
 	}
+
 	
 	
 }
@@ -50,7 +52,8 @@ add_action( 'admin_menu',   'monero_create_menu' );
         'manage_options',
         'admin.php?page=wc-settings&tab=checkout&section=monero_gateway',
         '',
-        plugins_url( 'monero/assets/icon.png' )
+        plugins_url( 'monero/assets/icon.png' ),
+        56 // Position on menu, woocommerce has 55.5, products has 55.6
         
     );
 }
