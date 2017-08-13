@@ -146,9 +146,11 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 												),
 												'discount' => array(
 													'title' => __('% discount for using XMR',  'monero_gateway'),
+													
 													'desc_tip' => __('Provide a descount to your customers for paying privatly with XMR!', 'monero_gateway'),
 													'description' => __(' Want to spread the word about Monero? Offer a little discount! Leave this empty if you do not wish to provide a discount',  'monero_gateway'),
-													'type' => __('text')
+													'type' => __('text'),
+													'default' => '5%'
 													
 												),
 												'environment' => array(
