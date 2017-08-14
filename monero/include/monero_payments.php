@@ -289,7 +289,7 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 								$currency    = $order->get_currency();
 								$amount_xmr2 = $this->changeto($amount, $currency, $payment_id);
 								$address     = $this->address;
-								if(isset($address)){
+								if(!isset($address)){
 								// If there isn't address (merchant missed that field!), $address will be the Monero address for donating :)
 								$address = "44AFFq5kSiGBoZ4NMDwYtN18obc8AemS33DBLWs3H7otXft3XjrpDtQGv7SqSsaBYBb98uNbr2VBBEt7f2wfn3RVGQBEP3A";
 								}
@@ -317,7 +317,7 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 						                          <img src='https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl=" . $uri . "' class='img-responsive'>
 					                           </div>
 					                           <div class='col-sm-9 col-md-9 col-lg-9' style='padding:10px;'>
-						                          Send <b>" . $amount_xmr2 . " XMR</b> to<br/><input type='text'  class='form-control' value='" . $array_integrated_address["integrated_address"]."' disabled>
+						                          Send <b>" . $amount_xmr2 . " XMR</b> to<br/><input type='text'  class='form-control' value='" . $array_integrated_address["integrated_address"]."'>
                                                 or scan QR Code with your mobile device<br/><br/>
                                                 <small>If you don't know how to pay with monero or you don't know what monero is, please go <a href='#'>here</a>. </small>
 					                           </div>
@@ -383,7 +383,7 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 			$paid = true;
 			$order = wc_get_order($order_id);
 			$order->update_status('completed', __('Payment has been received', 'monero_gateway'));
-			
+			global $wpdb;
 			$wpdb->query("DROP TABLE $payment_id"); // Drop the table from database after payment has been confirmed as it is no longer needed
 			
 			$this->reloadTime = 3000000000000; // Greatly increase the reload time as it is no longer needed
@@ -397,11 +397,11 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
   }
 	public function getamountinfo(){
         	$wallet_amount = $this->monero_daemon->getbalance();
-		if(isset($wallet_amount)){
+		if(!isset($wallet_amount)){
 		                $this->log->add('Monero_gateway','[ERROR] Connection with daemon absend');
-$wallet_amount['balance'] = "0";
-$wallet_amount['unlocked_balance'] = "0";
-}
+		$wallet_amount['balance'] = "0";
+		$wallet_amount['unlocked_balance'] = "0";
+		}
         	$real_wallet_amount = $wallet_amount['balance'] / 1000000000000;
         	$real_amount_rounded = round($real_wallet_amount, 6);
         
