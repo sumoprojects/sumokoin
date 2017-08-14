@@ -45,10 +45,8 @@ class Monero_Gateway extends WC_Payment_Gateway
 									
 add_filter( 'woocommerce_currencies', array($this,'add_my_currency') );
 add_filter('woocommerce_currency_symbol', 'add_my_currency_symbol', 10, 2);
-
  add_action('woocommerce_email_before_order_table', array($this, 'email_instructions'), 10, 2);
  
-
 			
 												
 												
@@ -60,14 +58,12 @@ add_filter('woocommerce_currency_symbol', 'add_my_currency_symbol', 10, 2);
      $currencies['XMR'] = __('Monero','woocommerce');
      return $currencies;
 }
-
 public function add_my_currency_symbol( $currency_symbol, $currency ) {
      switch( $currency ) {
           case 'XMR': $currency_symbol = 'XMR'; break;
      }
      return $currency_symbol;
 }
-
 				
 				
 				public function admin_options()
@@ -399,14 +395,15 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 	  }
 	  return $message;  
   }
- public function getamountinfo(){
-        $amount_wallet = $this->monero_daemon->getbalance();
+	public function getamountinfo(){
+        	$wallet_amount = $this->monero_daemon->getbalance();
+        	$real_wallet_amount = $wallet_amount['balance'] / 1000000000000;
+        	$real_amount_rounded = round($real_wallet_amount, 6);
         
-	echo "Your amount is:".$account_wallet['balance']. "XMR </br>";
-	echo "Unlocked balance:".$account_wallet['unlocked_balance']." </br>";
-}
-
-
-
-
+        	$unlocked_wallet_amount = $wallet_amount['unlocked_balance'] / 1000000000000;
+        	$unlocked_amount_rounded = round($unlocked_wallet_amount, 6);
+        
+		echo "Your balance is: ".$real_amount_rounded. " XMR </br>";
+		echo "Unlocked balance: ".$unlocked_amount_rounded." XMR </br>";
+	}
 }
