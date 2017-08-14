@@ -398,7 +398,7 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 	public function getamountinfo(){
         	$wallet_amount = $this->monero_daemon->getbalance();
 		if(isset($wallet_amount)){
-		                $this->log->add('Monero_gateway','[ERROR] Connection wi$
+		                $this->log->add('Monero_gateway','[ERROR] Connection with daemon absend');
 $wallet_amount['balance'] = "0";
 $wallet_amount['unlocked_balance'] = "0";
 }
