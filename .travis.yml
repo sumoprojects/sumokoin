@@ -10,3 +10,6 @@ php:
  
 script:
   - echo 'Everything Works. '
+
+before_deploy:
+  - mkdir build
