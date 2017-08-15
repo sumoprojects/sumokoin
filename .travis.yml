@@ -1,0 +1,12 @@
+# .travis.yml
+ 
+language: php
+ 
+sudo: false
+ 
+php:
+  - 7.0
+  - 7.1
+ 
+script:
+  - echo 'Everything Works. '
