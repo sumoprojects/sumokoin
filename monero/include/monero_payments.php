@@ -302,11 +302,11 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 									$array_integrated_address["integrated_address"] = $address;
 								}
 								$message = $this->verify_payment($payment_id, $amount_xmr2, $order);
-								if($this->confirmed){
-									$color = "green";
+								if(!$this->confirmed){
+									$color = "006400";
 								}
 								else{
-									$color = "red";
+									$color = "DC143C";
 								}
 								echo "<h4><font color=$color>".$message."</font></h4>";
 					echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
