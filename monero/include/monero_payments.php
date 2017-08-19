@@ -302,7 +302,7 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 									$array_integrated_address["integrated_address"] = $address;
 								}
 								$message = $this->verify_payment($payment_id, $amount_xmr2, $order);
-								if(!$this->confirmed){
+								if($this->confirmed){
 									$color = "006400";
 								}
 								else{
