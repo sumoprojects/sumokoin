@@ -4,6 +4,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 {
 	private $reloadTime = 30000;
 	private $discount;
+	private $confirmed = false;
 	private $monero_daemon;
 				function __construct()
 				{
@@ -301,7 +302,13 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 									$array_integrated_address["integrated_address"] = $address;
 								}
 								$message = $this->verify_payment($payment_id, $amount_xmr2, $order);
-								echo "<h4>".$message."</h4>";
+								if(!$this->confirmed){
+									$color = "006400";
+								}
+								else{
+									$color = "DC143C";
+								}
+								echo "<h4><font color=$color>".$message."</font></h4>";
 					echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
 								
 								echo "<div class='row'>
@@ -380,7 +387,7 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 		{
 			$message = "Payment has been received and confirmed. Thanks!";
 			$this->log->add('Monero_gateway','[SUCCESS] Payment has been recorded. Congrats!');
-			$paid = true;
+			$this->confirmed = true;
 			$order = wc_get_order($order_id);
 			$order->update_status('completed', __('Payment has been received', 'monero_gateway'));
 			global $wpdb;
