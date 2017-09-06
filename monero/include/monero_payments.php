@@ -10,7 +10,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 				{
 								$this->id                 = "monero_gateway";
 								$this->method_title       = __("Monero GateWay", 'monero_gateway');
-								$this->method_description = __("Monero Payment Gateway Plug-in for WooCommerce. You can find more information about this payment gateway in our website. You'll need a daemon online for your address.", 'monero_gateway');
+								$this->method_description = __("Monero Payment Gateway Plug-in for WooCommerce. You can find more information about this payment gateway on our website. You'll need a daemon online for your address.", 'monero_gateway');
 								$this->title              = __("Monero Gateway", 'monero_gateway');
 								$this->version		  = "0.2";
 								//
@@ -144,8 +144,8 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 												'discount' => array(
 													'title' => __('% discount for using XMR',  'monero_gateway'),
 													
-													'desc_tip' => __('Provide a descount to your customers for paying privatly with XMR!', 'monero_gateway'),
-													'description' => __(' Want to spread the word about Monero? Offer a little discount! Leave this empty if you do not wish to provide a discount',  'monero_gateway'),
+													'desc_tip' => __('Provide a discount to your customers for making a private payment with XMR!', 'monero_gateway'),
+													'description' => __('Do you want to spread the word about Monero? Offer a small discount! Leave this empty if you do not wish to provide a discount',  'monero_gateway'),
 													'type' => __('text'),
 													'default' => '5%'
 													
@@ -256,7 +256,7 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 				public function validate_fields()
 				{
 								if ($this->check_monero() != TRUE) {
-												echo "<div class=\"error\"><p>Your Monero Address Seems not valid. Have you checked it?</p></div>";
+												echo "<div class=\"error\"><p>Your Monero Address doesn't seem valid. Have you checked it?</p></div>";
 								}
 								
 				}
@@ -326,7 +326,7 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 					                           <div class='col-sm-9 col-md-9 col-lg-9' style='padding:10px;'>
 						                          Send <b>" . $amount_xmr2 . " XMR</b> to<br/><input type='text'  class='form-control' value='" . $array_integrated_address["integrated_address"]."'>
                                                 or scan QR Code with your mobile device<br/><br/>
-                                                <small>If you don't know how to pay with monero or you don't know what monero is, please go <a href='#'>here</a>. </small>
+                                                <small>If you need help with how to pay with Monero or want to learn more about it, please go to the Monero<a href='#'>site</a>. </small>
 					                           </div>
 					                           <div class='col-sm-12 col-md-12 col-lg-12'>
 				
@@ -361,7 +361,7 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
       					  $port = $this->settings['daemon_port'];
         				  $monero_library = new Monero($host, $port);
       					  if( $monero_library->works() == true){
-         				   echo "<div class=\"notice notice-success is-dismissible\"><p>Everything works! Congratulations and Welcome aboard Monero. <button type=\"button\" class=\"notice-dismiss\">
+         				   echo "<div class=\"notice notice-success is-dismissible\"><p>Everything works! Congratulations and welcome to Monero. <button type=\"button\" class=\"notice-dismiss\">
 						<span class=\"screen-reader-text\">Dismiss this notice.</span>
 						</button></p></div>";
          
@@ -386,7 +386,7 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 		if($get_payments_method["payments"][0]["amount"] >= $amount_atomic_units)
 		{
 			$message = "Payment has been received and confirmed. Thanks!";
-			$this->log->add('Monero_gateway','[SUCCESS] Payment has been recorded. Congrats!');
+			$this->log->add('Monero_gateway','[SUCCESS] Payment has been recorded. Congratulations!');
 			$this->confirmed = true;
 			$order = wc_get_order($order_id);
 			$order->update_status('completed', __('Payment has been received', 'monero_gateway'));
@@ -405,7 +405,7 @@ public function add_my_currency_symbol( $currency_symbol, $currency ) {
 	public function getamountinfo(){
         	$wallet_amount = $this->monero_daemon->getbalance();
 		if(!isset($wallet_amount)){
-		                $this->log->add('Monero_gateway','[ERROR] Connection with daemon absend');
+		                $this->log->add('Monero_gateway','[ERROR] No connection with daemon');
 		$wallet_amount['balance'] = "0";
 		$wallet_amount['unlocked_balance'] = "0";
 		}
