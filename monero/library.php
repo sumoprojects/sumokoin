@@ -35,8 +35,8 @@ class Monero_Library
    
     public function __construct($pUrl, $pUser, $pPass)
     {
-        $this->validate(false === extension_loaded('curl'), 'The curl extension must be loaded for using this class!');
-        $this->validate(false === extension_loaded('json'), 'The json extension must be loaded for using this class!');
+        $this->validate(false === extension_loaded('curl'), 'The curl extension must be loaded to use this class!');
+        $this->validate(false === extension_loaded('json'), 'The json extension must be loaded to use this class!');
     
         $this->url = $pUrl;
 	$this->username = $pUser;
