@@ -76,7 +76,7 @@ void fork()
   }
 
   // Send standard output to a log file.
-  const char* output = "/tmp/bitmonero.daemon.stdout.stderr";
+  const char* output = "/tmp/sumokoin.daemon.stdout.stderr";
   const int flags = O_WRONLY | O_CREAT | O_APPEND;
   const mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
   if (open(output, flags, mode) < 0)
