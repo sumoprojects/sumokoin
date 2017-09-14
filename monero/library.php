@@ -75,7 +75,7 @@ class Monero_Library
         }
         else
         {
-            throw new InvalidArgumentException('Invalid options type.');
+            echo 'Invalid options type.';
         }
         return $this;
     }
@@ -146,12 +146,12 @@ class Monero_Library
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         if (isset($this->httpErrors[$httpCode]))
         {
-            throw new RuntimeException('Response Http Error - ' . $this->httpErrors[$httpCode]);
+            echo 'Response Http Error - ' . $this->httpErrors[$httpCode];
         }
         // check for curl error
         if (0 < curl_errno($ch))
         {
-            throw new RuntimeException('Unable to connect to '.$this->url . ' Error: ' . curl_error($ch));
+            echo 'Unable to connect to '.$this->url . ' Error: ' . curl_error($ch);
         }
         // close the connection
         curl_close($ch);
@@ -162,7 +162,7 @@ class Monero_Library
     {
         if ($pFailed)
         {
-            throw new RuntimeException($pErrMsg);
+            echo $pErrMsg;
         }
     }
     
