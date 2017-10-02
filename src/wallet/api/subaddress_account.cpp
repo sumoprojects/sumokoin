@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017, SUMOKOIN, (forked from) The Monero Project
+// Copyright (c) 2017, SUMOKOIN, (forked from) The Monero Project
 //
 // All rights reserved.
 //
@@ -25,46 +25,66 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#include "wallet/wallet2_api.h"
+#include "subaddress_account.h"
+#include "wallet.h"
+#include "crypto/hash.h"
 #include "wallet/wallet2.h"
+#include "common_defines.h"
 
-#include <string>
 #include <vector>
 
-
 namespace Monero {
+  
+SubaddressAccount::~SubaddressAccount() {}
+  
+SubaddressAccountImpl::SubaddressAccountImpl(WalletImpl *wallet)
+    : m_wallet(wallet) {}
 
-class WalletImpl;
-class PendingTransactionImpl : public PendingTransaction
+void SubaddressAccountImpl::addRow(const std::string &label)
 {
-public:
-    PendingTransactionImpl(WalletImpl &wallet);
-    ~PendingTransactionImpl();
-    int status() const;
-    std::string errorString() const;
-    bool commit();
-    uint64_t amount() const;
-    uint64_t dust() const;
-    uint64_t fee() const;
-    std::vector<std::string> txid() const;
-    uint64_t txCount() const;
-    std::vector<uint32_t> subaddrAccount() const;
-    std::vector<std::set<uint32_t>> subaddrIndices() const;
-    // TODO: continue with interface;
-
-private:
-    friend class WalletImpl;
-    WalletImpl &m_wallet;
-
-    int  m_status;
-    std::string m_errorString;
-    std::vector<tools::wallet2::pending_tx> m_pending_tx;
-};
-
-
+  m_wallet->m_wallet->add_subaddress_account(label);
+  refresh();
 }
 
-namespace Bitmonero = Monero;
+void SubaddressAccountImpl::setLabel(uint32_t accountIndex, const std::string &label)
+{
+  m_wallet->m_wallet->set_subaddress_label({accountIndex, 0}, label);
+  refresh();
+}
+
+void SubaddressAccountImpl::refresh() 
+{
+  LOG_PRINT_L2("Refreshing subaddress account");
+  
+  clearRows();
+  for (uint32_t i = 0; i < m_wallet->m_wallet->get_num_subaddress_accounts(); ++i)
+  {
+    m_rows.push_back(new SubaddressAccountRow(
+      i,
+      m_wallet->m_wallet->get_subaddress_as_str({i,0}).substr(0,6),
+      m_wallet->m_wallet->get_subaddress_label({i,0}),
+      cryptonote::print_money(m_wallet->m_wallet->balance(i)),
+      cryptonote::print_money(m_wallet->m_wallet->unlocked_balance(i))
+    ));
+  }
+}
+
+void SubaddressAccountImpl::clearRows() {
+   for (auto r : m_rows) {
+     delete r;
+   }
+   m_rows.clear();
+}
+
+std::vector<SubaddressAccountRow*> SubaddressAccountImpl::getAll() const
+{
+  return m_rows;
+}
+
+SubaddressAccountImpl::~SubaddressAccountImpl()
+{
+  clearRows();
+}
+
+} // namespace

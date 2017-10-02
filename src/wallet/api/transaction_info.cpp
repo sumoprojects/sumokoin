@@ -48,6 +48,7 @@ TransactionInfoImpl::TransactionInfoImpl()
       , m_amount(0)
       , m_fee(0)
       , m_blockheight(0)
+      , m_subaddrAccount(0)
       , m_timestamp(0)
 {
 
@@ -87,6 +88,21 @@ uint64_t TransactionInfoImpl::fee() const
 uint64_t TransactionInfoImpl::blockHeight() const
 {
     return m_blockheight;
+}
+
+std::set<uint32_t> TransactionInfoImpl::subaddrIndex() const
+{
+  return m_subaddrIndex;
+}
+
+uint32_t TransactionInfoImpl::subaddrAccount() const
+{
+  return m_subaddrAccount;
+}
+
+string TransactionInfoImpl::label() const
+{
+  return m_label;
 }
 
 string TransactionInfoImpl::hash() const

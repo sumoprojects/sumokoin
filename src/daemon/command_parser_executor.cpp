@@ -237,18 +237,39 @@ bool t_command_parser_executor::start_mining(const std::vector<std::string>& arg
     return true;
   }
 
-  cryptonote::account_public_address adr;
+  cryptonote::address_parse_info info;
   bool testnet = false;
-  if(!cryptonote::get_account_address_from_str(adr, false, args.front()))
+  if (!cryptonote::get_account_address_from_str(info, false, args.front()))
   {
-    if(!cryptonote::get_account_address_from_str(adr, true, args.front()))
+    if (!cryptonote::get_account_address_from_str(info, true, args.front()))
     {
-      std::cout << "target account address has wrong format" << std::endl;
-      return true;
+      bool dnssec_valid;
+      std::string address_str = tools::dns_utils::get_account_address_as_str_from_url(args.front(), dnssec_valid);
+      if (!cryptonote::get_account_address_from_str(info, false, address_str))
+      {
+        if (!cryptonote::get_account_address_from_str(info, true, address_str))
+        {
+          std::cout << "target account address has wrong format" << std::endl;
+          return true;
+        }
+        else
+        {
+          testnet = true;
+        }
+      }
     }
-    testnet = true;
-    std::cout << "Mining to a testnet address, make sure this is intentional!" << std::endl;
+    else
+    {
+      testnet = true;
+    }
   }
+  if (info.is_subaddress)
+  {
+    tools::fail_msg_writer() << "subaddress for mining reward is not yet supported!" << std::endl;
+    return true;
+  }
+  if (testnet)
+    std::cout << "Mining to a testnet address, make sure this is intentional!" << std::endl;
   uint64_t threads_count = 1;
   if(args.size() > 2)
   {
@@ -260,7 +281,7 @@ bool t_command_parser_executor::start_mining(const std::vector<std::string>& arg
     threads_count = (ok && 0 < threads_count) ? threads_count : 1;
   }
 
-  m_executor.start_mining(adr, threads_count, testnet);
+  m_executor.start_mining(info.address, threads_count, testnet);
 
   return true;
 }

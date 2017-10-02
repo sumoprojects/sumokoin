@@ -31,6 +31,7 @@
 #pragma once
 #include "cryptonote_protocol/cryptonote_protocol_defs.h"
 #include "cryptonote_core/cryptonote_basic.h"
+#include "cryptonote_core/subaddress_index.h"
 #include "crypto/hash.h"
 #include "wallet_rpc_server_error_codes.h"
 namespace tools
@@ -44,7 +45,28 @@ namespace wallet_rpc
   {
     struct request
     {
+      uint32_t account_index;
       BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(account_index)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct per_subaddress_info
+    {
+      uint32_t address_index;
+      std::string address;
+      uint64_t balance;
+      uint64_t unlocked_balance;
+      std::string label;
+      uint64_t num_unspent_outputs;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(address_index)
+        KV_SERIALIZE(address)
+        KV_SERIALIZE(balance)
+        KV_SERIALIZE(unlocked_balance)
+        KV_SERIALIZE(label)
+        KV_SERIALIZE(num_unspent_outputs)
       END_KV_SERIALIZE_MAP()
     };
 
@@ -52,15 +74,99 @@ namespace wallet_rpc
     {
       uint64_t 	 balance;
       uint64_t 	 unlocked_balance;
+      std::vector<per_subaddress_info> per_subaddress;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(balance)
         KV_SERIALIZE(unlocked_balance)
+        KV_SERIALIZE(per_subaddress)
       END_KV_SERIALIZE_MAP()
     };
   };
 
-    struct COMMAND_RPC_GET_ADDRESS
+  struct COMMAND_RPC_GET_ADDRESS
+  {
+    struct request
+    {
+      uint32_t account_index;
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(account_index)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct address_info
+    {
+      std::string address;
+      std::string label;
+      uint32_t address_index;
+      bool used;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(address)
+        KV_SERIALIZE(label)
+        KV_SERIALIZE(address_index)
+        KV_SERIALIZE(used)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response
+    {
+      std::string address;                  // to remain compatible with older RPC format
+      std::vector<address_info> addresses;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(address)
+        KV_SERIALIZE(addresses)
+      END_KV_SERIALIZE_MAP()
+    };
+  };
+
+  struct COMMAND_RPC_CREATE_ADDRESS
+  {
+    struct request
+    {
+      uint32_t account_index;
+      std::string label;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(account_index)
+        KV_SERIALIZE(label)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response
+    {
+      std::string   address;
+      uint32_t      address_index;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(address)
+        KV_SERIALIZE(address_index)
+      END_KV_SERIALIZE_MAP()
+    };
+  };
+
+  struct COMMAND_RPC_LABEL_ADDRESS
+  {
+    struct request
+    {
+      cryptonote::subaddress_index index;
+      std::string label;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(index)
+        KV_SERIALIZE(label)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response
+    {
+      BEGIN_KV_SERIALIZE_MAP()
+      END_KV_SERIALIZE_MAP()
+    };
+  };
+
+  struct COMMAND_RPC_GET_ACCOUNTS
   {
     struct request
     {
@@ -68,12 +174,74 @@ namespace wallet_rpc
       END_KV_SERIALIZE_MAP()
     };
 
-    struct response
+    struct subaddress_account_info
     {
-      std::string   address;
+      uint32_t account_index;
+      std::string base_address;
+      uint64_t balance;
+      uint64_t unlocked_balance;
+      std::string label;
 
       BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(account_index)
+        KV_SERIALIZE(base_address)
+        KV_SERIALIZE(balance)
+        KV_SERIALIZE(unlocked_balance)
+        KV_SERIALIZE(label)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response
+    {
+      uint64_t total_balance;
+      uint64_t total_unlocked_balance;
+      std::vector<subaddress_account_info> subaddress_accounts;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(total_balance)
+        KV_SERIALIZE(total_unlocked_balance)
+        KV_SERIALIZE(subaddress_accounts)
+      END_KV_SERIALIZE_MAP()
+    };
+  };
+
+  struct COMMAND_RPC_CREATE_ACCOUNT
+  {
+    struct request
+    {
+      std::string label;
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(label)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response
+    {
+      uint32_t account_index;
+      std::string address;      // the 0-th address for convenience
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(account_index)
         KV_SERIALIZE(address)
+      END_KV_SERIALIZE_MAP()
+    };
+  };
+
+  struct COMMAND_RPC_LABEL_ACCOUNT
+  {
+    struct request
+    {
+      uint32_t account_index;
+      std::string label;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(account_index)
+        KV_SERIALIZE(label)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response
+    {
+      BEGIN_KV_SERIALIZE_MAP()
       END_KV_SERIALIZE_MAP()
     };
   };
@@ -110,6 +278,8 @@ namespace wallet_rpc
     struct request
     {
       std::list<transfer_destination> destinations;
+      uint32_t account_index;
+      std::set<uint32_t> subaddr_indices;
       uint32_t priority;
       uint64_t mixin;
       uint64_t unlock_time;
@@ -119,6 +289,8 @@ namespace wallet_rpc
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(destinations)
+        KV_SERIALIZE(account_index)
+        KV_SERIALIZE(subaddr_indices)
         KV_SERIALIZE(priority)
         KV_SERIALIZE(mixin)
         KV_SERIALIZE(unlock_time)
@@ -149,6 +321,8 @@ namespace wallet_rpc
     struct request
     {
       std::list<transfer_destination> destinations;
+      uint32_t account_index;
+      std::set<uint32_t> subaddr_indices;
       uint32_t priority;
       uint64_t mixin;
       uint64_t unlock_time;
@@ -158,6 +332,8 @@ namespace wallet_rpc
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(destinations)
+        KV_SERIALIZE(account_index)
+        KV_SERIALIZE(subaddr_indices)
         KV_SERIALIZE(priority)
         KV_SERIALIZE(mixin)
         KV_SERIALIZE(unlock_time)
@@ -233,21 +409,27 @@ namespace wallet_rpc
     struct request
     {
       std::string address;
+      uint32_t account_index;
+      std::set<uint32_t> subaddr_indices;
       uint32_t priority;
       uint64_t mixin;
       uint64_t unlock_time;
       std::string payment_id;
       bool get_tx_keys;
       bool trusted_daemon;
+      uint64_t below_amount;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(address)
+        KV_SERIALIZE(account_index)
+        KV_SERIALIZE(subaddr_indices)
         KV_SERIALIZE(priority)
         KV_SERIALIZE(mixin)
         KV_SERIALIZE(unlock_time)
         KV_SERIALIZE(payment_id)
         KV_SERIALIZE(get_tx_keys)
         KV_SERIALIZE(trusted_daemon)
+        KV_SERIALIZE(below_amount)
       END_KV_SERIALIZE_MAP()
     };
 
@@ -296,6 +478,7 @@ namespace wallet_rpc
     uint64_t amount;
     uint64_t block_height;
     uint64_t unlock_time;
+    cryptonote::subaddress_index subaddr_index;
 
     BEGIN_KV_SERIALIZE_MAP()
       KV_SERIALIZE(payment_id)
@@ -303,6 +486,7 @@ namespace wallet_rpc
       KV_SERIALIZE(amount)
       KV_SERIALIZE(block_height)
       KV_SERIALIZE(unlock_time)
+      KV_SERIALIZE(subaddr_index)
     END_KV_SERIALIZE_MAP()
   };
 
@@ -357,6 +541,7 @@ namespace wallet_rpc
     uint64_t global_index;
     std::string tx_hash;
     uint64_t tx_size;
+    uint32_t subaddr_index;
 
     BEGIN_KV_SERIALIZE_MAP()
       KV_SERIALIZE(amount)
@@ -364,6 +549,7 @@ namespace wallet_rpc
       KV_SERIALIZE(global_index)
       KV_SERIALIZE(tx_hash)
       KV_SERIALIZE(tx_size)
+      KV_SERIALIZE(subaddr_index)
     END_KV_SERIALIZE_MAP()
   };
 
@@ -372,9 +558,13 @@ namespace wallet_rpc
     struct request
     {
       std::string transfer_type;
+      uint32_t account_index;
+      std::set<uint32_t> subaddr_indices;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(transfer_type)
+        KV_SERIALIZE(account_index)
+        KV_SERIALIZE(subaddr_indices)
       END_KV_SERIALIZE_MAP()
     };
 
@@ -415,9 +605,11 @@ namespace wallet_rpc
     struct request
     {
       std::string payment_id;
+      cryptonote::subaddress_index index;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(payment_id)
+        KV_SERIALIZE(index)
       END_KV_SERIALIZE_MAP()
     };
 
@@ -425,10 +617,14 @@ namespace wallet_rpc
     {
       std::string integrated_address;
       std::string payment_id;
+      std::string label;
+      bool used;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(integrated_address)
         KV_SERIALIZE(payment_id)
+        KV_SERIALIZE(label)
+        KV_SERIALIZE(used)
       END_KV_SERIALIZE_MAP()
     };
   };
@@ -448,10 +644,12 @@ namespace wallet_rpc
     {
       std::string standard_address;
       std::string payment_id;
+      bool is_subaddress;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(standard_address)
         KV_SERIALIZE(payment_id)
+        KV_SERIALIZE(is_subaddress)
       END_KV_SERIALIZE_MAP()
     };
   };
@@ -527,6 +725,33 @@ namespace wallet_rpc
     };
   };
 
+  struct transfer_entry
+  {
+    std::string txid;
+    std::string payment_id;
+    uint64_t height;
+    uint64_t timestamp;
+    uint64_t amount;
+    uint64_t fee;
+    std::string note;
+    std::list<transfer_destination> destinations;
+    std::string type;
+    cryptonote::subaddress_index subaddr_index;
+
+    BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE(txid);
+      KV_SERIALIZE(payment_id);
+      KV_SERIALIZE(height);
+      KV_SERIALIZE(timestamp);
+      KV_SERIALIZE(amount);
+      KV_SERIALIZE(fee);
+      KV_SERIALIZE(note);
+      KV_SERIALIZE(destinations);
+      KV_SERIALIZE(type);
+      KV_SERIALIZE(subaddr_index);
+    END_KV_SERIALIZE_MAP()
+  };
+
   struct COMMAND_RPC_GET_TRANSFERS
   {
     struct request
@@ -540,6 +765,8 @@ namespace wallet_rpc
       bool filter_by_height;
       uint64_t min_height;
       uint64_t max_height;
+      uint32_t account_index;
+      std::set<uint32_t> subaddr_indices;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(in);
@@ -550,39 +777,18 @@ namespace wallet_rpc
         KV_SERIALIZE(filter_by_height);
         KV_SERIALIZE(min_height);
         KV_SERIALIZE(max_height);
-      END_KV_SERIALIZE_MAP()
-    };
-
-    struct entry
-    {
-      std::string txid;
-      std::string payment_id;
-      uint64_t height;
-      uint64_t timestamp;
-      uint64_t amount;
-      uint64_t fee;
-      std::string note;
-      std::list<transfer_destination> destinations;
-
-      BEGIN_KV_SERIALIZE_MAP()
-        KV_SERIALIZE(txid);
-        KV_SERIALIZE(payment_id);
-        KV_SERIALIZE(height);
-        KV_SERIALIZE(timestamp);
-        KV_SERIALIZE(amount);
-        KV_SERIALIZE(fee);
-        KV_SERIALIZE(note);
-        KV_SERIALIZE(destinations);
+        KV_SERIALIZE(account_index);
+        KV_SERIALIZE(subaddr_indices);
       END_KV_SERIALIZE_MAP()
     };
 
     struct response
     {
-      std::list<entry> in;
-      std::list<entry> out;
-      std::list<entry> pending;
-      std::list<entry> failed;
-      std::list<entry> pool;
+      std::list<transfer_entry> in;
+      std::list<transfer_entry> out;
+      std::list<transfer_entry> pending;
+      std::list<transfer_entry> failed;
+      std::list<transfer_entry> pool;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(in);
@@ -590,6 +796,27 @@ namespace wallet_rpc
         KV_SERIALIZE(pending);
         KV_SERIALIZE(failed);
         KV_SERIALIZE(pool);
+      END_KV_SERIALIZE_MAP()
+    };
+  };
+
+  struct COMMAND_RPC_GET_TRANSFER_BY_TXID
+  {
+    struct request
+    {
+      std::string txid;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(txid);
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response
+    {
+      transfer_entry transfer;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(transfer);
       END_KV_SERIALIZE_MAP()
     };
   };

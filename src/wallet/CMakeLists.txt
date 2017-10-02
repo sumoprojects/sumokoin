@@ -40,7 +40,9 @@ set(wallet_sources
   api/transaction_history.cpp
   api/pending_transaction.cpp
   api/utils.cpp
-  api/address_book.cpp)
+  api/address_book.cpp
+  api/subaddress.cpp
+  api/subaddress_account.cpp)
 
 set(wallet_api_headers
     wallet2_api.h)
@@ -59,7 +61,9 @@ set(wallet_private_headers
   api/transaction_history.h
   api/pending_transaction.h
   api/common_defines.h
-  api/address_book.h)
+  api/address_book.h
+  api/subaddress.h
+  api/subaddress_account.h)
 
 sumokoin_private_headers(wallet
   ${wallet_private_headers})

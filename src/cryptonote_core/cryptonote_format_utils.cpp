@@ -182,16 +182,60 @@ namespace cryptonote
     return true;
   }
   //---------------------------------------------------------------
-  bool generate_key_image_helper(const account_keys& ack, const crypto::public_key& tx_public_key, size_t real_output_index, keypair& in_ephemeral, crypto::key_image& ki)
+  crypto::secret_key get_subaddress_secret_key(const crypto::secret_key& a, const subaddress_index& index)
+  {
+    const char prefix[] = "SubAddr";
+    char data[sizeof(prefix) + sizeof(crypto::secret_key) + sizeof(subaddress_index)];
+    memcpy(data, prefix, sizeof(prefix));
+    memcpy(data + sizeof(prefix), &a, sizeof(crypto::secret_key));
+    memcpy(data + sizeof(prefix) + sizeof(crypto::secret_key), &index, sizeof(subaddress_index));
+    crypto::secret_key m;
+    crypto::hash_to_scalar(data, sizeof(data), m);
+    return m;
+  }
+  //---------------------------------------------------------------
+  bool generate_key_image_helper(const account_keys& ack, const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const crypto::public_key& out_key, const crypto::public_key& tx_public_key, size_t real_output_index, keypair& in_ephemeral, crypto::key_image& ki)
   {
     crypto::key_derivation recv_derivation = AUTO_VAL_INIT(recv_derivation);
     bool r = crypto::generate_key_derivation(tx_public_key, ack.m_view_secret_key, recv_derivation);
     CHECK_AND_ASSERT_MES(r, false, "key image helper: failed to generate_key_derivation(" << tx_public_key << ", " << ack.m_view_secret_key << ")");
 
-    r = crypto::derive_public_key(recv_derivation, real_output_index, ack.m_account_address.m_spend_public_key, in_ephemeral.pub);
-    CHECK_AND_ASSERT_MES(r, false, "key image helper: failed to derive_public_key(" << recv_derivation << ", " << real_output_index <<  ", " << ack.m_account_address.m_spend_public_key << ")");
+    boost::optional<subaddress_index> received_index = is_out_to_acc_precomp(subaddresses, out_key, recv_derivation, real_output_index);
+    CHECK_AND_ASSERT_MES(received_index, false, "key image helper: given output pubkey doesn't seem to belong to this address");
 
-    crypto::derive_secret_key(recv_derivation, real_output_index, ack.m_spend_secret_key, in_ephemeral.sec);
+    return generate_key_image_helper_precomp(ack, out_key, recv_derivation, real_output_index, *received_index, in_ephemeral, ki);
+  }
+  //---------------------------------------------------------------
+  bool generate_key_image_helper_precomp(const account_keys& ack, const crypto::public_key& out_key, const crypto::key_derivation& recv_derivation, size_t real_output_index, const subaddress_index& received_index, keypair& in_ephemeral, crypto::key_image& ki)
+  {
+    if (ack.m_spend_secret_key == null_skey)
+    {
+      // for watch-only wallet, simply copy the known output pubkey
+      in_ephemeral.pub = out_key;
+      in_ephemeral.sec = null_skey;
+    }
+    else
+    {
+      // derive secret key with subaddress - step 1: original CN derivation
+      crypto::secret_key scalar_step1;
+      crypto::derive_secret_key(recv_derivation, real_output_index, ack.m_spend_secret_key, scalar_step1); // computes Hs(a*R) + b
+
+      // step 2: add Hs(a || index_major || index_minor)
+      crypto::secret_key scalar_step2;
+      if (received_index.is_zero())
+      {
+        scalar_step2 = scalar_step1;    // treat index=(0,0) as a special case representing the main address
+      }
+      else
+      {
+        crypto::secret_key m = get_subaddress_secret_key(ack.m_view_secret_key, received_index);
+        sc_add((unsigned char*)&scalar_step2, (unsigned char*)&scalar_step1, (unsigned char*)&m);
+      }
+
+      in_ephemeral.sec = scalar_step2;
+      crypto::secret_key_to_public_key(in_ephemeral.sec, in_ephemeral.pub);
+      CHECK_AND_ASSERT_MES(in_ephemeral.pub == out_key, false, "key image helper precomp: given output pubkey doesn't match the derived one");
+    }
 
     crypto::generate_key_image(in_ephemeral.pub, in_ephemeral.sec, ki);
     return true;
@@ -433,8 +477,14 @@ namespace cryptonote
     return encrypt_payment_id(payment_id, public_key, secret_key);
   }
   //---------------------------------------------------------------
-  bool construct_tx_and_get_tx_key(const account_keys& sender_account_keys, const std::vector<tx_source_entry>& sources, const std::vector<tx_destination_entry>& destinations, std::vector<uint8_t> extra, transaction& tx, uint64_t unlock_time, crypto::secret_key &tx_key)
+  bool construct_tx_and_get_tx_key(const account_keys& sender_account_keys, const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const std::vector<tx_source_entry>& sources, const std::vector<tx_destination_entry>& destinations, const cryptonote::account_public_address& change_addr, std::vector<uint8_t> extra, bool is_subaddress, transaction& tx, uint64_t unlock_time, crypto::secret_key &tx_key, bool rct)
   {
+    if (destinations.empty())
+    {
+      LOG_ERROR("The destinations must be non-empty");
+      return false;
+    }
+
     std::vector<rct::key> amount_keys;
     tx.set_null();
     amount_keys.clear();
@@ -444,6 +494,32 @@ namespace cryptonote
 
     tx.extra = extra;
     keypair txkey = keypair::generate();
+
+    // when sending to a subaddress, we construct the tx pubkey differently
+    if (is_subaddress)
+    {
+      if (destinations.size() > 2)
+      {
+        LOG_ERROR("A tx transferring to a subaddress should contain only two destinations, one to the receiver and the other to yourself as change");
+        return false;
+      }
+
+      // determine the recipient's address
+      account_public_address recipient_addr = destinations[0].addr;
+      if (recipient_addr == change_addr)
+      {
+        if (destinations.size() == 1)
+        {
+          LOG_ERROR("The tx has only a single destination which is the same as the change address");
+          return false;
+        }
+        recipient_addr = destinations[1].addr;
+      }
+
+      // compute tx pubkey R by multiplying random scalar s to the recipient's spend pubkey D: R = s*D
+      txkey.pub = rct::rct2pk(rct::scalarmultKey(rct::pk2rct(recipient_addr.m_spend_public_key), rct::sk2rct(txkey.sec)));
+    }
+
     remove_field_from_tx_extra(tx.extra, typeid(tx_extra_pub_key));
     add_tx_pub_key_to_extra(tx, txkey.pub);
     tx_key = txkey.sec;
@@ -513,8 +589,12 @@ namespace cryptonote
       in_contexts.push_back(input_generation_context_data());
       keypair& in_ephemeral = in_contexts.back().in_ephemeral;
       crypto::key_image img;
-      if(!generate_key_image_helper(sender_account_keys, src_entr.real_out_tx_key, src_entr.real_output_in_tx_index, in_ephemeral, img))
+      const auto& out_key = reinterpret_cast<const crypto::public_key&>(src_entr.outputs[src_entr.real_output].second.dest);
+      if (!generate_key_image_helper(sender_account_keys, subaddresses, out_key, src_entr.real_out_tx_key, src_entr.real_output_in_tx_index, in_ephemeral, img))
+      {
+        LOG_ERROR("Key image generation failed!");
         return false;
+      }
 
       //check that derivated key is equal with real output key
       if( !(in_ephemeral.pub == src_entr.outputs[src_entr.real_output].second.dest) )
@@ -552,7 +632,17 @@ namespace cryptonote
       CHECK_AND_ASSERT_MES(dst_entr.amount > 0 || tx.version > 1, false, "Destination with wrong amount: " << dst_entr.amount);
       crypto::key_derivation derivation;
       crypto::public_key out_eph_public_key;
-      bool r = crypto::generate_key_derivation(dst_entr.addr.m_view_public_key, txkey.sec, derivation);
+      bool r;
+      if (dst_entr.addr == change_addr)
+      {
+        // sending change to yourself; derivation = a*R
+        r = crypto::generate_key_derivation(txkey.pub, sender_account_keys.m_view_secret_key, derivation);
+      }
+      else
+      {
+        // sending to the recipient; derivation = r*A (or s*C in the subaddress scheme)
+        r = crypto::generate_key_derivation(dst_entr.addr.m_view_public_key, txkey.sec, derivation);
+      }
       CHECK_AND_ASSERT_MES(r, false, "at creation outs: failed to generate_key_derivation(" << dst_entr.addr.m_view_public_key << ", " << txkey.sec << ")");
 
       crypto::secret_key scalar1;
@@ -697,8 +787,10 @@ namespace cryptonote
   //---------------------------------------------------------------
   bool construct_tx(const account_keys& sender_account_keys, const std::vector<tx_source_entry>& sources, const std::vector<tx_destination_entry>& destinations, std::vector<uint8_t> extra, transaction& tx, uint64_t unlock_time)
   {
-     crypto::secret_key tx_key;
-     return construct_tx_and_get_tx_key(sender_account_keys, sources, destinations, extra, tx, unlock_time, tx_key);
+    std::unordered_map<crypto::public_key, cryptonote::subaddress_index> subaddresses;
+    subaddresses[sender_account_keys.m_account_address.m_spend_public_key] = { 0, 0 };
+    crypto::secret_key tx_key;
+    return construct_tx_and_get_tx_key(sender_account_keys, subaddresses, sources, destinations, destinations.back().addr, extra, false, tx, unlock_time, tx_key);
   }
   //---------------------------------------------------------------
   bool get_inputs_money_amount(const transaction& tx, uint64_t& money)
@@ -806,11 +898,14 @@ namespace cryptonote
     return pk == out_key.key;
   }
   //---------------------------------------------------------------
-  bool is_out_to_acc_precomp(const crypto::public_key& spend_public_key, const txout_to_key& out_key, const crypto::key_derivation& derivation, size_t output_index)
+  boost::optional<subaddress_index> is_out_to_acc_precomp(const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const crypto::public_key& out_key, const crypto::key_derivation& derivation, size_t output_index)
   {
-    crypto::public_key pk;
-    derive_public_key(derivation, output_index, spend_public_key, pk);
-    return pk == out_key.key;
+    crypto::public_key subaddress_spendkey;
+    derive_subaddress_public_key(out_key, derivation, output_index, subaddress_spendkey);
+    auto found = subaddresses.find(subaddress_spendkey);
+    if (found != subaddresses.end())
+      return found->second;
+    return boost::none;
   }
   //---------------------------------------------------------------
   bool lookup_acc_outs(const account_keys& acc, const transaction& tx, std::vector<size_t>& outs, uint64_t& money_transfered)
