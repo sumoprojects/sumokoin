@@ -7,6 +7,8 @@ Version: 1.0
 Author: SerHack
 Author URI: http://monerointegrations.com
 */
+
+// This code isn't for Dark Net Markets, please report them to Authority!
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
