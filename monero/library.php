@@ -9,6 +9,7 @@
  * @author Kacper Rowinski <krowinski@implix.com>
  * http://implix.com
  * Modified to work with monero-rpc wallet by Serhack and cryptochangements
+ * This code isn't for Dark Net Markets, please report them to Authority!
  */
 class Monero_Library
 {
