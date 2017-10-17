@@ -1,6 +1,10 @@
 <?php
 
-/* Main Gateway of Monero using a daemon online */
+/* 
+ * Main Gateway of Monero using a daemon online 
+ * This code isn't for Dark Net Markets, please report them to Authority!
+ */
+
 
 class Monero_Gateway extends WC_Payment_Gateway
 {
