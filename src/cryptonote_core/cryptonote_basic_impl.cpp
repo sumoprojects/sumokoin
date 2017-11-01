@@ -183,9 +183,7 @@ namespace cryptonote {
     , crypto::hash8 const & payment_id
     )
   {
-    uint64_t integrated_address_prefix = testnet ?
-      (subaddress ? config::testnet::CRYPTONOTE_PUBLIC_INTEGRATED_SUBADDRESS_BASE58_PREFIX : config::testnet::CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX) :
-      (subaddress ? config::CRYPTONOTE_PUBLIC_INTEGRATED_SUBADDRESS_BASE58_PREFIX : config::CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX);
+    uint64_t integrated_address_prefix = testnet ? config::testnet::CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX : config::CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX;
 
     integrated_address iadr = {
       adr, payment_id
@@ -216,9 +214,7 @@ namespace cryptonote {
       config::testnet::CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX : config::CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX;
     uint64_t subaddress_prefix = testnet ?
       config::testnet::CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX : config::CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX;
-    uint64_t integrated_subaddress_prefix = testnet ?
-      config::testnet::CRYPTONOTE_PUBLIC_INTEGRATED_SUBADDRESS_BASE58_PREFIX : config::CRYPTONOTE_PUBLIC_INTEGRATED_SUBADDRESS_BASE58_PREFIX;
-
+    
     if (2 * sizeof(public_address_outer_blob) != str.size())
     {
       blobdata data;
@@ -244,16 +240,10 @@ namespace cryptonote {
         info.is_subaddress = true;
         info.has_payment_id = false;
       }
-      else if (integrated_subaddress_prefix == prefix)
-      {
-        info.is_subaddress = true;
-        info.has_payment_id = true;
-      }
       else {
         LOG_PRINT_L1("Wrong address prefix: " << prefix << ", expected " << address_prefix
           << " or " << integrated_address_prefix
-          << " or " << subaddress_prefix
-          << " or " << integrated_subaddress_prefix);
+          << " or " << subaddress_prefix);
         return false;
       }
 
