@@ -254,31 +254,39 @@ class Monero_Gateway extends WC_Payment_Gateway
             $color = "DC143C";
         }
         echo "<h4><font color=$color>" . $message . "</font></h4>";
-        echo "<link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'>";
+        echo "<link rel='stylesheet' href='http://cdn.monerointegrations.com/style.css'>";
+echo "<div class='container-xmr-payment'>
+    <div class='header-xmr-payment'>
+        <span class='logo-xmr'><img src='img/logomonero.png' /></span>
+        <span class='xmr-payment-text-header'><h2>MONERO PAYMENT</h2></span>
+    </div>
+    <!-- end header -->
 
-        echo "<div class='row'>
-				<div class='col-sm-12 col-md-12 col-lg-12'>
-			        <div class='panel panel-default' id='PaymentBox_de3a227fb470475'>
-        	            <div class='panel-body'>
-                            <div class='row'>
-                                <div class='col-sm-12 col-md-12 col-lg-12'>
-						            <h3> Monero Payment Box</h3>
-                                </div>
-					            <div class='col-sm-3 col-md-3 col-lg-3'>
-						            <img src='https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl=" . $uri . "' class='img-responsive'>
-					            </div>
-					            <div class='col-sm-9 col-md-9 col-lg-9' style='padding:10px;'>
-						            Send <b>" . $amount_xmr2 . " XMR</b> to<br/><input type='text'  class='form-control' value='" . $array_integrated_address["integrated_address"] . "'>
-                                    or scan QR Code with your mobile device<br/><br/>
-                                    <small>If you need help with how to pay with Monero or want to learn more about it, please go to the Monero<a href='#'>site</a>. </small>
-					            </div>
-					            <div class='col-sm-12 col-md-12 col-lg-12'> 
-					            </div>
-				            </div>
-			            </div>               
-		            </div>
-                </div>
-             </div>
+    <!-- xmr content box -->
+    <div class='content-xmr-payment'>
+
+        <div class='xmr-amount-send'>
+            <span class='xmr-label'>Send:</span>
+            <div class='xmr-amount-box'>".$amount_xmr2"</div><div class='xmr-box'>XMR</div>
+        </div>
+
+        <div class='xmr-address'>
+            <span class='xmr-label'>To this address:</span>
+            <div class='xmr-address-box'>".$array_integrated_address["integrated_address"]."</div>
+        </div>
+    
+        <div class='xmr-qr-code'>
+            <span class='xmr-label'>Or scan QR:</span>
+            <div class='xmr-qr-code-box'><img src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=".$uri."' /></div>
+        </div>
+
+        
+        <div class='clear'></div>
+</div>"
+	    
+	    
+	    
+        echo "
       <script type='text/javascript'>setTimeout(function () { location.reload(true); }, $this->reloadTime);</script>";
     }
 
