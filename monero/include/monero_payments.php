@@ -254,35 +254,54 @@ class Monero_Gateway extends WC_Payment_Gateway
             $color = "DC143C";
         }
         echo "<h4><font color=$color>" . $message . "</font></h4>";
-        echo "<link rel='stylesheet' href='http://cdn.monerointegrations.com/style.css'>";
-echo "<div class='container-xmr-payment'>
-    <div class='header-xmr-payment'>
-        <span class='logo-xmr'><img src='img/logomonero.png' /></span>
-        <span class='xmr-payment-text-header'><h2>MONERO PAYMENT</h2></span>
-    </div>
-    <!-- end header -->
-
-    <!-- xmr content box -->
-    <div class='content-xmr-payment'>
-
-        <div class='xmr-amount-send'>
+        echo "
+        <head>
+        <!--Import Google Icon Font-->
+        <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
+        <link href='https://fonts.googleapis.com/css?family=Montserrat:400,800' rel='stylesheet'>
+        <link href='http://cdn.monerointegrations.com/style.css' rel='stylesheet'>
+        <!--Let browser know website is optimized for mobile-->
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'/>
+            </head>
+            <body>
+            <!-- page container  -->
+            <div class='page-container'>
+            <!-- monero container payment box -->
+            <div class='container-xmr-payment'>
+            <!-- header -->
+            <div class='header-xmr-payment'>
+            <span class='logo-xmr'><img src='img/logomonero.png' /></span>
+            <span class='xmr-payment-text-header'><h2>MONERO PAYMENT</h2></span>
+            </div>
+            <!-- end header -->
+            <!-- xmr content box -->
+            <div class='content-xmr-payment'>
+            <div class='xmr-amount-send'>
             <span class='xmr-label'>Send:</span>
-            <div class='xmr-amount-box'>".$amount_xmr2"</div><div class='xmr-box'>XMR</div>
-        </div>
-
-        <div class='xmr-address'>
+            <div class='xmr-amount-box'>$amount_xmr2</div><div class='xmr-box'>XMR</div>
+            </div>
+            <div class='xmr-address'>
             <span class='xmr-label'>To this address:</span>
-            <div class='xmr-address-box'>".$array_integrated_address["integrated_address"]."</div>
-        </div>
-    
-        <div class='xmr-qr-code'>
+            <div class='xmr-address-box'>$array_integrated_address[integrated_address]</div>
+            </div>
+            <div class='xmr-qr-code'>
             <span class='xmr-label'>Or scan QR:</span>
-            <div class='xmr-qr-code-box'><img src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=".$uri."' /></div>
-        </div>
-
-        
-        <div class='clear'></div>
-</div>"
+            <div class='xmr-qr-code-box'><img src='https://api.qrserver.com/v1/create-qr-code/? size=200x200&data=monero:$integrated_address' /></div>
+            </div>
+            <div class='clear'></div>
+            </div>
+            <!-- end content box -->
+            <!-- footer xmr payment -->
+            <div class='footer-xmr-payment'>
+            <a href='https://getmonero.org' target='_blank'>Help</a> | <a href='https://getmonero.org' target='_blank'>About Monero</a>
+            </div>
+            <!-- end footer xmr payment -->
+            </div>
+            <!-- end monero container payment box -->
+            </div>
+            <!-- end page container  -->
+            </body>
+        ";
 	    
 	    
 	    
