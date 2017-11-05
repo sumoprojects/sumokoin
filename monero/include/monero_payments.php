@@ -3,6 +3,7 @@
 /* 
  * Main Gateway of Monero using a daemon online 
  * This code isn't for Dark Net Markets, please report them to Authority!
+ * Authors: Serhack and cryptochangements34
  */
 
 
@@ -19,7 +20,7 @@ class Monero_Gateway extends WC_Payment_Gateway
         $this->method_title = __("Monero GateWay", 'monero_gateway');
         $this->method_description = __("Monero Payment Gateway Plug-in for WooCommerce. You can find more information about this payment gateway on our website. You'll need a daemon online for your address.", 'monero_gateway');
         $this->title = __("Monero Gateway", 'monero_gateway');
-        $this->version = "0.21";
+        $this->version = "0.3";
         //
         $this->icon = apply_filters('woocommerce_offline_icon', '');
         $this->has_fields = false;
@@ -270,7 +271,7 @@ class Monero_Gateway extends WC_Payment_Gateway
             <div class='container-xmr-payment'>
             <!-- header -->
             <div class='header-xmr-payment'>
-            <span class='logo-xmr'><img src='img/logomonero.png' /></span>
+            <span class='logo-xmr'><img src='http://cdn.monerointegrations.com/logomonero.png' /></span>
             <span class='xmr-payment-text-header'><h2>MONERO PAYMENT</h2></span>
             </div>
             <!-- end header -->
@@ -413,7 +414,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 
     public function do_ssl_check()
     {
-        if ($this->enabled == "yes" && !$this->settings['onion_service']) {
+        if ($this->enabled == "yes" && !$this->get_option('onion_service')) {
             if (get_option('woocommerce_force_ssl_checkout') == "no") {
                 echo "<div class=\"error\"><p>" . sprintf(__("<strong>%s</strong> is enabled and WooCommerce is not forcing the SSL certificate on your checkout page. Please ensure that you have a valid SSL certificate and that you are <a href=\"%s\">forcing the checkout pages to be secured.</a>"), $this->method_title, admin_url('admin.php?page=wc-settings&tab=checkout')) . "</p></div>";
             }
