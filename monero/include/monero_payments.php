@@ -278,15 +278,15 @@ class Monero_Gateway extends WC_Payment_Gateway
             <div class='content-xmr-payment'>
             <div class='xmr-amount-send'>
             <span class='xmr-label'>Send:</span>
-            <div class='xmr-amount-box'>$amount_xmr2</div><div class='xmr-box'>XMR</div>
+            <div class='xmr-amount-box'>".$amount_xmr2."</div><div class='xmr-box'>XMR</div>
             </div>
             <div class='xmr-address'>
             <span class='xmr-label'>To this address:</span>
-            <div class='xmr-address-box'>$array_integrated_address[integrated_address]</div>
+            <div class='xmr-address-box'>".$array_integrated_address['integrated_address']."</div>
             </div>
             <div class='xmr-qr-code'>
             <span class='xmr-label'>Or scan QR:</span>
-            <div class='xmr-qr-code-box'><img src='https://api.qrserver.com/v1/create-qr-code/? size=200x200&data=monero:$integrated_address' /></div>
+            <div class='xmr-qr-code-box'><img src='https://api.qrserver.com/v1/create-qr-code/? size=200x200&data=".$uri."' /></div>
             </div>
             <div class='clear'></div>
             </div>
