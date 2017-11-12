@@ -87,26 +87,26 @@ class Monero_Gateway extends WC_Payment_Gateway
                 'desc_tip' => __('Monero Wallet Address', 'monero_gateway')
             ),
             'daemon_host' => array(
-                'title' => __('Daemon Host/ IP', 'monero_gateway'),
+                'title' => __('Monero wallet rpc Host/ IP', 'monero_gateway'),
                 'type' => 'text',
                 'desc_tip' => __('This is the Daemon Host/IP to authorize the payment with port', 'monero_gateway'),
                 'default' => 'localhost',
             ),
             'daemon_port' => array(
-                'title' => __('Daemon PORT', 'monero_gateway'),
+                'title' => __('Monero wallet rpc port', 'monero_gateway'),
                 'type' => 'text',
                 'desc_tip' => __('This is the Daemon Host/IP to authorize the payment with port', 'monero_gateway'),
                 'default' => '18080',
             ),
             'username' => array(
-                'title' => __('Daemon username', 'monero_gateway'),
+                'title' => __('Monero Wallet username', 'monero_gateway'),
                 'desc_tip' => __('This is the username that you used with your monero wallet-rpc', 'monero_gateway'),
                 'type' => __('text'),
                 'default' => __('username', 'monero_gateway'),
 
             ),
             'password' => array(
-                'title' => __('Daemon password', 'monero_gateway'),
+                'title' => __('Monero wallet RPC password', 'monero_gateway'),
                 'desc_tip' => __('This is the password that you used with your monero wallet-rpc', 'monero_gateway'),
                 'description' => __('you can leave these fields empty if you did not set', 'monero_gateway'),
                 'type' => __('text'),
