@@ -1028,7 +1028,7 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
   }
 
   uint64_t tx_money_spent_in_ins = 0;
-  boost::optional<uint32_t> subaddr_account;
+  boost::optional<uint32_t> subaddr_account([]()->boost::optional<uint32_t> {return boost::none; }());
   std::set<uint32_t> subaddr_indices;
   // check all outputs for spending (compare key images)
   BOOST_FOREACH(auto& in, tx.vin)
