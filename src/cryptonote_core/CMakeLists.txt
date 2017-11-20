@@ -58,7 +58,8 @@ set(cryptonote_core_private_headers
   tx_extra.h
   tx_pool.h
   verification_context.h
-  hardfork.h)
+  hardfork.h
+  subaddress_index.h)
 
 if(PER_BLOCK_CHECKPOINT)
   set(Blocks "blocks")

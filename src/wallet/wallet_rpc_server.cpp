@@ -126,12 +126,99 @@ namespace tools
     return false;
   }
   //------------------------------------------------------------------------------------------------------------------------------
+  void wallet_rpc_server::fill_transfer_entry(tools::wallet_rpc::transfer_entry &entry, const crypto::hash &txid, const crypto::hash &payment_id, const tools::wallet2::payment_details &pd)
+  {
+    entry.txid = string_tools::pod_to_hex(pd.m_tx_hash);
+    entry.payment_id = string_tools::pod_to_hex(payment_id);
+    if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
+      entry.payment_id = entry.payment_id.substr(0, 16);
+    entry.height = pd.m_block_height;
+    entry.timestamp = pd.m_timestamp;
+    entry.amount = pd.m_amount;
+    entry.fee = 0; // TODO
+    entry.note = m_wallet.get_tx_note(pd.m_tx_hash);
+    entry.type = "in";
+    entry.subaddr_index = pd.m_subaddr_index;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  void wallet_rpc_server::fill_transfer_entry(tools::wallet_rpc::transfer_entry &entry, const crypto::hash &txid, const tools::wallet2::confirmed_transfer_details &pd)
+  {
+    entry.txid = string_tools::pod_to_hex(txid);
+    entry.payment_id = string_tools::pod_to_hex(pd.m_payment_id);
+    if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
+      entry.payment_id = entry.payment_id.substr(0, 16);
+    entry.height = pd.m_block_height;
+    entry.timestamp = pd.m_timestamp;
+    entry.fee = pd.m_amount_in - pd.m_amount_out;
+    uint64_t change = pd.m_change == (uint64_t)-1 ? 0 : pd.m_change; // change may not be known
+    entry.amount = pd.m_amount_in - change - entry.fee;
+    entry.note = m_wallet.get_tx_note(txid);
+
+    for (const auto &d : pd.m_dests) {
+      entry.destinations.push_back(wallet_rpc::transfer_destination());
+      wallet_rpc::transfer_destination &td = entry.destinations.back();
+      td.amount = d.amount;
+      td.address = get_account_address_as_str(m_wallet.testnet(), pd.m_dest_subaddr, d.addr);
+    }
+
+    entry.type = "out";
+    entry.subaddr_index = { pd.m_subaddr_account, 0 };
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  void wallet_rpc_server::fill_transfer_entry(tools::wallet_rpc::transfer_entry &entry, const crypto::hash &txid, const tools::wallet2::unconfirmed_transfer_details &pd)
+  {
+    bool is_failed = pd.m_state == tools::wallet2::unconfirmed_transfer_details::failed;
+    entry.txid = string_tools::pod_to_hex(txid);
+    entry.payment_id = string_tools::pod_to_hex(pd.m_payment_id);
+    entry.payment_id = string_tools::pod_to_hex(pd.m_payment_id);
+    if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
+      entry.payment_id = entry.payment_id.substr(0, 16);
+    entry.height = 0;
+    entry.timestamp = pd.m_timestamp;
+    entry.fee = pd.m_amount_in - pd.m_amount_out;
+    entry.amount = pd.m_amount_in - pd.m_change - entry.fee;
+    entry.note = m_wallet.get_tx_note(txid);
+    entry.type = is_failed ? "failed" : "pending";
+    entry.subaddr_index = { pd.m_subaddr_account, 0 };
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  void wallet_rpc_server::fill_transfer_entry(tools::wallet_rpc::transfer_entry &entry, const crypto::hash &payment_id, const tools::wallet2::payment_details &pd)
+  {
+    entry.txid = string_tools::pod_to_hex(pd.m_tx_hash);
+    entry.payment_id = string_tools::pod_to_hex(payment_id);
+    if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
+      entry.payment_id = entry.payment_id.substr(0, 16);
+    entry.height = 0;
+    entry.timestamp = pd.m_timestamp;
+    entry.amount = pd.m_amount;
+    entry.fee = 0; // TODO
+    entry.note = m_wallet.get_tx_note(pd.m_tx_hash);
+    entry.type = "pool";
+    entry.subaddr_index = pd.m_subaddr_index;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
   bool wallet_rpc_server::on_getbalance(const wallet_rpc::COMMAND_RPC_GET_BALANCE::request& req, wallet_rpc::COMMAND_RPC_GET_BALANCE::response& res, epee::json_rpc::error& er)
   {
     try
     {
-      res.balance = m_wallet.balance();
-      res.unlocked_balance = m_wallet.unlocked_balance();
+      res.balance = m_wallet.balance(req.account_index);
+      res.unlocked_balance = m_wallet.unlocked_balance(req.account_index);
+      std::map<uint32_t, uint64_t> balance_per_subaddress = m_wallet.balance_per_subaddress(req.account_index);
+      std::map<uint32_t, uint64_t> unlocked_balance_per_subaddress = m_wallet.unlocked_balance_per_subaddress(req.account_index);
+      std::vector<tools::wallet2::transfer_details> transfers;
+      m_wallet.get_transfers(transfers);
+      for (const auto& i : balance_per_subaddress)
+      {
+        wallet_rpc::COMMAND_RPC_GET_BALANCE::per_subaddress_info info;
+        info.address_index = i.first;
+        cryptonote::subaddress_index index = { req.account_index, info.address_index };
+        info.address = m_wallet.get_subaddress_as_str(index);
+        info.balance = i.second;
+        info.unlocked_balance = unlocked_balance_per_subaddress[i.first];
+        info.label = m_wallet.get_subaddress_label(index);
+        info.num_unspent_outputs = std::count_if(transfers.begin(), transfers.end(), [&](const tools::wallet2::transfer_details& td) { return !td.m_spent && td.m_subaddr_index == index; });
+        res.per_subaddress.push_back(info);
+      }
     }
     catch (std::exception& e)
     {
@@ -146,9 +233,128 @@ namespace tools
   {
     try
     {
-      res.address = m_wallet.get_account().get_public_address_str(m_wallet.testnet());
+      res.addresses.resize(m_wallet.get_num_subaddresses(req.account_index));
+      tools::wallet2::transfer_container transfers;
+      m_wallet.get_transfers(transfers);
+      cryptonote::subaddress_index index = { req.account_index, 0 };
+      for (; index.minor < m_wallet.get_num_subaddresses(req.account_index); ++index.minor)
+      {
+        auto& info = res.addresses[index.minor];
+        info.address = m_wallet.get_subaddress_as_str(index);
+        info.label = m_wallet.get_subaddress_label(index);
+        info.address_index = index.minor;
+        info.used = std::find_if(transfers.begin(), transfers.end(), [&](const tools::wallet2::transfer_details& td) { return td.m_subaddr_index == index; }) != transfers.end();
+      }
+      res.address = m_wallet.get_subaddress_as_str({ req.account_index, 0 });
     }
     catch (std::exception& e)
+    {
+      er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
+      er.message = e.what();
+      return false;
+    }
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  bool wallet_rpc_server::on_create_address(const wallet_rpc::COMMAND_RPC_CREATE_ADDRESS::request& req, wallet_rpc::COMMAND_RPC_CREATE_ADDRESS::response& res, epee::json_rpc::error& er)
+  {
+    if (!&m_wallet) return not_open(er);
+    m_wallet.add_subaddress(req.account_index, req.label);
+    res.address_index = m_wallet.get_num_subaddresses(req.account_index) - 1;
+    res.address = m_wallet.get_subaddress_as_str({ req.account_index, res.address_index });
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  bool wallet_rpc_server::on_label_address(const wallet_rpc::COMMAND_RPC_LABEL_ADDRESS::request& req, wallet_rpc::COMMAND_RPC_LABEL_ADDRESS::response& res, epee::json_rpc::error& er)
+  {
+    if (!&m_wallet) return not_open(er);
+    if (req.index.major >= m_wallet.get_num_subaddress_accounts())
+    {
+      er.code = WALLET_RPC_ERROR_CODE_ACCOUNT_INDEX_OUTOFBOUND;
+      er.message = "Account index is out of bound";
+      return false;
+    }
+    if (req.index.minor >= m_wallet.get_num_subaddresses(req.index.major))
+    {
+      er.code = WALLET_RPC_ERROR_CODE_ADDRESS_INDEX_OUTOFBOUND;
+      er.message = "Address index is out of bound";
+      return false;
+    }
+    try
+    {
+      m_wallet.set_subaddress_label(req.index, req.label);
+    }
+    catch (const std::exception& e)
+    {
+      er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
+      er.message = e.what();
+      return false;
+    }
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  bool wallet_rpc_server::on_get_accounts(const wallet_rpc::COMMAND_RPC_GET_ACCOUNTS::request& req, wallet_rpc::COMMAND_RPC_GET_ACCOUNTS::response& res, epee::json_rpc::error& er)
+  {
+    if (!&m_wallet) return not_open(er);
+    try
+    {
+      res.total_balance = 0;
+      res.total_unlocked_balance = 0;
+      cryptonote::subaddress_index subaddr_index = { 0,0 };
+      for (; subaddr_index.major < m_wallet.get_num_subaddress_accounts(); ++subaddr_index.major)
+      {
+        wallet_rpc::COMMAND_RPC_GET_ACCOUNTS::subaddress_account_info info;
+        info.account_index = subaddr_index.major;
+        info.base_address = m_wallet.get_subaddress_as_str(subaddr_index);
+        info.balance = m_wallet.balance(subaddr_index.major);
+        info.unlocked_balance = m_wallet.unlocked_balance(subaddr_index.major);
+        info.label = m_wallet.get_subaddress_label(subaddr_index);
+        res.subaddress_accounts.push_back(info);
+        res.total_balance += info.balance;
+        res.total_unlocked_balance += info.unlocked_balance;
+      }
+    }
+    catch (const std::exception& e)
+    {
+      er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
+      er.message = e.what();
+      return false;
+    }
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  bool wallet_rpc_server::on_create_account(const wallet_rpc::COMMAND_RPC_CREATE_ACCOUNT::request& req, wallet_rpc::COMMAND_RPC_CREATE_ACCOUNT::response& res, epee::json_rpc::error& er)
+  {
+    if (!&m_wallet) return not_open(er);
+    try
+    {
+      m_wallet.add_subaddress_account(req.label);
+      res.account_index = m_wallet.get_num_subaddress_accounts() - 1;
+      res.address = m_wallet.get_subaddress_as_str({ res.account_index, 0 });
+    }
+    catch (const std::exception& e)
+    {
+      er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
+      er.message = e.what();
+      return false;
+    }
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  bool wallet_rpc_server::on_label_account(const wallet_rpc::COMMAND_RPC_LABEL_ACCOUNT::request& req, wallet_rpc::COMMAND_RPC_LABEL_ACCOUNT::response& res, epee::json_rpc::error& er)
+  {
+    if (!&m_wallet) return not_open(er);
+    if (req.account_index >= m_wallet.get_num_subaddress_accounts())
+    {
+      er.code = WALLET_RPC_ERROR_CODE_ACCOUNT_INDEX_OUTOFBOUND;
+      er.message = "Account index is out of bound";
+      return false;
+    }
+    try
+    {
+      m_wallet.set_subaddress_label({ req.account_index, 0 }, req.label);
+    }
+    catch (const std::exception& e)
     {
       er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
       er.message = e.what();
@@ -172,16 +378,16 @@ namespace tools
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  bool wallet_rpc_server::validate_transfer(const std::list<wallet_rpc::transfer_destination> destinations, std::string payment_id, std::vector<cryptonote::tx_destination_entry>& dsts, std::vector<uint8_t>& extra, epee::json_rpc::error& er)
+  bool wallet_rpc_server::validate_transfer(const std::list<wallet_rpc::transfer_destination>& destinations, const std::string& payment_id, std::vector<cryptonote::tx_destination_entry>& dsts, std::vector<uint8_t>& extra, bool& is_subaddress, epee::json_rpc::error& er)
   {
     crypto::hash8 integrated_payment_id = cryptonote::null_hash8;
     std::string extra_nonce;
+    is_subaddress = false;
     for (auto it = destinations.begin(); it != destinations.end(); it++)
     {
+      cryptonote::address_parse_info info;
       cryptonote::tx_destination_entry de;
-      bool has_payment_id;
-      crypto::hash8 new_payment_id;
-      if(!get_account_integrated_address_from_str(de.addr, has_payment_id, new_payment_id, m_wallet.testnet(), it->address))
+      if (!get_account_address_from_str_or_url(info, m_wallet.testnet(), it->address, false))
       {
         er.code = WALLET_RPC_ERROR_CODE_WRONG_ADDRESS;
         er.message = std::string("WALLET_RPC_ERROR_CODE_WRONG_ADDRESS: ") + it->address;
@@ -190,7 +396,18 @@ namespace tools
       de.amount = it->amount;
       dsts.push_back(de);
 
-      if (has_payment_id)
+      if (info.is_subaddress)
+      {
+        if (destinations.size() > 1)
+        {
+          er.code = WALLET_RPC_ERROR_CODE_SUBADDRESS_MULTI_DEST;
+          er.message = std::string("Only one subaddress can be used per transaction.");
+          return false;
+        }
+        is_subaddress = true;
+      }
+
+      if (info.has_payment_id)
       {
         if (!payment_id.empty() || integrated_payment_id != cryptonote::null_hash8)
         {
@@ -198,7 +415,7 @@ namespace tools
           er.message = "A single payment id is allowed per transaction";
           return false;
         }
-        integrated_payment_id = new_payment_id;
+        integrated_payment_id = info.payment_id;
         cryptonote::set_encrypted_payment_id_to_tx_extra_nonce(extra_nonce, integrated_payment_id);
 
         /* Append Payment ID data into extra */
@@ -259,7 +476,8 @@ namespace tools
     }
 
     // validate the transfer requested and populate dsts & extra
-    if (!validate_transfer(req.destinations, req.payment_id, dsts, extra, er))
+    bool is_subaddress;
+    if (!validate_transfer(req.destinations, req.payment_id, dsts, extra, is_subaddress, er))
     {
       return false;
     }
@@ -276,7 +494,7 @@ namespace tools
         mixin = MAX_MIXIN;
       }
       
-      std::vector<wallet2::pending_tx> ptx_vector = m_wallet.create_transactions_2(dsts, mixin, req.unlock_time, req.priority, extra, req.trusted_daemon);
+      std::vector<wallet2::pending_tx> ptx_vector = m_wallet.create_transactions_2(dsts, mixin, req.unlock_time, req.priority, extra, is_subaddress, req.account_index, req.subaddr_indices, req.trusted_daemon);
 
       // reject proposed transactions if there are more than one.  see on_transfer_split below.
       if (ptx_vector.size() != 1)
@@ -331,7 +549,8 @@ namespace tools
     }
 
     // validate the transfer requested and populate dsts & extra; RPC_TRANSFER::request and RPC_TRANSFER_SPLIT::request are identical types.
-    if (!validate_transfer(req.destinations, req.payment_id, dsts, extra, er))
+    bool is_subaddress;
+    if (!validate_transfer(req.destinations, req.payment_id, dsts, extra, is_subaddress, er))
     {
       return false;
     }
@@ -351,7 +570,7 @@ namespace tools
       }
       
       std::vector<wallet2::pending_tx> ptx_vector;
-      ptx_vector = m_wallet.create_transactions_2(dsts, mixin, req.unlock_time, req.priority, extra, req.trusted_daemon, tx_size_target_factor);
+      ptx_vector = m_wallet.create_transactions_2(dsts, mixin, req.unlock_time, req.priority, extra, is_subaddress, req.account_index, req.subaddr_indices, req.trusted_daemon);
 
       m_wallet.commit_tx(ptx_vector);
 
@@ -472,14 +691,15 @@ namespace tools
     destination.push_back(wallet_rpc::transfer_destination());
     destination.back().amount = 0;
     destination.back().address = req.address;
-    if (!validate_transfer(destination, req.payment_id, dsts, extra, er))
+    bool is_subaddress;
+    if (!validate_transfer(destination, req.payment_id, dsts, extra, is_subaddress, er))
     {
       return false;
     }
 
     try
     {
-      std::vector<wallet2::pending_tx> ptx_vector = m_wallet.create_transactions_all(dsts[0].addr, req.mixin, req.unlock_time, req.priority, extra, req.trusted_daemon);
+      std::vector<wallet2::pending_tx> ptx_vector = m_wallet.create_transactions_all(req.below_amount, dsts[0].addr, req.mixin, req.unlock_time, req.priority, extra, is_subaddress, req.account_index, req.subaddr_indices, req.trusted_daemon);
 
       m_wallet.commit_tx(ptx_vector);
 
@@ -536,8 +756,25 @@ namespace tools
         }
       }
 
-      res.integrated_address = m_wallet.get_account().get_public_integrated_address_str(payment_id, m_wallet.testnet());
+      if (req.index.major >= m_wallet.get_num_subaddress_accounts())
+      {
+        er.code = WALLET_RPC_ERROR_CODE_ACCOUNT_INDEX_OUTOFBOUND;
+        er.message = "Account index is out of bound";
+        return false;
+      }
+      if (req.index.minor >= m_wallet.get_num_subaddresses(req.index.major))
+      {
+        er.code = WALLET_RPC_ERROR_CODE_ADDRESS_INDEX_OUTOFBOUND;
+        er.message = "Address index is out of bound";
+        return false;
+      }
+
+      res.integrated_address = m_wallet.get_integrated_subaddress_as_str(req.index, payment_id);
       res.payment_id = epee::string_tools::pod_to_hex(payment_id);
+      res.label = m_wallet.get_subaddress_label(req.index);
+      tools::wallet2::transfer_container transfers;
+      m_wallet.get_transfers(transfers);
+      res.used = std::find_if(transfers.begin(), transfers.end(), [&](const tools::wallet2::transfer_details& td) { return td.m_subaddr_index == req.index; }) != transfers.end();
       return true;
     }
     catch (std::exception &e)
@@ -553,24 +790,22 @@ namespace tools
   {
     try
     {
-      cryptonote::account_public_address address;
-      crypto::hash8 payment_id;
-      bool has_payment_id;
+      cryptonote::address_parse_info info;
 
-      if(!get_account_integrated_address_from_str(address, has_payment_id, payment_id, m_wallet.testnet(), req.integrated_address))
+      if (!get_account_address_from_str(info, m_wallet.testnet(), req.integrated_address))
       {
         er.code = WALLET_RPC_ERROR_CODE_WRONG_ADDRESS;
         er.message = "Invalid address";
         return false;
       }
-      if(!has_payment_id)
+      if (!info.has_payment_id)
       {
         er.code = WALLET_RPC_ERROR_CODE_WRONG_ADDRESS;
         er.message = "Address is not an integrated address";
         return false;
       }
-      res.standard_address = get_account_address_as_str(m_wallet.testnet(),address);
-      res.payment_id = epee::string_tools::pod_to_hex(payment_id);
+      res.standard_address = get_account_address_as_str(m_wallet.testnet(), info.is_subaddress, info.address);
+      res.payment_id = epee::string_tools::pod_to_hex(info.payment_id);
       return true;
     }
     catch (std::exception &e)
@@ -644,6 +879,7 @@ namespace tools
       rpc_payment.amount       = payment.m_amount;
       rpc_payment.block_height = payment.m_block_height;
       rpc_payment.unlock_time  = payment.m_unlock_time;
+      rpc_payment.subaddr_index = payment.m_subaddr_index;
       res.payments.push_back(rpc_payment);
     }
 
@@ -668,6 +904,7 @@ namespace tools
         rpc_payment.amount       = payment.second.m_amount;
         rpc_payment.block_height = payment.second.m_block_height;
         rpc_payment.unlock_time  = payment.second.m_unlock_time;
+        rpc_payment.subaddr_index = payment.second.m_subaddr_index;
         res.payments.push_back(std::move(rpc_payment));
       }
 
@@ -717,6 +954,7 @@ namespace tools
         rpc_payment.amount       = payment.m_amount;
         rpc_payment.block_height = payment.m_block_height;
         rpc_payment.unlock_time  = payment.m_unlock_time;
+        rpc_payment.subaddr_index = payment.m_subaddr_index;
         res.payments.push_back(std::move(rpc_payment));
       }
     }
@@ -726,7 +964,8 @@ namespace tools
   //------------------------------------------------------------------------------------------------------------------------------
   bool wallet_rpc_server::on_incoming_transfers(const wallet_rpc::COMMAND_RPC_INCOMING_TRANSFERS::request& req, wallet_rpc::COMMAND_RPC_INCOMING_TRANSFERS::response& res, epee::json_rpc::error& er)
   {
-    if(req.transfer_type.compare("all") != 0 && req.transfer_type.compare("available") != 0 && req.transfer_type.compare("unavailable") != 0)
+    if (!&m_wallet) return not_open(er);
+    if (req.transfer_type.compare("all") != 0 && req.transfer_type.compare("available") != 0 && req.transfer_type.compare("unavailable") != 0)
     {
       er.code = WALLET_RPC_ERROR_CODE_TRANSFER_TYPE;
       er.message = "Transfer type must be one of: all, available, or unavailable";
@@ -754,17 +993,20 @@ namespace tools
     {
       if (!filter || available != td.m_spent)
       {
+        if (req.account_index != td.m_subaddr_index.major || (!req.subaddr_indices.empty() && req.subaddr_indices.count(td.m_subaddr_index.minor) == 0))
+          continue;
         if (!transfers_found)
         {
           transfers_found = true;
         }
         auto txBlob = t_serializable_object_to_blob(td.m_tx);
         wallet_rpc::transfer_details rpc_transfers;
-        rpc_transfers.amount       = td.amount();
-        rpc_transfers.spent        = td.m_spent;
+        rpc_transfers.amount = td.amount();
+        rpc_transfers.spent = td.m_spent;
         rpc_transfers.global_index = td.m_global_output_index;
-        rpc_transfers.tx_hash      = epee::string_tools::pod_to_hex(td.m_txid);
-        rpc_transfers.tx_size      = txBlob.size();
+        rpc_transfers.tx_hash = epee::string_tools::pod_to_hex(td.m_txid);
+        rpc_transfers.tx_size = txBlob.size();
+        rpc_transfers.subaddr_index = td.m_subaddr_index.minor;
         res.transfers.push_back(rpc_transfers);
       }
     }
@@ -850,17 +1092,15 @@ namespace tools
       return false;
     }
 
-    cryptonote::account_public_address address;
-    bool has_payment_id;
-    crypto::hash8 payment_id;
-    if(!get_account_integrated_address_from_str(address, has_payment_id, payment_id, m_wallet.testnet(), req.address))
+    cryptonote::address_parse_info info;
+    if (!get_account_address_from_str_or_url(info, m_wallet.testnet(), req.address, false))
     {
       er.code = WALLET_RPC_ERROR_CODE_WRONG_ADDRESS;
       er.message = "";
       return false;
     }
 
-    res.good = m_wallet.verify(req.data, address, req.signature);
+    res.good = m_wallet.verify(req.data, info.address, req.signature);
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
@@ -969,75 +1209,34 @@ namespace tools
     if (req.in)
     {
       std::list<std::pair<crypto::hash, tools::wallet2::payment_details>> payments;
-      m_wallet.get_payments(payments, min_height, max_height);
+      m_wallet.get_payments(payments, min_height, max_height, req.account_index, req.subaddr_indices);
       for (std::list<std::pair<crypto::hash, tools::wallet2::payment_details>>::const_iterator i = payments.begin(); i != payments.end(); ++i) {
-        res.in.push_back(wallet_rpc::COMMAND_RPC_GET_TRANSFERS::entry());
-        wallet_rpc::COMMAND_RPC_GET_TRANSFERS::entry &entry = res.in.back();
-        const tools::wallet2::payment_details &pd = i->second;
-
-        entry.txid = string_tools::pod_to_hex(pd.m_tx_hash);
-        entry.payment_id = string_tools::pod_to_hex(i->first);
-        if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
-          entry.payment_id = entry.payment_id.substr(0,16);
-        entry.height = pd.m_block_height;
-        entry.timestamp = pd.m_timestamp;
-        entry.amount = pd.m_amount;
-        entry.fee = 0; // TODO
-        entry.note = m_wallet.get_tx_note(pd.m_tx_hash);
+        res.in.push_back(wallet_rpc::transfer_entry());
+        fill_transfer_entry(res.in.back(), i->second.m_tx_hash, i->first, i->second);
       }
     }
 
     if (req.out)
     {
       std::list<std::pair<crypto::hash, tools::wallet2::confirmed_transfer_details>> payments;
-      m_wallet.get_payments_out(payments, min_height, max_height);
+      m_wallet.get_payments_out(payments, min_height, max_height, req.account_index, req.subaddr_indices);
       for (std::list<std::pair<crypto::hash, tools::wallet2::confirmed_transfer_details>>::const_iterator i = payments.begin(); i != payments.end(); ++i) {
-        res.out.push_back(wallet_rpc::COMMAND_RPC_GET_TRANSFERS::entry());
-        wallet_rpc::COMMAND_RPC_GET_TRANSFERS::entry &entry = res.out.back();
-        const tools::wallet2::confirmed_transfer_details &pd = i->second;
-
-        entry.txid = string_tools::pod_to_hex(i->first);
-        entry.payment_id = string_tools::pod_to_hex(i->second.m_payment_id);
-        if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
-          entry.payment_id = entry.payment_id.substr(0,16);
-        entry.height = pd.m_block_height;
-        entry.timestamp = pd.m_timestamp;
-        entry.fee = pd.m_amount_in - pd.m_amount_out;
-        uint64_t change = pd.m_change == (uint64_t)-1 ? 0 : pd.m_change; // change may not be known
-        entry.amount = pd.m_amount_in - change - entry.fee;
-        entry.note = m_wallet.get_tx_note(i->first);
-
-        for (const auto &d: pd.m_dests) {
-          entry.destinations.push_back(wallet_rpc::transfer_destination());
-          wallet_rpc::transfer_destination &td = entry.destinations.back();
-          td.amount = d.amount;
-          td.address = get_account_address_as_str(m_wallet.testnet(), d.addr);
-        }
+        res.out.push_back(wallet_rpc::transfer_entry());
+        fill_transfer_entry(res.out.back(), i->first, i->second);
       }
     }
 
     if (req.pending || req.failed) {
       std::list<std::pair<crypto::hash, tools::wallet2::unconfirmed_transfer_details>> upayments;
-      m_wallet.get_unconfirmed_payments_out(upayments);
+      m_wallet.get_unconfirmed_payments_out(upayments, req.account_index, req.subaddr_indices);
       for (std::list<std::pair<crypto::hash, tools::wallet2::unconfirmed_transfer_details>>::const_iterator i = upayments.begin(); i != upayments.end(); ++i) {
         const tools::wallet2::unconfirmed_transfer_details &pd = i->second;
         bool is_failed = pd.m_state == tools::wallet2::unconfirmed_transfer_details::failed;
         if (!((req.failed && is_failed) || (!is_failed && req.pending)))
           continue;
-        std::list<wallet_rpc::COMMAND_RPC_GET_TRANSFERS::entry> &entries = is_failed ? res.failed : res.pending;
-        entries.push_back(wallet_rpc::COMMAND_RPC_GET_TRANSFERS::entry());
-        wallet_rpc::COMMAND_RPC_GET_TRANSFERS::entry &entry = entries.back();
-
-        entry.txid = string_tools::pod_to_hex(i->first);
-        entry.payment_id = string_tools::pod_to_hex(i->second.m_payment_id);
-        entry.payment_id = string_tools::pod_to_hex(i->second.m_payment_id);
-        if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
-          entry.payment_id = entry.payment_id.substr(0,16);
-        entry.height = 0;
-        entry.timestamp = pd.m_timestamp;
-        entry.fee = pd.m_amount_in - pd.m_amount_out;
-        entry.amount = pd.m_amount_in - pd.m_change - entry.fee;
-        entry.note = m_wallet.get_tx_note(i->first);
+        std::list<wallet_rpc::transfer_entry> &entries = is_failed ? res.failed : res.pending;
+        entries.push_back(wallet_rpc::transfer_entry());
+        fill_transfer_entry(entries.back(), i->first, i->second);
       }
     }
 
@@ -1046,25 +1245,91 @@ namespace tools
       m_wallet.update_pool_state();
 
       std::list<std::pair<crypto::hash, tools::wallet2::payment_details>> payments;
-      m_wallet.get_unconfirmed_payments(payments);
+      m_wallet.get_unconfirmed_payments(payments, req.account_index, req.subaddr_indices);
       for (std::list<std::pair<crypto::hash, tools::wallet2::payment_details>>::const_iterator i = payments.begin(); i != payments.end(); ++i) {
-        res.pool.push_back(wallet_rpc::COMMAND_RPC_GET_TRANSFERS::entry());
-        wallet_rpc::COMMAND_RPC_GET_TRANSFERS::entry &entry = res.pool.back();
-        const tools::wallet2::payment_details &pd = i->second;
-
-        entry.txid = string_tools::pod_to_hex(pd.m_tx_hash);
-        entry.payment_id = string_tools::pod_to_hex(i->first);
-        if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
-          entry.payment_id = entry.payment_id.substr(0,16);
-        entry.height = 0;
-        entry.timestamp = pd.m_timestamp;
-        entry.amount = pd.m_amount;
-        entry.fee = 0; // TODO
-        entry.note = m_wallet.get_tx_note(pd.m_tx_hash);
+        res.pool.push_back(wallet_rpc::transfer_entry());
+        fill_transfer_entry(res.pool.back(), i->first, i->second);
       }
     }
 
     return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  bool wallet_rpc_server::on_get_transfer_by_txid(const wallet_rpc::COMMAND_RPC_GET_TRANSFER_BY_TXID::request& req, wallet_rpc::COMMAND_RPC_GET_TRANSFER_BY_TXID::response& res, epee::json_rpc::error& er)
+  {
+    if (!&m_wallet) return not_open(er);
+    if (m_wallet.restricted())
+    {
+      er.code = WALLET_RPC_ERROR_CODE_DENIED;
+      er.message = "Command unavailable in restricted mode.";
+      return false;
+    }
+
+    crypto::hash txid;
+    cryptonote::blobdata txid_blob;
+    if (!epee::string_tools::parse_hexstr_to_binbuff(req.txid, txid_blob))
+    {
+      er.code = WALLET_RPC_ERROR_CODE_WRONG_TXID;
+      er.message = "Transaction ID has invalid format";
+      return false;
+    }
+
+    if (sizeof(txid) == txid_blob.size())
+    {
+      txid = *reinterpret_cast<const crypto::hash*>(txid_blob.data());
+    }
+    else
+    {
+      er.code = WALLET_RPC_ERROR_CODE_WRONG_TXID;
+      er.message = "Transaction ID has invalid size: " + req.txid;
+      return false;
+    }
+
+    std::list<std::pair<crypto::hash, tools::wallet2::payment_details>> payments;
+    m_wallet.get_payments(payments, 0);
+    for (std::list<std::pair<crypto::hash, tools::wallet2::payment_details>>::const_iterator i = payments.begin(); i != payments.end(); ++i) {
+      if (i->second.m_tx_hash == txid)
+      {
+        fill_transfer_entry(res.transfer, i->second.m_tx_hash, i->first, i->second);
+        return true;
+      }
+    }
+
+    std::list<std::pair<crypto::hash, tools::wallet2::confirmed_transfer_details>> payments_out;
+    m_wallet.get_payments_out(payments_out, 0);
+    for (std::list<std::pair<crypto::hash, tools::wallet2::confirmed_transfer_details>>::const_iterator i = payments_out.begin(); i != payments_out.end(); ++i) {
+      if (i->first == txid)
+      {
+        fill_transfer_entry(res.transfer, i->first, i->second);
+        return true;
+      }
+    }
+
+    std::list<std::pair<crypto::hash, tools::wallet2::unconfirmed_transfer_details>> upayments;
+    m_wallet.get_unconfirmed_payments_out(upayments);
+    for (std::list<std::pair<crypto::hash, tools::wallet2::unconfirmed_transfer_details>>::const_iterator i = upayments.begin(); i != upayments.end(); ++i) {
+      if (i->first == txid)
+      {
+        fill_transfer_entry(res.transfer, i->first, i->second);
+        return true;
+      }
+    }
+
+    m_wallet.update_pool_state();
+
+    std::list<std::pair<crypto::hash, tools::wallet2::payment_details>> pool_payments;
+    m_wallet.get_unconfirmed_payments(pool_payments);
+    for (std::list<std::pair<crypto::hash, tools::wallet2::payment_details>>::const_iterator i = pool_payments.begin(); i != pool_payments.end(); ++i) {
+      if (i->second.m_tx_hash == txid)
+      {
+        fill_transfer_entry(res.transfer, i->first, i->second);
+        return true;
+      }
+    }
+
+    er.code = WALLET_RPC_ERROR_CODE_WRONG_TXID;
+    er.message = "Transaction not found.";
+    return false;
   }
   //------------------------------------------------------------------------------------------------------------------------------
   bool wallet_rpc_server::on_export_key_images(const wallet_rpc::COMMAND_RPC_EXPORT_KEY_IMAGES::request& req, wallet_rpc::COMMAND_RPC_EXPORT_KEY_IMAGES::response& res, epee::json_rpc::error& er)
@@ -1168,7 +1433,7 @@ namespace tools
     {
       uint64_t idx = 0;
       for (const auto &entry : ab)
-        res.entries.push_back(wallet_rpc::COMMAND_RPC_GET_ADDRESS_BOOK_ENTRY::entry{ idx++, get_account_address_as_str(m_wallet.testnet(), entry.m_address), epee::string_tools::pod_to_hex(entry.m_payment_id), entry.m_description });
+        res.entries.push_back(wallet_rpc::COMMAND_RPC_GET_ADDRESS_BOOK_ENTRY::entry{ idx++, get_account_address_as_str(m_wallet.testnet(), entry.m_is_subaddress, entry.m_address), epee::string_tools::pod_to_hex(entry.m_payment_id), entry.m_description });
     }
     else
     {
@@ -1181,7 +1446,7 @@ namespace tools
           return false;
         }
         const auto &entry = ab[idx];
-        res.entries.push_back(wallet_rpc::COMMAND_RPC_GET_ADDRESS_BOOK_ENTRY::entry{ idx, get_account_address_as_str(m_wallet.testnet(), entry.m_address), epee::string_tools::pod_to_hex(entry.m_payment_id), entry.m_description });
+        res.entries.push_back(wallet_rpc::COMMAND_RPC_GET_ADDRESS_BOOK_ENTRY::entry{ idx, get_account_address_as_str(m_wallet.testnet(), entry.m_is_subaddress, entry.m_address), epee::string_tools::pod_to_hex(entry.m_payment_id), entry.m_description });
       }
     }
     return true;
@@ -1197,24 +1462,22 @@ namespace tools
       return false;
     }
 
-    cryptonote::account_public_address address;
-    bool has_payment_id;
-    crypto::hash8 payment_id8;
+    cryptonote::address_parse_info info;
     crypto::hash payment_id = cryptonote::null_hash;
-    if (!get_account_address_from_str_or_url(address, has_payment_id, payment_id8, m_wallet.testnet(), req.address, false))
+    if (!get_account_address_from_str_or_url(info, m_wallet.testnet(), req.address, false))
     {
       er.code = WALLET_RPC_ERROR_CODE_WRONG_ADDRESS;
       er.message = std::string("WALLET_RPC_ERROR_CODE_WRONG_ADDRESS: ") + req.address;
       return false;
     }
-    if (has_payment_id)
+    if (info.has_payment_id)
     {
-      memcpy(payment_id.data, payment_id8.data, 8);
+      memcpy(payment_id.data, info.payment_id.data, 8);
       memset(payment_id.data + 8, 0, 24);
     }
     if (!req.payment_id.empty())
     {
-      if (has_payment_id)
+      if (info.has_payment_id)
       {
         er.code = WALLET_RPC_ERROR_CODE_WRONG_PAYMENT_ID;
         er.message = "Separate payment ID given with integrated address";
@@ -1226,7 +1489,7 @@ namespace tools
 
       if (!wallet2::parse_long_payment_id(req.payment_id, payment_id))
       {
-        if (!wallet2::parse_short_payment_id(req.payment_id, payment_id8))
+        if (!wallet2::parse_short_payment_id(req.payment_id, info.payment_id))
         {
           er.code = WALLET_RPC_ERROR_CODE_WRONG_PAYMENT_ID;
           er.message = "Payment id has invalid format: \"" + req.payment_id + "\", expected 16 or 64 character string";
@@ -1234,12 +1497,12 @@ namespace tools
         }
         else
         {
-          memcpy(payment_id.data, payment_id8.data, 8);
+          memcpy(payment_id.data, info.payment_id.data, 8);
           memset(payment_id.data + 8, 0, 24);
         }
       }
     }
-    if (!m_wallet.add_address_book_row(address, payment_id, req.description))
+    if (!m_wallet.add_address_book_row(info.address, payment_id, req.description, info.is_subaddress))
     {
       er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
       er.message = "Failed to add address book entry";

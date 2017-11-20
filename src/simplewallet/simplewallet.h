@@ -117,7 +117,7 @@ namespace cryptonote
     bool stop_mining(const std::vector<std::string> &args);
     bool save_bc(const std::vector<std::string>& args);
     bool refresh(const std::vector<std::string> &args);
-    bool show_balance_unlocked();
+    bool show_balance_unlocked(bool detailed = false);
     bool show_balance(const std::vector<std::string> &args = std::vector<std::string>());
     bool show_incoming_transfers(const std::vector<std::string> &args);
     bool show_payments(const std::vector<std::string> &args);
@@ -133,8 +133,12 @@ namespace cryptonote
     std::vector<std::vector<cryptonote::tx_destination_entry>> split_amounts(
         std::vector<cryptonote::tx_destination_entry> dsts, size_t num_splits
     );
+    bool account(const std::vector<std::string> &args = std::vector<std::string>());
+    void update_prompt();
+    void print_accounts();
     bool print_address(const std::vector<std::string> &args = std::vector<std::string>());
     bool print_integrated_address(const std::vector<std::string> &args = std::vector<std::string>());
+    bool parse_address(const std::vector<std::string> &args = std::vector<std::string>());
     bool save(const std::vector<std::string> &args);
     bool save_watch_only(const std::vector<std::string> &args);
     bool set_variable(const std::vector<std::string> &args);
@@ -144,7 +148,7 @@ namespace cryptonote
     bool check_tx_key(const std::vector<std::string> &args);
     bool show_transfers(const std::vector<std::string> &args);
     bool rescan_blockchain(const std::vector<std::string> &args);
-    bool refresh_main(uint64_t start_height, bool reset = false);
+    bool refresh_main(uint64_t start_height, bool reset = false, bool is_init = false);
     bool set_tx_note(const std::vector<std::string> &args);
     bool get_tx_note(const std::vector<std::string> &args);
     bool status(const std::vector<std::string> &args);
@@ -162,8 +166,7 @@ namespace cryptonote
     bool accept_loaded_tx(const std::function<size_t()> get_num_txes, const std::function<const tools::wallet2::tx_construction_data&(size_t)> &get_tx, const std::string &extra_message = std::string());
     bool accept_loaded_tx(const tools::wallet2::unsigned_tx_set &txs);
     bool accept_loaded_tx(const tools::wallet2::signed_tx_set &txs);
-    bool get_address_from_str(const std::string &str, cryptonote::account_public_address &address, bool &has_payment_id, crypto::hash8 &payment_id, bool confirm_addr = true);
-
+    
     /*!
      * \brief Prints the seed with a nice message
      * \param seed seed to print
@@ -181,8 +184,8 @@ namespace cryptonote
 
     //----------------- i_wallet2_callback ---------------------
     virtual void on_new_block(uint64_t height, const cryptonote::block& block);
-    virtual void on_money_received(uint64_t height, const cryptonote::transaction& tx, uint64_t amount);
-    virtual void on_money_spent(uint64_t height, const cryptonote::transaction& in_tx, uint64_t amount, const cryptonote::transaction& spend_tx);
+    virtual void on_money_received(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& tx, uint64_t amount, const cryptonote::subaddress_index& subaddr_index);
+    virtual void on_money_spent(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& in_tx, uint64_t amount, const cryptonote::transaction& spend_tx, const cryptonote::subaddress_index& subaddr_index);
     virtual void on_skip_transaction(uint64_t height, const cryptonote::transaction& tx);
     //----------------------------------------------------------
 
@@ -271,5 +274,6 @@ namespace cryptonote
     std::atomic<bool> m_auto_refresh_enabled;
     bool m_auto_refresh_refreshing;
     std::atomic<bool> m_in_manual_refresh;
+    uint32_t m_current_subaddress_account;
   };
 }

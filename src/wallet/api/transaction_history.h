@@ -46,12 +46,20 @@ public:
     virtual std::vector<TransactionInfo*> getAll() const;
     virtual void refresh();
 
+    virtual std::set<uint32_t> subaddrIndex() const;
+    virtual uint32_t subaddrAccount() const;
+    virtual std::string label() const;
+
 private:
 
     // TransactionHistory is responsible of memory management
     std::vector<TransactionInfo*> m_history;
     WalletImpl *m_wallet;
     mutable boost::shared_mutex   m_historyMutex;
+    
+    std::set<uint32_t> m_subaddrIndex;        // always unique index for incoming transfers; can be multiple indices for outgoing transfers
+    uint32_t m_subaddrAccount;
+    std::string m_label;
 };
 
 }

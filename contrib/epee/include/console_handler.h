@@ -286,6 +286,11 @@ namespace epee
       }
     }
 
+    void set_prompt(const std::string& prompt)
+    {
+      m_prompt = prompt;
+    }
+
   private:
     template<typename t_cmd_handler>
     bool run(const std::string& prompt, const std::string& usage, const t_cmd_handler& cmd_handler, std::function<void(void)> exit_handler)
@@ -485,6 +490,11 @@ namespace epee
     void print_prompt()
     {
       m_console_handler.print_prompt();
+    }
+
+    void set_prompt(const std::string& prompt)
+    {
+      m_console_handler.set_prompt(prompt);
     }
   };
 

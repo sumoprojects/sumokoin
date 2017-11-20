@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2017, SUMOKOIN, (forked from) The Monero Project
+// Copyright (c) 2017, SUMOKOIN, (forked from) The Monero Project
 //
 // All rights reserved.
 //
@@ -25,46 +25,32 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include "wallet/wallet2_api.h"
 #include "wallet/wallet2.h"
 
-#include <string>
-#include <vector>
-
-
 namespace Monero {
 
 class WalletImpl;
-class PendingTransactionImpl : public PendingTransaction
+
+class SubaddressImpl : public Subaddress
 {
 public:
-    PendingTransactionImpl(WalletImpl &wallet);
-    ~PendingTransactionImpl();
-    int status() const;
-    std::string errorString() const;
-    bool commit();
-    uint64_t amount() const;
-    uint64_t dust() const;
-    uint64_t fee() const;
-    std::vector<std::string> txid() const;
-    uint64_t txCount() const;
-    std::vector<uint32_t> subaddrAccount() const;
-    std::vector<std::set<uint32_t>> subaddrIndices() const;
-    // TODO: continue with interface;
+    SubaddressImpl(WalletImpl * wallet);
+    ~SubaddressImpl();
+    
+    // Fetches addresses from Wallet2
+    void refresh(uint32_t accountIndex);
+    std::vector<SubaddressRow*> getAll() const;
+    void addRow(uint32_t accountIndex, const std::string &label);
+    void setLabel(uint32_t accountIndex, uint32_t addressIndex, const std::string &label);
 
 private:
-    friend class WalletImpl;
-    WalletImpl &m_wallet;
-
-    int  m_status;
-    std::string m_errorString;
-    std::vector<tools::wallet2::pending_tx> m_pending_tx;
+    void clearRows();
+    
+private:
+    WalletImpl *m_wallet;
+    std::vector<SubaddressRow*> m_rows;
 };
 
-
 }
-
-namespace Bitmonero = Monero;

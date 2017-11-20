@@ -114,7 +114,7 @@ void TransactionHistoryImpl::refresh()
     // - payment_details              - input transfers
 
     // payments are "input transactions";
-    // one input transaction contains only one transfer. e.g. <transaction_id> - <100XMR>
+    // one input transaction contains only one transfer. e.g. <transaction_id> - <100SUMO>
 
     std::list<std::pair<crypto::hash, tools::wallet2::payment_details>> in_payments;
     m_wallet->m_wallet->get_payments(in_payments, min_height, max_height);
@@ -130,6 +130,9 @@ void TransactionHistoryImpl::refresh()
         ti->m_direction = TransactionInfo::Direction_In;
         ti->m_hash      = string_tools::pod_to_hex(pd.m_tx_hash);
         ti->m_blockheight = pd.m_block_height;
+        ti->m_subaddrIndex = { pd.m_subaddr_index.minor };
+        ti->m_subaddrAccount = pd.m_subaddr_index.major;
+        ti->m_label = m_wallet->m_wallet->get_subaddress_label(pd.m_subaddr_index);
         // TODO:
         ti->m_timestamp = pd.m_timestamp;
         m_history.push_back(ti);
@@ -143,8 +146,8 @@ void TransactionHistoryImpl::refresh()
     // confirmed output transactions
     // one output transaction may contain more than one money transfer, e.g.
     // <transaction_id>:
-    //    transfer1: 100XMR to <address_1>
-    //    transfer2: 50XMR  to <address_2>
+    //    transfer1: 100SUMO to <address_1>
+    //    transfer2: 50SUMO  to <address_2>
     //    fee: fee charged per transaction
     //
 
@@ -173,11 +176,14 @@ void TransactionHistoryImpl::refresh()
         ti->m_direction = TransactionInfo::Direction_Out;
         ti->m_hash = string_tools::pod_to_hex(hash);
         ti->m_blockheight = pd.m_block_height;
+        ti->m_subaddrIndex = pd.m_subaddr_indices;
+        ti->m_subaddrAccount = pd.m_subaddr_account;
+        ti->m_label = pd.m_subaddr_indices.size() == 1 ? m_wallet->m_wallet->get_subaddress_label({ pd.m_subaddr_account, *pd.m_subaddr_indices.begin() }) : "";
         ti->m_timestamp = pd.m_timestamp;
 
         // single output transaction might contain multiple transfers
         for (const auto &d: pd.m_dests) {
-            ti->m_transfers.push_back({d.amount, get_account_address_as_str(m_wallet->m_wallet->testnet(), d.addr)});
+          ti->m_transfers.push_back({ d.amount, get_account_address_as_str(m_wallet->m_wallet->testnet(), pd.m_dest_subaddr, d.addr) });
         }
         m_history.push_back(ti);
     }
@@ -197,12 +203,15 @@ void TransactionHistoryImpl::refresh()
 
         TransactionInfoImpl * ti = new TransactionInfoImpl();
         ti->m_paymentid = payment_id;
-        ti->m_amount = amount - pd.m_change;
+        ti->m_amount = amount - pd.m_change - fee;
         ti->m_fee    = fee;
         ti->m_direction = TransactionInfo::Direction_Out;
         ti->m_failed = is_failed;
         ti->m_pending = true;
         ti->m_hash = string_tools::pod_to_hex(hash);
+        ti->m_subaddrIndex = pd.m_subaddr_indices;
+        ti->m_subaddrAccount = pd.m_subaddr_account;
+        ti->m_label = pd.m_subaddr_indices.size() == 1 ? m_wallet->m_wallet->get_subaddress_label({ pd.m_subaddr_account, *pd.m_subaddr_indices.begin() }) : "";
         ti->m_timestamp = pd.m_timestamp;
         m_history.push_back(ti);
     }

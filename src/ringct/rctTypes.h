@@ -444,7 +444,10 @@ namespace cryptonote {
 }
 
 template<typename T> std::ostream &print256(std::ostream &o, const T &v);
-inline std::ostream &operator <<(std::ostream &o, const rct::key &v) { return print256(o, v); }
+
+namespace rct {
+  inline std::ostream &operator <<(std::ostream &o, const rct::key &v) { return print256(o, v); }
+}
 
 
 BLOB_SERIALIZER(rct::key);

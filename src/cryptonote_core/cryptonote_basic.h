@@ -57,6 +57,7 @@ namespace cryptonote
   const static crypto::hash null_hash = AUTO_VAL_INIT(null_hash);
   const static crypto::hash8 null_hash8 = AUTO_VAL_INIT(null_hash8);
   const static crypto::public_key null_pkey = AUTO_VAL_INIT(null_pkey);
+  const static crypto::secret_key null_skey = AUTO_VAL_INIT(null_skey);
 
   typedef std::vector<crypto::signature> ring_signature;
 
@@ -345,6 +346,12 @@ namespace cryptonote
       KV_SERIALIZE_VAL_POD_AS_BLOB_FORCE(m_spend_public_key)
       KV_SERIALIZE_VAL_POD_AS_BLOB_FORCE(m_view_public_key)
     END_KV_SERIALIZE_MAP()
+
+    bool operator==(const account_public_address& rhs) const
+    {
+      return m_spend_public_key == rhs.m_spend_public_key &&
+        m_view_public_key == rhs.m_view_public_key;
+    }
   };
 
   struct keypair
@@ -361,6 +368,21 @@ namespace cryptonote
   };
   //---------------------------------------------------------------
 
+}
+
+namespace std {
+  template <>
+  struct hash<cryptonote::account_public_address>
+  {
+    std::size_t operator()(const cryptonote::account_public_address& addr) const
+    {
+      // https://stackoverflow.com/a/17017281
+      size_t res = 17;
+      res = res * 31 + hash<crypto::public_key>()(addr.m_spend_public_key);
+      res = res * 31 + hash<crypto::public_key>()(addr.m_view_public_key);
+      return res;
+    }
+  };
 }
 
 BLOB_SERIALIZER(cryptonote::txout_to_key);
