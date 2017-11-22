@@ -317,7 +317,7 @@ class Monero_Gateway extends WC_Payment_Gateway
             setcookie('payment_id', $payment_id, time() + 2700);
         } else{
 		// Please fix this SQLI injection! TODO: Fix me!
-            $payment_id = $_COOKIE['payment_id'];
+            $payment_id = sanitize_text_field($_COOKIE['payment_id']);
 	}
         return $payment_id;
     }
@@ -329,7 +329,7 @@ class Monero_Gateway extends WC_Payment_Gateway
         $create_table = "CREATE TABLE IF NOT EXISTS $payment_id (
 									rate INT
 									)";
-        $wpdb->query($wpdb$create_table);
+        $wpdb->query($create_table);
         $rows_num = $wpdb->get_results("SELECT count(*) as count FROM $payment_id");
         if ($rows_num[0]->count > 0) // Checks if the row has already been created or not
         {
