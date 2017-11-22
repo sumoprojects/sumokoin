@@ -315,8 +315,10 @@ class Monero_Gateway extends WC_Payment_Gateway
         if (!isset($_COOKIE['payment_id'])) {
             $payment_id = bin2hex(openssl_random_pseudo_bytes(8));
             setcookie('payment_id', $payment_id, time() + 2700);
-        } else
-            $payment_id = sanitize_text_field($_COOKIE['payment_id']);
+        } else{
+		// Please fix this SQLI injection! TODO: Fix me!
+            $payment_id = $_COOKIE['payment_id'];
+	}
         return $payment_id;
     }
 
