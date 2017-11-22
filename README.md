@@ -52,7 +52,7 @@ The easiest way to find a remote node to connect to is to visit [moneroworld.com
 
 * Enter the IP address of your server in the box labeled "Daemon Host/IP"
 
-* Enter the port number of the Wallet RPC in the box labeled "Daemon PORT" (will be `18082` if you used the above example).
+* Enter the port number of the Wallet RPC in the box labeled "Monero wallet rpc port" (will be `18082` if you used the above example).
 
 * Enter the username and password that you want to use in their respective feilds
 
