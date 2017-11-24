@@ -2,8 +2,7 @@
 
 /* 
  * Main Gateway of Monero using a daemon online 
- * This code isn't for Dark Net Markets, please report them to Authority!
- * Authors: Serhack and cryptochangements34
+ * Authors: Serhack and cryptochangements
  */
 
 
@@ -315,17 +314,19 @@ class Monero_Gateway extends WC_Payment_Gateway
         if (!isset($_COOKIE['payment_id'])) {
             $payment_id = bin2hex(openssl_random_pseudo_bytes(8));
             setcookie('payment_id', $payment_id, time() + 2700);
-        } else{
-		// Please fix this SQLI injection! TODO: Fix me!
-            $payment_id = $this->protect_payment(sanitize_text_field($_COOKIE['payment_id']));
-	}
+        }
+        else{
+            $payment_id = $this->sanatize_id($_COOKIE['payment_id']);
+        }
         return $payment_id;
     }
 	
-	public function protect_payment($payment_id){
-		                $payment_id = str_replace("'", "\n", $payment_id);
-		return $payment_id;
-	}
+    public function sanatize_id($payment_id)
+    {
+        // Limit payment id to alphanumeric characters
+        $sanatized_id = preg_replace("/[^a-zA-Z0-9]+/", "", $payment_id);
+	return $sanatized_id;
+    }
 
     public function changeto($amount, $currency, $payment_id)
     {
