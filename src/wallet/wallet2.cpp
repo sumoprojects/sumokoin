@@ -680,37 +680,6 @@ void wallet2::check_acc_out_precomp(const tx_out &o, const crypto::key_derivatio
   tx_scan_info.error = false;
 }
 //----------------------------------------------------------------------------------------------------
-/*static uint64_t decodeRct(const rct::rctSig & rv, const crypto::public_key &pub, const crypto::secret_key &sec, unsigned int i, rct::key & mask)
-{
-  crypto::key_derivation derivation;
-  bool r = crypto::generate_key_derivation(pub, sec, derivation);
-  if (!r)
-  {
-    LOG_ERROR("Failed to generate key derivation to decode rct output " << i);
-    return 0;
-  }
-  crypto::secret_key scalar1;
-  crypto::derivation_to_scalar(derivation, i, scalar1);
-  try
-  {
-    switch (rv.type)
-    {
-    case rct::RCTTypeSimple:
-      return rct::decodeRctSimple(rv, rct::sk2rct(scalar1), i, mask);
-    case rct::RCTTypeFull:
-      return rct::decodeRct(rv, rct::sk2rct(scalar1), i, mask);
-    default:
-      LOG_ERROR("Unsupported rct type: " << rv.type);
-      return 0;
-    }
-  }
-  catch (const std::exception &e)
-  {
-    LOG_ERROR("Failed to decode input " << i);
-    return 0;
-  }
-}*/
-
 static uint64_t decodeRct(const rct::rctSig & rv, const crypto::key_derivation &derivation, unsigned int i, rct::key & mask)
 {
   crypto::secret_key scalar1;
@@ -814,7 +783,6 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
           outs.push_back(0);
           if (money_transfered == 0)
           {
-            //money_transfered = tools::decodeRct(tx.rct_signatures, pub_key_field.pub_key, keys.m_view_secret_key, 0, mask[0]);
             money_transfered = tools::decodeRct(tx.rct_signatures, tx_scan_info[0].received->derivation, 0, mask[0]);
           }
           amount[0] = money_transfered;
@@ -856,7 +824,6 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
               outs.push_back(i);
               if (money_transfered[i] == 0)
               {
-                //money_transfered[i] = tools::decodeRct(tx.rct_signatures, pub_key_field.pub_key, keys.m_view_secret_key, i, mask[i]);
                 money_transfered[i] = tools::decodeRct(tx.rct_signatures, tx_scan_info[i].received->derivation, i, mask[i]);
               }
               tx_money_got_in_outs[tx_scan_info[i].received->index] += money_transfered[i];
