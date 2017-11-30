@@ -2880,6 +2880,7 @@ void wallet2::rescan_blockchain(bool refresh)
   generate_genesis(genesis);
   crypto::hash genesis_hash = get_block_hash(genesis);
   m_blockchain.push_back(genesis_hash);
+  add_subaddress_account(tr("Primary account"));
   m_local_bc_height = 1;
 
   // process genesis tx
