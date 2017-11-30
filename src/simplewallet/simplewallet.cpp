@@ -2100,7 +2100,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
     local_args.pop_back();
   }
 
-  bool is_subaddress = false;
+  //bool is_subaddress = false;
   vector<cryptonote::tx_destination_entry> dsts;
   for (size_t i = 0; i < local_args.size(); i += 2)
   {
@@ -2109,12 +2109,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
     if (!cryptonote::get_account_address_from_str_or_url(info, m_wallet->testnet(), local_args[i]))
       return true;
 
-    is_subaddress = info.is_subaddress;
-    if (info.is_subaddress && local_args.size() > 2)
-    {
-      fail_msg_writer() << tr("Subaddresses (those starting with 'Subo') cannot be used for multi-destination transfer");
-      return true;
-    }
+    de.is_subaddress = info.is_subaddress;
     de.addr = info.address;
 
     if (info.has_payment_id)
@@ -2180,15 +2175,15 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
           return true;
         }
         unlock_block = bc_height + locked_blocks;
-        ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, unlock_block /* unlock_time */, priority, extra, is_subaddress, m_current_subaddress_account, subaddr_indices, m_trusted_daemon, tx_size_target_factor);
+        ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, unlock_block /* unlock_time */, priority, extra, m_current_subaddress_account, subaddr_indices, m_trusted_daemon, tx_size_target_factor);
       break;
       case TransferNew:
-        ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, 0 /* unlock_time */, priority, extra, is_subaddress, m_current_subaddress_account, subaddr_indices, m_trusted_daemon, tx_size_target_factor);
+        ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, 0 /* unlock_time */, priority, extra, m_current_subaddress_account, subaddr_indices, m_trusted_daemon, tx_size_target_factor);
       break;
       default:
         LOG_ERROR("Unknown transfer method, using original");
       case TransferOriginal:
-        ptx_vector = m_wallet->create_transactions(dsts, fake_outs_count, 0 /* unlock_time */, priority, extra, is_subaddress, m_trusted_daemon);
+        ptx_vector = m_wallet->create_transactions(dsts, fake_outs_count, 0 /* unlock_time */, priority, extra, false, m_trusted_daemon);
         break;
     }
 
@@ -2715,7 +2710,7 @@ bool simple_wallet::accept_loaded_tx(const std::function<size_t()> get_num_txes,
   // gather info to ask the user
   uint64_t amount = 0, amount_to_dests = 0, change = 0;
   size_t min_mixin = ~0;
-  std::unordered_map<cryptonote::account_public_address, uint64_t> dests;
+  std::unordered_map<cryptonote::account_public_address, std::pair<std::string, uint64_t>> dests;
   const std::string wallet_address = m_wallet->get_account().get_public_address_str(m_wallet->testnet());
   for (size_t n = 0; n < get_num_txes(); ++n)
   {
@@ -2730,11 +2725,12 @@ bool simple_wallet::accept_loaded_tx(const std::function<size_t()> get_num_txes,
     for (size_t d = 0; d < cd.splitted_dsts.size(); ++d)
     {
       const tx_destination_entry &entry = cd.splitted_dsts[d];
+      std::string address, standard_address = get_account_address_as_str(m_wallet->testnet(), entry.is_subaddress, entry.addr);
       auto i = dests.find(entry.addr);
       if (i == dests.end())
-        dests.insert(std::make_pair(entry.addr, entry.amount));
+        dests.insert(std::make_pair(entry.addr, std::make_pair(address, entry.amount)));
       else
-        i->second += entry.amount;
+        i->second.second += entry.amount;
       amount_to_dests += entry.amount;
     }
     if (cd.change_dts.amount > 0)
@@ -2745,7 +2741,7 @@ bool simple_wallet::accept_loaded_tx(const std::function<size_t()> get_num_txes,
         fail_msg_writer() << tr("Claimed change does not go to a paid address");
         return false;
       }
-      if (it->second < cd.change_dts.amount)
+      if (it->second.second < cd.change_dts.amount)
       {
         fail_msg_writer() << tr("Claimed change is larger than payment to the change address");
         return false;
@@ -2756,15 +2752,15 @@ bool simple_wallet::accept_loaded_tx(const std::function<size_t()> get_num_txes,
         return false;
       }
       change += cd.change_dts.amount;
-      it->second -= cd.change_dts.amount;
-      if (it->second == 0)
+      it->second.second -= cd.change_dts.amount;
+      if (it->second.second == 0)
         dests.erase(cd.change_dts.addr);
     }
   }
   std::string dest_string;
   for (auto i = dests.begin(); i != dests.end();)
   {
-    dest_string += (boost::format(tr("sending %s to %s")) % print_money(i->second) % get_account_address_as_str(m_wallet->testnet(), get_tx(0).dest_subaddr, i->first)).str();
+    dest_string += (boost::format(tr("sending %s to %s")) % print_money(i->second.second) % i->second.first).str();
     ++i;
     if (i != dests.end())
       dest_string += ", ";
