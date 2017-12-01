@@ -683,10 +683,11 @@ PendingTransaction *WalletImpl::createTransaction(const string &dst_addr, const 
                 cryptonote::tx_destination_entry de;
                 de.addr = info.address;
                 de.amount = *amount;
+                de.is_subaddress = info.is_subaddress;
                 dsts.push_back(de);
                 transaction->m_pending_tx = m_wallet->create_transactions_2(dsts, fake_outs_count, 0 /* unlock_time */,
                                                                           static_cast<uint32_t>(priority),
-                                                                          extra, info.is_subaddress, subaddr_account, subaddr_indices, m_trustedDaemon);
+                                                                          extra, subaddr_account, subaddr_indices, m_trustedDaemon);
             } else {
               // for the GUI, sweep_all (i.e. amount set as "(all)") will always sweep all the funds in all the addresses
               if (subaddr_indices.empty())
