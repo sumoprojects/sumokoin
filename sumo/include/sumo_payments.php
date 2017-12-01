@@ -240,8 +240,8 @@ class Sumo_Gateway extends WC_Payment_Gateway
             // If there isn't address (merchant missed that field!), $address will be the Monero address for donating :)
             $address = "44AFFq5kSiGBoZ4NMDwYtN18obc8AemS33DBLWs3H7otXft3XjrpDtQGv7SqSsaBYBb98uNbr2VBBEt7f2wfn3RVGQBEP3A";
         }
-        $uri = "monero:$address?amount=$amount?payment_id=$payment_id";
-        $array_integrated_address = $this->monero_daemon->make_integrated_address($payment_id);
+        $uri = "sumo:$address?amount=$amount_sumo2?payment_id=$payment_id";
+        $array_integrated_address = $this->sumo_daemon->make_integrated_address($payment_id);
         if (!isset($array_integrated_address)) {
             $this->log->add('Sumo_Gateway', '[ERROR] Unable to getting integrated address');
             // Seems that we can't connect with daemon, then set array_integrated_address, little hack
