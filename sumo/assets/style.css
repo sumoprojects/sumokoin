@@ -16,8 +16,7 @@ box-shadow: 0px 0px 8px -1px rgba(0,0,0,0.75);
 
 .header-xmr-payment {
     height: 74px;
-    background-image: url("http://cdn.monerointegrations.com/background.png");
-    background-repeat: repeat-x;
+	background-color: #2d9cdb;
 }
 
 .logo-xmr img {
@@ -35,7 +34,7 @@ span.xmr-payment-text-header {
 }
 
 .footer-xmr-payment {
-    background-color: #ed6e24;
+    background-color: #2d9cdb;
     color: #fff;
     text-align: right;
     padding-right: 16px;
@@ -86,7 +85,7 @@ span.xmr-label {
 
 .xmr-box {
     float: left;
-    background-color: #666;
+    background-color: #2d9cdb;
     padding: 8px;
     border-style: solid;
     border-width: 1px;
@@ -168,15 +167,15 @@ span.xmr-label {
 }
 
 .xmr-qr-code {
-    width: 28%;
+    width: 40%;
 }
 
 .xmr-address {
-    width: 28%;
+    width: 60%;
 }
 
 .xmr-amount-send {
-    width: 28%;
+    width: 100%;
 }
 .logo-xmr img {
     margin-top: 6px;
