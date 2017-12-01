@@ -221,8 +221,8 @@ class Sumo_Gateway extends WC_Payment_Gateway
 
     public function check_sumo()
     {
-        $monero_address = $this->settings['monero_address'];
-        if (strlen($monero_address) == 95 && substr($monero_address, 1)) {
+        $sumo_address = $this->settings['sumo_address'];
+        if (strlen($sumo_address) == 99 && substr($sumo_address, 1)) {
             return true;
         }
         return false;
