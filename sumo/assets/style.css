@@ -1,0 +1,219 @@
+.container-xmr-payment {
+font-family: 'Montserrat', sans-serif;
+
+    background-color: #fff;
+    border-radius: 8px;
+    border-color: #fff;
+    border-style: solid;
+    padding: 2px;
+	-webkit-box-shadow: 0px 0px 8px -1px rgba(0,0,0,0.75);
+-moz-box-shadow: 0px 0px 8px -1px rgba(0,0,0,0.75);
+box-shadow: 0px 0px 8px -1px rgba(0,0,0,0.75);
+
+}
+
+
+
+.header-xmr-payment {
+    height: 74px;
+    background-image: url("http://cdn.monerointegrations.com/background.png");
+    background-repeat: repeat-x;
+}
+
+.logo-xmr img {
+    margin-top: 6px;
+}
+
+span.logo-xmr {
+    float: left;
+}
+
+span.xmr-payment-text-header {
+    float: left;
+    margin-left: 16px;
+    color: #fff;
+}
+
+.footer-xmr-payment {
+    background-color: #ed6e24;
+    color: #fff;
+    text-align: right;
+    padding-right: 16px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+	font-size: 0.8rem;
+    border-radius: 0px 0px 8px 8px;
+}
+
+
+.footer-xmr-payment a {
+    color: #fff;
+	font-size: 0.8rem;
+}
+
+
+
+.xmr-qr-code {
+    float: left;
+}
+
+.xmr-address {
+    float: left;
+}
+
+.xmr-amount-send {
+    float: left;
+}
+
+.clear {
+    clear: both;
+}
+
+
+
+.xmr-amount-box {
+    background-color: #fff;
+    padding: 8px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ccc;
+    float: left;
+}
+
+span.xmr-label {
+    display: block;
+}
+
+.xmr-box {
+    float: left;
+    background-color: #666;
+    padding: 8px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #666;
+    color: #fff;
+}
+
+
+.xmr-address-box {
+    word-wrap: break-word;
+	    background-color: #fff;
+    padding: 8px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ccc;
+}
+
+.xmr-integrated-address {
+    float: left;
+}
+
+.xmr-integrated-address-box {
+    word-wrap: break-word;
+    background-color: #fff;
+    padding: 8px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ccc;
+}
+.xmr-qr-code-box img {
+    width: 100%;
+    
+}
+
+.xmr-qr-code-box {
+    width: fit-content;
+    padding: 8px;
+    border-color: #ccc;
+    border-style: solid;
+    border-width: 1px;
+	background-color: #fff;
+}
+
+
+.content-xmr-payment {
+    padding: 8px;
+    background-color: #f9f9f9;
+
+}
+
+
+.xmr-qr-code {
+      padding: 8px;
+}
+
+.xmr-address {
+        padding: 8px;
+}
+
+.xmr-amount-send {
+       padding: 8px;
+}
+
+.xmr-payment-text-header h2 {
+    font-size: 1.2rem;
+    margin: 0px;
+    line-height: 70px;
+}
+
+
+/* desktop display */
+@media only screen and  (min-width: 700px) and (max-width: 4280px) {
+
+.page-container {
+
+    padding-left: 11%;
+    padding-right: 11%;
+
+}
+
+.xmr-qr-code {
+    width: 28%;
+}
+
+.xmr-address {
+    width: 28%;
+}
+
+.xmr-amount-send {
+    width: 28%;
+}
+.logo-xmr img {
+    margin-top: 6px;
+    margin-left: 32px;
+}
+}
+/* mobile display */
+
+@media only screen and (min-width: 100px) and (max-width: 700px) {
+
+.logo-xmr img {
+    margin-top: 6px;
+    margin-left: 8px;
+}
+
+.page-container {
+
+    padding-left: 2%;
+    padding-right: 2%; 
+
+}
+
+.xmr-qr-code-box {
+    width: 100%;
+}
+
+.xmr-address {
+    width: 100%;
+    
+}
+
+.xmr-amount-send {
+    width: 100%;
+}
+
+.xmr-integrated-address{
+        width:100%;
+}
+
+}

@@ -1,24 +1,24 @@
 <?php
 
 /* 
- * Main Gateway of Monero using a daemon online 
+ * Main Gateway of Sumo using a daemon online 
  * Authors: Serhack and cryptochangements
  */
 
 
-class Monero_Gateway extends WC_Payment_Gateway
+class Sumo_Gateway extends WC_Payment_Gateway
 {
     private $reloadTime = 30000;
     private $discount;
     private $confirmed = false;
-    private $monero_daemon;
+    private $sumo_daemon;
 
     function __construct()
     {
-        $this->id = "monero_gateway";
-        $this->method_title = __("Monero GateWay", 'monero_gateway');
-        $this->method_description = __("Monero Payment Gateway Plug-in for WooCommerce. You can find more information about this payment gateway on our website. You'll need a daemon online for your address.", 'monero_gateway');
-        $this->title = __("Monero Gateway", 'monero_gateway');
+        $this->id = "sumo_gateway";
+        $this->method_title = __("Sumo GateWay", 'sumo_gateway');
+        $this->method_description = __("Sumo Payment Gateway Plug-in for WooCommerce. You can find more information about this payment gateway on our website. You'll need a daemon online for your address.", 'sumo_gateway');
+        $this->title = __("Sumo Gateway", 'sumo_gateway');
         $this->version = "0.3";
         //
         $this->icon = apply_filters('woocommerce_offline_icon', '');
@@ -29,7 +29,7 @@ class Monero_Gateway extends WC_Payment_Gateway
         $this->init_form_fields();
         $this->host = $this->get_option('daemon_host');
         $this->port = $this->get_option('daemon_port');
-        $this->address = $this->get_option('monero_address');
+        $this->address = $this->get_option('sumo_address');
         $this->username = $this->get_option('username');
         $this->password = $this->get_option('password');
         $this->discount = $this->get_option('discount');
@@ -53,86 +53,86 @@ class Monero_Gateway extends WC_Payment_Gateway
             add_filter('woocommerce_currency_symbol', 'add_my_currency_symbol', 10, 2);
             add_action('woocommerce_email_before_order_table', array($this, 'email_instructions'), 10, 2);
         }
-        $this->monero_daemon = new Monero_Library($this->host . ':' . $this->port . '/json_rpc', $this->username, $this->password);
+        $this->sumo_daemon = new Sumo_Library($this->host . ':' . $this->port . '/json_rpc', $this->username, $this->password);
     }
 
     public function init_form_fields()
     {
         $this->form_fields = array(
             'enabled' => array(
-                'title' => __('Enable / Disable', 'monero_gateway'),
-                'label' => __('Enable this payment gateway', 'monero_gateway'),
+                'title' => __('Enable / Disable', 'sumo_gateway'),
+                'label' => __('Enable this payment gateway', 'sumo_gateway'),
                 'type' => 'checkbox',
                 'default' => 'no'
             ),
 
             'title' => array(
-                'title' => __('Title', 'monero_gateway'),
+                'title' => __('Title', 'sumo_gateway'),
                 'type' => 'text',
-                'desc_tip' => __('Payment title the customer will see during the checkout process.', 'monero_gateway'),
-                'default' => __('Monero XMR Payment', 'monero_gateway')
+                'desc_tip' => __('Payment title the customer will see during the checkout process.', 'sumo_gateway'),
+                'default' => __('Sumo Payment', 'sumo_gateway')
             ),
             'description' => array(
-                'title' => __('Description', 'monero_gateway'),
+                'title' => __('Description', 'sumo_gateway'),
                 'type' => 'textarea',
-                'desc_tip' => __('Payment description the customer will see during the checkout process.', 'monero_gateway'),
-                'default' => __('Pay securely using XMR.', 'monero_gateway')
+                'desc_tip' => __('Payment description the customer will see during the checkout process.', 'sumo_gateway'),
+                'default' => __('Pay securely using Sumo.', 'sumo_gateway')
 
             ),
-            'monero_address' => array(
-                'title' => __('Monero Address', 'monero_gateway'),
+            'sumo_address' => array(
+                'title' => __('Sumo Address', 'sumo_gateway'),
                 'label' => __('Useful for people that have not a daemon online'),
                 'type' => 'text',
-                'desc_tip' => __('Monero Wallet Address', 'monero_gateway')
+                'desc_tip' => __('Sumo Wallet Address', 'sumo_gateway')
             ),
             'daemon_host' => array(
-                'title' => __('Monero wallet rpc Host/ IP', 'monero_gateway'),
+                'title' => __('Sumo wallet rpc Host/ IP', 'sumo_gateway'),
                 'type' => 'text',
-                'desc_tip' => __('This is the Daemon Host/IP to authorize the payment with port', 'monero_gateway'),
+                'desc_tip' => __('This is the Daemon Host/IP to authorize the payment with port', 'sumo_gateway'),
                 'default' => 'localhost',
             ),
             'daemon_port' => array(
-                'title' => __('Monero wallet rpc port', 'monero_gateway'),
+                'title' => __('Sumo wallet rpc port', 'sumo_gateway'),
                 'type' => 'text',
-                'desc_tip' => __('This is the Daemon Host/IP to authorize the payment with port', 'monero_gateway'),
+                'desc_tip' => __('This is the Daemon Host/IP to authorize the payment with port', 'sumo_gateway'),
                 'default' => '18080',
             ),
             'username' => array(
-                'title' => __('Monero Wallet username', 'monero_gateway'),
-                'desc_tip' => __('This is the username that you used with your monero wallet-rpc', 'monero_gateway'),
+                'title' => __('Sumo Wallet username', 'sumo_gateway'),
+                'desc_tip' => __('This is the username that you used with your sumo wallet-rpc', 'sumo_gateway'),
                 'type' => __('text'),
-                'default' => __('username', 'monero_gateway'),
+                'default' => __('username', 'sumo_gateway'),
 
             ),
             'password' => array(
-                'title' => __('Monero wallet RPC password', 'monero_gateway'),
-                'desc_tip' => __('This is the password that you used with your monero wallet-rpc', 'monero_gateway'),
-                'description' => __('you can leave these fields empty if you did not set', 'monero_gateway'),
+                'title' => __('Sumo wallet RPC password', 'sumo_gateway'),
+                'desc_tip' => __('This is the password that you used with your sumo wallet-rpc', 'sumo_gateway'),
+                'description' => __('you can leave these fields empty if you did not set', 'sumo_gateway'),
                 'type' => __('text'),
                 'default' => ''
 
             ),
             'discount' => array(
-                'title' => __('% discount for using XMR', 'monero_gateway'),
+                'title' => __('% discount for using XMR', 'sumo_gateway'),
 
-                'desc_tip' => __('Provide a discount to your customers for making a private payment with XMR!', 'monero_gateway'),
-                'description' => __('Do you want to spread the word about Monero? Offer a small discount! Leave this empty if you do not wish to provide a discount', 'monero_gateway'),
+                'desc_tip' => __('Provide a discount to your customers for making a private payment with XMR!', 'sumo_gateway'),
+                'description' => __('Do you want to spread the word about Sumo? Offer a small discount! Leave this empty if you do not wish to provide a discount', 'sumo_gateway'),
                 'type' => __('text'),
                 'default' => '5%'
 
             ),
             'environment' => array(
-                'title' => __(' Test Mode', 'monero_gateway'),
-                'label' => __('Enable Test Mode', 'monero_gateway'),
+                'title' => __(' Test Mode', 'sumo_gateway'),
+                'label' => __('Enable Test Mode', 'sumo_gateway'),
                 'type' => 'checkbox',
-                'description' => __('Check this box if you are using testnet', 'monero_gateway'),
+                'description' => __('Check this box if you are using testnet', 'sumo_gateway'),
                 'default' => 'no'
             ),
             'onion_service' => array(
-                'title' => __(' Onion Service', 'monero_gateway'),
-                'label' => __('Enable Onion Service', 'monero_gateway'),
+                'title' => __(' Onion Service', 'sumo_gateway'),
+                'label' => __('Enable Onion Service', 'sumo_gateway'),
                 'type' => 'checkbox',
-                'description' => __('Check this box if you are running on an Onion Service (Suppress SSL errors)', 'monero_gateway'),
+                'description' => __('Check this box if you are running on an Onion Service (Suppress SSL errors)', 'sumo_gateway'),
                 'default' => 'no'
             ),
         );
@@ -140,7 +140,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 
     public function add_my_currency($currencies)
     {
-        $currencies['XMR'] = __('Monero', 'woocommerce');
+        $currencies['XMR'] = __('Sumo', 'woocommerce');
         return $currencies;
     }
 
@@ -156,25 +156,25 @@ class Monero_Gateway extends WC_Payment_Gateway
 
     public function admin_options()
     {
-        $this->log->add('Monero_gateway', '[SUCCESS] Monero Settings OK');
+        $this->log->add('Sumo_gateway', '[SUCCESS] Sumo Settings OK');
 
-        echo "<h1>Monero Payment Gateway</h1>";
+        echo "<h1>Sumo Payment Gateway</h1>";
 
-        echo "<p>Welcome to Monero Extension for WooCommerce. Getting started: Make a connection with daemon <a href='https://reddit.com/u/serhack'>Contact Me</a>";
+        echo "<p>Welcome to Sumo Extension for WooCommerce. Getting started: Make a connection with daemon <a href='https://reddit.com/u/serhack'>Contact Me</a>";
         echo "<div style='border:1px solid #DDD;padding:5px 10px;font-weight:bold;color:#223079;background-color:#9ddff3;'>";
         $this->getamountinfo();
         echo "</div>";
         echo "<table class='form-table'>";
         $this->generate_settings_html();
         echo "</table>";
-        echo "<h4>Learn more about using a password with the monero wallet-rpc <a href=\"https://github.com/cryptochangements34/monerowp/blob/master/README.md\">here</a></h4>";
+        echo "<h4>Learn more about using a password with the sumo wallet-rpc <a href=\"https://github.com/cryptochangements34/sumowp/blob/master/README.md\">here</a></h4>";
     }
 
     public function getamountinfo()
     {
-        $wallet_amount = $this->monero_daemon->getbalance();
+        $wallet_amount = $this->sumo_daemon->getbalance();
         if (!isset($wallet_amount)) {
-            $this->log->add('Monero_gateway', '[ERROR] No connection with daemon');
+            $this->log->add('Sumo_gateway', '[ERROR] No connection with daemon');
             $wallet_amount['balance'] = "0";
             $wallet_amount['unlocked_balance'] = "0";
         }
@@ -191,7 +191,7 @@ class Monero_Gateway extends WC_Payment_Gateway
     public function process_payment($order_id)
     {
         $order = wc_get_order($order_id);
-        $order->update_status('on-hold', __('Awaiting offline payment', 'monero_gateway'));
+        $order->update_status('on-hold', __('Awaiting offline payment', 'sumo_gateway'));
         // Reduce stock levels
         $order->reduce_order_stock();
 
@@ -210,8 +210,8 @@ class Monero_Gateway extends WC_Payment_Gateway
 
     public function validate_fields()
     {
-        if ($this->check_monero() != TRUE) {
-            echo "<div class=\"error\"><p>Your Monero Address doesn't seem valid. Have you checked it?</p></div>";
+        if ($this->check_sumo() != TRUE) {
+            echo "<div class=\"error\"><p>Your Sumo Address doesn't seem valid. Have you checked it?</p></div>";
         }
 
     }
@@ -219,7 +219,7 @@ class Monero_Gateway extends WC_Payment_Gateway
 
     // Validate fields
 
-    public function check_monero()
+    public function check_sumo()
     {
         $monero_address = $this->settings['monero_address'];
         if (strlen($monero_address) == 95 && substr($monero_address, 1)) {
@@ -234,7 +234,7 @@ class Monero_Gateway extends WC_Payment_Gateway
         $amount = floatval(preg_replace('#[^\d.]#', '', $order->get_total()));
         $payment_id = $this->set_paymentid_cookie();
         $currency = $order->get_currency();
-        $amount_xmr2 = $this->changeto($amount, $currency, $payment_id);
+        $amount_sumo2 = $this->changeto($amount, $currency, $payment_id);
         $address = $this->address;
         if (!isset($address)) {
             // If there isn't address (merchant missed that field!), $address will be the Monero address for donating :)
@@ -243,11 +243,11 @@ class Monero_Gateway extends WC_Payment_Gateway
         $uri = "monero:$address?amount=$amount?payment_id=$payment_id";
         $array_integrated_address = $this->monero_daemon->make_integrated_address($payment_id);
         if (!isset($array_integrated_address)) {
-            $this->log->add('Monero_Gateway', '[ERROR] Unable to getting integrated address');
+            $this->log->add('Sumo_Gateway', '[ERROR] Unable to getting integrated address');
             // Seems that we can't connect with daemon, then set array_integrated_address, little hack
             $array_integrated_address["integrated_address"] = $address;
         }
-        $message = $this->verify_payment($payment_id, $amount_xmr2, $order);
+        $message = $this->verify_payment($payment_id, $amount_sumo2, $order);
         if ($this->confirmed) {
             $color = "006400";
         } else {
@@ -259,26 +259,26 @@ class Monero_Gateway extends WC_Payment_Gateway
         <!--Import Google Icon Font-->
         <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
         <link href='https://fonts.googleapis.com/css?family=Montserrat:400,800' rel='stylesheet'>
-        <link href='http://cdn.monerointegrations.com/style.css' rel='stylesheet'>
+        <link href='".plugins_url('sumo/assets/style.css')."' rel='stylesheet'>
         <!--Let browser know website is optimized for mobile-->
             <meta name='viewport' content='width=device-width, initial-scale=1.0'/>
             </head>
             <body>
             <!-- page container  -->
             <div class='page-container'>
-            <!-- monero container payment box -->
+            <!-- sumo container payment box -->
             <div class='container-xmr-payment'>
             <!-- header -->
             <div class='header-xmr-payment'>
-            <span class='logo-xmr'><img src='http://cdn.monerointegrations.com/logomonero.png' /></span>
-            <span class='xmr-payment-text-header'><h2>MONERO PAYMENT</h2></span>
+            <span class='logo-xmr'><img src='".plugins_url('sumo/assets/sumo-logo.png')."'/></span>
+            <span class='xmr-payment-text-header'><h2>SUMO PAYMENT</h2></span>
             </div>
             <!-- end header -->
             <!-- xmr content box -->
             <div class='content-xmr-payment'>
             <div class='xmr-amount-send'>
             <span class='xmr-label'>Send:</span>
-            <div class='xmr-amount-box'>".$amount_xmr2."</div><div class='xmr-box'>XMR</div>
+            <div class='xmr-amount-box'>".$amount_sumo2."</div><div class='xmr-box'>SUMO</div>
             </div>
             <div class='xmr-address'>
             <span class='xmr-label'>To this address:</span>
@@ -293,11 +293,11 @@ class Monero_Gateway extends WC_Payment_Gateway
             <!-- end content box -->
             <!-- footer xmr payment -->
             <div class='footer-xmr-payment'>
-            <a href='https://getmonero.org' target='_blank'>Help</a> | <a href='https://getmonero.org' target='_blank'>About Monero</a>
+            <a href='https://www.sumokoin.org' target='_blank'>Help</a> | <a href='https://www.sumokoin.org' target='_blank'>About Sumo</a>
             </div>
             <!-- end footer xmr payment -->
             </div>
-            <!-- end monero container payment box -->
+            <!-- end sumo container payment box -->
             </div>
             <!-- end page container  -->
             </body>
@@ -355,13 +355,12 @@ class Monero_Gateway extends WC_Payment_Gateway
             }
         } else // If the row has not been created then the live exchange rate will be grabbed and stored
         {
-            $xmr_live_price = $this->retriveprice($currency);
-            $live_for_storing = $xmr_live_price * 100; //This will remove the decimal so that it can easily be stored as an integer
-            $new_amount = $amount / $xmr_live_price;
+            $sumo_live_price = $this->retrieveprice($currency);
+            $live_for_storing = $sumo_live_price * 100; //This will remove the decimal so that it can easily be stored as an integer
+            $new_amount = $amount / $sumo_live_price;
             $rounded_amount = round($new_amount, 12);
-
-            $wpdb->query("INSERT INTO $payment_id (rate)
-										 VALUES ($live_for_storing)");
+            
+            $wpdb->query("INSERT INTO $payment_id (rate) VALUES ($live_for_storing)");
         }
 
         return $rounded_amount;
@@ -371,7 +370,7 @@ class Monero_Gateway extends WC_Payment_Gateway
     // Check if we are forcing SSL on checkout pages
     // Custom function not required by the Gateway
 
-    public function retriveprice($currency)
+    public function retrieveprice($currency)
     {
         $xmr_price = file_get_contents('https://min-api.cryptocompare.com/data/price?fsym=XMR&tsyms=BTC,USD,EUR,CAD,INR,GBP&extraParams=monero_woocommerce');
         $price = json_decode($xmr_price, TRUE);
@@ -403,14 +402,14 @@ class Monero_Gateway extends WC_Payment_Gateway
          */
         $message = "We are waiting for your payment to be confirmed";
         $amount_atomic_units = $amount * 1000000000000;
-        $get_payments_method = $this->monero_daemon->get_payments($payment_id);
+        $get_payments_method = $this->sumo_daemon->get_payments($payment_id);
         if (isset($get_payments_method["payments"][0]["amount"])) {
             if ($get_payments_method["payments"][0]["amount"] >= $amount_atomic_units) {
                 $message = "Payment has been received and confirmed. Thanks!";
-                $this->log->add('Monero_gateway', '[SUCCESS] Payment has been recorded. Congratulations!');
+                $this->log->add('Sumo_gateway', '[SUCCESS] Payment has been recorded. Congratulations!');
                 $this->confirmed = true;
                 $order = wc_get_order($order_id);
-                $order->update_status('completed', __('Payment has been received', 'monero_gateway'));
+                $order->update_status('completed', __('Payment has been received', 'sumo_gateway'));
                 global $wpdb;
                 $wpdb->query("DROP TABLE $payment_id"); // Drop the table from database after payment has been confirmed as it is no longer needed
 
@@ -433,14 +432,14 @@ class Monero_Gateway extends WC_Payment_Gateway
     {
         $host = $this->settings['daemon_host'];
         $port = $this->settings['daemon_port'];
-        $monero_library = new Monero($host, $port);
-        if ($monero_library->works() == true) {
-            echo "<div class=\"notice notice-success is-dismissible\"><p>Everything works! Congratulations and welcome to Monero. <button type=\"button\" class=\"notice-dismiss\">
+        $sumo_library = new Sumo($host, $port);
+        if ($sumo_library->works() == true) {
+            echo "<div class=\"notice notice-success is-dismissible\"><p>Everything works! Congratulations and welcome to Sumo. <button type=\"button\" class=\"notice-dismiss\">
 						<span class=\"screen-reader-text\">Dismiss this notice.</span>
 						</button></p></div>";
 
         } else {
-            $this->log->add('Monero_gateway', '[ERROR] Plugin can not reach wallet rpc.');
+            $this->log->add('Sumo_gateway', '[ERROR] Plugin can not reach wallet rpc.');
             echo "<div class=\" notice notice-error\"><p>Error with connection of daemon, see documentation!</p></div>";
         }
     }

@@ -9,9 +9,10 @@
  * @author Kacper Rowinski <krowinski@implix.com>
  * http://implix.com
  * Modified to work with monero-rpc wallet by Serhack and cryptochangements
+ * Modified to work with sumo-rpc wallet by Madjester
  * This code isn't for Dark Net Markets, please report them to Authority!
  */
-class Monero_Library
+class Sumo_Library
 {
     protected $url = null, $is_debug = false, $parameters_structure = 'array';
     protected $curl_options = array(
