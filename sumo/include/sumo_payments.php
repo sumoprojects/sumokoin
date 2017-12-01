@@ -372,26 +372,21 @@ class Sumo_Gateway extends WC_Payment_Gateway
 
     public function retrieveprice($currency)
     {
-        $xmr_price = file_get_contents('https://min-api.cryptocompare.com/data/price?fsym=XMR&tsyms=BTC,USD,EUR,CAD,INR,GBP&extraParams=monero_woocommerce');
-        $price = json_decode($xmr_price, TRUE);
+        $currencies = ['USD', 'EUR', 'CAD', 'GBP', 'INR', 'XMR'];
+        if (!in_array($currency, $currencies)) $currencies[] = $currency;
+        
+        $sumo_price = file_get_contents('https://min-api.cryptocompare.com/data/price?fsym=SUMO&tsyms='.implode(",", $currencies).'&extraParams=sumo_woocommerce');
+        $price = json_decode($sumo_price, TRUE);
         if (!isset($price)) {
-            $this->log->add('Monero_Gateway', '[ERROR] Unable to get the price of Monero');
+            $this->log->add('Sumo_Gateway', '[ERROR] Unable to get the price of Sumo');
         }
-        switch ($currency) {
-            case 'USD':
-                return $price['USD'];
-            case 'EUR':
-                return $price['EUR'];
-            case 'CAD':
-                return $price['CAD'];
-            case 'GBP':
-                return $price['GBP'];
-            case 'INR':
-                return $price['INR'];
-            case 'XMR':
-                $price = '1';
-                return $price;
+        
+        if (!isset($price[$currency])) {
+            $this->log->add('Sumo_Gateway', '[ERROR] Unable to retrieve Sumo in currency '.$currency);
+            return -1;
         }
+        
+        return $price[$currency];
     }
 
     public function verify_payment($payment_id, $amount, $order_id)
