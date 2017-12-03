@@ -56,7 +56,7 @@ function sumo_create_menu()
         'manage_options',
         'admin.php?page=wc-settings&tab=checkout&section=sumo_gateway',
         '',
-        plugins_url('sumo/assets/icon.png'),
+        plugins_url('sumo/assets/sumo_icon.png'),
         56 // Position on menu, woocommerce has 55.5, products has 55.6
 
     );

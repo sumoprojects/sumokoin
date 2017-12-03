@@ -1,4 +1,4 @@
-.container-xmr-payment {
+.container-sumo-payment {
 font-family: 'Montserrat', sans-serif;
 
     background-color: #fff;
@@ -14,26 +14,26 @@ box-shadow: 0px 0px 8px -1px rgba(0,0,0,0.75);
 
 
 
-.header-xmr-payment {
+.header-sumo-payment {
     height: 74px;
 	background-color: #2d9cdb;
 }
 
-.logo-xmr img {
+.logo-sumo img {
     margin-top: 6px;
 }
 
-span.logo-xmr {
+span.logo-sumo {
     float: left;
 }
 
-span.xmr-payment-text-header {
+span.sumo-payment-text-header {
     float: left;
     margin-left: 16px;
     color: #fff;
 }
 
-.footer-xmr-payment {
+.footer-sumo-payment {
     background-color: #2d9cdb;
     color: #fff;
     text-align: right;
@@ -45,22 +45,22 @@ span.xmr-payment-text-header {
 }
 
 
-.footer-xmr-payment a {
+.footer-sumo-payment a {
     color: #fff;
 	font-size: 0.8rem;
 }
 
 
 
-.xmr-qr-code {
+.sumo-qr-code {
     float: left;
 }
 
-.xmr-address {
+.sumo-address {
     float: left;
 }
 
-.xmr-amount-send {
+.sumo-amount-send {
     float: left;
 }
 
@@ -70,7 +70,7 @@ span.xmr-payment-text-header {
 
 
 
-.xmr-amount-box {
+.sumo-amount-box {
     background-color: #fff;
     padding: 8px;
     border-style: solid;
@@ -79,11 +79,11 @@ span.xmr-payment-text-header {
     float: left;
 }
 
-span.xmr-label {
+span.sumo-label {
     display: block;
 }
 
-.xmr-box {
+.sumo-box {
     float: left;
     background-color: #2d9cdb;
     padding: 8px;
@@ -94,7 +94,7 @@ span.xmr-label {
 }
 
 
-.xmr-address-box {
+.sumo-address-box {
     word-wrap: break-word;
 	    background-color: #fff;
     padding: 8px;
@@ -103,11 +103,11 @@ span.xmr-label {
     border-color: #ccc;
 }
 
-.xmr-integrated-address {
+.sumo-integrated-address {
     float: left;
 }
 
-.xmr-integrated-address-box {
+.sumo-integrated-address-box {
     word-wrap: break-word;
     background-color: #fff;
     padding: 8px;
@@ -115,12 +115,12 @@ span.xmr-label {
     border-width: 1px;
     border-color: #ccc;
 }
-.xmr-qr-code-box img {
+.sumo-qr-code-box img {
     width: 100%;
     
 }
 
-.xmr-qr-code-box {
+.sumo-qr-code-box {
     width: fit-content;
     padding: 8px;
     border-color: #ccc;
@@ -130,26 +130,26 @@ span.xmr-label {
 }
 
 
-.content-xmr-payment {
+.content-sumo-payment {
     padding: 8px;
     background-color: #f9f9f9;
 
 }
 
 
-.xmr-qr-code {
+.sumo-qr-code {
       padding: 8px;
 }
 
-.xmr-address {
+.sumo-address {
         padding: 8px;
 }
 
-.xmr-amount-send {
+.sumo-amount-send {
        padding: 8px;
 }
 
-.xmr-payment-text-header h2 {
+.sumo-payment-text-header h2 {
     font-size: 1.2rem;
     margin: 0px;
     line-height: 70px;
@@ -166,18 +166,18 @@ span.xmr-label {
 
 }
 
-.xmr-qr-code {
+.sumo-qr-code {
     width: 40%;
 }
 
-.xmr-address {
+.sumo-address {
     width: 60%;
 }
 
-.xmr-amount-send {
+.sumo-amount-send {
     width: 100%;
 }
-.logo-xmr img {
+.logo-sumo img {
     margin-top: 6px;
     margin-left: 32px;
 }
@@ -186,7 +186,7 @@ span.xmr-label {
 
 @media only screen and (min-width: 100px) and (max-width: 700px) {
 
-.logo-xmr img {
+.logo-sumo img {
     margin-top: 6px;
     margin-left: 8px;
 }
@@ -198,20 +198,20 @@ span.xmr-label {
 
 }
 
-.xmr-qr-code-box {
+.sumo-qr-code-box {
     width: 100%;
 }
 
-.xmr-address {
+.sumo-address {
     width: 100%;
     
 }
 
-.xmr-amount-send {
+.sumo-amount-send {
     width: 100%;
 }
 
-.xmr-integrated-address{
+.sumo-integrated-address{
         width:100%;
 }
 

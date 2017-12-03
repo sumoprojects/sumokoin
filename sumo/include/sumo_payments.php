@@ -267,35 +267,35 @@ class Sumo_Gateway extends WC_Payment_Gateway
             <!-- page container  -->
             <div class='page-container'>
             <!-- sumo container payment box -->
-            <div class='container-xmr-payment'>
+            <div class='container-sumo-payment'>
             <!-- header -->
-            <div class='header-xmr-payment'>
-            <span class='logo-xmr'><img src='".plugins_url('sumo/assets/sumo-logo.png')."'/></span>
-            <span class='xmr-payment-text-header'><h2>SUMO PAYMENT</h2></span>
+            <div class='header-sumo-payment'>
+            <span class='logo-sumo'><img src='".plugins_url('sumo/assets/sumo-logo.png')."'/></span>
+            <span class='sumo-payment-text-header'><h2>SUMO PAYMENT</h2></span>
             </div>
             <!-- end header -->
-            <!-- xmr content box -->
+            <!-- sumo content box -->
             <div class='content-xmr-payment'>
-            <div class='xmr-amount-send'>
-            <span class='xmr-label'>Send:</span>
-            <div class='xmr-amount-box'>".$amount_sumo2."</div><div class='xmr-box'>SUMO</div>
+            <div class='sumo-amount-send'>
+            <span class='sumo-label'>Send:</span>
+            <div class='sumo-amount-box'>".$amount_sumo2."</div><div class='sumo-box'>SUMO</div>
             </div>
-            <div class='xmr-address'>
-            <span class='xmr-label'>To this address:</span>
-            <div class='xmr-address-box'>".$array_integrated_address['integrated_address']."</div>
+            <div class='sumo-address'>
+            <span class='sumo-label'>To this address:</span>
+            <div class='sumo-address-box'>".$array_integrated_address['integrated_address']."</div>
             </div>
-            <div class='xmr-qr-code'>
-            <span class='xmr-label'>Or scan QR:</span>
-            <div class='xmr-qr-code-box'><img src='https://api.qrserver.com/v1/create-qr-code/? size=200x200&data=".$uri."' /></div>
+            <div class='sumo-qr-code'>
+            <span class='sumo-label'>Or scan QR:</span>
+            <div class='sumo-qr-code-box'><img src='https://api.qrserver.com/v1/create-qr-code/? size=200x200&data=".$uri."' /></div>
             </div>
             <div class='clear'></div>
             </div>
             <!-- end content box -->
-            <!-- footer xmr payment -->
-            <div class='footer-xmr-payment'>
+            <!-- footer sumo payment -->
+            <div class='footer-sumo-payment'>
             <a href='https://www.sumokoin.org' target='_blank'>Help</a> | <a href='https://www.sumokoin.org' target='_blank'>About Sumo</a>
             </div>
-            <!-- end footer xmr payment -->
+            <!-- end footer sumo payment -->
             </div>
             <!-- end sumo container payment box -->
             </div>
