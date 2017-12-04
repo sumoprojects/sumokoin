@@ -49,8 +49,8 @@ class Sumo_Gateway extends WC_Payment_Gateway
         if (is_admin()) {
             /* Save Settings */
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
-            add_filter('woocommerce_currencies', 'add_my_currency');
-            add_filter('woocommerce_currency_symbol', 'add_my_currency_symbol', 10, 2);
+            add_filter('woocommerce_currencies', [$this, 'add_my_currency']);
+            add_filter('woocommerce_currency_symbol', [$this, 'add_my_currency_symbol'], 10, 2);
             add_action('woocommerce_email_before_order_table', array($this, 'email_instructions'), 10, 2);
         }
         $this->sumo_daemon = new Sumo_Library($this->host . ':' . $this->port . '/json_rpc', $this->username, $this->password);
@@ -140,15 +140,15 @@ class Sumo_Gateway extends WC_Payment_Gateway
 
     public function add_my_currency($currencies)
     {
-        $currencies['XMR'] = __('Sumo', 'woocommerce');
+        $currencies['SUMO'] = __('Sumo', 'woocommerce');
         return $currencies;
     }
 
     function add_my_currency_symbol($currency_symbol, $currency)
     {
         switch ($currency) {
-            case 'XMR':
-                $currency_symbol = 'XMR';
+            case 'SUMO':
+                $currency_symbol = 'SUMO';
                 break;
         }
         return $currency_symbol;
