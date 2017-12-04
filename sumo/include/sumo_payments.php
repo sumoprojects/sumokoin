@@ -113,9 +113,9 @@ class Sumo_Gateway extends WC_Payment_Gateway
 
             ),
             'discount' => array(
-                'title' => __('% discount for using XMR', 'sumo_gateway'),
+                'title' => __('% discount for using SUMO', 'sumo_gateway'),
 
-                'desc_tip' => __('Provide a discount to your customers for making a private payment with XMR!', 'sumo_gateway'),
+                'desc_tip' => __('Provide a discount to your customers for making a private payment with SUMO!', 'sumo_gateway'),
                 'description' => __('Do you want to spread the word about Sumo? Offer a small discount! Leave this empty if you do not wish to provide a discount', 'sumo_gateway'),
                 'type' => __('text'),
                 'default' => '5%'
@@ -184,8 +184,8 @@ class Sumo_Gateway extends WC_Payment_Gateway
         $unlocked_wallet_amount = $wallet_amount['unlocked_balance'] / 1000000000000;
         $unlocked_amount_rounded = round($unlocked_wallet_amount, 6);
 
-        echo "Your balance is: " . $real_amount_rounded . " XMR </br>";
-        echo "Unlocked balance: " . $unlocked_amount_rounded . " XMR </br>";
+        echo "Your balance is: " . $real_amount_rounded . " SUMO </br>";
+        echo "Unlocked balance: " . $unlocked_amount_rounded . " SUMO </br>";
     }
 
     public function process_payment($order_id)
@@ -372,7 +372,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
 
     public function retrieveprice($currency)
     {
-        $currencies = ['USD', 'EUR', 'CAD', 'GBP', 'INR', 'XMR'];
+        $currencies = ['USD', 'EUR', 'CAD', 'GBP', 'INR', 'SUMO'];
         if (!in_array($currency, $currencies)) $currencies[] = $currency;
         
         $sumo_price = file_get_contents('https://min-api.cryptocompare.com/data/price?fsym=SUMO&tsyms='.implode(",", $currencies).'&extraParams=sumo_woocommerce');
