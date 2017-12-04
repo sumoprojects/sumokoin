@@ -61,5 +61,5 @@ To do this: start the Sumokoin daemon on your server and leave it running in the
 ## Info on server authentication
 It is reccommended that you specify a username/password with your wallet rpc. This can be done by starting your wallet rpc with `sumokoin-wallet-rpc --rpc-bind-port 18082 --rpc-login username:password --wallet-file /path/walletfile` where "username:password" is the username and password that you want to use, seperated by a colon. Alternatively, you can use the `--restricted-rpc` flag with the wallet rpc like so `./sumokoin-wallet-rpc --testnet --rpc-bind-port 18082 --restricted-rpc --wallet-file wallet/path`.
 
-## Donating Me
-XMR Address : `44krVcL6TPkANjpFwS2GWvg1kJhTrN7y9heVeQiDJ3rP8iGbCd5GeA4f3c2NKYHC1R4mCgnW7dsUUUae2m9GiNBGT4T8s2X`
+## Donate to the team
+SUMO Address : `Sumoo6aEVZnMNKAyw2aZgE8b3WYmCyBdn1y5eLNh2XRdDUQoBt9gqh9cSdS4jT7Ss8Vbbn5XX5f34LDN43KVyB5X1CqUdysB4R2`
