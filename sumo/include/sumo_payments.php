@@ -235,15 +235,24 @@ class Sumo_Gateway extends WC_Payment_Gateway
         $payment_id = $this->set_paymentid_cookie();
         $currency = $order->get_currency();
         $amount_sumo2 = $this->changeto($amount, $currency, $payment_id);
+        if ($amount_sumo2 <= 0)
+        {
+            echo "ERROR: temporarily unable to get exchange rate<br/>";
+            echo "
+             <script type='text/javascript'>setTimeout(function () { location.reload(true); }, $this->reloadTime);</script>";
+            return;
+        }
+        
         $address = $this->address;
         if (!isset($address)) {
-            // If there isn't address (merchant missed that field!), $address will be the Monero address for donating :)
-            $address = "44AFFq5kSiGBoZ4NMDwYtN18obc8AemS33DBLWs3H7otXft3XjrpDtQGv7SqSsaBYBb98uNbr2VBBEt7f2wfn3RVGQBEP3A";
+            $this->log->add('Sumo_Gateway', '[ERROR] no SUMO address set for payments');
+            echo "ERROR: unable to receive payments, please contact administrator.<br/>";
+            return;
         }
         $uri = "sumo:$address?amount=$amount_sumo2?payment_id=$payment_id";
         $array_integrated_address = $this->sumo_daemon->make_integrated_address($payment_id);
         if (!isset($array_integrated_address)) {
-            $this->log->add('Sumo_Gateway', '[ERROR] Unable to getting integrated address');
+            $this->log->add('Sumo_Gateway', '[ERROR] Unable to get integrated address');
             // Seems that we can't connect with daemon, then set array_integrated_address, little hack
             $array_integrated_address["integrated_address"] = $address;
         }
@@ -332,35 +341,42 @@ class Sumo_Gateway extends WC_Payment_Gateway
     {
         global $wpdb;
         // This will create a table named whatever the payment id is inside the database "WordPress"
-        $create_table = "CREATE TABLE IF NOT EXISTS $payment_id (
-									rate INT
-									)";
+        $create_table = "CREATE TABLE IF NOT EXISTS sumo_payment_rates (payment_id char(16) PRIMARY KEY, currency char(3), rate DECIMAL(10,4))";
         $wpdb->query($create_table);
-        $rows_num = $wpdb->get_results("SELECT count(*) as count FROM $payment_id");
+        $rows_num = $wpdb->get_results("
+            SELECT count(*) as count 
+            FROM sumo_payment_rates WHERE payment_id = '$payment_id'
+        ");
         if ($rows_num[0]->count > 0) // Checks if the row has already been created or not
         {
-            $stored_rate = $wpdb->get_results("SELECT rate FROM $payment_id");
+            $stored_rate = $wpdb->get_results("
+                SELECT rate FROM sumo_payment_rates
+                WHERE payment_id = '$payment_id'
+            ");
 
-            $stored_rate_transformed = $stored_rate[0]->rate / 100; //this will turn the stored rate back into a decimaled number
+            $stored_rate_transformed = $stored_rate[0]->rate; //this will turn the stored rate back into a decimaled number
 
             if (isset($this->discount)) {
                 $discount_decimal = $this->discount / 100;
                 $new_amount = $amount / $stored_rate_transformed;
                 $discount = $new_amount * $discount_decimal;
                 $final_amount = $new_amount - $discount;
-                $rounded_amount = round($final_amount, 12);
+                $rounded_amount = round($final_amount, 9);
             } else {
                 $new_amount = $amount / $stored_rate_transformed;
-                $rounded_amount = round($new_amount, 12); //the moneo wallet can't handle decimals smaller than 0.000000000001
+                $rounded_amount = round($new_amount, 9); //the moneo wallet can't handle decimals smaller than 0.000000000001
             }
         } else // If the row has not been created then the live exchange rate will be grabbed and stored
         {
             $sumo_live_price = $this->retrieveprice($currency);
-            $live_for_storing = $sumo_live_price * 100; //This will remove the decimal so that it can easily be stored as an integer
+            if ($sumo_live_price == -1) return -1;
             $new_amount = $amount / $sumo_live_price;
-            $rounded_amount = round($new_amount, 12);
+            $rounded_amount = round($new_amount, 9);
             
-            $wpdb->query("INSERT INTO $payment_id (rate) VALUES ($live_for_storing)");
+            $wpdb->query("
+                INSERT INTO sumo_payment_rates (payment_id, currency, rate)
+                VALUES ('$payment_id', '$currency', $sumo_live_price)
+            ");
         }
 
         return $rounded_amount;
@@ -379,6 +395,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
         $price = json_decode($sumo_price, TRUE);
         if (!isset($price)) {
             $this->log->add('Sumo_Gateway', '[ERROR] Unable to get the price of Sumo');
+            return -1;
         }
         
         if (!isset($price[$currency])) {
@@ -396,7 +413,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
          * Check if a payment has been made with this payment id then notify the merchant
          */
         $message = "We are waiting for your payment to be confirmed";
-        $amount_atomic_units = $amount * 1000000000000;
+        $amount_atomic_units = $amount * 1000000000;
         $get_payments_method = $this->sumo_daemon->get_payments($payment_id);
         if (isset($get_payments_method["payments"][0]["amount"])) {
             if ($get_payments_method["payments"][0]["amount"] >= $amount_atomic_units) {
@@ -406,8 +423,6 @@ class Sumo_Gateway extends WC_Payment_Gateway
                 $order = wc_get_order($order_id);
                 $order->update_status('completed', __('Payment has been received', 'sumo_gateway'));
                 global $wpdb;
-                $wpdb->query("DROP TABLE $payment_id"); // Drop the table from database after payment has been confirmed as it is no longer needed
-
                 $this->reloadTime = 3000000000000; // Greatly increase the reload time as it is no longer needed
             }
         }
