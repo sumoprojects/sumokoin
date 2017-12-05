@@ -341,7 +341,13 @@ class Sumo_Gateway extends WC_Payment_Gateway
     {
         global $wpdb;
         // This will create a table named whatever the payment id is inside the database "WordPress"
-        $create_table = "CREATE TABLE IF NOT EXISTS sumo_payment_rates (payment_id char(16) PRIMARY KEY, currency char(3), rate DECIMAL(10,4))";
+        $create_table = "
+            CREATE TABLE IF NOT EXISTS {$wpdb->prefix}sumo_payment_rates (
+                payment_id char(16) PRIMARY KEY,
+                currency char(3), rate DECIMAL(10,4)
+            )
+        ";
+        
         $wpdb->query($create_table);
         $rows_num = $wpdb->get_results("
             SELECT count(*) as count 
