@@ -383,7 +383,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
             
             $wpdb->query("
                 INSERT INTO sumo_payment_rates (payment_id, currency, rate)
-                VALUES ('$payment_id', '$currency', $sumo_live_price)
+                VALUES ('$payment_id', '" . esc_sql($currency). "', $sumo_live_price)
             ");
         }
 
