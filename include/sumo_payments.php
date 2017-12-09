@@ -353,12 +353,12 @@ class Sumo_Gateway extends WC_Payment_Gateway
         $wpdb->query($create_table);
         $rows_num = $wpdb->get_results("
             SELECT count(*) as count 
-            FROM sumo_payment_rates WHERE payment_id = '$payment_id'
+            FROM {$wpdb->prefix}sumo_payment_rates WHERE payment_id = '$payment_id'
         ");
         if ($rows_num[0]->count > 0) // Checks if the row has already been created or not
         {
             $stored_rate = $wpdb->get_results("
-                SELECT rate FROM sumo_payment_rates
+                SELECT rate FROM {$wpdb->prefix}sumo_payment_rates
                 WHERE payment_id = '$payment_id'
             ");
 
@@ -382,7 +382,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
             $rounded_amount = round($new_amount, 9);
             
             $wpdb->query("
-                INSERT INTO sumo_payment_rates (payment_id, currency, rate)
+                INSERT INTO {$wpdb->prefix}sumo_payment_rates (payment_id, currency, rate)
                 VALUES ('$payment_id', '" . esc_sql($currency). "', $sumo_live_price)
             ");
         }
