@@ -351,16 +351,20 @@ class Sumo_Gateway extends WC_Payment_Gateway
         ";
         
         $wpdb->query($create_table);
-        $rows_num = $wpdb->get_results("
+        $sql = $wpdb->prepare("
             SELECT count(*) as count 
-            FROM {$wpdb->prefix}sumo_payment_rates WHERE payment_id = '$payment_id'
-        ");
+            FROM {$wpdb->prefix}sumo_payment_rates
+            WHERE payment_id = %s
+        ", [$payment_id]);
+        $rows_num = $wpdb->get_results($sql);
         if ($rows_num[0]->count > 0) // Checks if the row has already been created or not
         {
-            $stored_rate = $wpdb->get_results("
-                SELECT rate FROM {$wpdb->prefix}sumo_payment_rates
-                WHERE payment_id = '$payment_id'
-            ");
+            $sql = $wpdb->prepare("
+                SELECT rate 
+                FROM {$wpdb->prefix}sumo_payment_rates
+                WHERE payment_id = %s
+            ", [$payment_id]);
+            $stored_rate = $wpdb->get_results($sql);
 
             $stored_rate_transformed = $stored_rate[0]->rate; //this will turn the stored rate back into a decimaled number
 
@@ -381,10 +385,11 @@ class Sumo_Gateway extends WC_Payment_Gateway
             $new_amount = $amount / $sumo_live_price;
             $rounded_amount = round($new_amount, 9);
             
-            $wpdb->query("
+            $sql = $wpdb->prepare("
                 INSERT INTO {$wpdb->prefix}sumo_payment_rates (payment_id, currency, rate)
-                VALUES ('$payment_id', '" . esc_sql($currency). "', $sumo_live_price)
-            ");
+                VALUES (%s, %s, %f)
+            ", [$payment_id, $currency, $sumo_live_price]);
+            $wpdb->query($sql);
         }
 
         return $rounded_amount;
