@@ -232,7 +232,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
     {
         $order = wc_get_order($order_id);
         $amount = floatval(preg_replace('#[^\d.]#', '', $order->get_total()));
-        $payment_id = $this->set_paymentid_cookie();
+        $payment_id = $this->get_payment_id($order_id);
         $currency = $order->get_currency();
         $amount_sumo2 = $this->changeto($amount, $currency, $payment_id);
         if ($amount_sumo2 <= 0)
@@ -318,14 +318,35 @@ class Sumo_Gateway extends WC_Payment_Gateway
       <script type='text/javascript'>setTimeout(function () { location.reload(true); }, $this->reloadTime);</script>";
     }
 
-    private function set_paymentid_cookie()
+    private function get_payment_id($order_id)
     {
-        if (!isset($_COOKIE['payment_id'])) {
+        global $wpdb;
+        // TODO: make a UNIQUE PRIMARY KEY on both order_id and payment_id
+        $wpdb->query("
+            CREATE TABLE IF NOT EXISTS {$wpdb->prefix}sumo_payments (
+                order_id INT,
+                payment_id char(16) UNIQUE PRIMARY KEY
+            )
+        ");
+        
+        $sql = $wpdb->prepare("
+            SELECT payment_id
+            FROM {$wpdb->prefix}sumo_payments
+            WHERE order_id = %s
+        ", [$order_id]);
+        $rows = $wpdb->get_results($sql);
+        
+        if (count($rows) <= 0) {
             $payment_id = bin2hex(openssl_random_pseudo_bytes(8));
-            setcookie('payment_id', $payment_id, time() + 2700);
+            $sql = $wpdb->prepare("
+                INSERT INTO {$wpdb->prefix}sumo_payments
+                (order_id, payment_id)
+                VALUES (%s, %s)
+            ", [$order_id, $payment_id]);
+            $wpdb->get_results($sql);
         }
         else{
-            $payment_id = $this->sanatize_id($_COOKIE['payment_id']);
+            $payment_id = $this->sanatize_id($rows[0]->payment_id);
         }
         return $payment_id;
     }
