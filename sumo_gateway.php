@@ -1,11 +1,11 @@
 <?php
 /*
-Plugin Name: Sumo - WooCommerce Gateway
+Plugin Name: Sumokoin - WooCommerce Gateway
 Plugin URI: http://www.sumokoin.org
 Description: Extends WooCommerce by Adding the Sumo Gateway
 Version: 1.1
-Author: Madjester
-Author URI: http://twitter.com/madjester
+Author: Phillip Whelan
+Author URI: http://github.com/pwhelan
 */
 
 // This code isn't for Dark Net Markets, please report them to Authority!
