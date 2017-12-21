@@ -102,6 +102,7 @@ void TransactionHistoryImpl::refresh()
     // TODO: configurable values;
     uint64_t min_height = 0;
     uint64_t max_height = (uint64_t)-1;
+    uint64_t wallet_height = m_wallet->blockChainHeight();
 
     // delete old transactions;
     for (auto t : m_history)
@@ -136,6 +137,7 @@ void TransactionHistoryImpl::refresh()
         // TODO:
         ti->m_timestamp = pd.m_timestamp;
         m_history.push_back(ti);
+        ti->m_confirmations = (wallet_height > pd.m_block_height) ? wallet_height - pd.m_block_height : 0;
 
         /* output.insert(std::make_pair(pd.m_block_height, std::make_pair(true, (boost::format("%20.20s %s %s %s")
                                                                                  % print_money(pd.m_amount)
@@ -156,13 +158,13 @@ void TransactionHistoryImpl::refresh()
 
     for (std::list<std::pair<crypto::hash, tools::wallet2::confirmed_transfer_details>>::const_iterator i = out_payments.begin();
          i != out_payments.end(); ++i) {
-        
+
         const crypto::hash &hash = i->first;
         const tools::wallet2::confirmed_transfer_details &pd = i->second;
-        
+
         uint64_t change = pd.m_change == (uint64_t)-1 ? 0 : pd.m_change; // change may not be known
         uint64_t fee = pd.m_amount_in - pd.m_amount_out;
-        
+
 
         std::string payment_id = string_tools::pod_to_hex(i->second.m_payment_id);
         if (payment_id.substr(16).find_first_not_of('0') == std::string::npos)
@@ -180,6 +182,8 @@ void TransactionHistoryImpl::refresh()
         ti->m_subaddrAccount = pd.m_subaddr_account;
         ti->m_label = pd.m_subaddr_indices.size() == 1 ? m_wallet->m_wallet->get_subaddress_label({ pd.m_subaddr_account, *pd.m_subaddr_indices.begin() }) : "";
         ti->m_timestamp = pd.m_timestamp;
+        ti->m_confirmations = (wallet_height > pd.m_block_height) ? wallet_height - pd.m_block_height : 0;
+
 
         // single output transaction might contain multiple transfers
         for (const auto &d: pd.m_dests) {
@@ -213,6 +217,7 @@ void TransactionHistoryImpl::refresh()
         ti->m_subaddrAccount = pd.m_subaddr_account;
         ti->m_label = pd.m_subaddr_indices.size() == 1 ? m_wallet->m_wallet->get_subaddress_label({ pd.m_subaddr_account, *pd.m_subaddr_indices.begin() }) : "";
         ti->m_timestamp = pd.m_timestamp;
+        ti->m_confirmations = 0;
         m_history.push_back(ti);
     }
 }

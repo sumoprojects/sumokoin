@@ -1,21 +1,21 @@
 // Copyright (c) 2016-2017, SUMOKOIN, (forked from) The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
@@ -118,6 +118,7 @@ struct TransactionInfo
     virtual std::set<uint32_t> subaddrIndex() const = 0;
     virtual uint32_t subaddrAccount() const = 0;
     virtual std::string label() const = 0;
+    virtual uint64_t confirmations() const = 0;
     //! transaction_id
     virtual std::string hash() const = 0;
     virtual std::time_t timestamp() const = 0;
@@ -146,9 +147,9 @@ public:
     AddressBookRow(int _rowId, const std::string &_address, const std::string &_paymentId, const std::string &_description):
         m_rowId(_rowId),
         m_address(_address),
-        m_paymentId(_paymentId), 
+        m_paymentId(_paymentId),
         m_description(_description) {}
- 
+
 private:
     int m_rowId;
     std::string m_address;
@@ -156,14 +157,14 @@ private:
     std::string m_description;
 public:
     std::string extra;
-    std::string getAddress() const {return m_address;} 
-    std::string getDescription() const {return m_description;} 
-    std::string getPaymentId() const {return m_paymentId;} 
-    int getRowId() const {return m_rowId;} 
+    std::string getAddress() const {return m_address;}
+    std::string getDescription() const {return m_description;}
+    std::string getPaymentId() const {return m_paymentId;}
+    int getRowId() const {return m_rowId;}
 };
 
 /**
- * @brief The AddressBook - interface for 
+ * @brief The AddressBook - interface for
 Book
  */
 struct AddressBook
@@ -176,9 +177,9 @@ struct AddressBook
     };
     virtual ~AddressBook() = 0;
     virtual std::vector<AddressBookRow*> getAll() const = 0;
-    virtual bool addRow(const std::string &dst_addr , const std::string &payment_id, const std::string &description) = 0;  
-    virtual bool deleteRow(int rowId) = 0;  
-    virtual void refresh() = 0;  
+    virtual bool addRow(const std::string &dst_addr , const std::string &payment_id, const std::string &description) = 0;
+    virtual bool deleteRow(int rowId) = 0;
+    virtual void refresh() = 0;
     virtual std::string errorString() const = 0;
     virtual int errorCode() const = 0;
 };
@@ -310,7 +311,7 @@ struct Wallet
     virtual std::string address(uint32_t accountIndex = 0, uint32_t addressIndex = 0) const = 0;
     std::string mainAddress() const { return address(0, 0); }
     virtual std::string path() const = 0;
-    
+
     /*!
      * \brief integratedAddress - returns integrated address for current wallet address and given payment_id.
      *                            if passed "payment_id" param is an empty string or not-valid payment id string
@@ -321,7 +322,31 @@ struct Wallet
      * \return                  - 106 characters string representing integrated address
      */
     virtual std::string integratedAddress(uint32_t accountIndex, uint32_t addressIndex, const std::string &payment_id) const = 0;
-    
+
+   /*!
+    * \brief secretViewKey     - returns secret view key
+    * \return                  - secret view key
+    */
+    virtual std::string secretViewKey() const = 0;
+
+   /*!
+    * \brief publicViewKey     - returns public view key
+    * \return                  - public view key
+    */
+    virtual std::string publicViewKey() const = 0;
+
+   /*!
+    * \brief secretSpendKey    - returns secret spend key
+    * \return                  - secret spend key
+    */
+    virtual std::string secretSpendKey() const = 0;
+
+   /*!
+    * \brief publicSpendKey    - returns public spend key
+    * \return                  - public spend key
+    */
+    virtual std::string publicSpendKey() const = 0;
+
     /*!
      * \brief store - stores wallet to file.
      * \param path - main filename to store wallet to. additionally stores address file and keys file.
@@ -402,6 +427,12 @@ struct Wallet
       return result;
     }
 
+   /**
+    * @brief watchOnly - checks if wallet is watch only
+    * @return - true if watch only
+    */
+    virtual bool watchOnly() const = 0;
+
     /**
      * @brief blockChainHeight - returns current blockchain height
      * @return
@@ -442,6 +473,15 @@ struct Wallet
     static bool addressValid(const std::string &str, bool testnet);
     static std::string paymentIdFromAddress(const std::string &str, bool testnet);
     static uint64_t maximumAllowedAmount();
+
+   /**
+    * @brief StartRefresh - Start/resume refresh thread (refresh every 10 seconds)
+    */
+    virtual void startRefresh() = 0;
+   /**
+    * @brief pauseRefresh - pause refresh thread
+    */
+    virtual void pauseRefresh() = 0;
 
     /**
      * @brief refresh - refreshes the wallet, updating transactions from daemon
@@ -530,13 +570,13 @@ struct Wallet
      * \param t -  pointer to the "PendingTransaction" object. Pointer is not valid after function returned;
      */
     virtual void disposeTransaction(PendingTransaction * t) = 0;
-    
+
     virtual TransactionHistory * history() = 0;
     virtual AddressBook * addressBook() = 0;
     virtual Subaddress * subaddress() = 0;
     virtual SubaddressAccount * subaddressAccount() = 0;
     virtual void setListener(WalletListener *) = 0;
-    
+
     /*!
      * \brief defaultMixin - returns number of mixins used in transactions
      * \return
@@ -612,6 +652,25 @@ struct WalletManager
      */
     virtual Wallet * recoveryWallet(const std::string &path, const std::string &memo, bool testnet = false, uint64_t restoreHeight = 0) = 0;
 
+   /*!
+    * \brief  recovers existing wallet using keys. Creates a view only wallet if spend key is omitted
+    * \param  path           Name of wallet file to be created
+    * \param  language       language
+    * \param  testnet        testnet
+    * \param  restoreHeight  restore from start height
+    * \param  addressString  public address
+    * \param  viewKeyString  view key
+    * \param  spendKeyString spend key (optional)
+    * \return                Wallet instance (Wallet::status() needs to be called to check if recovered successfully)
+    */
+    virtual Wallet * createWalletFromKeys(const std::string &path,
+                                                    const std::string &language,
+                                                    bool testnet,
+                                                    uint64_t restoreHeight,
+                                                    const std::string &addressString,
+                                                    const std::string &viewKeyString,
+                                                    const std::string &spendKeyString = "") = 0;
+
     /*!
      * \brief Closes wallet. In case operation succeded, wallet object deleted. in case operation failed, wallet object not deleted
      * \param wallet        previously opened / created wallet instance
@@ -629,6 +688,15 @@ struct WalletManager
      * @return
      */
     virtual bool walletExists(const std::string &path) = 0;
+
+    /*!
+     * @brief verifyWalletPassword - check if the given filename is the wallet
+     * @param keys_file_name - location of keys file
+     * @param password - password to verify
+     * @param no_spend_key - verify only view keys?
+     * @return - true if password is correct
+     */
+    virtual bool verifyWalletPassword(const std::string &keys_file_name, const std::string &password, bool no_spend_key) const = 0;
 
     /*!
      * \brief findWallets - searches for the wallet files by given path name recursively
@@ -670,6 +738,22 @@ struct WalletManager
 
     //! returns current mining hash rate (0 if not mining)
     virtual double miningHashRate() const = 0;
+
+    //! returns current block target
+    virtual uint64_t blockTarget() const = 0;
+
+    //! returns true iff mining
+    virtual bool isMining() const = 0;
+
+    //! starts mining with the set number of threads
+    virtual bool startMining(const std::string &address, uint32_t threads = 1, bool background_mining = false, bool ignore_battery = true) = 0;
+
+    //! stops mining
+    virtual bool stopMining() = 0;
+
+    //! resolves an OpenAlias address to a monero address
+    virtual std::string resolveOpenAlias(const std::string &address, bool &dnssec_valid) const = 0;
+
 };
 
 

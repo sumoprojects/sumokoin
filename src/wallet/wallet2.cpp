@@ -2170,6 +2170,57 @@ bool wallet2::verify_password(const std::string& password) const
 }
 
 /*!
+ * \brief verify password for specified wallet keys file.
+ * \param keys_file_name  Keys file to verify password for
+ * \param password        Password to verify
+ * \param no_spend_key    If set = only verify view keys, otherwise also spend keys
+ * \return                true if password is correct
+ *
+ * for verification only
+ * should not mutate state, unlike load_keys()
+ * can be used prior to rewriting wallet keys file, to ensure user has entered the correct password
+ *
+ */
+bool wallet2::verify_password(const std::string& keys_file_name, const std::string& password, bool no_spend_key)
+{
+  wallet2::keys_file_data keys_file_data;
+  std::string buf;
+  bool r = epee::file_io_utils::load_file_to_string(keys_file_name, buf);
+  THROW_WALLET_EXCEPTION_IF(!r, error::file_read_error, keys_file_name);
+
+  // Decrypt the contents
+  r = ::serialization::parse_binary(buf, keys_file_data);
+  THROW_WALLET_EXCEPTION_IF(!r, error::wallet_internal_error, "internal error: failed to deserialize \"" + keys_file_name + '\"');
+  crypto::chacha8_key key;
+  crypto::generate_chacha8_key(password.data(), password.size(), key);
+  std::string account_data;
+  account_data.resize(keys_file_data.account_data.size());
+  crypto::chacha8(keys_file_data.account_data.data(), keys_file_data.account_data.size(), key, keys_file_data.iv, &account_data[0]);
+
+  // The contents should be JSON if the wallet follows the new format.
+  rapidjson::Document json;
+  if (json.Parse(account_data.c_str()).HasParseError())
+  {
+    // old format before JSON wallet key file format
+  }
+  else
+  {
+    account_data = std::string(json["key_data"].GetString(), json["key_data"].GetString() +
+      json["key_data"].GetStringLength());
+  }
+
+  cryptonote::account_base account_data_check;
+
+  r = epee::serialization::load_t_from_binary(account_data_check, account_data);
+  const cryptonote::account_keys& keys = account_data_check.get_keys();
+
+  r = r && verify_keys(keys.m_view_secret_key,  keys.m_account_address.m_view_public_key);
+  if(!no_spend_key)
+    r = r && verify_keys(keys.m_spend_secret_key, keys.m_account_address.m_spend_public_key);
+  return r;
+}
+
+/*!
  * \brief  Generates a wallet or restores one.
  * \param  wallet_        Name of wallet file
  * \param  password       Password of wallet file

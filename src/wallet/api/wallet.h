@@ -57,7 +57,9 @@ public:
                 const std::string &language);
     bool open(const std::string &path, const std::string &password);
     bool recover(const std::string &path, const std::string &seed);
-    bool close();
+    bool recoverFromKeys(const std::string &path, const std::string &language, const std::string &address_string,
+        const std::string &viewkey_string, const std::string &spendkey_string = "");
+		bool close();
     std::string seed() const;
     std::string getSeedLanguage() const;
     void setSeedLanguage(const std::string &arg);
@@ -67,6 +69,10 @@ public:
     bool setPassword(const std::string &password);
     std::string address(uint32_t accountIndex = 0, uint32_t addressIndex = 0) const;
     std::string integratedAddress(uint32_t accountIndex, uint32_t addressIndex, const std::string &payment_id) const;
+    std::string secretViewKey() const;
+    std::string publicViewKey() const;
+    std::string secretSpendKey() const;
+    std::string publicSpendKey() const;
     std::string path() const;
     bool store(const std::string &path);
     std::string filename() const;
@@ -90,6 +96,8 @@ public:
     int autoRefreshInterval() const;
     void setRefreshFromBlockHeight(uint64_t refresh_from_block_height);
     void setRecoveringFromSeed(bool recoveringFromSeed);
+    bool watchOnly() const;
+    bool testnet() const {return m_wallet->testnet();}
 
     void addSubaddressAccount(const std::string& label);
     size_t numSubaddressAccounts() const;

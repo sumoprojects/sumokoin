@@ -296,6 +296,96 @@ bool WalletImpl::open(const std::string &path, const std::string &password)
     }
     return m_status == Status_Ok;
 }
+bool WalletImpl::recoverFromKeys(const std::string &path,
+                                const std::string &language,
+                                const std::string &address_string,
+                                const std::string &viewkey_string,
+                                const std::string &spendkey_string)
+{
+    cryptonote::address_parse_info info;
+    if(!get_account_address_from_str(info, m_wallet->testnet(), address_string))
+    {
+        m_errorString = tr("failed to parse address");
+        m_status = Status_Error;
+        return false;
+    }
+
+    // parse optional spend key
+    crypto::secret_key spendkey;
+    bool has_spendkey = false;
+    if (!spendkey_string.empty()) {
+        cryptonote::blobdata spendkey_data;
+        if(!epee::string_tools::parse_hexstr_to_binbuff(spendkey_string, spendkey_data) || spendkey_data.size() != sizeof(crypto::secret_key))
+        {
+            m_errorString = tr("failed to parse secret spend key");
+            m_status = Status_Error;
+            return false;
+        }
+        has_spendkey = true;
+        spendkey = *reinterpret_cast<const crypto::secret_key*>(spendkey_data.data());
+    }
+
+    // parse view secret key
+    if (viewkey_string.empty()) {
+        m_errorString = tr("No view key supplied, cancelled");
+        m_status = Status_Error;
+        return false;
+    }
+    cryptonote::blobdata viewkey_data;
+    if(!epee::string_tools::parse_hexstr_to_binbuff(viewkey_string, viewkey_data) || viewkey_data.size() != sizeof(crypto::secret_key))
+    {
+        m_errorString = tr("failed to parse secret view key");
+        m_status = Status_Error;
+        return false;
+    }
+    crypto::secret_key viewkey = *reinterpret_cast<const crypto::secret_key*>(viewkey_data.data());
+
+    // check the spend and view keys match the given address
+    crypto::public_key pkey;
+    if(has_spendkey) {
+        if (!crypto::secret_key_to_public_key(spendkey, pkey)) {
+            m_errorString = tr("failed to verify secret spend key");
+            m_status = Status_Error;
+            return false;
+        }
+        if (info.address.m_spend_public_key != pkey) {
+            m_errorString = tr("spend key does not match address");
+            m_status = Status_Error;
+            return false;
+        }
+    }
+    if (!crypto::secret_key_to_public_key(viewkey, pkey)) {
+        m_errorString = tr("failed to verify secret view key");
+        m_status = Status_Error;
+        return false;
+    }
+    if (info.address.m_view_public_key != pkey) {
+        m_errorString = tr("view key does not match address");
+        m_status = Status_Error;
+        return false;
+    }
+
+    try
+    {
+        if (has_spendkey) {
+            m_wallet->generate(path, "", info.address, spendkey, viewkey);
+            setSeedLanguage(language);
+            LOG_PRINT_L1("Generated new wallet from keys with seed language: " + language);
+        }
+        else {
+            m_wallet->generate(path, "", info.address, viewkey);
+            LOG_PRINT_L1("Generated new view only wallet from keys");
+        }
+
+    }
+    catch (const std::exception& e) {
+        m_errorString = string(tr("failed to generate new wallet: ")) + e.what();
+        m_status = Status_Error;
+        return false;
+    }
+    return true;
+}
+
 
 bool WalletImpl::recover(const std::string &path, const std::string &seed)
 {
@@ -408,6 +498,26 @@ std::string WalletImpl::integratedAddress(uint32_t accountIndex, uint32_t addres
     return "";
   }
   return m_wallet->get_integrated_subaddress_as_str({ accountIndex, addressIndex }, pid);
+}
+
+std::string WalletImpl::secretViewKey() const
+{
+    return epee::string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_view_secret_key);
+}
+
+std::string WalletImpl::publicViewKey() const
+{
+    return epee::string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_account_address.m_view_public_key);
+}
+
+std::string WalletImpl::secretSpendKey() const
+{
+    return epee::string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_spend_secret_key);
+}
+
+std::string WalletImpl::publicSpendKey() const
+{
+    return epee::string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_account_address.m_spend_public_key);
 }
 
 std::string WalletImpl::path() const
@@ -997,6 +1107,11 @@ void WalletImpl::setTrustedDaemon(bool arg)
     m_trustedDaemon = arg;
 }
 
+bool WalletImpl::watchOnly() const
+{
+    return m_wallet->watch_only();
+}
+
 bool WalletImpl::trustedDaemon() const
 {
     return m_trustedDaemon;
@@ -1099,7 +1214,7 @@ bool WalletImpl::isNewWallet() const
     // in case wallet created without daemon connection, closed and opened again,
     // it's the same case as if it created from scratch, i.e. we need "fast sync"
     // with the daemon (pull hashes instead of pull blocks).
-    // If wallet cache is rebuilt, creation height stored in .keys is used. 
+    // If wallet cache is rebuilt, creation height stored in .keys is used.
     return !(blockChainHeight() > 1 || m_recoveringFromSeed || m_rebuildWalletCache);
 }
 

@@ -32,6 +32,7 @@
 #include "wallet_manager.h"
 #include "wallet.h"
 #include "common_defines.h"
+#include "common/dns_utils.h"  
 #include "net/http_client.h"
 
 #include <boost/filesystem.hpp>
@@ -57,7 +58,7 @@ Wallet *WalletManagerImpl::openWallet(const std::string &path, const std::string
     WalletImpl * wallet = new WalletImpl(testnet);
     wallet->open(path, password);
     //Refresh addressBook
-    wallet->addressBook()->refresh(); 
+    wallet->addressBook()->refresh();
     return wallet;
 }
 
@@ -68,6 +69,22 @@ Wallet *WalletManagerImpl::recoveryWallet(const std::string &path, const std::st
         wallet->setRefreshFromBlockHeight(restoreHeight);
     }
     wallet->recover(path, memo);
+    return wallet;
+}
+
+Wallet *WalletManagerImpl::createWalletFromKeys(const std::string &path,
+                                                const std::string &language,
+                                                bool testnet,
+                                                uint64_t restoreHeight,
+                                                const std::string &addressString,
+                                                const std::string &viewKeyString,
+                                                const std::string &spendKeyString)
+{
+    WalletImpl * wallet = new WalletImpl(testnet);
+    if(restoreHeight > 0){
+        wallet->setRefreshFromBlockHeight(restoreHeight);
+    }
+    wallet->recoverFromKeys(path, language, addressString, viewKeyString, spendKeyString);
     return wallet;
 }
 
@@ -94,6 +111,10 @@ bool WalletManagerImpl::walletExists(const std::string &path)
     return false;
 }
 
+bool WalletManagerImpl::verifyWalletPassword(const std::string &keys_file_name, const std::string &password, bool no_spend_key) const
+{
+	    return tools::wallet2::verify_password(keys_file_name, password, no_spend_key);
+}
 
 std::vector<std::string> WalletManagerImpl::findWallets(const std::string &path)
 {
@@ -350,6 +371,64 @@ double WalletManagerImpl::miningHashRate() const
     return mres.speed;
 }
 
+uint64_t WalletManagerImpl::blockTarget() const
+{
+    cryptonote::COMMAND_RPC_GET_INFO::request ireq;
+    cryptonote::COMMAND_RPC_GET_INFO::response ires;
+
+    epee::net_utils::http::http_simple_client http_client;
+    if (!epee::net_utils::invoke_http_json_remote_command2(m_daemonAddress + "/getinfo", ireq, ires, http_client)) {
+        return 0;
+    }
+    return ires.target;
+}
+
+bool WalletManagerImpl::isMining() const
+{
+    cryptonote::COMMAND_RPC_MINING_STATUS::request mreq;
+    cryptonote::COMMAND_RPC_MINING_STATUS::response mres;
+
+    epee::net_utils::http::http_simple_client http_client;
+    if (!epee::net_utils::invoke_http_json_remote_command2(m_daemonAddress + "/mining_status", mreq, mres, http_client)) {
+      return false;
+    }
+    return mres.active;
+}
+
+bool WalletManagerImpl::startMining(const std::string &address, uint32_t threads, bool background_mining, bool ignore_battery)
+{
+    cryptonote::COMMAND_RPC_START_MINING::request mreq;
+    cryptonote::COMMAND_RPC_START_MINING::response mres;
+
+    mreq.miner_address = address;
+    mreq.threads_count = threads;
+
+    epee::net_utils::http::http_simple_client http_client;
+    if (!epee::net_utils::invoke_http_json_remote_command2(m_daemonAddress + "/start_mining", mreq, mres, http_client)) {
+      return false;
+    }
+    return mres.status == CORE_RPC_STATUS_OK;
+}
+
+bool WalletManagerImpl::stopMining()
+{
+    cryptonote::COMMAND_RPC_STOP_MINING::request mreq;
+    cryptonote::COMMAND_RPC_STOP_MINING::response mres;
+
+    epee::net_utils::http::http_simple_client http_client;
+    if (!epee::net_utils::invoke_http_json_remote_command2(m_daemonAddress + "/stop_mining", mreq, mres, http_client)) {
+      return false;
+    }
+    return mres.status == CORE_RPC_STATUS_OK;
+}
+
+std::string WalletManagerImpl::resolveOpenAlias(const std::string &address, bool &dnssec_valid) const
+{
+    std::vector<std::string> addresses = tools::dns_utils::addresses_from_url(address, dnssec_valid);
+    if (addresses.empty())
+        return "";
+    return addresses.front();
+}
 
 ///////////////////// WalletManagerFactory implementation //////////////////////
 WalletManager *WalletManagerFactory::getWalletManager()

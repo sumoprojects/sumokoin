@@ -499,6 +499,15 @@ else()
 
   endif(ARM)
 
+  if(ANDROID AND NOT BUILD_GUI_DEPS STREQUAL "ON" OR IOS)
+    #From Android 5: "only position independent executables (PIE) are
+    supported"
+    message(STATUS "Enabling PIE executable")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIE")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_CXX_FLAGS} -fPIE -pie")
+  endif()
+
   if(APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGTEST_HAS_TR1_TUPLE=0")
   endif()
@@ -585,7 +594,7 @@ endif()
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 if(MINGW)
   set(EXTRA_LIBRARIES mswsock;ws2_32;iphlpapi)
-elseif(APPLE OR FREEBSD OR OPENBSD)
+elseif(APPLE OR FREEBSD OR OPENBSD OR ANDROID)
   set(EXTRA_LIBRARIES "")
 elseif(NOT MSVC)
   find_library(RT rt)
@@ -594,6 +603,9 @@ endif()
 
 list(APPEND EXTRA_LIBRARIES ${CMAKE_DL_LIBS})
 
+if(ANDROID)
+    set(ATOMIC libatomic.a)
+endif()
 if(CMAKE_C_COMPILER_ID STREQUAL "Clang" AND ARCH_WIDTH EQUAL "32")
   find_library(ATOMIC atomic)
   list(APPEND EXTRA_LIBRARIES ${ATOMIC})
