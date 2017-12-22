@@ -553,15 +553,12 @@ string WalletImpl::keysFilename() const
     return m_wallet->get_keys_file();
 }
 
-bool WalletImpl::init(const std::string &daemon_address, uint64_t upper_transaction_size_limit)
+void WalletImpl::init(const std::string &daemon_address, uint64_t upper_transaction_size_limit)
 {
     clearStatus();
     doInit(daemon_address, upper_transaction_size_limit);
-    bool result = this->refresh();
     // enabling background refresh thread
     startRefresh();
-    return result;
-
 }
 
 void WalletImpl::initAsync(const string &daemon_address, uint64_t upper_transaction_size_limit)

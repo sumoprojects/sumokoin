@@ -1,21 +1,21 @@
 // Copyright (c) 2016-2017, SUMOKOIN, (forked from) The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,12 +25,12 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 /*!
  * \file simplewallet.cpp
- * 
+ *
  * \brief Source file that defines simple_wallet class.
  */
 #include <thread>
@@ -358,7 +358,7 @@ bool simple_wallet::seed(const std::vector<std::string> &args/* = std::vector<st
     success = m_wallet->get_seed(electrum_words);
   }
 
-  if (success) 
+  if (success)
   {
     print_seed(electrum_words);
   }
@@ -382,7 +382,7 @@ bool simple_wallet::seed_set_language(const std::vector<std::string> &args/* = s
     fail_msg_writer() << tr("wallet is non-deterministic and has no seed");
     return true;
   }
- 
+
   const auto pwd_container = get_and_verify_password();
   if (pwd_container)
   {
@@ -449,7 +449,7 @@ bool simple_wallet::set_default_mixin(const std::vector<std::string> &args/* = s
     }
     if (mixin == 0)
       mixin = DEFAULT_MIXIN;
- 
+
     const auto pwd_container = get_and_verify_password();
     if (pwd_container)
     {
@@ -499,7 +499,7 @@ bool simple_wallet::set_default_priority(const std::vector<std::string> &args/* 
         return true;
       }
     }
- 
+
     const auto pwd_container = get_and_verify_password();
     if (pwd_container)
     {
@@ -522,7 +522,7 @@ bool simple_wallet::set_default_priority(const std::vector<std::string> &args/* 
 
 bool simple_wallet::set_auto_refresh(const std::vector<std::string> &args/* = std::vector<std::string>()*/)
 {
- 
+
   const auto pwd_container = get_and_verify_password();
   if (pwd_container)
   {
@@ -1202,9 +1202,9 @@ bool simple_wallet::try_connect_to_daemon(bool silent)
 
 /*!
  * \brief Gets the word seed language from the user.
- * 
+ *
  * User is asked to choose from a list of supported languages.
- * 
+ *
  * \return The chosen language.
  */
 std::string simple_wallet::get_mnemonic_language()
@@ -1266,14 +1266,14 @@ bool simple_wallet::new_wallet(const boost::program_options::variables_map& vm,
     return false;
   }
 
- 
+
   std::string mnemonic_language = old_language;
   // Ask for seed language if:
   // it's a deterministic wallet AND
   // that was earlier used before this restore)
   if ((!two_random) && (!m_restore_deterministic_wallet))
   {
-    
+
     mnemonic_language = get_mnemonic_language();
     if (mnemonic_language.empty())
       return false;
@@ -2031,7 +2031,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
 
 				fake_outs_count = m_wallet->default_mixin() > 0 ? m_wallet->default_mixin() : DEFAULT_MIXIN;
 			}
-      
+
 			local_args.erase(local_args.begin());
     }
 
@@ -2159,7 +2159,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
 
        // would like to return false, because no tx made, but everything else returns true
        // and I don't know what returning false might adversely affect.  *sigh*
-       return true; 
+       return true;
      }
   }
 
@@ -2237,7 +2237,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
             print_money(total_fee);
         }
         if (dust_in_fee != 0) prompt << boost::format(tr(", of which %s is dust from change")) % print_money(dust_in_fee);
-        if (dust_not_in_fee != 0)  prompt << tr(".") << ENDL << boost::format(tr("A total of %s from dust change will be sent to dust address")) 
+        if (dust_not_in_fee != 0)  prompt << tr(".") << ENDL << boost::format(tr("A total of %s from dust change will be sent to dust address"))
                                                    % print_money(dust_not_in_fee);
         if (transfer_type == TransferLocked)
         {
@@ -2247,7 +2247,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
 					prompt << boost::format(tr(".\nThis transaction will unlock on block %llu, in approximately %s minutes or %s days (assuming 4 minutes per block)")) % ((unsigned long long)unlock_block) % minutes % days;
         }
         prompt << tr(".") << ENDL << tr("Is this okay?  (Y/Yes/N/No): ");
-        
+
         std::string accepted = command_line::input_line(prompt.str());
         if (std::cin.eof())
           return true;
@@ -2257,7 +2257,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
 
           // would like to return false, because no tx made, but everything else returns true
           // and I don't know what returning false might adversely affect.  *sigh*
-          return true; 
+          return true;
         }
     }
 
@@ -2458,7 +2458,7 @@ bool simple_wallet::sweep_all(const std::vector<std::string> &args_, bool retry,
   if (2 >= local_args.size())
   {
     std::string payment_id_str = local_args.back();
-    
+
     crypto::hash payment_id;
     bool r = tools::wallet2::parse_long_payment_id(payment_id_str, payment_id);
     if(r)
@@ -2534,7 +2534,7 @@ bool simple_wallet::sweep_all(const std::vector<std::string> &args_, bool retry,
 
        // would like to return false, because no tx made, but everything else returns true
        // and I don't know what returning false might adversely affect.  *sigh*
-       return true; 
+       return true;
      }
   }
 
@@ -2809,7 +2809,7 @@ bool simple_wallet::sign_transfer(const std::vector<std::string> &args_)
      fail_msg_writer() << tr("This is a watch only wallet");
      return true;
   }
-  
+
   if (!get_and_verify_password()) { return true; }
 
   std::vector<tools::wallet2::pending_tx> ptx;
@@ -3195,7 +3195,7 @@ bool simple_wallet::show_transfers(const std::vector<std::string> &args_)
   }
 
   LOCK_IDLE_SCOPE();
-  
+
   // optional in/out selector
   if (local_args.size() > 0) {
     if (local_args[0] == "in" || local_args[0] == "incoming") {
@@ -4154,7 +4154,8 @@ int main(int argc, char* argv[])
   }
 
   cryptonote::simple_wallet w;
-  const bool r = w.init(*vm);
+  w.init(*vm);
+  const bool r = w.refresh(*vm);
   CHECK_AND_ASSERT_MES(r, 1, sw::tr("Failed to initialize wallet"));
 
   std::vector<std::string> command = command_line::get_arg(*vm, arg_command);
