@@ -48,7 +48,7 @@ public:
                                                     const std::string &addressString,
                                                     const std::string &viewKeyString,
                                                     const std::string &spendKeyString = "");
-    virtual bool closeWallet(Wallet *wallet);
+    virtual bool closeWallet(Wallet *wallet, bool store);
     bool walletExists(const std::string &path);
     bool verifyWalletPassword(const std::string &keys_file_name, const std::string &password, bool no_spend_key) const;
     std::vector<std::string> findWallets(const std::string &path);

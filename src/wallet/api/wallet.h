@@ -59,7 +59,7 @@ public:
     bool recover(const std::string &path, const std::string &seed);
     bool recoverFromKeys(const std::string &path, const std::string &language, const std::string &address_string,
         const std::string &viewkey_string, const std::string &spendkey_string = "");
-		bool close();
+		bool close(bool store);
     std::string seed() const;
     std::string getSeedLanguage() const;
     void setSeedLanguage(const std::string &arg);
@@ -77,7 +77,7 @@ public:
     bool store(const std::string &path);
     std::string filename() const;
     std::string keysFilename() const;
-    bool init(const std::string &daemon_address, uint64_t upper_transaction_size_limit);
+    void init(const std::string &daemon_address, uint64_t upper_transaction_size_limit);
     void initAsync(const std::string &daemon_address, uint64_t upper_transaction_size_limit);
     bool connectToDaemon();
     ConnectionStatus connected() const;

@@ -373,7 +373,7 @@ struct Wallet
      * \param upper_transaction_size_limit
      * \return  - true if initialized and refreshed successfully
      */
-    virtual bool init(const std::string &daemon_address, uint64_t upper_transaction_size_limit) = 0;
+    virtual void init(const std::string &daemon_address, uint64_t upper_transaction_size_limit) = 0;
 
     /*!
      * \brief init - initalizes wallet asynchronously. logic is the same as "init" but returns immediately.
@@ -676,7 +676,7 @@ struct WalletManager
      * \param wallet        previously opened / created wallet instance
      * \return              None
      */
-    virtual bool closeWallet(Wallet *wallet) = 0;
+    virtual bool closeWallet(Wallet *wallet, bool store) = 0;
 
     /*
      * ! checks if wallet with the given name already exists

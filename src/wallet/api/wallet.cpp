@@ -226,6 +226,11 @@ WalletImpl::WalletImpl(bool testnet)
 
 WalletImpl::~WalletImpl()
 {
+    // Pause refresh thread - prevents refresh from starting again
+    pauseRefresh();
+    // Close wallet - stores cache and stops ongoing refresh operation
+    close(false);
+    // Stop refresh thread
     stopRefresh();
     delete m_history;
     delete m_addressBook;
@@ -419,19 +424,21 @@ bool WalletImpl::recover(const std::string &path, const std::string &seed)
     return m_status == Status_Ok;
 }
 
-bool WalletImpl::close()
+bool WalletImpl::close(bool store)
 {
 
     bool result = false;
     LOG_PRINT_L3("closing wallet...");
     try {
-        // Do not store wallet with invalid status
-        // Status Critical refers to errors on opening or creating wallets.
-        if (status() != Status_Critical)
-            m_wallet->store();
-        else
-            LOG_PRINT_L3("Status_Critical - not storing wallet");
-        LOG_PRINT_L3("wallet::store done");
+        if (store) {
+            // Do not store wallet with invalid status
+            // Status Critical refers to errors on opening or creating wallets.
+            if (status() != Status_Critical)
+                m_wallet->store();
+            else
+                LOG_ERROR("Status_Critical - not storing wallet");
+            LOG_PRINT_L3("wallet::store done");
+        }
         LOG_PRINT_L3("Calling wallet::stop...");
         m_wallet->stop();
         LOG_PRINT_L3("wallet::stop done");
@@ -557,8 +564,6 @@ void WalletImpl::init(const std::string &daemon_address, uint64_t upper_transact
 {
     clearStatus();
     doInit(daemon_address, upper_transaction_size_limit);
-    // enabling background refresh thread
-    startRefresh();
 }
 
 void WalletImpl::initAsync(const string &daemon_address, uint64_t upper_transaction_size_limit)

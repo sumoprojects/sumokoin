@@ -4157,6 +4157,7 @@ int main(int argc, char* argv[])
   w.init(*vm);
   const bool r = w.refresh(*vm);
   CHECK_AND_ASSERT_MES(r, 1, sw::tr("Failed to initialize wallet"));
+  w.startRefresh();
 
   std::vector<std::string> command = command_line::get_arg(*vm, arg_command);
   if (!command.empty())

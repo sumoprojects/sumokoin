@@ -32,7 +32,7 @@
 #include "wallet_manager.h"
 #include "wallet.h"
 #include "common_defines.h"
-#include "common/dns_utils.h"  
+#include "common/dns_utils.h"
 #include "net/http_client.h"
 
 #include <boost/filesystem.hpp>
@@ -88,10 +88,13 @@ Wallet *WalletManagerImpl::createWalletFromKeys(const std::string &path,
     return wallet;
 }
 
-bool WalletManagerImpl::closeWallet(Wallet *wallet)
+bool WalletManagerImpl::closeWallet(Wallet *wallet, bool store)
 {
     WalletImpl * wallet_ = dynamic_cast<WalletImpl*>(wallet);
-    bool result = wallet_->close();
+    if (!wallet_) {
+      return false;
+    }
+    bool result = wallet_->close(store);
     if (!result) {
         m_errorString = wallet_->errorString();
     } else {
