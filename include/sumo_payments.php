@@ -222,7 +222,10 @@ class Sumo_Gateway extends WC_Payment_Gateway
     public function check_sumo()
     {
         $sumo_address = $this->settings['sumo_address'];
-        if (strlen($sumo_address) == 99 && substr($sumo_address, 1)) {
+        if (strlen($sumo_address) == 99 && substr($sumo_address, 0, 4) == "Sumo") {
+            return true;
+        }
+        if (strlen($sumo_address) == 98 && substr($sum_address, 0, 4) == "Subo") {
             return true;
         }
         return false;
