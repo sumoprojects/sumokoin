@@ -768,7 +768,6 @@ PendingTransaction *WalletImpl::createTransaction(const string &dst_addr, const 
   uint64_t locked_blocks = 0;
   bool is_subaddress = false;
 
-
   vector<cryptonote::tx_destination_entry> dsts;
   cryptonote::address_parse_info info;
   cryptonote::tx_destination_entry de;

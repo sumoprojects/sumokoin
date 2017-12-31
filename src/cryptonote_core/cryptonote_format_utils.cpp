@@ -28,6 +28,7 @@
 //
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
+#include <unordered_set>
 #include "include_base_utils.h"
 using namespace epee;
 
@@ -194,16 +195,25 @@ namespace cryptonote
     return m;
   }
   //---------------------------------------------------------------
-  bool generate_key_image_helper(const account_keys& ack, const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const crypto::public_key& out_key, const crypto::public_key& tx_public_key, size_t real_output_index, keypair& in_ephemeral, crypto::key_image& ki)
+  bool generate_key_image_helper(const account_keys& ack, const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const crypto::public_key& out_key, const crypto::public_key& tx_public_key, const std::vector<crypto::public_key>& additional_tx_public_keys, size_t real_output_index, keypair& in_ephemeral, crypto::key_image& ki)
   {
     crypto::key_derivation recv_derivation = AUTO_VAL_INIT(recv_derivation);
     bool r = crypto::generate_key_derivation(tx_public_key, ack.m_view_secret_key, recv_derivation);
     CHECK_AND_ASSERT_MES(r, false, "key image helper: failed to generate_key_derivation(" << tx_public_key << ", " << ack.m_view_secret_key << ")");
 
-    boost::optional<subaddress_index> received_index = is_out_to_acc_precomp(subaddresses, out_key, recv_derivation, real_output_index);
-    CHECK_AND_ASSERT_MES(received_index, false, "key image helper: given output pubkey doesn't seem to belong to this address");
+    std::vector<crypto::key_derivation> additional_recv_derivations;
+    for (size_t i = 0; i < additional_tx_public_keys.size(); ++i)
+    {
+      crypto::key_derivation additional_recv_derivation = AUTO_VAL_INIT(additional_recv_derivation);
+      r = crypto::generate_key_derivation(additional_tx_public_keys[i], ack.m_view_secret_key, additional_recv_derivation);
+      CHECK_AND_ASSERT_MES(r, false, "key image helper: failed to generate_key_derivation(" << additional_tx_public_keys[i] << ", " << ack.m_view_secret_key << ")");
+      additional_recv_derivations.push_back(additional_recv_derivation);
+    }
 
-    return generate_key_image_helper_precomp(ack, out_key, recv_derivation, real_output_index, *received_index, in_ephemeral, ki);
+    boost::optional<subaddress_receive_info> subaddr_recv_info = is_out_to_acc_precomp(subaddresses, out_key, recv_derivation, additional_recv_derivations, real_output_index);
+    CHECK_AND_ASSERT_MES(subaddr_recv_info, false, "key image helper: given output pubkey doesn't seem to belong to this address");
+
+    return generate_key_image_helper_precomp(ack, out_key, subaddr_recv_info->derivation, real_output_index, subaddr_recv_info->index, in_ephemeral, ki);
   }
   //---------------------------------------------------------------
   bool generate_key_image_helper_precomp(const account_keys& ack, const crypto::public_key& out_key, const crypto::key_derivation& recv_derivation, size_t real_output_index, const subaddress_index& received_index, keypair& in_ephemeral, crypto::key_image& ki)
@@ -358,6 +368,40 @@ namespace cryptonote
     return true;
   }
   //---------------------------------------------------------------
+  std::vector<crypto::public_key> get_additional_tx_pub_keys_from_extra(const std::vector<uint8_t>& tx_extra)
+  {
+    // parse
+    std::vector<tx_extra_field> tx_extra_fields;
+    parse_tx_extra(tx_extra, tx_extra_fields);
+    // find corresponding field
+    tx_extra_additional_pub_keys additional_pub_keys;
+    if (!find_tx_extra_field_by_type(tx_extra_fields, additional_pub_keys))
+      return{};
+    return additional_pub_keys.data;
+  }
+  //---------------------------------------------------------------
+  std::vector<crypto::public_key> get_additional_tx_pub_keys_from_extra(const transaction_prefix& tx)
+  {
+    return get_additional_tx_pub_keys_from_extra(tx.extra);
+  }
+  //---------------------------------------------------------------
+  bool add_additional_tx_pub_keys_to_extra(std::vector<uint8_t>& tx_extra, const std::vector<crypto::public_key>& additional_pub_keys)
+  {
+    // convert to variant
+    tx_extra_field field = tx_extra_additional_pub_keys{ additional_pub_keys };
+    // serialize
+    std::ostringstream oss;
+    binary_archive<true> ar(oss);
+    bool r = ::do_serialize(ar, field);
+    CHECK_AND_NO_ASSERT_MES_L1(r, false, "failed to serialize tx extra additional tx pub keys");
+    // append
+    std::string tx_extra_str = oss.str();
+    size_t pos = tx_extra.size();
+    tx_extra.resize(tx_extra.size() + tx_extra_str.size());
+    memcpy(&tx_extra[pos], tx_extra_str.data(), tx_extra_str.size());
+    return true;
+  }
+  //---------------------------------------------------------------
   bool add_extra_nonce_to_tx_extra(std::vector<uint8_t>& tx_extra, const blobdata& extra_nonce)
   {
     CHECK_AND_ASSERT_MES(extra_nonce.size() <= TX_EXTRA_NONCE_MAX_COUNT, false, "extra nonce could be 255 bytes max");
@@ -449,6 +493,8 @@ namespace cryptonote
     {
       if (!memcmp(&destinations[n].addr, &sender_keys.m_account_address, sizeof(destinations[0].addr)))
         continue;
+      if (destinations[n].amount == 0)
+        continue;
       if (memcmp(&destinations[n].addr, &destinations[0].addr, sizeof(destinations[0].addr)))
         return null_pkey;
     }
@@ -479,7 +525,7 @@ namespace cryptonote
     return encrypt_payment_id(payment_id, public_key, secret_key);
   }
   //---------------------------------------------------------------
-  bool construct_tx_and_get_tx_key(const account_keys& sender_account_keys, const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const std::vector<tx_source_entry>& sources, const std::vector<tx_destination_entry>& destinations, const cryptonote::account_public_address& change_addr, std::vector<uint8_t> extra, bool is_subaddress, transaction& tx, uint64_t unlock_time, crypto::secret_key &tx_key, bool rct)
+  bool construct_tx_and_get_tx_key(const account_keys& sender_account_keys, const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const std::vector<tx_source_entry>& sources, const std::vector<tx_destination_entry>& destinations, const cryptonote::account_public_address& change_addr, std::vector<uint8_t> extra, transaction& tx, uint64_t unlock_time, crypto::secret_key &tx_key, std::vector<crypto::secret_key> &additional_tx_keys, bool rct)
   {
     if (destinations.empty())
     {
@@ -496,32 +542,6 @@ namespace cryptonote
 
     tx.extra = extra;
     keypair txkey = keypair::generate();
-
-    // when sending to a subaddress, we construct the tx pubkey differently
-    if (is_subaddress)
-    {
-      if (destinations.size() > 2)
-      {
-        LOG_ERROR("A tx transferring to a subaddress should contain only two destinations, one to the receiver and the other to yourself as change");
-        return false;
-      }
-
-      // determine the recipient's address
-      account_public_address recipient_addr = destinations[0].addr;
-      if (recipient_addr == change_addr)
-      {
-        if (destinations.size() == 1)
-        {
-          LOG_ERROR("The tx has only a single destination which is the same as the change address");
-          return false;
-        }
-        recipient_addr = destinations[1].addr;
-      }
-
-      // compute tx pubkey R by multiplying random scalar s to the recipient's spend pubkey D: R = s*D
-      txkey.pub = rct::rct2pk(rct::scalarmultKey(rct::pk2rct(recipient_addr.m_spend_public_key), rct::sk2rct(txkey.sec)));
-    }
-
     remove_field_from_tx_extra(tx.extra, typeid(tx_extra_pub_key));
     add_tx_pub_key_to_extra(tx, txkey.pub);
     tx_key = txkey.sec;
@@ -592,7 +612,7 @@ namespace cryptonote
       keypair& in_ephemeral = in_contexts.back().in_ephemeral;
       crypto::key_image img;
       const auto& out_key = reinterpret_cast<const crypto::public_key&>(src_entr.outputs[src_entr.real_output].second.dest);
-      if (!generate_key_image_helper(sender_account_keys, subaddresses, out_key, src_entr.real_out_tx_key, src_entr.real_output_in_tx_index, in_ephemeral, img))
+      if (!generate_key_image_helper(sender_account_keys, subaddresses, out_key, src_entr.real_out_tx_key, src_entr.real_out_additional_tx_keys, src_entr.real_output_in_tx_index, in_ephemeral, img))
       {
         LOG_ERROR("Key image generation failed!");
         return false;
@@ -626,6 +646,48 @@ namespace cryptonote
     std::vector<tx_destination_entry> shuffled_dsts(destinations);
     std::sort(shuffled_dsts.begin(), shuffled_dsts.end(), [](const tx_destination_entry& de1, const tx_destination_entry& de2) { return de1.amount < de2.amount; } );
 
+    // figure out if we need to make additional tx pubkeys
+    size_t num_stdaddresses = 0;
+    size_t num_subaddresses = 0;
+    std::unordered_set<cryptonote::account_public_address> unique_dst_addresses;
+    account_public_address single_dest_subaddress;
+    BOOST_FOREACH(const tx_destination_entry& dst_entr, destinations)
+    {
+      if (dst_entr.addr == change_addr)
+        continue;
+      if (unique_dst_addresses.count(dst_entr.addr) == 0)
+      {
+        unique_dst_addresses.insert(dst_entr.addr);
+        if (dst_entr.is_subaddress)
+        {
+          ++num_subaddresses;
+          single_dest_subaddress = dst_entr.addr;
+        }
+        else
+        {
+          ++num_stdaddresses;
+        }
+      }
+    }
+    LOG_PRINT_L2("destinations include " << num_stdaddresses << " standard addresses and " << num_subaddresses << "subaddresses");
+
+    // if this is a single-destination transfer to a subaddress, we set the tx pubkey to R=s*D
+    if (num_stdaddresses == 0 && num_subaddresses == 1)
+    {
+      txkey.pub = rct::rct2pk(rct::scalarmultKey(rct::pk2rct(single_dest_subaddress.m_spend_public_key), rct::sk2rct(txkey.sec)));
+      remove_field_from_tx_extra(tx.extra, typeid(tx_extra_pub_key));
+      add_tx_pub_key_to_extra(tx, txkey.pub);
+    }
+
+    std::vector<crypto::public_key> additional_tx_public_keys;
+    additional_tx_keys.clear();
+
+    // we don't need to include additional tx keys if:
+    //   - all the destinations are standard addresses
+    //   - there's only one destination which is a subaddress
+    bool need_additional_txkeys = num_subaddresses > 0 && (num_stdaddresses > 0 || num_subaddresses > 1);
+
+
     uint64_t summary_outs_money = 0;
     //fill outputs
     size_t output_index = 0;
@@ -634,6 +696,16 @@ namespace cryptonote
       CHECK_AND_ASSERT_MES(dst_entr.amount > 0 || tx.version > 1, false, "Destination with wrong amount: " << dst_entr.amount);
       crypto::key_derivation derivation;
       crypto::public_key out_eph_public_key;
+
+      // make additional tx pubkey if necessary
+      keypair additional_txkey;
+      if (need_additional_txkeys)
+      {
+        additional_txkey = keypair::generate();
+        if (dst_entr.is_subaddress)
+          additional_txkey.pub = rct::rct2pk(rct::scalarmultKey(rct::pk2rct(dst_entr.addr.m_spend_public_key), rct::sk2rct(additional_txkey.sec)));
+      }
+
       bool r;
       if (dst_entr.addr == change_addr)
       {
@@ -643,9 +715,15 @@ namespace cryptonote
       else
       {
         // sending to the recipient; derivation = r*A (or s*C in the subaddress scheme)
-        r = crypto::generate_key_derivation(dst_entr.addr.m_view_public_key, txkey.sec, derivation);
+        r = crypto::generate_key_derivation(dst_entr.addr.m_view_public_key, dst_entr.is_subaddress && need_additional_txkeys ? additional_txkey.sec : txkey.sec, derivation);
+        CHECK_AND_ASSERT_MES(r, false, "at creation outs: failed to generate_key_derivation(" << dst_entr.addr.m_view_public_key << ", " << (dst_entr.is_subaddress && need_additional_txkeys ? additional_txkey.sec : txkey.sec) << ")");
       }
-      CHECK_AND_ASSERT_MES(r, false, "at creation outs: failed to generate_key_derivation(" << dst_entr.addr.m_view_public_key << ", " << txkey.sec << ")");
+      
+      if (need_additional_txkeys)
+      {
+        additional_tx_public_keys.push_back(additional_txkey.pub);
+        additional_tx_keys.push_back(additional_txkey.sec);
+      }
 
       crypto::secret_key scalar1;
       crypto::derivation_to_scalar(derivation, output_index, scalar1);
@@ -662,6 +740,17 @@ namespace cryptonote
       tx.vout.push_back(out);
       output_index++;
       summary_outs_money += dst_entr.amount;
+    }
+
+    remove_field_from_tx_extra(tx.extra, typeid(tx_extra_additional_pub_keys));
+    add_additional_tx_pub_keys_to_extra(tx.extra, additional_tx_public_keys);
+
+    LOG_PRINT_L2("tx pubkey: " << txkey.pub);
+    if (need_additional_txkeys)
+    {
+      LOG_PRINT_L2("additional tx pubkeys: ");
+      for (size_t i = 0; i < additional_tx_public_keys.size(); ++i)
+        LOG_PRINT_L2(additional_tx_public_keys[i]);
     }
 
     //check money
@@ -792,7 +881,8 @@ namespace cryptonote
     std::unordered_map<crypto::public_key, cryptonote::subaddress_index> subaddresses;
     subaddresses[sender_account_keys.m_account_address.m_spend_public_key] = { 0, 0 };
     crypto::secret_key tx_key;
-    return construct_tx_and_get_tx_key(sender_account_keys, subaddresses, sources, destinations, destinations.back().addr, extra, false, tx, unlock_time, tx_key);
+    std::vector<crypto::secret_key> additional_tx_keys;
+    return construct_tx_and_get_tx_key(sender_account_keys, subaddresses, sources, destinations, destinations.back().addr, extra, tx, unlock_time, tx_key, additional_tx_keys);
   }
   //---------------------------------------------------------------
   bool get_inputs_money_amount(const transaction& tx, uint64_t& money)
@@ -891,41 +981,63 @@ namespace cryptonote
     return res;
   }
   //---------------------------------------------------------------
-  bool is_out_to_acc(const account_keys& acc, const txout_to_key& out_key, const crypto::public_key& tx_pub_key, size_t output_index)
+  bool is_out_to_acc(const account_keys& acc, const txout_to_key& out_key, const crypto::public_key& tx_pub_key, const std::vector<crypto::public_key>& additional_tx_pub_keys, size_t output_index)
   {
     crypto::key_derivation derivation;
     generate_key_derivation(tx_pub_key, acc.m_view_secret_key, derivation);
     crypto::public_key pk;
     derive_public_key(derivation, output_index, acc.m_account_address.m_spend_public_key, pk);
-    return pk == out_key.key;
+    if (pk == out_key.key)
+      return true;
+    // try additional tx pubkeys if available
+    if (!additional_tx_pub_keys.empty())
+    {
+      CHECK_AND_ASSERT_MES(output_index < additional_tx_pub_keys.size(), false, "wrong number of additional tx pubkeys");
+      generate_key_derivation(additional_tx_pub_keys[output_index], acc.m_view_secret_key, derivation);
+      derive_public_key(derivation, output_index, acc.m_account_address.m_spend_public_key, pk);
+      return pk == out_key.key;
+    }
+    return false;
   }
   //---------------------------------------------------------------
-  boost::optional<subaddress_index> is_out_to_acc_precomp(const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const crypto::public_key& out_key, const crypto::key_derivation& derivation, size_t output_index)
+  boost::optional<subaddress_receive_info> is_out_to_acc_precomp(const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const crypto::public_key& out_key, const crypto::key_derivation& derivation, const std::vector<crypto::key_derivation>& additional_derivations, size_t output_index)
   {
+    // try the shared tx pubkey
     crypto::public_key subaddress_spendkey;
     derive_subaddress_public_key(out_key, derivation, output_index, subaddress_spendkey);
     auto found = subaddresses.find(subaddress_spendkey);
     if (found != subaddresses.end())
-      return found->second;
+      return subaddress_receive_info{ found->second, derivation };
+    // try additional tx pubkeys if available
+    if (!additional_derivations.empty())
+    {
+      CHECK_AND_ASSERT_MES(output_index < additional_derivations.size(), boost::none, "wrong number of additional derivations");
+      derive_subaddress_public_key(out_key, additional_derivations[output_index], output_index, subaddress_spendkey);
+      found = subaddresses.find(subaddress_spendkey);
+      if (found != subaddresses.end())
+        return subaddress_receive_info{ found->second, additional_derivations[output_index] };
+    }
     return boost::none;
   }
   //---------------------------------------------------------------
   bool lookup_acc_outs(const account_keys& acc, const transaction& tx, std::vector<size_t>& outs, uint64_t& money_transfered)
   {
     crypto::public_key tx_pub_key = get_tx_pub_key_from_extra(tx);
-    if(null_pkey == tx_pub_key)
+    if (null_pkey == tx_pub_key)
       return false;
-    return lookup_acc_outs(acc, tx, tx_pub_key, outs, money_transfered);
+    std::vector<crypto::public_key> additional_tx_pub_keys = get_additional_tx_pub_keys_from_extra(tx);
+    return lookup_acc_outs(acc, tx, tx_pub_key, additional_tx_pub_keys, outs, money_transfered);
   }
   //---------------------------------------------------------------
-  bool lookup_acc_outs(const account_keys& acc, const transaction& tx, const crypto::public_key& tx_pub_key, std::vector<size_t>& outs, uint64_t& money_transfered)
+  bool lookup_acc_outs(const account_keys& acc, const transaction& tx, const crypto::public_key& tx_pub_key, const std::vector<crypto::public_key>& additional_tx_pub_keys, std::vector<size_t>& outs, uint64_t& money_transfered)
   {
+    CHECK_AND_ASSERT_MES(additional_tx_pub_keys.empty() || additional_tx_pub_keys.size() == tx.vout.size(), false, "wrong number of additional pubkeys");
     money_transfered = 0;
     size_t i = 0;
-    BOOST_FOREACH(const tx_out& o,  tx.vout)
+    for (const tx_out& o : tx.vout)
     {
-      CHECK_AND_ASSERT_MES(o.target.type() ==  typeid(txout_to_key), false, "wrong type id in transaction out" );
-      if(is_out_to_acc(acc, boost::get<txout_to_key>(o.target), tx_pub_key, i))
+      CHECK_AND_ASSERT_MES(o.target.type() == typeid(txout_to_key), false, "wrong type id in transaction out");
+      if (is_out_to_acc(acc, boost::get<txout_to_key>(o.target), tx_pub_key, additional_tx_pub_keys, i))
       {
         outs.push_back(i);
         money_transfered += o.amount;

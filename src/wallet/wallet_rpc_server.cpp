@@ -378,11 +378,10 @@ namespace tools
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  bool wallet_rpc_server::validate_transfer(const std::list<wallet_rpc::transfer_destination>& destinations, const std::string& payment_id, std::vector<cryptonote::tx_destination_entry>& dsts, std::vector<uint8_t>& extra, bool& is_subaddress, epee::json_rpc::error& er)
+  bool wallet_rpc_server::validate_transfer(const std::list<wallet_rpc::transfer_destination>& destinations, const std::string& payment_id, std::vector<cryptonote::tx_destination_entry>& dsts, std::vector<uint8_t>& extra, epee::json_rpc::error& er)
   {
     crypto::hash8 integrated_payment_id = cryptonote::null_hash8;
     std::string extra_nonce;
-    is_subaddress = false;
     for (auto it = destinations.begin(); it != destinations.end(); it++)
     {
       cryptonote::address_parse_info info;
@@ -393,19 +392,10 @@ namespace tools
         er.message = std::string("WALLET_RPC_ERROR_CODE_WRONG_ADDRESS: ") + it->address;
         return false;
       }
+      de.addr = info.address;
+      de.is_subaddress = info.is_subaddress;
       de.amount = it->amount;
       dsts.push_back(de);
-
-      if (info.is_subaddress)
-      {
-        if (destinations.size() > 1)
-        {
-          er.code = WALLET_RPC_ERROR_CODE_SUBADDRESS_MULTI_DEST;
-          er.message = std::string("Only one subaddress can be used per transaction.");
-          return false;
-        }
-        is_subaddress = true;
-      }
 
       if (info.has_payment_id)
       {
@@ -476,8 +466,7 @@ namespace tools
     }
 
     // validate the transfer requested and populate dsts & extra
-    bool is_subaddress;
-    if (!validate_transfer(req.destinations, req.payment_id, dsts, extra, is_subaddress, er))
+    if (!validate_transfer(req.destinations, req.payment_id, dsts, extra, er))
     {
       return false;
     }
@@ -494,7 +483,7 @@ namespace tools
         mixin = MAX_MIXIN;
       }
       
-      std::vector<wallet2::pending_tx> ptx_vector = m_wallet.create_transactions_2(dsts, mixin, req.unlock_time, req.priority, extra, is_subaddress, req.account_index, req.subaddr_indices, req.trusted_daemon);
+      std::vector<wallet2::pending_tx> ptx_vector = m_wallet.create_transactions_2(dsts, mixin, req.unlock_time, req.priority, extra, req.account_index, req.subaddr_indices, req.trusted_daemon);
 
       // reject proposed transactions if there are more than one.  see on_transfer_split below.
       if (ptx_vector.size() != 1)
@@ -549,8 +538,7 @@ namespace tools
     }
 
     // validate the transfer requested and populate dsts & extra; RPC_TRANSFER::request and RPC_TRANSFER_SPLIT::request are identical types.
-    bool is_subaddress;
-    if (!validate_transfer(req.destinations, req.payment_id, dsts, extra, is_subaddress, er))
+    if (!validate_transfer(req.destinations, req.payment_id, dsts, extra, er))
     {
       return false;
     }
@@ -570,7 +558,7 @@ namespace tools
       }
       
       std::vector<wallet2::pending_tx> ptx_vector;
-      ptx_vector = m_wallet.create_transactions_2(dsts, mixin, req.unlock_time, req.priority, extra, is_subaddress, req.account_index, req.subaddr_indices, req.trusted_daemon);
+      ptx_vector = m_wallet.create_transactions_2(dsts, mixin, req.unlock_time, req.priority, extra, req.account_index, req.subaddr_indices, req.trusted_daemon);
 
       m_wallet.commit_tx(ptx_vector);
 
@@ -692,14 +680,14 @@ namespace tools
     destination.back().amount = 0;
     destination.back().address = req.address;
     bool is_subaddress;
-    if (!validate_transfer(destination, req.payment_id, dsts, extra, is_subaddress, er))
+    if (!validate_transfer(destination, req.payment_id, dsts, extra, er))
     {
       return false;
     }
 
     try
     {
-      std::vector<wallet2::pending_tx> ptx_vector = m_wallet.create_transactions_all(req.below_amount, dsts[0].addr, req.mixin, req.unlock_time, req.priority, extra, is_subaddress, req.account_index, req.subaddr_indices, req.trusted_daemon);
+      std::vector<wallet2::pending_tx> ptx_vector = m_wallet.create_transactions_all(req.below_amount, dsts[0].addr, req.mixin, req.unlock_time, req.priority, extra, dsts[0].is_subaddress, req.account_index, req.subaddr_indices, req.trusted_daemon);
 
       m_wallet.commit_tx(ptx_vector);
 
