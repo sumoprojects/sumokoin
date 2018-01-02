@@ -552,7 +552,7 @@ namespace net_utils
 
 		boost::asio::ip::tcp::socket& get_socket()
 		{
-      m_ssl_socket.next_layer();
+      return m_ssl_socket.next_layer();
 		}
 
 	private:
