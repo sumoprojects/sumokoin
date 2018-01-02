@@ -107,6 +107,8 @@ namespace tools
     static bool has_testnet_option(const boost::program_options::variables_map& vm);
     static void init_options(boost::program_options::options_description& desc_params);
 
+    static bool verify_password(const std::string& keys_file_name, const std::string& password, bool no_spend_key);
+
     //! \return Password retrieved from prompt. Logs error on failure.
     static boost::optional<password_container> password_prompt(const bool new_password);
 

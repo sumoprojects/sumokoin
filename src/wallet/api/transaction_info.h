@@ -59,6 +59,7 @@ public:
     virtual std::time_t timestamp() const;
     virtual std::string paymentId() const;
     virtual const std::vector<Transfer> &transfers() const;
+    virtual uint64_t confirmations() const;
 
 private:
     int         m_direction;
@@ -74,6 +75,7 @@ private:
     std::time_t m_timestamp;
     std::string m_paymentid;
     std::vector<Transfer> m_transfers;
+    uint64_t    m_confirmations;
 
     friend class TransactionHistoryImpl;
 

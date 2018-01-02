@@ -1,21 +1,21 @@
 // Copyright (c) 2016-2017, SUMOKOIN, (forked from) The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include <unordered_set>
@@ -143,7 +143,7 @@ namespace cryptonote
       [&out_amounts](uint64_t a_dust) { out_amounts.push_back(a_dust); });
 
     CHECK_AND_ASSERT_MES(1 <= max_outs, false, "max_out must be non-zero");
-    
+
     while (max_outs < out_amounts.size())
     {
       out_amounts[1] += out_amounts[0];
@@ -151,7 +151,7 @@ namespace cryptonote
         out_amounts[n - 1] = out_amounts[n];
       out_amounts.resize(out_amounts.size() - 1);
     }
-    
+
     uint64_t summary_amounts = 0;
     for (size_t no = 0; no < out_amounts.size(); no++)
     {
@@ -485,8 +485,10 @@ namespace cryptonote
   //---------------------------------------------------------------
   crypto::public_key get_destination_view_key_pub(const std::vector<tx_destination_entry> &destinations, const account_keys &sender_keys)
   {
-    if (destinations.empty())
+    if (destinations.empty()) {
+      LOG_ERROR("Destinations are empty");
       return null_pkey;
+    }
     for (size_t n = 1; n < destinations.size(); ++n)
     {
       if (!memcmp(&destinations[n].addr, &sender_keys.m_account_address, sizeof(destinations[0].addr)))
@@ -726,7 +728,7 @@ namespace cryptonote
       crypto::secret_key scalar1;
       crypto::derivation_to_scalar(derivation, output_index, scalar1);
       amount_keys.push_back(rct::sk2rct(scalar1));
-      
+
       r = crypto::derive_public_key(derivation, output_index, dst_entr.addr.m_spend_public_key, out_eph_public_key);
       CHECK_AND_ASSERT_MES(r, false, "at creation outs: failed to derive_public_key(" << derivation << ", " << output_index << ", "<< dst_entr.addr.m_spend_public_key << ")");
 
@@ -767,7 +769,7 @@ namespace cryptonote
       LOG_PRINT_L1("Null secret key, skipping signatures");
     }
 
-    
+
     size_t n_total_outs = sources[0].outputs.size(); // only for non-simple rct
 
     // the non-simple version is slightly smaller, but assumes all real inputs
@@ -870,7 +872,7 @@ namespace cryptonote
     CHECK_AND_ASSERT_MES(tx.vout.size() == outSk.size(), false, "outSk size does not match vout");
 
     LOG_PRINT2("construct_tx.log", "transaction_created: " << get_transaction_hash(tx) << ENDL << obj_to_json_str(tx) << ENDL, LOG_LEVEL_3);
-    
+
     return true;
   }
   //---------------------------------------------------------------
@@ -1156,20 +1158,20 @@ namespace cryptonote
     return p;
   }
   //---------------------------------------------------------------
-  
+
   bool generate_genesis_block(
       block& bl
     , std::string const & genesis_tx
     , uint32_t nonce
     )
   {
-    
+
     //genesis block
     bl = boost::value_initialized<block>();
 
 	  account_public_address addr = boost::value_initialized<account_public_address>();
     construct_miner_tx(0, 0, 0, 0, 0, addr, bl.miner_tx); // zero fee in genesis
-    
+
     std::string genesis_coinbase_tx_hex = config::GENESIS_TX;
     blobdata tx_bl;
     string_tools::parse_hexstr_to_binbuff(genesis_coinbase_tx_hex, tx_bl);

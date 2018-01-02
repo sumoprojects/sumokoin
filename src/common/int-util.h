@@ -1,21 +1,21 @@
 // Copyright (c) 2016-2017, SUMOKOIN, (forked from) The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
@@ -35,6 +35,10 @@
 #include <stdint.h>
 #include <string.h>
 #include <sys/param.h>
+
+#if defined(__ANDROID__)
+#include <byteswap.h>
+#endif
 
 #if defined(_MSC_VER)
 #include <stdlib.h>
@@ -138,16 +142,24 @@ static inline uint32_t ident32(uint32_t x) { return x; }
 static inline uint64_t ident64(uint64_t x) { return x; }
 
 #ifndef __OpenBSD__
+#  if defined(__ANDROID__) && defined(__swap32) && !defined(swap32)
+#      define swap32 __swap32
+#  elif !defined(swap32)
 static inline uint32_t swap32(uint32_t x) {
   x = ((x & 0x00ff00ff) << 8) | ((x & 0xff00ff00) >> 8);
   return (x << 16) | (x >> 16);
 }
+#  endif
+#  if defined(__ANDROID__) && defined(__swap64) && !defined(swap64)
+#      define swap64 __swap64
+#  elif !defined(swap64)
 static inline uint64_t swap64(uint64_t x) {
   x = ((x & 0x00ff00ff00ff00ff) <<  8) | ((x & 0xff00ff00ff00ff00) >>  8);
   x = ((x & 0x0000ffff0000ffff) << 16) | ((x & 0xffff0000ffff0000) >> 16);
   return (x << 32) | (x >> 32);
 }
-#endif
+#  endif
+#endif /* __OpenBSD__ */
 
 #if defined(__GNUC__)
 #define UNUSED __attribute__((unused))

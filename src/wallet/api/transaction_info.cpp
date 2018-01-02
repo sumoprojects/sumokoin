@@ -50,6 +50,7 @@ TransactionInfoImpl::TransactionInfoImpl()
       , m_blockheight(0)
       , m_subaddrAccount(0)
       , m_timestamp(0)
+      , m_confirmations(0)
 {
 
 }
@@ -123,6 +124,11 @@ string TransactionInfoImpl::paymentId() const
 const std::vector<TransactionInfo::Transfer> &TransactionInfoImpl::transfers() const
 {
     return m_transfers;
+}
+
+uint64_t TransactionInfoImpl::confirmations() const
+{
+    return m_confirmations;
 }
 
 } // namespace
