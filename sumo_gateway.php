@@ -51,12 +51,12 @@ add_action('admin_menu', 'sumo_create_menu');
 function sumo_create_menu()
 {
     add_menu_page(
-        __('Sumo', 'textdomain'),
-        'Sumo',
+        __('Sumokoin', 'textdomain'),
+        'Sumokoin',
         'manage_options',
         'admin.php?page=wc-settings&tab=checkout&section=sumo_gateway',
         '',
-        plugins_url('sumo/assets/sumo_icon.png'),
+        plugins_url('/assets/sumo-icon.png', __FILE__),
         56 // Position on menu, woocommerce has 55.5, products has 55.6
 
     );

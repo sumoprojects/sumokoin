@@ -100,7 +100,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
             'username' => array(
                 'title' => __('Sumo Wallet username', 'sumo_gateway'),
                 'desc_tip' => __('This is the username that you used with your sumo wallet-rpc', 'sumo_gateway'),
-                'description' => __('You can leave theis field empty if you did not set any username', 'sumo_gateway'),
+                'description' => __('You can leave this field empty if you did not set any username', 'sumo_gateway'),
                 'type' => __('text'),
                 'default' => __('username', 'sumo_gateway'),
 
@@ -214,7 +214,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
     public function validate_fields()
     {
         if ($this->check_sumo() != TRUE) {
-            echo "<div class=\"error\"><p>Your Sumokoin address doesn't seem to be valid. Check that you've inserted it correctly?</p></div>";
+            echo "<div class=\"error\"><p>Your Sumokoin address doesn't seem to be valid. Check that you've inserted it correctly.</p></div>";
         }
 
     }
