@@ -766,7 +766,6 @@ PendingTransaction *WalletImpl::createTransaction(const string &dst_addr, const 
   }
 
   uint64_t locked_blocks = 0;
-  bool is_subaddress = false;
 
   vector<cryptonote::tx_destination_entry> dsts;
   cryptonote::address_parse_info info;
@@ -775,7 +774,6 @@ PendingTransaction *WalletImpl::createTransaction(const string &dst_addr, const 
     return nullptr;
   }
 
-  is_subaddress = info.is_subaddress;
   de.addr = info.address;
   de.amount = *amount;
 
@@ -802,7 +800,7 @@ PendingTransaction *WalletImpl::createTransaction(const string &dst_addr, const 
     // figure out what tx will be necessary
     std::vector<tools::wallet2::pending_tx> ptx_vector;
     uint64_t bc_height, unlock_block = 0;
-    ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, 0 /* unlock_time */, priority, extra, is_subaddress, subaddr_account, subaddr_indices, false /* m_trusted_daemon */, 1.0f /* tx_size_target_factor */);
+    ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, 0 /* unlock_time */, priority, extra, subaddr_account, subaddr_indices, false /* m_trusted_daemon */, 1.0f /* tx_size_target_factor */);
 
     // if more than one tx necessary
     if (m_wallet->always_confirm_transfers() || ptx_vector.size() > 1) {
