@@ -57,6 +57,39 @@ namespace epee
 namespace net_utils
 {
 
+  ///@brief Helper class that prints the current certificate's subject
+  ///       name and the verification results.
+  template <typename Verifier>
+    class verbose_verification {
+      public:
+        verbose_verification(Verifier verifier)
+          : verifier_(verifier)
+        {}
+
+        bool operator()(
+            bool preverified,
+            boost::asio::ssl::verify_context& ctx
+            )
+        {
+          char subject_name[256];
+          X509* cert = X509_STORE_CTX_get_current_cert(ctx.native_handle());
+          X509_NAME_oneline(X509_get_subject_name(cert), subject_name, 256);
+          bool verified = verifier_(preverified, ctx);
+          std::cout << "Verifying: " << subject_name << "\n"
+            "Verified: " << verified << std::endl;
+          return verified;
+        }
+      private:
+        Verifier verifier_;
+    };
+
+  ///@brief Auxiliary function to make verbose_verification objects.
+  template <typename Verifier>
+  verbose_verification<Verifier>
+  make_verbose_verification(Verifier verifier) {
+    return verbose_verification<Verifier>(verifier);
+  }
+
   class blocked_mode_client
 	{
 
@@ -88,6 +121,7 @@ namespace net_utils
                             m_deadline(m_io_service),
                             m_shutdowned(0),
                             m_ssl(false),
+                            m_cacerts_path(nullptr),
                             m_ctx(boost::asio::ssl::context::sslv23),
                             m_ssl_socket(m_io_service,m_ctx)
 		{
@@ -117,6 +151,10 @@ namespace net_utils
 			m_reciev_timeout = reciev_timeout;
 		}
 
+		inline void set_ssl_cacerts(const char* cacerts_path) {
+      m_cacerts_path = cacerts_path;
+		}
+
     inline
       bool connect(const std::string& addr, int port, unsigned int connect_timeout, unsigned int reciev_timeout, bool ssl = false, const std::string& bind_ip = "0.0.0.0")
     {
@@ -138,7 +176,15 @@ namespace net_utils
 				m_ssl_socket.next_layer().close();
         // Set SSL options but disable SSLv2
         m_ctx.set_options(boost::asio::ssl::context::default_workarounds | boost::asio::ssl::context::no_sslv2);
-        m_ctx.set_default_verify_paths();
+        boost::system::error_code r;
+
+        // If an explicit CA certificates path is given use that. Else fall back
+        // to using the OS CA certificates.
+        if (m_cacerts_path == nullptr) {
+          m_ctx.set_default_verify_paths();
+        } else {
+          m_ctx.load_verify_file(m_cacerts_path);
+        }
 				// Get a list of endpoints corresponding to the server name.
 
 
@@ -171,7 +217,6 @@ namespace net_utils
 
 				m_deadline.expires_from_now(boost::posix_time::milliseconds(m_connect_timeout));
 
-
 				boost::system::error_code ec = boost::asio::error::would_block;
 
 				m_ssl_socket.next_layer().async_connect(remote_endpoint, boost::lambda::var(ec) = boost::lambda::_1);
@@ -182,24 +227,25 @@ namespace net_utils
 
 				if (!ec && m_ssl_socket.next_layer().is_open())
 				{
+					m_deadline.expires_at(boost::posix_time::pos_infin);
           if(m_ssl) {
             m_ssl_socket.set_verify_mode(boost::asio::ssl::verify_peer);
+            m_ssl_socket.set_verify_callback(make_verbose_verification(boost::asio::ssl::rfc2818_verification(addr)));
             m_ssl_socket.next_layer().set_option(boost::asio::ip::tcp::no_delay(true));
             m_ssl_socket.handshake(boost::asio::ssl::stream_base::client);
           }
 					m_connected = true;
-					m_deadline.expires_at(boost::posix_time::pos_infin);
 					return true;
 				}else
 				{
-					LOG_PRINT("Some problems at connect, message: " << ec.message(), LOG_LEVEL_3);
+					LOG_PRINT("A problem occured during connect, message: " << ec.message(), LOG_LEVEL_3);
 					return false;
 				}
 
 			}
 			catch(const boost::system::system_error& er)
 			{
-				LOG_PRINT("Some problems at connect, message: " << er.what(), LOG_LEVEL_4);
+				LOG_PRINT("Exception at connect, message: " << er.what(), LOG_LEVEL_4);
 				return false;
 			}
 			catch(...)
@@ -220,6 +266,9 @@ namespace net_utils
 				if(m_connected)
 				{
 					m_connected = false;
+          if(m_ssl) {
+            shutdown_ssl();
+          }
 					m_ssl_socket.next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 
 				}
@@ -280,7 +329,7 @@ namespace net_utils
 
 			catch(const boost::system::system_error& er)
 			{
-				LOG_ERROR("Some problems at connect, message: " << er.what());
+				LOG_ERROR("Some problems at send, message: " << er.what());
 				return false;
 			}
 			catch(...)
@@ -387,7 +436,7 @@ namespace net_utils
 				handler_obj hndlr(ec, bytes_transfered);
 
 				char local_buff[10000] = {0};
-        async_read(local_buff, boost::asio::transfer_at_least(1), hndlr);
+        async_read(local_buff, sizeof(local_buff), boost::asio::transfer_at_least(1), hndlr);
 
 				// Block until the asynchronous operation has completed.
 				while (ec == boost::asio::error::would_block && !boost::interprocess::ipcdetail::atomic_read32(&m_shutdowned))
@@ -470,7 +519,7 @@ namespace net_utils
 				handler_obj hndlr(ec, bytes_transfered);
 
 				//char local_buff[10000] = {0};
-        async_read((char*)buff.data(), boost::asio::transfer_at_least(buff.size()), hndlr);
+        async_read((char*)buff.data(), buff.size(), boost::asio::transfer_at_least(buff.size()), hndlr);
 
 				// Block until the asynchronous operation has completed.
 				while (ec == boost::asio::error::would_block && !boost::interprocess::ipcdetail::atomic_read32(&m_shutdowned))
@@ -617,13 +666,12 @@ namespace net_utils
 				boost::asio::async_write(m_ssl_socket.next_layer(), boost::asio::buffer(data, sz), boost::lambda::var(ec) = boost::lambda::_1);
 		}
 
-   	void async_read(char* buff, boost::asio::detail::transfer_at_least_t transfer_at_least, handler_obj& hndlr)
+    void async_read(char* buff, size_t sz, boost::asio::detail::transfer_at_least_t transfer_at_least, handler_obj& hndlr)
  		{
  			if(!m_ssl)
- 				boost::asio::async_read(m_ssl_socket.next_layer(), boost::asio::buffer(buff, sizeof(buff)), transfer_at_least, hndlr);
+        boost::asio::async_read(m_ssl_socket.next_layer(), boost::asio::buffer(buff, sizeof(buff)), transfer_at_least, hndlr);
  			else
- 				boost::asio::async_read(m_ssl_socket, boost::asio::buffer(buff, sizeof(buff)), transfer_at_least, hndlr);
-
+        boost::asio::async_read(m_ssl_socket, boost::asio::buffer(buff, sz), transfer_at_least, hndlr);
  		}
 
 	protected:
@@ -636,6 +684,7 @@ namespace net_utils
 		bool m_initialized;
 		bool m_connected;
     bool m_ssl;
+    const char* m_cacerts_path;
 		boost::asio::deadline_timer m_deadline;
 		volatile uint32_t m_shutdowned;
 	};
@@ -713,7 +762,7 @@ namespace net_utils
 
 			catch(const boost::system::system_error& er)
 			{
-				LOG_ERROR("Some problems at connect, message: " << er.what());
+				LOG_ERROR("Some problems at write, message: " << er.what());
 				return false;
 			}
 			catch(...)

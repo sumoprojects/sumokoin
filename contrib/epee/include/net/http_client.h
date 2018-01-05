@@ -289,8 +289,9 @@ using namespace std;
   			, m_lock()
   			, m_ssl(false) {}
 
-			void enable_ssl() {
+			void enable_ssl(const char* cacerts_path) {
         m_ssl = true;
+        m_net_client.set_ssl_cacerts(cacerts_path);
       }
 
 			void set_host_name(const std::string& name)
