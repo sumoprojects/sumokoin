@@ -221,14 +221,19 @@ class Sumo_Gateway extends WC_Payment_Gateway
 
     public function check_sumo()
     {
-        $sumo_address = $this->settings['sumo_address'];
-        if (strlen($sumo_address) == 99 && substr($sumo_address, 0, 4) == "Sumo") {
-            return true;
+        require_once __DIR__ . '/cryptonote.php';
+        
+        $addr = $this->settings['sumo_address'];
+        if (function_exists('bcadd'))
+        {
+            return Cryptonote::VerifyAddress($addr, ["9ae7ae01", "9ae320"]);  
         }
-        if (strlen($sumo_address) == 98 && substr($sum_address, 0, 4) == "Subo") {
-            return true;
+        switch(strlen($addr))
+        {
+            case 99: return substr($addr, 0, 4) == "Sumo";
+            case 98: return substr($addr, 0, 4) == "Subo";
+            default: return false;
         }
-        return false;
     }
 
     public function instruction($order_id)
