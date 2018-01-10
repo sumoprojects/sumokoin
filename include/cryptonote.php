@@ -27,23 +27,13 @@ class Cryptonote
 		];
 	}
 	
-	public static function VerifyAddress($addr)
+	public static function VerifyAddress($addr, $prefixes = [])
 	{
-		if (function_exists('bcadd'))
-		{
-			$key = self::SplitAddress($addr);
-			$csum = substr(Keccak256::hashcn($key->body), 0, 8);
-			return bin2hex($key->checksum) == $csum;
-		}
-		// if we do not have bcadd then fall back on regular checks..
-		else
-		{
-			switch(strlen($addr))
-			{
-				case 99: return substr($addr, 0, 4) == "Sumo";
-				case 98: return substr($addr, 0, 4) == "Subo";
-				default: return false;
-			}
-		}
+		$key = self::SplitAddress($addr);
+		$csum = substr(Keccak256::hashcn($key->body), 0, 8);
+		
+		return 
+			bin2hex($key->checksum) == $csum &&
+			(count($prefixes) == 0 || in_array(bin2hex($key->prefix), $prefixes));
 	}
 }
