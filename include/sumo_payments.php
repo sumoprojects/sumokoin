@@ -226,13 +226,28 @@ class Sumo_Gateway extends WC_Payment_Gateway
         $addr = $this->settings['sumo_address'];
         if (function_exists('bcadd'))
         {
-            return Cryptonote::VerifyAddress($addr, ["9ae7ae01", "9ae320"]);  
+            $prefixes = $this->settings['environment'] == "no" ? 
+                ["9ae7ae01", "9ae320"] : 
+                ["9aeadd50", "9aea73"];
+            return Cryptonote::VerifyAddress($addr, $prefixes);
         }
-        switch(strlen($addr))
+        if ($this->settings['environment'] == "no")
         {
-            case 99: return substr($addr, 0, 4) == "Sumo";
-            case 98: return substr($addr, 0, 4) == "Subo";
-            default: return false;
+            switch(strlen($addr))
+            {
+                case 99: return substr($addr, 0, 4) == "Sumo";
+                case 98: return substr($addr, 0, 4) == "Subo";
+                default: return false;
+            }
+        }
+        else
+        {
+            switch(strlen($addr))
+            {
+                case 99: return substr($addr, 0, 4) == "Suto";
+                case 98: return substr($addr, 0, 4) == "Susi";
+                default: return false;
+            }
         }
     }
 
