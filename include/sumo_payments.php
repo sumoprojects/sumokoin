@@ -294,7 +294,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
         <!--Import Google Icon Font-->
         <link href='https://fonts.googleapis.com/icon?family=Material+Icons' rel='stylesheet'>
         <link href='https://fonts.googleapis.com/css?family=Montserrat:400,800' rel='stylesheet'>
-        <link href='".plugins_url('sumokoin-woocommerce-gateway/assets/style.css')."' rel='stylesheet'>
+        <link href='".plugins_url('/../assets/style.css', __FILE__)."' rel='stylesheet'>
         <!--Let browser know website is optimized for mobile-->
             <meta name='viewport' content='width=device-width, initial-scale=1.0'/>
             </head>
@@ -305,7 +305,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
             <div class='container-sumo-payment'>
             <!-- header -->
             <div class='header-sumo-payment'>
-            <span class='logo-sumo'><img src='".plugins_url('sumokoin-woocommerce-gateway/assets/sumo-logo.png')."'/></span>
+            <span class='logo-sumo'><img src='".plugins_url('/../assets/sumo-logo.png', __FILE__ )."'/></span>
             <span class='sumo-payment-text-header'><h2>SUMO PAYMENT</h2></span>
             </div>
             <!-- end header -->
