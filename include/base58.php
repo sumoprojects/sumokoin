@@ -7,7 +7,7 @@ class Base58
 	// algo: 
 	//	* split into 11 char chunks
 	//	* then multiply from the last number first
-	private static function decode_chunk($dt, $chunk)
+	private static function decode_chunk($dt, $chunk, $last = false)
 	{
 		$mul = 1;
 		$num = bcadd(0, 0);
@@ -23,6 +23,10 @@ class Base58
 			$bin = pack('C', $byte) . $bin;
 			$num = bcdiv($num, 256, 0);
 		}
+		if (!$last && strlen($bin) < 8)
+		{
+			$bin = str_repeat("\x00", 8 - strlen($bin)).$bin;
+		}
 		return $bin;
 	}
 	
@@ -34,9 +38,10 @@ class Base58
 		$nums = [];
 		$chunks = str_split($str, 11);
 		
-		foreach ($chunks as $chunk)
+		for($i = 0; $i < count($chunks); $i++)
 		{
-			$nums[] = self::decode_chunk($dt, $chunk);
+			$chunk = $chunks[$i];
+			$nums[] = self::decode_chunk($dt, $chunk, $i+1 == count($chunks));
 		}
 		
 		return implode('', $nums);
