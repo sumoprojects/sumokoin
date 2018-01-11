@@ -16,9 +16,9 @@ class Sumo_Gateway extends WC_Payment_Gateway
     function __construct()
     {
         $this->id = "sumo_gateway";
-        $this->method_title = __("Sumo GateWay", 'sumo_gateway');
-        $this->method_description = __("Sumo Payment Gateway Plug-in for WooCommerce. You can find more information about this payment gateway on our website. You'll need a daemon online for your address.", 'sumo_gateway');
-        $this->title = __("Sumo Gateway", 'sumo_gateway');
+        $this->method_title = __("Sumokoin Gateway", 'sumo_gateway');
+        $this->method_description = __("Sumokoin Payment Gateway plugin for WooCommerce. You can find more information about this payment gateway on our website. You'll need a daemon online for your address.", 'sumo_gateway');
+        $this->title = __("Sumokoin Gateway", 'sumo_gateway');
         $this->version = "0.3";
         //
         $this->icon = apply_filters('woocommerce_offline_icon', '');
@@ -70,7 +70,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
                 'title' => __('Title', 'sumo_gateway'),
                 'type' => 'text',
                 'desc_tip' => __('Payment title the customer will see during the checkout process.', 'sumo_gateway'),
-                'default' => __('Sumo Payment', 'sumo_gateway')
+                'default' => __('Sumokoin Payment', 'sumo_gateway')
             ),
             'description' => array(
                 'title' => __('Description', 'sumo_gateway'),
@@ -80,34 +80,35 @@ class Sumo_Gateway extends WC_Payment_Gateway
 
             ),
             'sumo_address' => array(
-                'title' => __('Sumo Address', 'sumo_gateway'),
+                'title' => __('Sumokoin Address', 'sumo_gateway'),
                 'label' => __('Useful for people that have not a daemon online'),
                 'type' => 'text',
                 'desc_tip' => __('Sumo Wallet Address', 'sumo_gateway')
             ),
             'daemon_host' => array(
-                'title' => __('Sumo wallet rpc Host/ IP', 'sumo_gateway'),
+                'title' => __('Wallet RPC Host/IP', 'sumo_gateway'),
                 'type' => 'text',
                 'desc_tip' => __('This is the Daemon Host/IP to authorize the payment with port', 'sumo_gateway'),
                 'default' => 'localhost',
             ),
             'daemon_port' => array(
-                'title' => __('Sumo wallet rpc port', 'sumo_gateway'),
+                'title' => __('Wallet RPC port', 'sumo_gateway'),
                 'type' => 'text',
                 'desc_tip' => __('This is the Daemon Host/IP to authorize the payment with port', 'sumo_gateway'),
-                'default' => '18080',
+                'default' => '19733',
             ),
             'username' => array(
                 'title' => __('Sumo Wallet username', 'sumo_gateway'),
                 'desc_tip' => __('This is the username that you used with your sumo wallet-rpc', 'sumo_gateway'),
+                'description' => __('You can leave this field empty if you did not set any username', 'sumo_gateway'),
                 'type' => __('text'),
                 'default' => __('username', 'sumo_gateway'),
 
             ),
             'password' => array(
                 'title' => __('Sumo wallet RPC password', 'sumo_gateway'),
-                'desc_tip' => __('This is the password that you used with your sumo wallet-rpc', 'sumo_gateway'),
-                'description' => __('you can leave these fields empty if you did not set', 'sumo_gateway'),
+                'desc_tip' => __('This is the password that you used to secure your sumo wallet-rpc', 'sumo_gateway'),
+                'description' => __('You can leave this field empty if you did not set any password', 'sumo_gateway'),
                 'type' => __('text'),
                 'default' => ''
 
@@ -116,7 +117,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
                 'title' => __('% discount for using SUMO', 'sumo_gateway'),
 
                 'desc_tip' => __('Provide a discount to your customers for making a private payment with SUMO!', 'sumo_gateway'),
-                'description' => __('Do you want to spread the word about Sumo? Offer a small discount! Leave this empty if you do not wish to provide a discount', 'sumo_gateway'),
+                'description' => __('Do you want to spread the word about Sumokoin? Offer a small discount! Leave this empty if you do not wish to provide a discount', 'sumo_gateway'),
                 'type' => __('text'),
                 'default' => '5%'
 
@@ -156,18 +157,18 @@ class Sumo_Gateway extends WC_Payment_Gateway
 
     public function admin_options()
     {
-        $this->log->add('Sumo_gateway', '[SUCCESS] Sumo Settings OK');
+        $this->log->add('Sumo_gateway', '[SUCCESS] Sumokoin Settings OK');
 
         echo "<h1>Sumo Payment Gateway</h1>";
 
-        echo "<p>Welcome to Sumo Extension for WooCommerce. Getting started: Make a connection with daemon <a href='https://reddit.com/u/serhack'>Contact Me</a>";
+        echo "<p>Welcome to Sumokoin payment plugin for WooCommerce. Getting started: Make a connection with Sumokoin daemon. For more info, see <a href=\"https://github.com/sumoweb/sumowp/blob/master/README.md\"> our GitHub page</a>";
         echo "<div style='border:1px solid #DDD;padding:5px 10px;font-weight:bold;color:#223079;background-color:#9ddff3;'>";
         $this->getamountinfo();
         echo "</div>";
         echo "<table class='form-table'>";
         $this->generate_settings_html();
         echo "</table>";
-        echo "<h4>Learn more about using a password with the sumo wallet-rpc <a href=\"https://github.com/cryptochangements34/sumowp/blob/master/README.md\">here</a></h4>";
+        echo "<h4>Secure your wallet RPC daemon! Learn more about using a password with the Sumokoin wallet RPC <a href=\"https://github.com/sumoweb/sumowp/blob/master/README.md\">here</a></h4>";
     }
 
     public function getamountinfo()
@@ -178,14 +179,16 @@ class Sumo_Gateway extends WC_Payment_Gateway
             $wallet_amount['balance'] = "0";
             $wallet_amount['unlocked_balance'] = "0";
         }
-        $real_wallet_amount = $wallet_amount['balance'] / 1000000000000;
-        $real_amount_rounded = round($real_wallet_amount, 6);
-
-        $unlocked_wallet_amount = $wallet_amount['unlocked_balance'] / 1000000000000;
-        $unlocked_amount_rounded = round($unlocked_wallet_amount, 6);
-
-        echo "Your balance is: " . $real_amount_rounded . " SUMO </br>";
-        echo "Unlocked balance: " . $unlocked_amount_rounded . " SUMO </br>";
+        else {
+            $real_wallet_amount = $wallet_amount['balance'] / 1000000000000;
+            $real_amount_rounded = round($real_wallet_amount, 6);
+    
+            $unlocked_wallet_amount = $wallet_amount['unlocked_balance'] / 1000000000000;
+            $unlocked_amount_rounded = round($unlocked_wallet_amount, 6);
+    
+            echo "Your balance is: " . $real_amount_rounded . " SUMO </br>";
+            echo "Unlocked balance: " . $unlocked_amount_rounded . " SUMO </br>";
+        }
     }
 
     public function process_payment($order_id)
@@ -211,7 +214,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
     public function validate_fields()
     {
         if ($this->check_sumo() != TRUE) {
-            echo "<div class=\"error\"><p>Your Sumo Address doesn't seem valid. Have you checked it?</p></div>";
+            echo "<div class=\"error\"><p>Your Sumokoin address doesn't seem to be valid. Check that you've inserted it correctly.</p></div>";
         }
 
     }
@@ -260,7 +263,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
         $amount_sumo2 = $this->changeto($amount, $currency, $payment_id);
         if ($amount_sumo2 <= 0)
         {
-            echo "ERROR: temporarily unable to get exchange rate<br/>";
+            echo "ERROR: Temporarily unable to get exchange rate<br/>";
             echo "
              <script type='text/javascript'>setTimeout(function () { location.reload(true); }, $this->reloadTime);</script>";
             return;
@@ -268,8 +271,8 @@ class Sumo_Gateway extends WC_Payment_Gateway
         
         $address = $this->address;
         if (!isset($address)) {
-            $this->log->add('Sumo_Gateway', '[ERROR] no SUMO address set for payments');
-            echo "ERROR: unable to receive payments, please contact administrator.<br/>";
+            $this->log->add('Sumo_Gateway', '[ERROR] No SUMO address set for payments');
+            echo "ERROR: Unable to receive payments, please contact administrator.<br/>";
             return;
         }
         $uri = "sumo:$address?amount=$amount_sumo2?payment_id=$payment_id";
@@ -420,7 +423,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
                 $rounded_amount = round($final_amount, 9);
             } else {
                 $new_amount = $amount / $stored_rate_transformed;
-                $rounded_amount = round($new_amount, 9); //the moneo wallet can't handle decimals smaller than 0.000000000001
+                $rounded_amount = round($new_amount, 9); //the sumokoin wallet can't handle decimals smaller than 0.000000000001
             }
         } else // If the row has not been created then the live exchange rate will be grabbed and stored
         {
@@ -451,12 +454,12 @@ class Sumo_Gateway extends WC_Payment_Gateway
         $sumo_price = file_get_contents('https://min-api.cryptocompare.com/data/price?fsym=SUMO&tsyms='.implode(",", $currencies).'&extraParams=sumo_woocommerce');
         $price = json_decode($sumo_price, TRUE);
         if (!isset($price)) {
-            $this->log->add('Sumo_Gateway', '[ERROR] Unable to get the price of Sumo');
+            $this->log->add('Sumo_Gateway', '[ERROR] Unable to get the price of SUMO');
             return -1;
         }
         
         if (!isset($price[$currency])) {
-            $this->log->add('Sumo_Gateway', '[ERROR] Unable to retrieve Sumo in currency '.$currency);
+            $this->log->add('Sumo_Gateway', '[ERROR] Unable to retrieve SUMO in currency '.$currency);
             return -1;
         }
         
@@ -507,7 +510,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
 
         } else {
             $this->log->add('Sumo_gateway', '[ERROR] Plugin can not reach wallet rpc.');
-            echo "<div class=\" notice notice-error\"><p>Error with connection of daemon, see documentation!</p></div>";
+            echo "<div class=\" notice notice-error\"><p>Error connecting with daemon, see documentation for more info</p></div>";
         }
     }
 }
