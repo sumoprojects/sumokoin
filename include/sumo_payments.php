@@ -11,7 +11,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
     private $reloadTime = 30000;
     private $discount;
     private $confirmed = false;
-    private $sumo_daemon;
+    public $sumo_daemon;
 
     function __construct()
     {
@@ -136,6 +136,13 @@ class Sumo_Gateway extends WC_Payment_Gateway
                 'description' => __('Check this box if you are running on an Onion Service (Suppress SSL errors)', 'sumo_gateway'),
                 'default' => 'no'
             ),
+            'subaddress_payments' => array(
+                'title' => __('Subaddress Payments', 'sumo_gateway'),
+                'label' => __('Enable payments to subdaddresses', 'sumo_gateway'),
+                'type' => 'checkbox',
+                'description' => __('Check this box if you wish to receive payments via Subaddresses instead of Payment IDs', 'sumo_gateway'),
+                'default' => 'no'
+            ),
         );
     }
 
@@ -257,9 +264,9 @@ class Sumo_Gateway extends WC_Payment_Gateway
     {
         $order = wc_get_order($order_id);
         $amount = floatval(preg_replace('#[^\d.]#', '', $order->get_total()));
-        $payment_id = $this->get_payment_id($order_id);
+        $payment = $this->get_payment($order_id);
         $currency = $order->get_currency();
-        $amount_sumo2 = $this->changeto($amount, $currency, $payment_id);
+        $amount_sumo2 = $this->changeto($amount, $currency, $order_id);
         if ($amount_sumo2 <= 0)
         {
             echo "ERROR: Temporarily unable to get exchange rate<br/>";
@@ -268,21 +275,17 @@ class Sumo_Gateway extends WC_Payment_Gateway
             return;
         }
         
-        $address = $this->address;
-        if (!isset($address)) {
-            $this->log->add('Sumo_Gateway', '[ERROR] No SUMO address set for payments');
-            echo "ERROR: Unable to receive payments, please contact administrator.<br/>";
-            return;
-        }
-        $uri = "sumo:$address?amount=$amount_sumo2?payment_id=$payment_id";
-        $array_integrated_address = $this->sumo_daemon->make_integrated_address($payment_id);
-        if (!isset($array_integrated_address)) {
-            $this->log->add('Sumo_Gateway', '[ERROR] Unable to get integrated address');
-            // Seems that we can't connect with daemon, then set array_integrated_address, little hack
-            $array_integrated_address["integrated_address"] = $address;
-        }
-        $message = $this->verify_payment($payment_id, $amount_sumo2, $order);
+        $uri = $payment->get_uri($amount_sumo2);
+        $this->confirmed = $payment->verify($order, $amount_sumo2);
+        $message = "We are waiting for your payment to be confirmed";
+        
         if ($this->confirmed) {
+            $message = "Payment has been received and confirmed. Thanks!";
+            $this->log->add('Sumo_gateway', '[SUCCESS] Payment has been recorded. Congratulations!');
+            $order = wc_get_order($order_id);
+            $order->update_status('completed', __('Payment has been received', 'sumo_gateway'));
+            $this->reloadTime = 3000000000000; // Greatly increase the reload time as it is no longer needed
+            
             $color = "006400";
         } else {
             $color = "DC143C";
@@ -316,7 +319,7 @@ class Sumo_Gateway extends WC_Payment_Gateway
             </div>
             <div class='sumo-address'>
             <span class='sumo-label'>To this address:</span>
-            <div class='sumo-address-box'>".$array_integrated_address['integrated_address']."</div>
+            <div class='sumo-address-box'>".$payment->get_address()."</div>
             </div>
             <div class='sumo-qr-code'>
             <span class='sumo-label'>Or scan QR:</span>
@@ -343,53 +346,19 @@ class Sumo_Gateway extends WC_Payment_Gateway
       <script type='text/javascript'>setTimeout(function () { location.reload(true); }, $this->reloadTime);</script>";
     }
 
-    private function get_payment_id($order_id)
+    private function get_payment($order_id)
     {
-        global $wpdb;
-        // TODO: make a UNIQUE PRIMARY KEY on both order_id and payment_id
-        $wpdb->query("
-            CREATE TABLE IF NOT EXISTS {$wpdb->prefix}sumo_payments (
-                order_id INT,
-                payment_id char(16) UNIQUE PRIMARY KEY
-            )
-        ");
-        
-        $sql = $wpdb->prepare("
-            SELECT payment_id
-            FROM {$wpdb->prefix}sumo_payments
-            WHERE order_id = %s
-        ", [$order_id]);
-        $rows = $wpdb->get_results($sql);
-        
-        if (count($rows) <= 0) {
-            $payment_id = bin2hex(openssl_random_pseudo_bytes(8));
-            $sql = $wpdb->prepare("
-                INSERT INTO {$wpdb->prefix}sumo_payments
-                (order_id, payment_id)
-                VALUES (%s, %s)
-            ", [$order_id, $payment_id]);
-            $wpdb->get_results($sql);
-        }
-        else{
-            $payment_id = $this->sanatize_id($rows[0]->payment_id);
-        }
-        return $payment_id;
-    }
-	
-    public function sanatize_id($payment_id)
-    {
-        // Limit payment id to alphanumeric characters
-        $sanatized_id = preg_replace("/[^a-zA-Z0-9]+/", "", $payment_id);
-	return $sanatized_id;
+        require_once __DIR__ . '/sumo_payment.php';
+        return new Sumo_Payment($this, $order_id);
     }
 
-    public function changeto($amount, $currency, $payment_id)
+    public function changeto($amount, $currency, $order_id)
     {
         global $wpdb;
         // This will create a table named whatever the payment id is inside the database "WordPress"
         $create_table = "
-            CREATE TABLE IF NOT EXISTS {$wpdb->prefix}sumo_payment_rates (
-                payment_id char(16) UNIQUE PRIMARY KEY,
+            CREATE TABLE IF NOT EXISTS {$wpdb->prefix}sumo_order_rates (
+                order_id char(16) UNIQUE PRIMARY KEY,
                 currency char(3) NOT NULL,
                 rate DECIMAL(10,4) NOT NULL,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -399,17 +368,17 @@ class Sumo_Gateway extends WC_Payment_Gateway
         $wpdb->query($create_table);
         $sql = $wpdb->prepare("
             SELECT count(*) as count 
-            FROM {$wpdb->prefix}sumo_payment_rates
-            WHERE payment_id = %s
-        ", [$payment_id]);
+            FROM {$wpdb->prefix}sumo_order_rates
+            WHERE order_id = %s
+        ", [$order_id]);
         $rows_num = $wpdb->get_results($sql);
         if ($rows_num[0]->count > 0) // Checks if the row has already been created or not
         {
             $sql = $wpdb->prepare("
                 SELECT rate 
-                FROM {$wpdb->prefix}sumo_payment_rates
-                WHERE payment_id = %s
-            ", [$payment_id]);
+                FROM {$wpdb->prefix}sumo_order_rates
+                WHERE order_id = %s
+            ", [$order_id]);
             $stored_rate = $wpdb->get_results($sql);
 
             $stored_rate_transformed = $stored_rate[0]->rate; //this will turn the stored rate back into a decimaled number
@@ -432,9 +401,9 @@ class Sumo_Gateway extends WC_Payment_Gateway
             $rounded_amount = round($new_amount, 9);
             
             $sql = $wpdb->prepare("
-                INSERT INTO {$wpdb->prefix}sumo_payment_rates (payment_id, currency, rate)
+                INSERT INTO {$wpdb->prefix}sumo_order_rates (order_id, currency, rate)
                 VALUES (%s, %s, %f)
-            ", [$payment_id, $currency, $sumo_live_price]);
+            ", [$order_id, $currency, $sumo_live_price]);
             $wpdb->query($sql);
         }
 
@@ -463,29 +432,6 @@ class Sumo_Gateway extends WC_Payment_Gateway
         }
         
         return $price[$currency];
-    }
-
-    public function verify_payment($payment_id, $amount, $order_id)
-    {
-        /*
-         * function for verifying payments
-         * Check if a payment has been made with this payment id then notify the merchant
-         */
-        $message = "We are waiting for your payment to be confirmed";
-        $amount_atomic_units = $amount * 1000000000;
-        $get_payments_method = $this->sumo_daemon->get_payments($payment_id);
-        if (isset($get_payments_method["payments"][0]["amount"])) {
-            if ($get_payments_method["payments"][0]["amount"] >= $amount_atomic_units) {
-                $message = "Payment has been received and confirmed. Thanks!";
-                $this->log->add('Sumo_gateway', '[SUCCESS] Payment has been recorded. Congratulations!');
-                $this->confirmed = true;
-                $order = wc_get_order($order_id);
-                $order->update_status('completed', __('Payment has been received', 'sumo_gateway'));
-                global $wpdb;
-                $this->reloadTime = 3000000000000; // Greatly increase the reload time as it is no longer needed
-            }
-        }
-        return $message;
     }
 
     public function do_ssl_check()

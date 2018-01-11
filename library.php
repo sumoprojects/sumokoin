@@ -248,9 +248,9 @@ class Sumo_Library
         return $incoming_transfers;
     }
 
-    public function get_transfers($input_type, $input_value)
+    public function get_transfers($input_type, $input_value, $filters = [])
     {
-        $get_parameters = array($input_type => $input_value);
+        $get_parameters = array($input_type => $input_value) + $filters;
         $get_transfers = $this->_run('get_transfers', $get_parameters);
         return $get_transfers;
     }
@@ -321,5 +321,12 @@ class Sumo_Library
         $get_bulk_payments_parameters = array('payment_id' => $payment_id, 'min_block_height' => $min_block_height);
         $get_bulk_payments = $this->_run('get_bulk_payments', $get_bulk_payments_parameters);
         return $get_bulk_payments;
+    }
+
+    public function create_address($label = null)
+    {
+        $create_address_parameters = $label == null ? array() : array('label' => $label);
+        $create_address = $this->_run('create_address', $create_address_parameters);
+        return $create_address;
     }
 }
