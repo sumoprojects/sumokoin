@@ -1,0 +1,218 @@
+.container-sumo-payment {
+font-family: 'Montserrat', sans-serif;
+
+    background-color: #fff;
+    border-radius: 8px;
+    border-color: #fff;
+    border-style: solid;
+    padding: 2px;
+	-webkit-box-shadow: 0px 0px 8px -1px rgba(0,0,0,0.75);
+-moz-box-shadow: 0px 0px 8px -1px rgba(0,0,0,0.75);
+box-shadow: 0px 0px 8px -1px rgba(0,0,0,0.75);
+
+}
+
+
+
+.header-sumo-payment {
+    height: 74px;
+	background-color: #2d9cdb;
+}
+
+.logo-sumo img {
+    margin-top: 6px;
+}
+
+span.logo-sumo {
+    float: left;
+}
+
+span.sumo-payment-text-header {
+    float: left;
+    margin-left: 16px;
+    color: #fff;
+}
+
+.footer-sumo-payment {
+    background-color: #2d9cdb;
+    color: #fff;
+    text-align: right;
+    padding-right: 16px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+	font-size: 0.8rem;
+    border-radius: 0px 0px 8px 8px;
+}
+
+
+.footer-sumo-payment a {
+    color: #fff;
+	font-size: 0.8rem;
+}
+
+
+
+.sumo-qr-code {
+    float: left;
+}
+
+.sumo-address {
+    float: left;
+}
+
+.sumo-amount-send {
+    float: left;
+}
+
+.clear {
+    clear: both;
+}
+
+
+
+.sumo-amount-box {
+    background-color: #fff;
+    padding: 8px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ccc;
+    float: left;
+}
+
+span.sumo-label {
+    display: block;
+}
+
+.sumo-box {
+    float: left;
+    background-color: #2d9cdb;
+    padding: 8px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #666;
+    color: #fff;
+}
+
+
+.sumo-address-box {
+    word-wrap: break-word;
+	    background-color: #fff;
+    padding: 8px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ccc;
+}
+
+.sumo-integrated-address {
+    float: left;
+}
+
+.sumo-integrated-address-box {
+    word-wrap: break-word;
+    background-color: #fff;
+    padding: 8px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #ccc;
+}
+.sumo-qr-code-box img {
+    width: 100%;
+    
+}
+
+.sumo-qr-code-box {
+    width: fit-content;
+    padding: 8px;
+    border-color: #ccc;
+    border-style: solid;
+    border-width: 1px;
+	background-color: #fff;
+}
+
+
+.content-sumo-payment {
+    padding: 8px;
+    background-color: #f9f9f9;
+
+}
+
+
+.sumo-qr-code {
+      padding: 8px;
+}
+
+.sumo-address {
+        padding: 8px;
+}
+
+.sumo-amount-send {
+       padding: 8px;
+}
+
+.sumo-payment-text-header h2 {
+    font-size: 1.2rem;
+    margin: 0px;
+    line-height: 70px;
+}
+
+
+/* desktop display */
+@media only screen and  (min-width: 700px) and (max-width: 4280px) {
+
+.page-container {
+
+    padding-left: 11%;
+    padding-right: 11%;
+
+}
+
+.sumo-qr-code {
+    width: 40%;
+}
+
+.sumo-address {
+    width: 60%;
+}
+
+.sumo-amount-send {
+    width: 100%;
+}
+.logo-sumo img {
+    margin-top: 6px;
+    margin-left: 32px;
+}
+}
+/* mobile display */
+
+@media only screen and (min-width: 100px) and (max-width: 700px) {
+
+.logo-sumo img {
+    margin-top: 6px;
+    margin-left: 8px;
+}
+
+.page-container {
+
+    padding-left: 2%;
+    padding-right: 2%; 
+
+}
+
+.sumo-qr-code-box {
+    width: 100%;
+}
+
+.sumo-address {
+    width: 100%;
+    
+}
+
+.sumo-amount-send {
+    width: 100%;
+}
+
+.sumo-integrated-address{
+        width:100%;
+}
+
+}
