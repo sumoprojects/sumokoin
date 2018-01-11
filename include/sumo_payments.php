@@ -180,10 +180,10 @@ class Sumo_Gateway extends WC_Payment_Gateway
             $wallet_amount['unlocked_balance'] = "0";
         }
         else {
-            $real_wallet_amount = $wallet_amount['balance'] / 1000000000000;
+            $real_wallet_amount = $wallet_amount['balance'] / 1000000000;
             $real_amount_rounded = round($real_wallet_amount, 6);
     
-            $unlocked_wallet_amount = $wallet_amount['unlocked_balance'] / 1000000000000;
+            $unlocked_wallet_amount = $wallet_amount['unlocked_balance'] / 1000000000;
             $unlocked_amount_rounded = round($unlocked_wallet_amount, 6);
     
             echo "Your balance is: " . $real_amount_rounded . " SUMO </br>";
