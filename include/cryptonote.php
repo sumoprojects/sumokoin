@@ -34,6 +34,6 @@ class Cryptonote
 		
 		return 
 			bin2hex($key->checksum) == $csum &&
-			(count($prefixes) == 0 || in_array(bin2hex($key->prefix), $prefixes));
+			(count($prefixes) == 0 || in_array(bin2hex(substr($key->prefix, 0, -1)), $prefixes));
 	}
 }
