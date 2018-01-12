@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2017, SUMOKOIN, (forked from) The Monero Project
+# Copyright (c) 2016-2017, SUMOLITE, (forked from) The SUMOKOIN Project
 #
 # All rights reserved.
 #
