@@ -1,49 +1,50 @@
-FROM debian:testing
-MAINTAINER eiabea <developer@eiabea.com>
+# Multistage docker build, requires docker 17.05
 
-# Install clone dependencies
-RUN set -e && \
-  apt-get update -q && \
-  apt-get install -q -y --no-install-recommends ca-certificates git && \
-  git clone https://github.com/monero-project/monero.git src && \
-  apt-get purge -y git && \
-  apt-get clean -q -y && \
-  apt-get autoclean -q -y && \
-  apt-get autoremove -q -y
+# builder stage
+FROM ubuntu:16.04 as builder
+
+RUN apt-get update && \
+    apt-get --no-install-recommends --yes install \
+        ca-certificates \
+        cmake \
+        g++ \
+        libboost1.58-all-dev \
+        libssl-dev \
+        libzmq3-dev \
+        libreadline-dev \
+        libsodium-dev \
+        make \
+        pkg-config \
+        graphviz \
+        doxygen \
+        git
 
 WORKDIR /src
+COPY . .
 
-# Install make dependencies
-RUN set -e && \
-  apt-get update -q && \
-  apt-get install -q -y --no-install-recommends build-essential ca-certificates g++ gcc cmake \
-  pkg-config libunbound2 libevent-2.0-5 libgtest-dev libboost-all-dev libdb5.3++-dev libdb5.3-dev libssl-dev && \
-  make -j 4 && \
-  apt-get purge -y g++ gcc cmake pkg-config && \
-  apt-get clean -q -y && \
-  apt-get autoclean -q -y && \
-  apt-get autoremove -q -y && \
-  mkdir /monero && \
-  mv /src/build/release/bin/* /monero && \
-  rm -rf /src
+ARG NPROC
+RUN rm -rf build && \
+    if [ -z "$NPROC" ];then make -j$(nproc) release-static;else make -j$NPROC release-static;fi
 
-WORKDIR /monero
+# runtime stage
+FROM ubuntu:16.04
+
+RUN apt-get update && \
+    apt-get --no-install-recommends --yes install ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt
+
+COPY --from=builder /src/build/release/bin/* /usr/local/bin/
 
 # Contains the blockchain
-VOLUME /root/.bitmonero
+VOLUME /root/.sumokoin
 
 # Generate your wallet via accessing the container and run:
 # cd /wallet
-# /./bitmonero/monero-wallet-cli
+# sumo-wallet-cli
 VOLUME /wallet
 
-ENV LOG_LEVEL 0
-ENV P2P_BIND_IP 0.0.0.0
-ENV P2P_BIND_PORT 18080
-ENV RPC_BIND_IP 127.0.0.1
-ENV RPC_BIND_PORT 18081
+EXPOSE 19733
+EXPOSE 19734
 
-EXPOSE 18080
-EXPOSE 18081
-
-CMD ./monerod --log-level=$LOG_LEVEL --p2p-bind-ip=$P2P_BIND_IP --p2p-bind-port=$P2P_BIND_PORT --rpc-bind-ip=$RPC_BIND_IP --rpc-bind-port=$RPC_BIND_PORT
+ENTRYPOINT ["sumokoind", "--p2p-bind-ip=0.0.0.0", "--p2p-bind-port=19733", "--rpc-bind-ip=0.0.0.0", "--rpc-bind-port=19734", "--non-interactive"]
