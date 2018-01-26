@@ -1,4 +1,5 @@
-// Copyright (c) 2016-2017, SUMOKOIN, (forked from) The Monero Project
+// Copyright (c) 2017-2018, SUMOKOIN
+// Copyright (c) 2014-2017, The Monero Project
 //
 // All rights reserved.
 //
@@ -524,7 +525,7 @@ namespace dns_utils
 
     if (num_valid_records < 2)
     {
-      LOG_PRINT_L0("WARNING: no two valid MoneroPulse DNS checkpoint records were received");
+      LOG_PRINT_L0("WARNING: no two valid Sumokoin DNS checkpoint records were received");
       return false;
     }
 
@@ -546,7 +547,7 @@ namespace dns_utils
 
     if (good_records_index < 0)
     {
-      LOG_PRINT_L0("WARNING: no two MoneroPulse DNS checkpoint records matched");
+      LOG_PRINT_L0("WARNING: no two Sumokoin DNS checkpoint records matched");
       return false;
     }
 
