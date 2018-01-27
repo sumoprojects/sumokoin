@@ -4,13 +4,12 @@ Copyright (c) 2016-2017, Sumokoin.org
 
 Copyright (c) 2014-2017, The Monero Project
 
-Copyright (c) 2012-2013, The Cryptonote developers
+Portions Copyright (c) 2012-2013, The Cryptonote developers
 
 ## Development Resources
 
 - Web: [www.sumokoin.org](https://www.sumokoin.org)
 - Mail: [dev@sumokoin.org](mailto:dev@sumokoin.org)
-- GitHub: [https://github.com/sumoprojects/sumokoin](https://github.com/sumoprojects/sumokoin)
 
 ## Introduction
 
