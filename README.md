@@ -1,6 +1,6 @@
 # Sumokoin
 
-Copyright (c) 2016-2017, Sumokoin.org
+Copyright (c) 2017, Sumokoin.org
 
 Copyright (c) 2014-2017, The Monero Project
 
@@ -9,7 +9,7 @@ Portions Copyright (c) 2012-2013, The Cryptonote developers
 ## Development Resources
 
 - Web: [www.sumokoin.org](https://www.sumokoin.org)
-- Mail: [dev@sumokoin.org](mailto:dev@sumokoin.org)
+- Mail: [contact@sumokoin.org](mailto:contact@sumokoin.org)
 
 ## Introduction
 
@@ -323,10 +323,6 @@ While `sumokoind` and `sumo-wallet-cli` do not use readline directly, most of th
 `rlwrap bin/sumo-wallet-cli --wallet-file /path/to/wallet`
 
 Note: rlwrap will save things like your seed and private keys, if you supply them on prompt. You may want to not use rlwrap when you use simplewallet to restore from seed, etc.
-
-# Contributing
-
-If you want to help out, see CONTRIBUTING for a set of guidelines.
 
 # Debugging
 
