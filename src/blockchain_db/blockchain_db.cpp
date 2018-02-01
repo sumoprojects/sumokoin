@@ -232,6 +232,11 @@ void BlockchainDB::show_stats()
 
 void BlockchainDB::fixup()
 {
+
+  return;
+
+  /* NOTHING TO FIX UP YET, CODE COMMENTED OUT
+
   if (is_read_only()) {
     LOG_PRINT_L1("Database is opened read only - skipping fixup check");
     return;
@@ -812,6 +817,7 @@ void BlockchainDB::fixup()
     }
   }
   batch_stop();
+  */
 }
 
 }  // namespace cryptonote
