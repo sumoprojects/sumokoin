@@ -232,7 +232,7 @@ void BlockchainDB::show_stats()
 
 void BlockchainDB::fixup()
 {
-
+  set_batch_transactions(true);
   return;
 
   /* NOTHING TO FIX UP YET, CODE COMMENTED OUT
