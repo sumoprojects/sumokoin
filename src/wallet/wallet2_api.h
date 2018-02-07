@@ -372,9 +372,12 @@ struct Wallet
      *
      * \param daemon_address - daemon address in "hostname:port" format
      * \param upper_transaction_size_limit
+     * \param enable_ssl - whether SSL should be used in the connections.
+     * \param cacerts_path - optional path to a CA certificates file.
      * \return  - true if initialized and refreshed successfully
      */
-    virtual void init(const std::string &daemon_address, uint64_t upper_transaction_size_limit) = 0;
+    virtual void init(const std::string &daemon_address, uint64_t upper_transaction_size_limit, bool enable_ssl=false,
+                      const char* cacerts_path=nullptr) = 0;
 
     /*!
      * \brief init - initalizes wallet asynchronously. logic is the same as "init" but returns immediately.
@@ -382,9 +385,12 @@ struct Wallet
      *
      * \param daemon_address - daemon address in "hostname:port" format
      * \param upper_transaction_size_limit
+     * \param enable_ssl - whether SSL should be used in the connections.
+     * \param cacerts_path - optional path to a CA certificates file.
      * \return  - true if initialized and refreshed successfully
      */
-    virtual void initAsync(const std::string &daemon_address, uint64_t upper_transaction_size_limit) = 0;
+    virtual void initAsync(const std::string &daemon_address, uint64_t upper_transaction_size_limit, bool enable_ssl=false,
+                           const char* cacerts_path=nullptr) = 0;
 
    /*!
     * \brief setRefreshFromBlockHeight - start refresh from block height on recover

@@ -561,16 +561,16 @@ string WalletImpl::keysFilename() const
     return m_wallet->get_keys_file();
 }
 
-void WalletImpl::init(const std::string &daemon_address, uint64_t upper_transaction_size_limit)
+void WalletImpl::init(const std::string &daemon_address, uint64_t upper_transaction_size_limit, bool enable_ssl, const char* cacerts_path)
 {
     clearStatus();
-    doInit(daemon_address, upper_transaction_size_limit);
+    doInit(daemon_address, upper_transaction_size_limit, enable_ssl, cacerts_path);
 }
 
-void WalletImpl::initAsync(const string &daemon_address, uint64_t upper_transaction_size_limit)
+void WalletImpl::initAsync(const string &daemon_address, uint64_t upper_transaction_size_limit, bool enable_ssl, const char* cacerts_path)
 {
     clearStatus();
-    doInit(daemon_address, upper_transaction_size_limit);
+    doInit(daemon_address, upper_transaction_size_limit, enable_ssl, cacerts_path);
     startRefresh();
 }
 
@@ -911,6 +911,7 @@ PendingTransaction *WalletImpl::createTransaction(const string &dst_addr, const 
     LOG_ERROR("unknown error");
   }
 
+  transaction->m_status = Status_Error;
   startRefresh();
   return transaction;
 }
@@ -1243,9 +1244,9 @@ bool WalletImpl::isNewWallet() const
     return !(blockChainHeight() > 1 || m_recoveringFromSeed || m_rebuildWalletCache);
 }
 
-void WalletImpl::doInit(const string &daemon_address, uint64_t upper_transaction_size_limit)
+void WalletImpl::doInit(const string &daemon_address, uint64_t upper_transaction_size_limit, bool enable_ssl, const char* cacerts_path)
 {
-    m_wallet->init(daemon_address, upper_transaction_size_limit);
+    m_wallet->init(daemon_address, upper_transaction_size_limit, enable_ssl, cacerts_path);
 
     // in case new wallet, this will force fast-refresh (pulling hashes instead of blocks)
     if (isNewWallet()) {

@@ -465,10 +465,13 @@ std::pair<std::unique_ptr<wallet2>, password_container> wallet2::make_new(const 
 }
 
 //----------------------------------------------------------------------------------------------------
-void wallet2::init(const std::string& daemon_address, uint64_t upper_transaction_size_limit)
+void wallet2::init(const std::string& daemon_address, uint64_t upper_transaction_size_limit, bool enable_ssl, const char* cacerts_path)
 {
   m_upper_transaction_size_limit = upper_transaction_size_limit;
   m_daemon_address = daemon_address;
+  if (enable_ssl) {
+    m_http_client.enable_ssl(cacerts_path);
+  }
 }
 //----------------------------------------------------------------------------------------------------
 bool wallet2::is_deterministic() const
