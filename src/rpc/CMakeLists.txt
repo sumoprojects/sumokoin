@@ -47,6 +47,8 @@ target_link_libraries(rpc
     cryptonote_core
     cryptonote_protocol
     ${Boost_THREAD_LIBRARY}
+    ${OPENSSL_CRYPTO_LIBRARY}
+    ${OPENSSL_SSL_LIBRARY}
   PRIVATE
     ${EXTRA_LIBRARIES})
 add_dependencies(rpc
