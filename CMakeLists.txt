@@ -299,6 +299,29 @@ if (UNIX AND NOT APPLE)
   find_package(Threads)
 endif()
 
+# Handle OpenSSL, used for sha256sum on binary updates and light wallet ssl http
+if (CMAKE_SYSTEM_NAME MATCHES "(SunOS|Solaris)")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthreads")
+endif ()
+
+if (APPLE AND NOT IOS)
+  if (NOT OpenSSL_DIR)
+      EXECUTE_PROCESS(COMMAND brew --prefix openssl
+        OUTPUT_VARIABLE OPENSSL_ROOT_DIR
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message(STATUS "Using OpenSSL found at ${OPENSSL_ROOT_DIR}")
+  endif()
+endif()
+
+find_package(OpenSSL REQUIRED)
+message(STATUS "Using OpenSSL include dir at ${OPENSSL_INCLUDE_DIR}")
+include_directories(${OPENSSL_INCLUDE_DIR})
+if(STATIC AND NOT IOS)
+  if(UNIX)
+    set(OPENSSL_LIBRARIES "${OPENSSL_LIBRARIES};${CMAKE_DL_LIBS};${CMAKE_THREAD_LIBS_INIT}")
+  endif()
+endif()
+
 add_subdirectory(external)
 
 # Final setup for miniupnpc

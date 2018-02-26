@@ -54,6 +54,7 @@ target_link_libraries(simplewallet
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_THREAD_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
+    ${OPENSSL_LIBRARIES}
     ${EXTRA_LIBRARIES})
 add_dependencies(simplewallet
   version)
