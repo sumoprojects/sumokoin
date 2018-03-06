@@ -75,9 +75,9 @@ DISABLE_VS_WARNINGS(4244 4345)
     generate_keys(m_keys.m_account_address.m_view_public_key, m_keys.m_view_secret_key, second, two_random ? false : true);
 
     struct tm timestamp = {0};
-    timestamp.tm_year = 2014 - 1900;  // year 2014
-    timestamp.tm_mon = 6 - 1;  // month june
-    timestamp.tm_mday = 8;  // 8th of june
+    timestamp.tm_year = 2017 - 1900;  // year 2017
+    timestamp.tm_mon = 4 - 1;  // month April
+    timestamp.tm_mday = 8;  // 8th
     timestamp.tm_hour = 0;
     timestamp.tm_min = 0;
     timestamp.tm_sec = 0;
@@ -85,13 +85,14 @@ DISABLE_VS_WARNINGS(4244 4345)
     if (recover)
     {
       m_creation_timestamp = mktime(&timestamp);
-      if (m_creation_timestamp == (uint64_t)-1) // failure
-        m_creation_timestamp = 0; // lowest value
     }
     else
     {
       m_creation_timestamp = time(NULL);
     }
+
+    if (m_creation_timestamp == (uint64_t)-1) // failure
+      m_creation_timestamp = 0; // lowest value
     return first;
   }
   //-----------------------------------------------------------------
@@ -102,9 +103,9 @@ DISABLE_VS_WARNINGS(4244 4345)
     m_keys.m_view_secret_key = viewkey;
 
     struct tm timestamp = {0};
-    timestamp.tm_year = 2014 - 1900;  // year 2014
+    timestamp.tm_year = 2017 - 1900;  // year 2017
     timestamp.tm_mon = 4 - 1;  // month april
-    timestamp.tm_mday = 15;  // 15th of april
+    timestamp.tm_mday = 8;  // 8th of april
     timestamp.tm_hour = 0;
     timestamp.tm_min = 0;
     timestamp.tm_sec = 0;
