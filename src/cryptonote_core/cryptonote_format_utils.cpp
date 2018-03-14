@@ -775,7 +775,6 @@ namespace cryptonote
       if (need_additional_txkeys)
       {
         additional_tx_public_keys.push_back(additional_txkey.pub);
-        //additional_tx_keys.push_back(additional_txkey.sec);
       }
 
       crypto::secret_key scalar1;
@@ -797,8 +796,7 @@ namespace cryptonote
     CHECK_AND_ASSERT_MES(additional_tx_public_keys.size() == additional_tx_keys.size(), false, "Internal error creating additional public keys");
 
     remove_field_from_tx_extra(tx.extra, typeid(tx_extra_additional_pub_keys));
-    //add_additional_tx_pub_keys_to_extra(tx.extra, additional_tx_public_keys);
-
+    
     LOG_PRINT_L2("tx pubkey: " << txkey.pub);
     if (need_additional_txkeys)
     {
