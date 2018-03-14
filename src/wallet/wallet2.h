@@ -62,6 +62,9 @@
 #include <iostream>
 #define WALLET_RCP_CONNECTION_TIMEOUT                          200000
 
+#define SUBADDRESS_LOOKAHEAD_MAJOR 50
+#define SUBADDRESS_LOOKAHEAD_MINOR 200
+
 namespace tools
 {
   class i_wallet2_callback
@@ -123,7 +126,7 @@ namespace tools
     //! Uses stdin and stdout. Returns a wallet2 and password for wallet with no file if no errors.
     static std::pair<std::unique_ptr<wallet2>, password_container> make_new(const boost::program_options::variables_map& vm);
 
-    wallet2(bool testnet = false, bool restricted = false) : m_run(true), m_callback(0), m_testnet(testnet), m_always_confirm_transfers(true), m_store_tx_info(true), m_default_mixin(0), m_default_priority(0), m_refresh_type(RefreshOptimizeCoinbase), m_auto_refresh(true), m_refresh_from_block_height(0), m_confirm_missing_payment_id(true), m_restricted(restricted), is_old_file_format(false) {}
+    wallet2(bool testnet = false, bool restricted = false) : m_run(true), m_callback(0), m_testnet(testnet), m_always_confirm_transfers(true), m_store_tx_info(true), m_default_mixin(0), m_default_priority(0), m_refresh_type(RefreshOptimizeCoinbase), m_auto_refresh(true), m_refresh_from_block_height(0), m_confirm_missing_payment_id(true), m_restricted(restricted), is_old_file_format(false), m_subaddress_lookahead_major(SUBADDRESS_LOOKAHEAD_MAJOR), m_subaddress_lookahead_minor(SUBADDRESS_LOOKAHEAD_MINOR) {}
 
     struct tx_scan_info_t
     {
@@ -735,6 +738,8 @@ namespace tools
     uint64_t m_refresh_from_block_height;
     bool m_confirm_missing_payment_id;
     std::unordered_set<crypto::hash> m_scanned_pool_txs[2];
+
+    size_t m_subaddress_lookahead_major, m_subaddress_lookahead_minor;
   };
 }
 BOOST_CLASS_VERSION(tools::wallet2, 19)
