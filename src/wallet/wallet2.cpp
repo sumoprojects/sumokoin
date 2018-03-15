@@ -91,9 +91,6 @@ using namespace cryptonote;
 
 #define FEE_ESTIMATE_GRACE_BLOCKS 10 // estimate fee valid for that many blocks
 
-#define SUBADDRESS_LOOKAHEAD_MAJOR 50
-#define SUBADDRESS_LOOKAHEAD_MINOR 200
-
 #define KILL_IOSERVICE()  \
     do { \
       work.reset(); \
@@ -590,33 +587,30 @@ void wallet2::expand_subaddresses(const cryptonote::subaddress_index& index)
   {
     // add new accounts
     cryptonote::subaddress_index index2;
-    for (index2.major = m_subaddress_labels.size(); index2.major < index.major + SUBADDRESS_LOOKAHEAD_MAJOR; ++index2.major)
+    for (index2.major = m_subaddress_labels.size(); index2.major < index.major + m_subaddress_lookahead_major; ++index2.major)
     {
-      for (index2.minor = 0; index2.minor < (index2.major == index.major ? index.minor : 0) + SUBADDRESS_LOOKAHEAD_MINOR; ++index2.minor)
+      const uint32_t end = (index2.major == index.major ? index.minor : 0) + m_subaddress_lookahead_minor;
+      const std::vector<crypto::public_key> pkeys = cryptonote::get_subaddress_spend_public_keys(m_account.get_keys(), index2.major, 0, end);
+      for (index2.minor = 0; index2.minor < end; ++index2.minor)
       {
-        if (m_subaddresses_inv.count(index2) == 0)
-        {
-          crypto::public_key D = get_subaddress_spend_public_key(index2);
-          m_subaddresses[D] = index2;
-          m_subaddresses_inv[index2] = D;
-        }
+         const crypto::public_key &D = pkeys[index2.minor];
+         m_subaddresses[D] = index2;
       }
     }
-    m_subaddress_labels.resize(index.major + 1, { "Untitled account" });
+    m_subaddress_labels.resize(index.major + 1, {"Untitled account"});
     m_subaddress_labels[index.major].resize(index.minor + 1);
   }
   else if (m_subaddress_labels[index.major].size() <= index.minor)
   {
     // add new subaddresses
-    cryptonote::subaddress_index index2 = index;
-    for (index2.minor = m_subaddress_labels[index.major].size(); index2.minor < index.minor + SUBADDRESS_LOOKAHEAD_MINOR; ++index2.minor)
+    const uint32_t end = index.minor + m_subaddress_lookahead_minor;
+    const uint32_t begin = m_subaddress_labels[index.major].size();
+    cryptonote::subaddress_index index2 = {index.major, begin};
+    const std::vector<crypto::public_key> pkeys = cryptonote::get_subaddress_spend_public_keys(m_account.get_keys(), index2.major, index2.minor, end);
+    for (; index2.minor < end; ++index2.minor)
     {
-      if (m_subaddresses_inv.count(index2) == 0)
-      {
-        crypto::public_key D = get_subaddress_spend_public_key(index2);
-        m_subaddresses[D] = index2;
-        m_subaddresses_inv[index2] = D;
-      }
+       const crypto::public_key &D = pkeys[index2.minor - begin];
+       m_subaddresses[D] = index2;
     }
     m_subaddress_labels[index.major].resize(index.minor + 1);
   }
