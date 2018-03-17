@@ -51,6 +51,7 @@ using namespace epee;
 #include "cryptonote_core/cryptonote_basic_impl.h"
 #include "common/boost_serialization_helper.h"
 #include "common/command_line.h"
+#include "common/threadpool.h"
 #include "profile_tools.h"
 #include "crypto/crypto.h"
 #include "serialization/binary_utils.h"
@@ -1292,6 +1293,7 @@ void wallet2::pull_blocks(uint64_t start_height, uint64_t &blocks_start_height, 
   m_daemon_rpc_mutex.lock();
   bool r = net_utils::invoke_http_bin_remote_command2(m_daemon_address + "/getblocks.bin", req, res, m_http_client, WALLET_RCP_CONNECTION_TIMEOUT);
   m_daemon_rpc_mutex.unlock();
+  
   THROW_WALLET_EXCEPTION_IF(!r, error::no_connection_to_daemon, "getblocks.bin");
   THROW_WALLET_EXCEPTION_IF(res.status == CORE_RPC_STATUS_BUSY, error::daemon_busy, "getblocks.bin");
   THROW_WALLET_EXCEPTION_IF(res.status != CORE_RPC_STATUS_OK, error::get_blocks_error, res.status);
@@ -1330,6 +1332,7 @@ void wallet2::process_blocks(uint64_t start_height, const std::list<cryptonote::
 
   THROW_WALLET_EXCEPTION_IF(blocks.size() != o_indices.size(), error::wallet_internal_error, "size mismatch");
 
+  tools::threadpool& tpool = tools::threadpool::getInstance();
   int threads = tools::get_max_concurrency();
   if (threads > 1)
   {
@@ -1342,22 +1345,15 @@ void wallet2::process_blocks(uint64_t start_height, const std::list<cryptonote::
     {
       size_t round_size = std::min((size_t)threads, blocks_size - b);
 
-      boost::asio::io_service ioservice;
-      boost::thread_group threadpool;
-      std::unique_ptr < boost::asio::io_service::work > work(new boost::asio::io_service::work(ioservice));
-      for (size_t i = 0; i < round_size; i++)
-      {
-        threadpool.create_thread(boost::bind(&boost::asio::io_service::run, &ioservice));
-      }
-
+      tools::threadpool::waiter waiter;
       std::list<block_complete_entry>::const_iterator tmpblocki = blocki;
       for (size_t i = 0; i < round_size; ++i)
       {
-        ioservice.dispatch(boost::bind(&wallet2::parse_block_round, this, std::cref(tmpblocki->block),
+        tpool.submit(&waiter, boost::bind(&wallet2::parse_block_round, this, std::cref(tmpblocki->block),
           std::ref(round_blocks[i]), std::ref(round_block_hashes[i]), std::ref(error[i])));
         ++tmpblocki;
       }
-      KILL_IOSERVICE();
+      waiter.wait();
       tmpblocki = blocki;
       for (size_t i = 0; i < round_size; ++i)
       {
@@ -1750,7 +1746,8 @@ void wallet2::refresh(uint64_t start_height, uint64_t & blocks_fetched, bool& re
   size_t try_count = 0;
   crypto::hash last_tx_hash_id = m_transfers.size() ? m_transfers.back().m_txid : null_hash;
   std::list<crypto::hash> short_chain_history;
-  boost::thread pull_thread;
+  tools::threadpool& tpool = tools::threadpool::getInstance();
+  tools::threadpool::waiter waiter;
   uint64_t blocks_start_height;
   std::list<cryptonote::block_complete_entry> blocks;
   std::vector<COMMAND_RPC_GET_BLOCKS_FAST::block_output_indices> o_indices;
@@ -1784,11 +1781,11 @@ void wallet2::refresh(uint64_t start_height, uint64_t & blocks_fetched, bool& re
       std::list<cryptonote::block_complete_entry> next_blocks;
       std::vector<cryptonote::COMMAND_RPC_GET_BLOCKS_FAST::block_output_indices> next_o_indices;
       bool error = false;
-      pull_thread = boost::thread([&]{pull_next_blocks(start_height, next_blocks_start_height, short_chain_history, blocks, next_blocks, next_o_indices, error);});
+      tpool.submit(&waiter, [&]{pull_next_blocks(start_height, next_blocks_start_height, short_chain_history, blocks, next_blocks, next_o_indices, error); });
 
       process_blocks(blocks_start_height, blocks, o_indices, added_blocks);
       blocks_fetched += added_blocks;
-      pull_thread.join();
+      waiter.wait();
       if(!added_blocks)
         break;
 
@@ -1806,8 +1803,7 @@ void wallet2::refresh(uint64_t start_height, uint64_t & blocks_fetched, bool& re
     catch (const std::exception&)
     {
       blocks_fetched += added_blocks;
-      if (pull_thread.joinable())
-        pull_thread.join();
+      waiter.wait();
       if(try_count < 3)
       {
         LOG_PRINT_L1("Another try pull_blocks (try_count=" << try_count << ")...");

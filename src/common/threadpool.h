@@ -1,21 +1,21 @@
-// Copyright (c) 2014-2016, The Monero Project
-// 
+// Copyright (c) 2017-2018, The Monero Project
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,72 +25,64 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
-
 #pragma once
 
-#include "rpc/core_rpc_server.h"
+#include <boost/thread/condition_variable.hpp>
+#include <boost/thread/mutex.hpp>
+#include <boost/thread/thread.hpp>
+#include <cstddef>
+#include <functional>
+#include <utility>
+#include <vector>
+#include <stdexcept>
 
-namespace daemonize
+namespace tools
 {
-
-class t_rpc final
+//! A global thread pool
+class threadpool
 {
 public:
-  static void init_options(boost::program_options::options_description & option_spec)
-  {
-    cryptonote::core_rpc_server::init_options(option_spec);
-  }
-private:
-  cryptonote::core_rpc_server m_server;
-public:
-  t_rpc(
-      boost::program_options::variables_map const & vm
-    , t_core & core
-    , t_p2p & p2p
-    )
-    : m_server{core.get(), p2p.get()}
-  {
-    LOG_PRINT_L0("Initializing core rpc server...");
-    if (!m_server.init(vm))
-    {
-      throw std::runtime_error("Failed to initialize core rpc server.");
-    }
-    LOG_PRINT_GREEN("Core rpc server initialized OK on port: " << m_server.get_binded_port(), LOG_LEVEL_0);
+  static threadpool& getInstance() {
+    static threadpool instance;
+    return instance;
   }
 
-  void run()
-  {
-    LOG_PRINT_L0("Starting core rpc server...");
-    if (!m_server.run(4, false))
-    {
-      throw std::runtime_error("Failed to start core rpc server.");
-    }
-    LOG_PRINT_L0("Core rpc server started ok");
-  }
+  // The waiter lets the caller know when all of its
+  // tasks are completed.
+  class waiter {
+    boost::mutex mt;
+    boost::condition_variable cv;
+    int num;
+    public:
+    void inc();
+    void dec();
+    void wait();  //! Wait for a set of tasks to finish.
+    waiter() : num(0){}
+    ~waiter();
+  };
 
-  void stop()
-  {
-    LOG_PRINT_L0("Stopping core rpc server...");
-    m_server.send_stop_signal();
-    m_server.timed_wait_server_stop(5000);
-  }
+  // Submit a task to the pool. The waiter pointer may be
+  // NULL if the caller doesn't care to wait for the
+  // task to finish.
+  void submit(waiter *waiter, std::function<void()> f);
 
-  cryptonote::core_rpc_server* get_server()
-  {
-    return &m_server;
-  }
+  int get_max_concurrency();
 
-  ~t_rpc()
-  {
-    LOG_PRINT_L0("Deinitializing rpc server...");
-    try {
-      m_server.deinit();
-    } catch (...) {
-      LOG_PRINT_L0("Failed to deinitialize rpc server...");
-    }
-  }
+  private:
+    threadpool();
+    ~threadpool();
+    typedef struct entry {
+      waiter *wo;
+      std::function<void()> f;
+    } entry;
+    std::deque<entry> queue;
+    boost::condition_variable has_work;
+    boost::mutex mutex;
+    std::vector<boost::thread> threads;
+    int active;
+    int max;
+    bool running;
+    void run();
 };
 
 }
