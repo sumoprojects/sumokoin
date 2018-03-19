@@ -1242,7 +1242,7 @@ namespace cryptonote
   {
     block b_local = b; //workaround to avoid const errors with do_serialize
     blobdata bd = get_block_hashing_blob(b);
-    crypto::cn_slow_hash(bd.data(), bd.size(), res);
+    // crypto::cn_slow_hash(bd.data(), bd.size(), res);
     return true;
   }
   //---------------------------------------------------------------
