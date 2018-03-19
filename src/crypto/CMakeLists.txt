@@ -39,7 +39,9 @@ set(crypto_sources
   keccak.c
   random.c
   skein.c
-  tree-hash.c)
+  tree-hash.c
+  cn_slow_hash_soft.cpp
+  cn_slow_hash_hard_intel.cpp)
 
 set(crypto_headers)
 
@@ -58,7 +60,8 @@ set(crypto_private_headers
   keccak.h
   random.h
   skein.h
-  skein_port.h)
+  skein_port.h
+  cn_slow_hash.hpp)
 
 sumokoin_private_headers(crypto
   ${crypto_private_headers})
