@@ -221,12 +221,14 @@ inline uint64_t _umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t* p
   return product_lo;
 }
 #else
+#if !defined(HAS_WIN_INTRIN_API)
 inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
 {
 	unsigned __int128 r = (unsigned __int128)a * (unsigned __int128)b;
 	*hi = r >> 64;
 	return (uint64_t)r;
 }
+#endif
 #endif
 
 extern "C" void blake256_hash(uint8_t*, const uint8_t*, uint64_t);

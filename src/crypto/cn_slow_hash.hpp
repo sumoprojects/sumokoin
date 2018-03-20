@@ -37,24 +37,23 @@
 #include <assert.h>
 #include <string.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+#include <malloc.h>
+#include <intrin.h>
+#define HAS_WIN_INTRIN_API
+#endif
+
 // Note HAS_INTEL_HW and future HAS_ARM_HW only mean we can emit the AES instructions
 // check CPU support for the hardware AES encryption has to be done at runtime
 #if defined(__x86_64__) || defined(__i386__) || defined(_M_X86) || defined(_M_X64)
 #ifdef __GNUC__
 #include <x86intrin.h>
-#include <cpuid.h>
 #pragma GCC target ("aes")
+#if !defined(HAS_WIN_INTRIN_API)
+#include <cpuid.h>
+#endif // !defined(HAS_WIN_INTRIN_API)
+#endif // __GNUC__
 #define HAS_INTEL_HW
-#endif
-#if defined(_MSC_VER) && !defined(__MINGW32__) && !defined(__MINGW64__)
-#include <intrin.h>
-#define HAS_INTEL_HW
-#endif
-#endif
-
-#if defined(_WIN32) || defined(_WIN64)
-#include <malloc.h>
-#define WIN_MEM_ALIGN
 #endif
 
 #ifdef HAS_INTEL_HW
@@ -65,7 +64,7 @@ inline void cpuid(uint32_t eax, int32_t ecx, int32_t val[4])
 	val[2] = 0;
 	val[3] = 0;
 
-#if defined(_MSC_VER) && !defined(__MINGW32__) && !defined(__MINGW64__)
+#if defined(HAS_WIN_INTRIN_API)
 	__cpuidex(val, eax, ecx);
 #else
 	__cpuid_count(eax, ecx, val[0], val[1], val[2], val[3]);
@@ -123,7 +122,7 @@ class cn_slow_hash
 public:
 	cn_slow_hash()
 	{
-#if !defined(WIN_MEM_ALIGN)
+#if !defined(HAS_WIN_INTRIN_API)
 		lpad.as_void = aligned_alloc(4096, MEMORY);
 		spad.as_void = aligned_alloc(4096, 4096);
 #else
@@ -193,7 +192,7 @@ private:
 	
 	inline void free_mem()
 	{
-#if !defined(WIN_MEM_ALIGN)
+#if !defined(HAS_WIN_INTRIN_API)
 		if(lpad.as_void != nullptr)
 			free(lpad.as_void);
 		if(lpad.as_void != nullptr)
