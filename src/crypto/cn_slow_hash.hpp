@@ -114,8 +114,6 @@ union cn_sptr
 #endif
 };
 
-#include <stdio.h>
-#include <signal.h>
 template<size_t MEMORY, size_t ITER>
 class cn_slow_hash
 {

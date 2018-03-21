@@ -403,9 +403,9 @@ inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
 #endif
 
 extern "C" void blake256_hash(uint8_t*, const uint8_t*, uint64_t);
-extern "C" void groestl(const uint8_t*, uint64_t, uint8_t*);
-extern "C" size_t jh_hash(int, const uint8_t*, size_t databitlen, uint8_t*);
-extern "C" size_t skein_hash(int, const uint8_t*, size_t, uint8_t*);
+extern "C" void groestl(const unsigned char*, unsigned long long, unsigned char*);
+extern "C" size_t jh_hash(int, const unsigned char*, unsigned long long, unsigned char*);
+extern "C" size_t skein_hash(int, const unsigned char*, size_t, unsigned char*);
 
 template<size_t MEMORY, size_t ITER>
 void cn_slow_hash<MEMORY,ITER>::software_hash(const void* in, size_t len, void* out)
