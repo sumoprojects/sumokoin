@@ -1238,11 +1238,12 @@ namespace cryptonote
     return true;
   }
   //---------------------------------------------------------------
-  bool get_block_longhash(const block& b, crypto::hash& res, uint64_t height)
+  bool get_block_longhash_v1(const block& b, cn_pow_hash_v1 &ctx, crypto::hash& res)
   {
     block b_local = b; //workaround to avoid const errors with do_serialize
     blobdata bd = get_block_hashing_blob(b);
-    crypto::cn_slow_hash(bd.data(), bd.size(), res);
+	ctx.hash(bd.data(), bd.size(), res.data);
+    // crypto::cn_slow_hash(bd.data(), bd.size(), res);
     return true;
   }
   //---------------------------------------------------------------
@@ -1264,13 +1265,6 @@ namespace cryptonote
       res[i] -= res[i-1];
 
     return res;
-  }
-  //---------------------------------------------------------------
-  crypto::hash get_block_longhash(const block& b, uint64_t height)
-  {
-    crypto::hash p = null_hash;
-    get_block_longhash(b, p, height);
-    return p;
   }
   //---------------------------------------------------------------
   bool parse_and_validate_block_from_blob(const blobdata& b_blob, block& b)
