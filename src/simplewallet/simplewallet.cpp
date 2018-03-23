@@ -1135,7 +1135,11 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
     bool r = open_wallet(vm);
     CHECK_AND_ASSERT_MES(r, false, tr("failed to open account"));
   }
-  assert(m_wallet);
+  if (!m_wallet)
+  {
+    fail_msg_writer() << tr("wallet is null");
+    return false;
+  }
 
   // set --trusted-daemon if local
   try
@@ -1418,9 +1422,18 @@ bool simple_wallet::open_wallet(const boost::program_options::variables_map& vm)
   catch (const std::exception& e)
   {
     fail_msg_writer() << tr("failed to load wallet: ") << e.what();
-    // only suggest removing cache if the password was actually correct
-    if (m_wallet && m_wallet->verify_password(password))
-      fail_msg_writer() << boost::format(tr("You may want to remove the file \"%s\" and try again")) % m_wallet_file;
+    if (m_wallet)
+    {
+      // only suggest removing cache if the password was actually correct
+      bool password_is_correct = false;
+      try
+      {
+        password_is_correct = m_wallet->verify_password(password);
+      }
+      catch (...) {} // guard against I/O errors
+      if (password_is_correct)
+        fail_msg_writer() << boost::format(tr("You may want to remove the file \"%s\" and try again")) % m_wallet_file;
+    }
     return false;
   }
   success_msg_writer() <<
@@ -3439,7 +3452,7 @@ bool simple_wallet::account(const std::vector<std::string> &args/* = std::vector
       label = tr("(Untitled account)");
     m_wallet->add_subaddress_account(label);
     m_current_subaddress_account = m_wallet->get_num_subaddress_accounts() - 1;
-    update_prompt();
+    //update_prompt();
     LOCK_IDLE_SCOPE();
     print_accounts();
   }
@@ -3458,7 +3471,7 @@ bool simple_wallet::account(const std::vector<std::string> &args/* = std::vector
       return true;
     }
     m_current_subaddress_account = index_major;
-    update_prompt();
+    //update_prompt();
     show_balance();
   }
   else if (command == "label" && local_args.size() >= 1)
