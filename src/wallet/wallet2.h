@@ -400,7 +400,7 @@ namespace tools
     // free block size. TODO: fix this so that it actually takes
     // into account the current median block size rather than
     // the minimum block size.
-    void init(const std::string& daemon_address = "http://localhost:8080", uint64_t upper_transaction_size_limit = 0, bool enable_ssl=false,
+    void init(const std::string& daemon_address = "http://127.0.0.1:19734", uint64_t upper_transaction_size_limit = 0, bool enable_ssl=false,
               const char* cacerts_path=nullptr);
     bool deinit();
 

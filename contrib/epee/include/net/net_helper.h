@@ -668,10 +668,10 @@ namespace net_utils
 
     void async_read(char* buff, size_t sz, boost::asio::detail::transfer_at_least_t transfer_at_least, handler_obj& hndlr)
  		{
- 			if(!m_ssl)
-        boost::asio::async_read(m_ssl_socket.next_layer(), boost::asio::buffer(buff, sizeof(buff)), transfer_at_least, hndlr);
- 			else
+ 			if(m_ssl)
         boost::asio::async_read(m_ssl_socket, boost::asio::buffer(buff, sz), transfer_at_least, hndlr);
+ 			else
+        boost::asio::async_read(m_ssl_socket.next_layer(), boost::asio::buffer(buff, sz), transfer_at_least, hndlr);
  		}
 
 	protected:
