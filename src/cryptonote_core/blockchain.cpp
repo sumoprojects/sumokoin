@@ -82,7 +82,8 @@ static const struct {
   time_t time;
 } mainnet_hard_forks[] = {
   { 1, 1, 0, 1482806500 },
-  { 2, 21300, 0, 1497657600 }
+  { 2, 21300, 0, 1497657600 },
+  { 3, 117600, 0, 1522800000 }  // April 04, 2018
 };
 static const uint64_t mainnet_hard_fork_version_1_till = (uint64_t)-1;
 
@@ -93,7 +94,8 @@ static const struct {
   time_t time;
 } testnet_hard_forks[] = {
   { 1, 1, 0, 1482806500 },
-  { 2, 5150, 0, 1497181713 }
+  { 2, 5150, 0, 1497181713 },
+  { 3, 103580, 0, 1522540800 } // April 01, 2018
 };
 static const uint64_t testnet_hard_fork_version_1_till = (uint64_t)-1;
 
