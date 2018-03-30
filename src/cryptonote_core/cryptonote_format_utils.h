@@ -150,7 +150,7 @@ namespace cryptonote
   blobdata get_block_hashing_blob(const block& b);
   bool get_block_hash(const block& b, crypto::hash& res);
   crypto::hash get_block_hash(const block& b);
-  bool get_block_longhash_v1(const block& b, cn_pow_hash_v1 &ctx, crypto::hash& res);
+  bool get_block_longhash(const block& b, cn_pow_hash_v2 &ctx, crypto::hash& res);
   bool generate_genesis_block(
       block& bl
     , std::string const & genesis_tx

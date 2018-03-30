@@ -106,88 +106,63 @@ and fitness for purpose.
 alignas(16) const uint32_t saes_table[4][256] = { saes_data(saes_u0), saes_data(saes_u1), saes_data(saes_u2), saes_data(saes_u3) };
 alignas(16) const uint8_t  saes_sbox[256] = saes_data(saes_h0);
 
-struct u32
-{
-	uint32_t x0;
-	uint32_t x1;
-	uint32_t x2;
-	uint32_t x3;
-};
-
-struct u64
-{
-	uint64_t x0;
-	uint64_t x1;
-};
-
 struct aesdata
 {
-	union
-	{
-		u32 v32;
-		u64 v64;
-	};
+	uint64_t v64x0;
+	uint64_t v64x1;
 
 	inline void load(const cn_sptr mem)
 	{
-#ifdef BUILD32
-		v32.x0 = mem.as_udword[0];
-		v32.x1 = mem.as_udword[1];
-		v32.x2 = mem.as_udword[2];
-		v32.x3 = mem.as_udword[3];
-#else
-		v64.x0 = mem.as_uqword[0];
-		v64.x1 = mem.as_uqword[1];
-#endif
+		v64x0 = mem.as_uqword(0);
+		v64x1 = mem.as_uqword(1);
 	}
 	
 	inline void xor_load(const cn_sptr mem)
 	{
-#ifdef BUILD32
-		v32.x0 ^= mem.as_udword[0];
-		v32.x1 ^= mem.as_udword[1];
-		v32.x2 ^= mem.as_udword[2];
-		v32.x3 ^= mem.as_udword[3];
-#else
-		v64.x0 ^= mem.as_uqword[0];
-		v64.x1 ^= mem.as_uqword[1];
-#endif
+		v64x0 ^= mem.as_uqword(0);
+		v64x1 ^= mem.as_uqword(1);
 	}
 	
 	inline void write(cn_sptr mem)
 	{
-#ifdef BUILD32
-		mem.as_udword[0] = v32.x0;
-		mem.as_udword[1] = v32.x1;
-		mem.as_udword[2] = v32.x2;
-		mem.as_udword[3] = v32.x3;
-#else
-		mem.as_uqword[0] = v64.x0;
-		mem.as_uqword[1] = v64.x1;
-#endif
+		mem.as_uqword(0) = v64x0;
+		mem.as_uqword(1) = v64x1;
+	}
+
+	inline aesdata& operator=(const aesdata& rhs) noexcept
+	{
+		v64x0 = rhs.v64x0;
+		v64x1 = rhs.v64x1;
+		return *this;
 	}
 
 	inline aesdata& operator^=(const aesdata& rhs) noexcept
 	{
-#ifdef BUILD32
-		v32.x0 ^= rhs.v32.x0;
-		v32.x1 ^= rhs.v32.x1;
-		v32.x2 ^= rhs.v32.x2;
-		v32.x3 ^= rhs.v32.x3;
-#else
-		v64.x0 ^= rhs.v64.x0;
-		v64.x1 ^= rhs.v64.x1;
-#endif
+		v64x0 ^= rhs.v64x0;
+		v64x1 ^= rhs.v64x1;
 		return *this;
 	}
 
 	inline aesdata& operator^=(uint32_t rhs) noexcept
 	{
-		v32.x0 ^= rhs;
-		v32.x1 ^= rhs;
-		v32.x2 ^= rhs;
-		v32.x3 ^= rhs;
+		uint64_t t = (uint64_t(rhs) << 32) | uint64_t(rhs);
+		v64x0 ^= t;
+		v64x1 ^= t;
 		return *this;
+	}
+	
+	inline void get_quad(uint32_t& x0, uint32_t& x1, uint32_t& x2, uint32_t& x3)
+	{
+		x0 = v64x0;
+		x1 = v64x0 >> 32;
+		x2 = v64x1;
+		x3 = v64x1 >> 32;
+	}
+	
+	inline void set_quad(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3)
+	{
+		v64x0 = uint64_t(x0) | uint64_t(x1) << 32;
+		v64x1 = uint64_t(x2) | uint64_t(x3) << 32;
 	}
 };
 
@@ -212,26 +187,29 @@ inline uint32_t rotr(uint32_t value, uint32_t amount)
 // sl_xor(a1 a2 a3 a4) = a1 (a2^a1) (a3^a2^a1) (a4^a3^a2^a1)
 inline void sl_xor(aesdata& x)
 {
-	x.v32.x1 ^= x.v32.x0;
-	x.v32.x2 ^= x.v32.x1;
-	x.v32.x3 ^= x.v32.x2;
+	uint32_t x0, x1, x2, x3;
+	x.get_quad(x0, x1, x2, x3);
+	x1 ^= x0;
+	x2 ^= x1;
+	x3 ^= x2;
+	x.set_quad(x0, x1, x2, x3);
 }
 
 template<uint8_t rcon>
 inline void soft_aes_genkey_sub(aesdata& xout0, aesdata&  xout2)
 {
 	sl_xor(xout0);
-	xout0 ^= rotr(sub_word(xout2.v32.x3), 8) ^ rcon;
+	xout0 ^= rotr(sub_word(xout2.v64x1 >> 32), 8) ^ rcon;
 	sl_xor(xout2);
-	xout2 ^= sub_word(xout0.v32.x3);
+	xout2 ^= sub_word(xout0.v64x1 >> 32);
 }
 
 inline void aes_genkey(const cn_sptr memory, aesdata& k0, aesdata& k1, aesdata& k2, aesdata& k3, aesdata& k4, aesdata& k5, aesdata& k6, aesdata& k7, aesdata& k8, aesdata& k9)
 {
 	aesdata xout0, xout2;
 
-	xout0.load(memory.as_uqword);
-	xout2.load(memory.as_uqword+2);
+	xout0.load(memory);
+	xout2.load(memory.offset(16));
 	k0 = xout0;
 	k1 = xout2;
 
@@ -254,11 +232,12 @@ inline void aes_genkey(const cn_sptr memory, aesdata& k0, aesdata& k1, aesdata& 
 
 inline void aes_round(aesdata& val, const aesdata& key)
 {
-	u32 v = val.v32;
-	val.v32.x3 = saes_table[0][v.x3 & 0xff] ^ saes_table[1][(v.x0 >> 8) & 0xff] ^ saes_table[2][(v.x1 >> 16) & 0xff] ^ saes_table[3][v.x2 >> 24];
-	val.v32.x2 = saes_table[0][v.x2 & 0xff] ^ saes_table[1][(v.x3 >> 8) & 0xff] ^ saes_table[2][(v.x0 >> 16) & 0xff] ^ saes_table[3][v.x1 >> 24];
-	val.v32.x1 = saes_table[0][v.x1 & 0xff] ^ saes_table[1][(v.x2 >> 8) & 0xff] ^ saes_table[2][(v.x3 >> 16) & 0xff] ^ saes_table[3][v.x0 >> 24];
-	val.v32.x0 = saes_table[0][v.x0 & 0xff] ^ saes_table[1][(v.x1 >> 8) & 0xff] ^ saes_table[2][(v.x2 >> 16) & 0xff] ^ saes_table[3][v.x3 >> 24];
+	uint32_t x0, x1, x2, x3;
+	val.get_quad(x0, x1, x2, x3);
+	val.set_quad(saes_table[0][x0 & 0xff] ^ saes_table[1][(x1 >> 8) & 0xff] ^ saes_table[2][(x2 >> 16) & 0xff] ^ saes_table[3][x3 >> 24],
+		saes_table[0][x1 & 0xff] ^ saes_table[1][(x2 >> 8) & 0xff] ^ saes_table[2][(x3 >> 16) & 0xff] ^ saes_table[3][x0 >> 24],
+		saes_table[0][x2 & 0xff] ^ saes_table[1][(x3 >> 8) & 0xff] ^ saes_table[2][(x0 >> 16) & 0xff] ^ saes_table[3][x1 >> 24],
+		saes_table[0][x3 & 0xff] ^ saes_table[1][(x0 >> 8) & 0xff] ^ saes_table[2][(x1 >> 16) & 0xff] ^ saes_table[3][x2 >> 24]);
 	val ^= key;
 }
 
@@ -274,72 +253,148 @@ inline void aes_round8(const aesdata& key, aesdata& x0, aesdata& x1, aesdata& x2
 	aes_round(x7, key);
 }
 
-template<size_t MEMORY, size_t ITER>
-void cn_slow_hash<MEMORY,ITER>::implode_scratchpad_soft()
+inline void xor_shift(aesdata& x0, aesdata& x1, aesdata& x2, aesdata& x3, aesdata& x4, aesdata& x5, aesdata& x6, aesdata& x7)
 {
-	aesdata x0, x1, x2, x3, x4, x5, x6, x7;
-	aesdata k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
-	
-	aes_genkey(spad.as_uqword + 4, k0, k1, k2, k3, k4, k5, k6, k7, k8, k9);
-
-	x0.load(spad.as_uqword + 8);
-	x1.load(spad.as_uqword + 10);
-	x2.load(spad.as_uqword + 12);
-	x3.load(spad.as_uqword + 14);
-	x4.load(spad.as_uqword + 16);
-	x5.load(spad.as_uqword + 18);
-	x6.load(spad.as_uqword + 20);
-	x7.load(spad.as_uqword + 22);
-
-	for (size_t i = 0; i < MEMORY / sizeof(uint64_t); i += 16)
-	{
-		x0.xor_load(lpad.as_uqword + i + 0);
-		x1.xor_load(lpad.as_uqword + i + 2);
-		x2.xor_load(lpad.as_uqword + i + 4);
-		x3.xor_load(lpad.as_uqword + i + 6);
-		x4.xor_load(lpad.as_uqword + i + 8);
-		x5.xor_load(lpad.as_uqword + i + 10);
-		x6.xor_load(lpad.as_uqword + i + 12);
-		x7.xor_load(lpad.as_uqword + i + 14);
-
-		aes_round8(k0, x0, x1, x2, x3, x4, x5, x6, x7);
-		aes_round8(k1, x0, x1, x2, x3, x4, x5, x6, x7);
-		aes_round8(k2, x0, x1, x2, x3, x4, x5, x6, x7);
-		aes_round8(k3, x0, x1, x2, x3, x4, x5, x6, x7);
-		aes_round8(k4, x0, x1, x2, x3, x4, x5, x6, x7);
-		aes_round8(k5, x0, x1, x2, x3, x4, x5, x6, x7);
-		aes_round8(k6, x0, x1, x2, x3, x4, x5, x6, x7);
-		aes_round8(k7, x0, x1, x2, x3, x4, x5, x6, x7);
-		aes_round8(k8, x0, x1, x2, x3, x4, x5, x6, x7);
-		aes_round8(k9, x0, x1, x2, x3, x4, x5, x6, x7);
-	}
-
-	x0.write(spad.as_uqword + 8);
-	x1.write(spad.as_uqword + 10);
-	x2.write(spad.as_uqword + 12);
-	x3.write(spad.as_uqword + 14);
-	x4.write(spad.as_uqword + 16);
-	x5.write(spad.as_uqword + 18);
-	x6.write(spad.as_uqword + 20);
-	x7.write(spad.as_uqword + 22);
+	aesdata tmp = x0;
+	x0 ^= x1;
+	x1 ^= x2;
+	x2 ^= x3;
+	x3 ^= x4;
+	x4 ^= x5;
+	x5 ^= x6;
+	x6 ^= x7;
+	x7 ^= tmp;
 }
 
-template<size_t MEMORY, size_t ITER>
-void cn_slow_hash<MEMORY,ITER>::explode_scratchpad_soft()
+template<size_t MEMORY, size_t ITER, size_t VERSION>
+void cn_slow_hash<MEMORY,ITER,VERSION>::implode_scratchpad_soft()
 {
 	aesdata x0, x1, x2, x3, x4, x5, x6, x7;
 	aesdata k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
 	
-	aes_genkey(spad.as_uqword, k0, k1, k2, k3, k4, k5, k6, k7, k8, k9);
+	aes_genkey(spad.as_uqword() + 4, k0, k1, k2, k3, k4, k5, k6, k7, k8, k9);
 
-	x0.load(spad.as_uqword + 8);
-	x1.load(spad.as_uqword + 10);
-	x2.load(spad.as_uqword + 12);
-	x3.load(spad.as_uqword + 14);
-	x4.load(spad.as_uqword + 16);
-	x5.load(spad.as_uqword + 18);
-	x6.load(spad.as_uqword + 20);
-	x7.load(spad.as_uqword + 22);
+	x0.load(spad.as_uqword() + 8);
+	x1.load(spad.as_uqword() + 10);
+	x2.load(spad.as_uqword() + 12);
+	x3.load(spad.as_uqword() + 14);
+	x4.load(spad.as_uqword() + 16);
+	x5.load(spad.as_uqword() + 18);
+	x6.load(spad.as_uqword() + 20);
+	x7.load(spad.as_uqword() + 22);
+
+	for (size_t i = 0; i < MEMORY / sizeof(uint64_t); i += 16)
+	{
+		x0.xor_load(lpad.as_uqword() + i + 0);
+		x1.xor_load(lpad.as_uqword() + i + 2);
+		x2.xor_load(lpad.as_uqword() + i + 4);
+		x3.xor_load(lpad.as_uqword() + i + 6);
+		x4.xor_load(lpad.as_uqword() + i + 8);
+		x5.xor_load(lpad.as_uqword() + i + 10);
+		x6.xor_load(lpad.as_uqword() + i + 12);
+		x7.xor_load(lpad.as_uqword() + i + 14);
+
+		aes_round8(k0, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k1, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k2, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k3, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k4, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k5, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k6, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k7, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k8, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k9, x0, x1, x2, x3, x4, x5, x6, x7);
+
+		if(VERSION > 0)
+			xor_shift(x0, x1, x2, x3, x4, x5, x6, x7);
+	}
+
+	// Note, this loop is only executed if VERSION > 0
+	for (size_t i = 0; VERSION > 0 && i < MEMORY / sizeof(uint64_t); i += 16)
+	{
+		x0.xor_load(lpad.as_uqword() + i + 0);
+		x1.xor_load(lpad.as_uqword() + i + 2);
+		x2.xor_load(lpad.as_uqword() + i + 4);
+		x3.xor_load(lpad.as_uqword() + i + 6);
+		x4.xor_load(lpad.as_uqword() + i + 8);
+		x5.xor_load(lpad.as_uqword() + i + 10);
+		x6.xor_load(lpad.as_uqword() + i + 12);
+		x7.xor_load(lpad.as_uqword() + i + 14);
+
+		aes_round8(k0, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k1, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k2, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k3, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k4, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k5, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k6, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k7, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k8, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k9, x0, x1, x2, x3, x4, x5, x6, x7);
+
+		xor_shift(x0, x1, x2, x3, x4, x5, x6, x7);
+	}
+
+	// Note, this loop is only executed if VERSION > 0
+	for (size_t i = 0; VERSION > 0 && i < 16; i++)
+	{
+		aes_round8(k0, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k1, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k2, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k3, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k4, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k5, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k6, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k7, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k8, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k9, x0, x1, x2, x3, x4, x5, x6, x7);
+
+		xor_shift(x0, x1, x2, x3, x4, x5, x6, x7);
+	}
+
+	x0.write(spad.as_uqword() + 8);
+	x1.write(spad.as_uqword() + 10);
+	x2.write(spad.as_uqword() + 12);
+	x3.write(spad.as_uqword() + 14);
+	x4.write(spad.as_uqword() + 16);
+	x5.write(spad.as_uqword() + 18);
+	x6.write(spad.as_uqword() + 20);
+	x7.write(spad.as_uqword() + 22);
+}
+
+template<size_t MEMORY, size_t ITER, size_t VERSION>
+void cn_slow_hash<MEMORY,ITER,VERSION>::explode_scratchpad_soft()
+{
+	aesdata x0, x1, x2, x3, x4, x5, x6, x7;
+	aesdata k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
+	
+	aes_genkey(spad.as_uqword(), k0, k1, k2, k3, k4, k5, k6, k7, k8, k9);
+
+	x0.load(spad.as_uqword() + 8);
+	x1.load(spad.as_uqword() + 10);
+	x2.load(spad.as_uqword() + 12);
+	x3.load(spad.as_uqword() + 14);
+	x4.load(spad.as_uqword() + 16);
+	x5.load(spad.as_uqword() + 18);
+	x6.load(spad.as_uqword() + 20);
+	x7.load(spad.as_uqword() + 22);
+
+	// Note, this loop is only executed if VERSION > 0
+	for (size_t i = 0; VERSION > 0 && i < 16; i++)
+	{
+		aes_round8(k0, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k1, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k2, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k3, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k4, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k5, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k6, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k7, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k8, x0, x1, x2, x3, x4, x5, x6, x7);
+		aes_round8(k9, x0, x1, x2, x3, x4, x5, x6, x7);
+
+		xor_shift(x0, x1, x2, x3, x4, x5, x6, x7);
+	}
 
 	for (size_t i = 0; i < MEMORY / sizeof(uint64_t); i += 16)
 	{
@@ -354,14 +409,14 @@ void cn_slow_hash<MEMORY,ITER>::explode_scratchpad_soft()
 		aes_round8(k8, x0, x1, x2, x3, x4, x5, x6, x7);
 		aes_round8(k9, x0, x1, x2, x3, x4, x5, x6, x7);
 
-		x0.write(lpad.as_uqword + i + 0);
-		x1.write(lpad.as_uqword + i + 2);
-		x2.write(lpad.as_uqword + i + 4);
-		x3.write(lpad.as_uqword + i + 6);
-		x4.write(lpad.as_uqword + i + 8);
-		x5.write(lpad.as_uqword + i + 10);
-		x6.write(lpad.as_uqword + i + 12);
-		x7.write(lpad.as_uqword + i + 14);
+		x0.write(lpad.as_uqword() + i + 0);
+		x1.write(lpad.as_uqword() + i + 2);
+		x2.write(lpad.as_uqword() + i + 4);
+		x3.write(lpad.as_uqword() + i + 6);
+		x4.write(lpad.as_uqword() + i + 8);
+		x5.write(lpad.as_uqword() + i + 10);
+		x6.write(lpad.as_uqword() + i + 12);
+		x7.write(lpad.as_uqword() + i + 14);
 	}
 }
 
@@ -407,83 +462,101 @@ extern "C" void groestl(const unsigned char*, unsigned long long, unsigned char*
 extern "C" size_t jh_hash(int, const unsigned char*, unsigned long long, unsigned char*);
 extern "C" size_t skein_hash(int, const unsigned char*, size_t, unsigned char*);
 
-template<size_t MEMORY, size_t ITER>
-void cn_slow_hash<MEMORY,ITER>::software_hash(const void* in, size_t len, void* out)
+template<size_t MEMORY, size_t ITER, size_t VERSION>
+void cn_slow_hash<MEMORY,ITER,VERSION>::software_hash(const void* in, size_t len, void* out)
 {
-	keccak((const uint8_t *)in, len, spad.as_byte, 200);
+	keccak((const uint8_t *)in, len, spad.as_byte(), 200);
 
 	explode_scratchpad_soft();
 	
-	uint64_t* h0 = spad.as_uqword;
+	uint64_t* h0 = spad.as_uqword();
 
 	aesdata ax;
-	ax.v64.x0 = h0[0] ^ h0[4];
-	ax.v64.x1 = h0[1] ^ h0[5];
+	ax.v64x0 = h0[0] ^ h0[4];
+	ax.v64x1 = h0[1] ^ h0[5];
 
 	aesdata bx;
-	bx.v64.x0 = h0[2] ^ h0[6];
-	bx.v64.x1 = h0[3] ^ h0[7];
+	bx.v64x0 = h0[2] ^ h0[6];
+	bx.v64x1 = h0[3] ^ h0[7];
 
 	aesdata cx;
-	cx.v64.x0 = 0;
-	cx.v64.x1 = 0;
-
+	cn_sptr idx = scratchpad_ptr(ax.v64x0);
+	
 	for(size_t i = 0; i < ITER/2; i++)
 	{
 		uint64_t hi, lo;
-		
-		ax ^= cx;
-		cx.load(scratchpad_ptr(ax.v64.x0));
+		cx.load(idx);
 
 		aes_round(cx, ax);
 
 		bx ^= cx;
-		bx.write(scratchpad_ptr(ax.v64.x0));
+		bx.write(idx);
+		idx = scratchpad_ptr(cx.v64x0);
+		bx.load(idx);
 
-		bx.load(scratchpad_ptr(cx.v64.x0));
+		lo = _umul128(cx.v64x0, bx.v64x0, &hi);
 
-		lo = _umul128(cx.v64.x0, bx.v64.x0, &hi);
-
-		ax.v64.x0 += hi;
-		ax.v64.x1 += lo;
-		ax.write(scratchpad_ptr(cx.v64.x0));
+		ax.v64x0 += hi;
+		ax.v64x1 += lo;
+		ax.write(idx);
 
 		ax ^= bx;
-		bx.load(scratchpad_ptr(ax.v64.x0));
+		idx = scratchpad_ptr(ax.v64x0);
+		if(VERSION > 0)
+		{
+			int64_t n  = idx.as_qword(0);
+			int32_t d  = idx.as_dword(2);
+			int64_t q = n / (d | 5);
+			idx.as_qword(0) = n ^ q;
+			idx = scratchpad_ptr(d ^ q);
+		}
+
+		bx.load(idx);
 
 		aes_round(bx, ax);
-		
+
 		cx ^= bx;
-		cx.write(scratchpad_ptr(ax.v64.x0));
+		cx.write(idx);
+		idx = scratchpad_ptr(bx.v64x0);
+		cx.load(idx);
 
-		cx.load(scratchpad_ptr(bx.v64.x0));
+		lo = _umul128(bx.v64x0, cx.v64x0, &hi);
 
-		lo = _umul128(bx.v64.x0, cx.v64.x0, &hi);
-
-		ax.v64.x0 += hi;
-		ax.v64.x1 += lo;
-		ax.write(scratchpad_ptr(bx.v64.x0));
+		ax.v64x0 += hi;
+		ax.v64x1 += lo;
+		ax.write(idx);
+		ax ^= cx;
+		idx = scratchpad_ptr(ax.v64x0);
+		if(VERSION > 0)
+		{
+			int64_t n  = idx.as_qword(0); // read bytes 0 - 7
+			int32_t d  = idx.as_dword(2); // read bytes 8 - 11
+			int64_t q = n / (d | 5);
+			idx.as_qword(0) = n ^ q;
+			idx = scratchpad_ptr(d ^ q);
+		}
 	}
 
 	implode_scratchpad_soft();
 
-	keccakf(spad.as_uqword, 24);
+	keccakf(spad.as_uqword(), 24);
 
-	switch(spad.as_byte[0] & 3)
+	switch(spad.as_byte(0) & 3)
 	{
 	case 0:
-		blake256_hash((uint8_t*)out, spad.as_byte, 200);
+		blake256_hash((uint8_t*)out, spad.as_byte(), 200);
 		break;
 	case 1:
-		groestl(spad.as_byte, 200 * 8, (uint8_t*)out);
+		groestl(spad.as_byte(), 200 * 8, (uint8_t*)out);
 		break;
 	case 2:
-		jh_hash(32 * 8, spad.as_byte, 8 * 200, (uint8_t*)out);
+		jh_hash(32 * 8, spad.as_byte(), 8 * 200, (uint8_t*)out);
 		break;
 	case 3:
-		skein_hash(8 * 32, spad.as_byte, 8 * 200, (uint8_t*)out);
+		skein_hash(8 * 32, spad.as_byte(), 8 * 200, (uint8_t*)out);
 		break;
 	}
 }
 
-template class cn_slow_hash<2*1024*1024, 0x80000>;
+template class cn_slow_hash<2*1024*1024, 0x80000, 0>;
+template class cn_slow_hash<4*1024*1024, 0x40000, 1>;

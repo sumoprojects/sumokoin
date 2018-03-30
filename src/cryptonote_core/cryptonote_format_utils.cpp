@@ -1230,21 +1230,28 @@ namespace cryptonote
     string_tools::parse_hexstr_to_binbuff(genesis_coinbase_tx_hex, tx_bl);
     bool r = parse_and_validate_tx_from_blob(tx_bl, bl.miner_tx);
     CHECK_AND_ASSERT_MES(r, false, "failed to parse coinbase tx from hard coded blob");
-    bl.major_version = CURRENT_BLOCK_MAJOR_VERSION;
-    bl.minor_version = CURRENT_BLOCK_MINOR_VERSION;
+    bl.major_version = 1;
+    bl.minor_version = 1;
     bl.timestamp = 0;
     bl.nonce = nonce;
     miner::find_nonce_for_given_block(bl, 1, 0);
     return true;
   }
   //---------------------------------------------------------------
-  bool get_block_longhash_v1(const block& b, cn_pow_hash_v1 &ctx, crypto::hash& res)
+  bool get_block_longhash(const block& b, cn_pow_hash_v2 &ctx, crypto::hash& res)
   {
-    block b_local = b; //workaround to avoid const errors with do_serialize
-    blobdata bd = get_block_hashing_blob(b);
-	ctx.hash(bd.data(), bd.size(), res.data);
-    // crypto::cn_slow_hash(bd.data(), bd.size(), res);
-    return true;
+	block b_local = b; //workaround to avoid const errors with do_serialize
+	blobdata bd = get_block_hashing_blob(b);
+	if(b_local.major_version < CRYPTONOTE_V2_POW_BLOCK_VERSION)
+	{
+		cn_pow_hash_v1 ctx_v1 = cn_pow_hash_v1::make_borrowed(ctx);
+		ctx_v1.hash(bd.data(), bd.size(), res.data);
+	}
+	else
+	{
+		ctx.hash(bd.data(), bd.size(), res.data);
+	}
+	return true;
   }
   //---------------------------------------------------------------
   std::vector<uint64_t> relative_output_offsets_to_absolute(const std::vector<uint64_t>& off)
