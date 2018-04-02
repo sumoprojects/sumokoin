@@ -83,7 +83,7 @@ static const struct {
 } mainnet_hard_forks[] = {
   { 1, 1, 0, 1482806500 },
   { 2, 21300, 0, 1497657600 },
-  { 3, 117600, 0, 1522800000 }  // April 04, 2018
+  { 3, 116520, 0, 1522800000 }
 };
 static const uint64_t mainnet_hard_fork_version_1_till = (uint64_t)-1;
 
