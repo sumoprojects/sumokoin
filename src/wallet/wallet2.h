@@ -423,6 +423,15 @@ namespace tools
      */
     void set_seed_language(const std::string &language);
 
+    /*!
+    * \brief Gets the cacerts path
+    */
+    const char* get_cacerts_path() const;
+    /*!
+    * \brief Sets the cacerts path
+    */
+    void set_cacerts_path(const std::string &cacerts_path);
+
     // Subaddress scheme
     cryptonote::account_public_address get_subaddress(const cryptonote::subaddress_index& index) const;
     crypto::public_key get_subaddress_spend_public_key(const cryptonote::subaddress_index& index) const;
@@ -726,6 +735,7 @@ namespace tools
     i_wallet2_callback* m_callback;
     bool m_testnet;
     bool m_restricted;
+    std::string m_cacerts_path; /* Path to SSL CA Cerificates*/
     std::string seed_language; /*!< Language of the mnemonics (seed). */
     bool is_old_file_format; /*!< Whether the wallet file is of an old file format */
     bool m_watch_only; /*!< no spend key */

@@ -111,6 +111,8 @@ struct options {
   const command_line::arg_descriptor<int> daemon_port = {"daemon-port", tools::wallet2::tr("Use daemon instance at port <arg> instead of 19733"), 0};
   const command_line::arg_descriptor<bool> testnet = {"testnet", tools::wallet2::tr("For testnet. Daemon must also be launched with --testnet flag"), false};
   const command_line::arg_descriptor<bool> restricted = {"restricted-rpc", tools::wallet2::tr("Restricts to view-only commands"), false};
+  const command_line::arg_descriptor<bool> enable_ssl = { "enable-ssl", tools::wallet2::tr("Enable SSL for connection to daemon"), false };
+  const command_line::arg_descriptor<std::string> cacerts_path = { "cacerts-path", tools::wallet2::tr("Path to (SSL) CA certificates"), "" };
 };
 
 void do_prepare_file_names(const std::string& file_path, std::string& keys_file, std::string& wallet_file)
@@ -142,10 +144,17 @@ std::unique_ptr<tools::wallet2> make_basic(const boost::program_options::variabl
 {
   const bool testnet = command_line::get_arg(vm, opts.testnet);
   const bool restricted = command_line::get_arg(vm, opts.restricted);
+  const bool enable_ssl = command_line::get_arg(vm, opts.enable_ssl);
 
   auto daemon_address = command_line::get_arg(vm, opts.daemon_address);
   auto daemon_host = command_line::get_arg(vm, opts.daemon_host);
   auto daemon_port = command_line::get_arg(vm, opts.daemon_port);
+  auto cacerts_path = command_line::get_arg(vm, opts.cacerts_path);
+
+  if (enable_ssl)
+  {
+    LOG_PRINT_L2("SSL enabled with CA certs path: [" << (!cacerts_path.empty() ? cacerts_path : "OS default") << "]");
+  }
 
   if (!daemon_address.empty() && !daemon_host.empty() && 0 != daemon_port)
   {
@@ -165,7 +174,9 @@ std::unique_ptr<tools::wallet2> make_basic(const boost::program_options::variabl
     daemon_address = std::string("http://") + daemon_host + ":" + std::to_string(daemon_port);
 
   std::unique_ptr<tools::wallet2> wallet(new tools::wallet2(testnet, restricted));
-  wallet->init(daemon_address);
+  wallet->set_cacerts_path(cacerts_path);
+  wallet->init(daemon_address, 0, enable_ssl, wallet->get_cacerts_path());
+
   return wallet;
 }
 
@@ -414,6 +425,8 @@ void wallet2::init_options(boost::program_options::options_description& desc_par
   command_line::add_arg(desc_params, opts.daemon_port);
   command_line::add_arg(desc_params, opts.testnet);
   command_line::add_arg(desc_params, opts.restricted);
+  command_line::add_arg(desc_params, opts.enable_ssl);
+  command_line::add_arg(desc_params, opts.cacerts_path);
 }
 
 boost::optional<password_container> wallet2::password_prompt(const bool new_password)
@@ -513,6 +526,22 @@ const std::string &wallet2::get_seed_language() const
 void wallet2::set_seed_language(const std::string &language)
 {
   seed_language = language;
+}
+
+/*!
+* \brief Gets cacerts path
+*/
+const char* wallet2::get_cacerts_path() const
+{
+  return m_cacerts_path.empty() ? nullptr : m_cacerts_path.c_str();
+}
+/*!
+* \brief Sets cacerts path
+* \param cacerts_path to set to
+*/
+void wallet2::set_cacerts_path(const std::string &cacerts_path)
+{
+  m_cacerts_path = cacerts_path;
 }
 //----------------------------------------------------------------------------------------------------
 cryptonote::account_public_address wallet2::get_subaddress(const cryptonote::subaddress_index& index) const
