@@ -44,7 +44,7 @@
 #define HAS_WIN_INTRIN_API
 #endif
 
-// Note HAS_INTEL_HW and future HAS_ARM_HW only mean we can emit the AES instructions
+// Note HAS_INTEL_HW and HAS_ARM_HW only mean we can emit the AES instructions
 // check CPU support for the hardware AES encryption has to be done at runtime
 #if defined(__x86_64__) || defined(__i386__) || defined(_M_X86) || defined(_M_X64)
 #ifdef __GNUC__
@@ -55,6 +55,14 @@
 #endif // !defined(HAS_WIN_INTRIN_API)
 #endif // __GNUC__
 #define HAS_INTEL_HW
+#endif
+
+#if defined(__aarch64__)
+#pragma GCC target ("+crypto")
+#include <sys/auxv.h>
+#include <asm/hwcap.h>
+#include <arm_neon.h>
+#define HAS_ARM_HW
 #endif
 
 #ifdef HAS_INTEL_HW
@@ -83,7 +91,7 @@ inline bool hw_check_aes()
 #ifdef HAS_ARM_HW
 inline bool hw_check_aes()
 {
-	return false;
+	return (getauxval(AT_HWCAP) & HWCAP_AES) != 0;
 }
 #endif
 
