@@ -1714,7 +1714,7 @@ void wallet2::fast_refresh(uint64_t stop_height, uint64_t &blocks_start_height, 
       }
     }
     current_index = blocks_start_height;
-    BOOST_FOREACH(auto& bl_id, hashes)
+    for (auto& bl_id : hashes)
     {
       if(current_index >= m_blockchain.size())
       {
@@ -1729,11 +1729,11 @@ void wallet2::fast_refresh(uint64_t stop_height, uint64_t &blocks_start_height, 
           m_callback->on_new_block(current_index, dummy);
         }
       }
-      else if(bl_id != m_blockchain[current_index])
+      /*else if(bl_id != m_blockchain[current_index])
       {
         //split detected here !!!
         return;
-      }
+      }*/
       ++current_index;
       if (current_index >= stop_height)
         return;
@@ -1810,13 +1810,24 @@ void wallet2::refresh(uint64_t start_height, uint64_t & blocks_fetched, bool& re
       std::list<cryptonote::block_complete_entry> next_blocks;
       std::vector<cryptonote::COMMAND_RPC_GET_BLOCKS_FAST::block_output_indices> next_o_indices;
       bool error = false;
+      if (blocks.empty())
+      {
+        break;
+      }
+
       tpool.submit(&waiter, [&]{pull_next_blocks(start_height, next_blocks_start_height, short_chain_history, blocks, next_blocks, next_o_indices, error); });
 
       process_blocks(blocks_start_height, blocks, o_indices, added_blocks);
       blocks_fetched += added_blocks;
       waiter.wait();
+      
       if(!added_blocks)
         break;
+      
+      if (blocks_start_height == next_blocks_start_height)
+      {
+        break;
+      }
 
       // switch to the new blocks from the daemon
       blocks_start_height = next_blocks_start_height;
@@ -2272,14 +2283,14 @@ crypto::secret_key wallet2::generate(const std::string& wallet_, const std::stri
   if(m_refresh_from_block_height == 0 && !recover){
     // Wallets created offline don't know blockchain height.
     // Set blockchain height calculated from current date/time
-    // -1 month for fluctuations in block time and machine date/time setup.
+    // -1 week for fluctuations in block time and machine date/time setup.
     // avg seconds per block
     const int seconds_per_block = DIFFICULTY_TARGET;
-    // ~num blocks per month
-    const uint64_t blocks_per_month = 60*60*24*30/seconds_per_block;
+    // ~num blocks per week
+    const uint64_t blocks_per_week = 60*60*24*7/seconds_per_block;
     uint64_t approx_blockchain_height = get_approximate_blockchain_height();
     if(approx_blockchain_height > 0) {
-      m_refresh_from_block_height = approx_blockchain_height - blocks_per_month;
+      m_refresh_from_block_height = approx_blockchain_height - blocks_per_week;
     }
   }
   bool r = store_keys(m_keys_file, password, false);
@@ -5009,14 +5020,17 @@ uint64_t wallet2::get_daemon_blockchain_target_height(string &err)
 uint64_t wallet2::get_approximate_blockchain_height() const
 {
   if (m_testnet) return 0;
-  // time of v2 fork
-  const time_t fork_time = 1458748658;
-  // v2 fork block
-  const uint64_t fork_block = 1009827;
+  // time of v3 fork
+  const time_t fork_time = 1522881180;
+  // v3 fork block
+  const uint64_t fork_block = 116520;
   // avg seconds per block
   const int seconds_per_block = DIFFICULTY_TARGET;
   // Calculated blockchain height
-  uint64_t approx_blockchain_height = fork_block + (time(NULL) - fork_time)/seconds_per_block;
+  time_t current_time = time(NULL);
+  if (current_time <= 0) 
+    current_time = fork_time;
+  uint64_t approx_blockchain_height = fork_block + (current_time - fork_time) / seconds_per_block;
   LOG_PRINT_L2("Calculated blockchain height: " << approx_blockchain_height);
   return approx_blockchain_height;
 }
