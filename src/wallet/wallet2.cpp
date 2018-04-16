@@ -774,7 +774,12 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
     int threads = tools::get_max_concurrency();
     const cryptonote::account_keys& keys = m_account.get_keys();
     crypto::key_derivation derivation;
-    generate_key_derivation(tx_pub_key, keys.m_view_secret_key, derivation);
+    if (!generate_key_derivation(tx_pub_key, keys.m_view_secret_key, derivation))
+    {
+      LOG_PRINT_L2("Failed to generate key derivation from tx pubkey, skipping");
+      static_assert(sizeof(derivation) == sizeof(rct::key), "Mismatched sizes of key_derivation and rct::key");
+      memcpy(&derivation, rct::identity().bytes, sizeof(derivation));
+    }
 
     // additional tx pubkeys and derivations for multi-destination transfers involving one or more subaddresses
     std::vector<crypto::public_key> additional_tx_pub_keys = get_additional_tx_pub_keys_from_extra(tx);
@@ -782,7 +787,10 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
     for (size_t i = 0; i < additional_tx_pub_keys.size(); ++i)
     {
       additional_derivations.push_back({});
-      generate_key_derivation(additional_tx_pub_keys[i], keys.m_view_secret_key, additional_derivations.back());
+      if (!generate_key_derivation(additional_tx_pub_keys[i], keys.m_view_secret_key, additional_derivations.back())){
+        LOG_PRINT_L2("Failed to generate key derivation from tx pubkey, skipping");
+        additional_derivations.pop_back();
+      }
     }
 
     if (miner_tx && m_refresh_type == RefreshNoCoinbase)
