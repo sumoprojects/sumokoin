@@ -1690,8 +1690,7 @@ void wallet2::fast_refresh(uint64_t stop_height, uint64_t &blocks_start_height, 
 {
   std::list<crypto::hash> hashes;
   size_t current_index = m_blockchain.size();
-
-  while(m_run.load(std::memory_order_relaxed) && current_index < stop_height)
+  while (m_run.load(std::memory_order_relaxed) && current_index < stop_height)
   {
     pull_hashes(0, blocks_start_height, short_chain_history, hashes);
     if (hashes.size() < 3)
@@ -1729,11 +1728,11 @@ void wallet2::fast_refresh(uint64_t stop_height, uint64_t &blocks_start_height, 
           m_callback->on_new_block(current_index, dummy);
         }
       }
-      /*else if(bl_id != m_blockchain[current_index])
+      else if(bl_id != m_blockchain[current_index])
       {
         //split detected here !!!
         return;
-      }*/
+      }
       ++current_index;
       if (current_index >= stop_height)
         return;
