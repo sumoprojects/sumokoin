@@ -11,6 +11,8 @@ Portions Copyright (c) 2012-2013, The Cryptonote developers
 - Web: [www.sumokoin.org](https://www.sumokoin.org)
 - Mail: [contact@sumokoin.org](mailto:contact@sumokoin.org)
 
+Please note that code is developed on the [dev branch](https://github.com/sumoprojects/sumokoin/tree/dev), if you want to check out the latest updates, before they are merged on main branch, please refer there. Master branch will always point to a version that we consider stable, so you can download the code by simply typing `git clone https://github.com/sumoprojects/sumokoin.git`
+
 ## Introduction
 
 Sumokoin (スモコイン in Japanese) is a fork from Monero, one of the most respectable cryptocurrency well-known for **security, privacy, untraceability** and **active development**. Starting as an educational project, we found that it would be great to create a new coin with high level of privacy by (1) moving forward right away to **Ring Confidential Transactions (RingCT)**, (2) setting **minimum transaction _mixin_ to 12** that would greatly reduce chance of being attacked, traced or identified by (blockchain) statistical analysis.

@@ -111,6 +111,8 @@ struct options {
   const command_line::arg_descriptor<int> daemon_port = {"daemon-port", tools::wallet2::tr("Use daemon instance at port <arg> instead of 19733"), 0};
   const command_line::arg_descriptor<bool> testnet = {"testnet", tools::wallet2::tr("For testnet. Daemon must also be launched with --testnet flag"), false};
   const command_line::arg_descriptor<bool> restricted = {"restricted-rpc", tools::wallet2::tr("Restricts to view-only commands"), false};
+  const command_line::arg_descriptor<bool> enable_ssl = { "enable-ssl", tools::wallet2::tr("Enable SSL for connection to daemon"), false };
+  const command_line::arg_descriptor<std::string> cacerts_path = { "cacerts-path", tools::wallet2::tr("Path to (SSL) CA certificates"), "" };
 };
 
 void do_prepare_file_names(const std::string& file_path, std::string& keys_file, std::string& wallet_file)
@@ -142,10 +144,17 @@ std::unique_ptr<tools::wallet2> make_basic(const boost::program_options::variabl
 {
   const bool testnet = command_line::get_arg(vm, opts.testnet);
   const bool restricted = command_line::get_arg(vm, opts.restricted);
+  const bool enable_ssl = command_line::get_arg(vm, opts.enable_ssl);
 
   auto daemon_address = command_line::get_arg(vm, opts.daemon_address);
   auto daemon_host = command_line::get_arg(vm, opts.daemon_host);
   auto daemon_port = command_line::get_arg(vm, opts.daemon_port);
+  auto cacerts_path = command_line::get_arg(vm, opts.cacerts_path);
+
+  if (enable_ssl)
+  {
+    LOG_PRINT_L2("SSL enabled with CA certs path: [" << (!cacerts_path.empty() ? cacerts_path : "OS default") << "]");
+  }
 
   if (!daemon_address.empty() && !daemon_host.empty() && 0 != daemon_port)
   {
@@ -165,7 +174,9 @@ std::unique_ptr<tools::wallet2> make_basic(const boost::program_options::variabl
     daemon_address = std::string("http://") + daemon_host + ":" + std::to_string(daemon_port);
 
   std::unique_ptr<tools::wallet2> wallet(new tools::wallet2(testnet, restricted));
-  wallet->init(daemon_address);
+  wallet->set_cacerts_path(cacerts_path);
+  wallet->init(daemon_address, 0, enable_ssl, wallet->get_cacerts_path());
+
   return wallet;
 }
 
@@ -414,6 +425,8 @@ void wallet2::init_options(boost::program_options::options_description& desc_par
   command_line::add_arg(desc_params, opts.daemon_port);
   command_line::add_arg(desc_params, opts.testnet);
   command_line::add_arg(desc_params, opts.restricted);
+  command_line::add_arg(desc_params, opts.enable_ssl);
+  command_line::add_arg(desc_params, opts.cacerts_path);
 }
 
 boost::optional<password_container> wallet2::password_prompt(const bool new_password)
@@ -513,6 +526,22 @@ const std::string &wallet2::get_seed_language() const
 void wallet2::set_seed_language(const std::string &language)
 {
   seed_language = language;
+}
+
+/*!
+* \brief Gets cacerts path
+*/
+const char* wallet2::get_cacerts_path() const
+{
+  return m_cacerts_path.empty() ? nullptr : m_cacerts_path.c_str();
+}
+/*!
+* \brief Sets cacerts path
+* \param cacerts_path to set to
+*/
+void wallet2::set_cacerts_path(const std::string &cacerts_path)
+{
+  m_cacerts_path = cacerts_path;
 }
 //----------------------------------------------------------------------------------------------------
 cryptonote::account_public_address wallet2::get_subaddress(const cryptonote::subaddress_index& index) const
@@ -745,7 +774,12 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
     int threads = tools::get_max_concurrency();
     const cryptonote::account_keys& keys = m_account.get_keys();
     crypto::key_derivation derivation;
-    generate_key_derivation(tx_pub_key, keys.m_view_secret_key, derivation);
+    if (!generate_key_derivation(tx_pub_key, keys.m_view_secret_key, derivation))
+    {
+      LOG_PRINT_L2("Failed to generate key derivation from tx pubkey, skipping");
+      static_assert(sizeof(derivation) == sizeof(rct::key), "Mismatched sizes of key_derivation and rct::key");
+      memcpy(&derivation, rct::identity().bytes, sizeof(derivation));
+    }
 
     // additional tx pubkeys and derivations for multi-destination transfers involving one or more subaddresses
     std::vector<crypto::public_key> additional_tx_pub_keys = get_additional_tx_pub_keys_from_extra(tx);
@@ -753,7 +787,10 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
     for (size_t i = 0; i < additional_tx_pub_keys.size(); ++i)
     {
       additional_derivations.push_back({});
-      generate_key_derivation(additional_tx_pub_keys[i], keys.m_view_secret_key, additional_derivations.back());
+      if (!generate_key_derivation(additional_tx_pub_keys[i], keys.m_view_secret_key, additional_derivations.back())){
+        LOG_PRINT_L2("Failed to generate key derivation from tx pubkey, skipping");
+        additional_derivations.pop_back();
+      }
     }
 
     if (miner_tx && m_refresh_type == RefreshNoCoinbase)
@@ -1236,11 +1273,11 @@ void wallet2::process_new_blockchain_entry(const cryptonote::block& b, const cry
       ++idx;
     }
     TIME_MEASURE_FINISH(txs_handle_time);
-    LOG_PRINT_L2("Processed block: " << bl_id << ", height " << height << ", " <<  miner_tx_handle_time + txs_handle_time << "(" << miner_tx_handle_time << "/" << txs_handle_time <<")ms");
+    LOG_PRINT_L1("Processed block: " << bl_id << ", height " << height << ", " <<  miner_tx_handle_time + txs_handle_time << "(" << miner_tx_handle_time << "/" << txs_handle_time <<")ms");
   }else
   {
     if (!(height % 100))
-      LOG_PRINT_L2( "Skipped block by timestamp, height: " << height << ", block time " << b.timestamp << ", account time " << m_account.get_createtime());
+      LOG_PRINT_L1( "Skipped block by timestamp, height: " << height << ", block time " << b.timestamp << ", account time " << m_account.get_createtime());
   }
   m_blockchain.push_back(bl_id);
   ++m_local_bc_height;
@@ -1661,8 +1698,7 @@ void wallet2::fast_refresh(uint64_t stop_height, uint64_t &blocks_start_height, 
 {
   std::list<crypto::hash> hashes;
   size_t current_index = m_blockchain.size();
-
-  while(m_run.load(std::memory_order_relaxed) && current_index < stop_height)
+  while (m_run.load(std::memory_order_relaxed) && current_index < stop_height)
   {
     pull_hashes(0, blocks_start_height, short_chain_history, hashes);
     if (hashes.size() < 3)
@@ -1685,12 +1721,12 @@ void wallet2::fast_refresh(uint64_t stop_height, uint64_t &blocks_start_height, 
       }
     }
     current_index = blocks_start_height;
-    BOOST_FOREACH(auto& bl_id, hashes)
+    for (auto& bl_id : hashes)
     {
       if(current_index >= m_blockchain.size())
       {
         if (!(current_index % 1000))
-          LOG_PRINT_L2( "Skipped block by height: " << current_index);
+          LOG_PRINT_L1( "Skipped block by height: " << current_index);
         m_blockchain.push_back(bl_id);
         ++m_local_bc_height;
 
@@ -1781,13 +1817,24 @@ void wallet2::refresh(uint64_t start_height, uint64_t & blocks_fetched, bool& re
       std::list<cryptonote::block_complete_entry> next_blocks;
       std::vector<cryptonote::COMMAND_RPC_GET_BLOCKS_FAST::block_output_indices> next_o_indices;
       bool error = false;
+      if (blocks.empty())
+      {
+        break;
+      }
+
       tpool.submit(&waiter, [&]{pull_next_blocks(start_height, next_blocks_start_height, short_chain_history, blocks, next_blocks, next_o_indices, error); });
 
       process_blocks(blocks_start_height, blocks, o_indices, added_blocks);
       blocks_fetched += added_blocks;
       waiter.wait();
+      
       if(!added_blocks)
         break;
+      
+      if (blocks_start_height == next_blocks_start_height)
+      {
+        break;
+      }
 
       // switch to the new blocks from the daemon
       blocks_start_height = next_blocks_start_height;
@@ -2243,14 +2290,14 @@ crypto::secret_key wallet2::generate(const std::string& wallet_, const std::stri
   if(m_refresh_from_block_height == 0 && !recover){
     // Wallets created offline don't know blockchain height.
     // Set blockchain height calculated from current date/time
-    // -1 month for fluctuations in block time and machine date/time setup.
+    // -1 week for fluctuations in block time and machine date/time setup.
     // avg seconds per block
     const int seconds_per_block = DIFFICULTY_TARGET;
-    // ~num blocks per month
-    const uint64_t blocks_per_month = 60*60*24*30/seconds_per_block;
+    // ~num blocks per week
+    const uint64_t blocks_per_week = 60*60*24*7/seconds_per_block;
     uint64_t approx_blockchain_height = get_approximate_blockchain_height();
     if(approx_blockchain_height > 0) {
-      m_refresh_from_block_height = approx_blockchain_height - blocks_per_month;
+      m_refresh_from_block_height = approx_blockchain_height - blocks_per_week;
     }
   }
   bool r = store_keys(m_keys_file, password, false);
@@ -4980,14 +5027,17 @@ uint64_t wallet2::get_daemon_blockchain_target_height(string &err)
 uint64_t wallet2::get_approximate_blockchain_height() const
 {
   if (m_testnet) return 0;
-  // time of v2 fork
-  const time_t fork_time = 1458748658;
-  // v2 fork block
-  const uint64_t fork_block = 1009827;
+  // time of v3 fork
+  const time_t fork_time = 1522881180;
+  // v3 fork block
+  const uint64_t fork_block = 116520;
   // avg seconds per block
   const int seconds_per_block = DIFFICULTY_TARGET;
   // Calculated blockchain height
-  uint64_t approx_blockchain_height = fork_block + (time(NULL) - fork_time)/seconds_per_block;
+  time_t current_time = time(NULL);
+  if (current_time <= 0) 
+    current_time = fork_time;
+  uint64_t approx_blockchain_height = fork_block + (current_time - fork_time) / seconds_per_block;
   LOG_PRINT_L2("Calculated blockchain height: " << approx_blockchain_height);
   return approx_blockchain_height;
 }

@@ -3452,7 +3452,7 @@ bool simple_wallet::account(const std::vector<std::string> &args/* = std::vector
       label = tr("(Untitled account)");
     m_wallet->add_subaddress_account(label);
     m_current_subaddress_account = m_wallet->get_num_subaddress_accounts() - 1;
-    //update_prompt();
+    update_prompt();
     LOCK_IDLE_SCOPE();
     print_accounts();
   }
@@ -3471,7 +3471,7 @@ bool simple_wallet::account(const std::vector<std::string> &args/* = std::vector
       return true;
     }
     m_current_subaddress_account = index_major;
-    //update_prompt();
+    update_prompt();
     show_balance();
   }
   else if (command == "label" && local_args.size() >= 1)
@@ -4164,7 +4164,8 @@ int main(int argc, char* argv[])
   }
 
   cryptonote::simple_wallet w;
-  w.init(*vm);
+  if (!w.init(*vm))
+	  return 1;
 
   std::vector<std::string> command = command_line::get_arg(*vm, arg_command);
   if (!command.empty())
