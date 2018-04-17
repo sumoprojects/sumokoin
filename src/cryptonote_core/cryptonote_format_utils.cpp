@@ -741,7 +741,7 @@ namespace cryptonote
     uint64_t summary_outs_money = 0;
     //fill outputs
     size_t output_index = 0;
-    BOOST_FOREACH(const tx_destination_entry& dst_entr,  destinations)
+    BOOST_FOREACH(const tx_destination_entry& dst_entr, shuffled_dsts)
     {
       CHECK_AND_ASSERT_MES(dst_entr.amount > 0 || tx.version > 1, false, "Destination with wrong amount: " << dst_entr.amount);
       crypto::key_derivation derivation;
@@ -762,8 +762,8 @@ namespace cryptonote
       if (dst_entr.addr == change_addr)
       {
         // sending change to yourself; derivation = a*R
-        r = crypto::generate_key_derivation(txkey.pub, sender_account_keys.m_view_secret_key, derivation);
-        CHECK_AND_ASSERT_MES(r, false, "at creation outs: failed to generate_key_derivation(" << txkey.pub << ", " << sender_account_keys.m_view_secret_key << ")");
+        r = crypto::generate_key_derivation(txkey_pub, sender_account_keys.m_view_secret_key, derivation);
+        CHECK_AND_ASSERT_MES(r, false, "at creation outs: failed to generate_key_derivation(" << txkey_pub << ", " << sender_account_keys.m_view_secret_key << ")");
       }
       else
       {
@@ -797,7 +797,7 @@ namespace cryptonote
 
     remove_field_from_tx_extra(tx.extra, typeid(tx_extra_additional_pub_keys));
     
-    LOG_PRINT_L2("tx pubkey: " << txkey.pub);
+    LOG_PRINT_L2("tx pubkey: " << txkey_pub);
     if (need_additional_txkeys)
     {
       LOG_PRINT_L2("additional tx pubkeys: ");
