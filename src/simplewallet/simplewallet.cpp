@@ -4164,7 +4164,8 @@ int main(int argc, char* argv[])
   }
 
   cryptonote::simple_wallet w;
-  w.init(*vm);
+  if (!w.init(*vm))
+	  return 1;
 
   std::vector<std::string> command = command_line::get_arg(*vm, arg_command);
   if (!command.empty())
