@@ -1,9 +1,9 @@
-/* $Id: miniupnpc.c,v 1.148 2016/01/24 17:24:36 nanard Exp $ */
+/* $Id: miniupnpc.c,v 1.149 2016/02/09 09:50:46 nanard Exp $ */
 /* vim: tabstop=4 shiftwidth=4 noexpandtab
  * Project : miniupnp
  * Web : http://miniupnp.free.fr/
  * Author : Thomas BERNARD
- * copyright (c) 2005-2016 Thomas Bernard
+ * copyright (c) 2005-2018 Thomas Bernard
  * This software is subjet to the conditions detailed in the
  * provided LICENSE file. */
 #include <stdlib.h>
@@ -61,7 +61,7 @@
 #include "upnpcommands.h"
 #include "connecthostport.h"
 
-/* compare the begining of a string with a constant string */
+/* compare the beginning of a string with a constant string */
 #define COMPARE(str, cstr) (0==memcmp(str, cstr, sizeof(cstr) - 1))
 
 #ifndef MAXHOSTNAMELEN
@@ -299,30 +299,32 @@ upnpDiscoverDevices(const char * const deviceTypes[],
 	/* first try to get infos from minissdpd ! */
 	if(!minissdpdsock)
 		minissdpdsock = "/var/run/minissdpd.sock";
-	for(deviceIndex = 0; deviceTypes[deviceIndex]; deviceIndex++) {
-		struct UPNPDev * minissdpd_devlist;
-		int only_rootdevice = 1;
-		minissdpd_devlist = getDevicesFromMiniSSDPD(deviceTypes[deviceIndex],
-		                                            minissdpdsock, 0);
-		if(minissdpd_devlist) {
-#ifdef DEBUG
-			printf("returned by MiniSSDPD: %s\t%s\n",
-			       minissdpd_devlist->st, minissdpd_devlist->descURL);
-#endif /* DEBUG */
-			if(!strstr(minissdpd_devlist->st, "rootdevice"))
-				only_rootdevice = 0;
-			for(tmp = minissdpd_devlist; tmp->pNext != NULL; tmp = tmp->pNext) {
+	if(minissdpdsock[0] != '\0') {
+		for(deviceIndex = 0; deviceTypes[deviceIndex]; deviceIndex++) {
+			struct UPNPDev * minissdpd_devlist;
+			int only_rootdevice = 1;
+			minissdpd_devlist = getDevicesFromMiniSSDPD(deviceTypes[deviceIndex],
+			                                            minissdpdsock, 0);
+			if(minissdpd_devlist) {
 #ifdef DEBUG
 				printf("returned by MiniSSDPD: %s\t%s\n",
-				       tmp->pNext->st, tmp->pNext->descURL);
+				       minissdpd_devlist->st, minissdpd_devlist->descURL);
 #endif /* DEBUG */
-				if(!strstr(tmp->st, "rootdevice"))
+				if(!strstr(minissdpd_devlist->st, "rootdevice"))
 					only_rootdevice = 0;
+				for(tmp = minissdpd_devlist; tmp->pNext != NULL; tmp = tmp->pNext) {
+#ifdef DEBUG
+					printf("returned by MiniSSDPD: %s\t%s\n",
+					       tmp->pNext->st, tmp->pNext->descURL);
+#endif /* DEBUG */
+					if(!strstr(tmp->st, "rootdevice"))
+						only_rootdevice = 0;
+				}
+				tmp->pNext = devlist;
+				devlist = minissdpd_devlist;
+				if(!searchalltypes && !only_rootdevice)
+					break;
 			}
-			tmp->pNext = devlist;
-			devlist = minissdpd_devlist;
-			if(!searchalltypes && !only_rootdevice)
-				break;
 		}
 	}
 	for(tmp = devlist; tmp != NULL; tmp = tmp->pNext) {
@@ -550,7 +552,7 @@ UPNPIGD_IsConnected(struct UPNPUrls * urls, struct IGDdatas * data)
  *     3 = an UPnP device has been found but was not recognized as an IGD
  *
  * In any positive non zero return case, the urls and data structures
- * passed as parameters are set. Dont forget to call FreeUPNPUrls(urls) to
+ * passed as parameters are set. Don't forget to call FreeUPNPUrls(urls) to
  * free allocated memory.
  */
 MINIUPNP_LIBSPEC int
@@ -634,7 +636,7 @@ UPNP_GetValidIGD(struct UPNPDev * devlist,
 
 				  GetUPNPUrls(urls, data, dev->descURL, dev->scope_id);
 
-				  /* in state 2 and 3 we dont test if device is connected ! */
+				  /* in state 2 and 3 we don't test if device is connected ! */
 				  if(state >= 2)
 				    goto free_and_return;
 				  is_connected = UPNPIGD_IsConnected(urls, data);

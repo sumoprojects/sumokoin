@@ -1,8 +1,9 @@
 /* $Id: miniupnpc.h,v 1.50 2016/04/19 21:06:21 nanard Exp $ */
-/* Project: miniupnp
+/* vim: tabstop=4 shiftwidth=4 noexpandtab
+ * Project: miniupnp
  * http://miniupnp.free.fr/
  * Author: Thomas Bernard
- * Copyright (c) 2005-2016 Thomas Bernard
+ * Copyright (c) 2005-2018 Thomas Bernard
  * This software is subjects to the conditions detailed
  * in the LICENCE file provided within this distribution */
 #ifndef MINIUPNPC_H_INCLUDED
@@ -23,7 +24,7 @@
 #define MINIUPNPC_API_VERSION	16
 
 /* Source port:
-   Using "1" as an alias for 1900 for backwards compatability
+   Using "1" as an alias for 1900 for backwards compatibility
    (presuming one would have used that for the "sameport" parameter) */
 #define UPNP_LOCAL_PORT_ANY     0
 #define UPNP_LOCAL_PORT_SAME    1
