@@ -3,6 +3,13 @@
 /build
 /ide
 /tags
+
+#KDevelop IDE
+/.kdev4
+sumokoin.kdev4
+
+test-wallets/
+
 log/
 sumodis.sh
 /scripts/*.txt
