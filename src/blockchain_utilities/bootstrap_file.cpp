@@ -172,11 +172,6 @@ void BootstrapFile::flush_chunk()
   m_output_stream->flush();
 
   uint32_t chunk_size = m_buffer.size();
-  // LOG_PRINT_L0("chunk_size " << chunk_size);
-  if (chunk_size > BUFFER_SIZE)
-  {
-    LOG_PRINT_L0("WARNING: chunk_size " << chunk_size << " > BUFFER_SIZE " << BUFFER_SIZE);
-  }
 
   std::string blob;
   if (! ::serialization::dump_binary(chunk_size, blob))
@@ -427,20 +422,7 @@ uint64_t BootstrapFile::count_blocks(const std::string& import_file_path)
       throw std::runtime_error("Error in deserialization of chunk_size");
     LOG_PRINT_L3("chunk_size: " << chunk_size);
 
-    if (chunk_size > BUFFER_SIZE)
-    {
-      std::cout << refresh_string;
-      LOG_PRINT_L0("WARNING: chunk_size " << chunk_size << " > BUFFER_SIZE " << BUFFER_SIZE
-          << "  height: " << h-1);
-      throw std::runtime_error("Aborting: chunk size exceeds buffer size");
-    }
-    if (chunk_size > 100000)
-    {
-      std::cout << refresh_string;
-      LOG_PRINT_L0("NOTE: chunk_size " << chunk_size << " > 100000" << "  height: "
-          << h-1);
-    }
-    else if (chunk_size <= 0) {
+    if (chunk_size <= 0) {
       std::cout << refresh_string;
       LOG_PRINT_L0("ERROR: chunk_size " << chunk_size << " <= 0" << "  height: " << h-1);
       throw std::runtime_error("Aborting");
