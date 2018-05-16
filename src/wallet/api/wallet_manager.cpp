@@ -264,7 +264,7 @@ bool WalletManagerImpl::checkPayment(const std::string &address_text, const std:
       if (pubkey == tx_out_to_key.key)
       {
         uint64_t amount;
-        if (tx.version == 1)
+        if (tx.version == 1 || tx.rct_signatures.type == rct::RCTTypeNull)
         {
           amount = tx.vout[n].amount;
         }
