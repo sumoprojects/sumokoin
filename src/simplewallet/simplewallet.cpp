@@ -3091,7 +3091,7 @@ bool simple_wallet::check_tx_key(const std::vector<std::string> &args_)
       if (pubkey == tx_out_to_key.key)
       {
         uint64_t amount;
-        if (tx.version == 1)
+        if (tx.version == 1 || tx.rct_signatures.type == rct::RCTTypeNull)
         {
           amount = tx.vout[n].amount;
         }
