@@ -2856,7 +2856,7 @@ bool Blockchain::check_block_timestamp(const block& b) const
   if (b.timestamp > get_adjusted_time() + block_future_time_limit)
   {
     LOG_PRINT_L1("Timestamp of block with id: " << get_block_hash(b) << ", " << b.timestamp << 
-      ", bigger than adjusted time + " << (get_current_hard_fork_version() < 2 ? "2 hours" : "30 minutes"));
+      ", bigger than adjusted time + " << (get_current_hard_fork_version() < 2 ? "2 hours" : "24 minutes"));
     return false;
   }
 
