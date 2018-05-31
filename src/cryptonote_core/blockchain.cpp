@@ -75,6 +75,7 @@ DISABLE_VS_WARNINGS(4267)
 // used to overestimate the block reward when estimating a per kB to use
 #define BLOCK_REWARD_OVERESTIMATE   ((uint64_t)(16000000000))
 #define MAINNET_HARDFORK_V3_HEIGHT  ((uint64_t)(116520))
+#define MAINNET_HARDFORK_V4_HEIGHT  ((uint64_t)(137500))
 
 static const struct {
   uint8_t version;
@@ -84,7 +85,8 @@ static const struct {
 } mainnet_hard_forks[] = {
   { 1, 1, 0, 1482806500 },
   { 2, 21300, 0, 1497657600 },
-  { 3, MAINNET_HARDFORK_V3_HEIGHT, 0, 1522800000 }
+  { 3, MAINNET_HARDFORK_V3_HEIGHT, 0, 1522800000 },
+  { 4, MAINNET_HARDFORK_V4_HEIGHT, 0, 1528045200 }
 };
 static const uint64_t mainnet_hard_fork_version_1_till = (uint64_t)-1;
 
@@ -96,7 +98,8 @@ static const struct {
 } testnet_hard_forks[] = {
   { 1, 1, 0, 1482806500 },
   { 2, 5150, 0, 1497181713 },
-  { 3, 103580, 0, 1522540800 } // April 01, 2018
+  { 3, 103580, 0, 1522540800 },
+  { 4, 122452, 0, 1527699600 }
 };
 static const uint64_t testnet_hard_fork_version_1_till = (uint64_t)-1;
 

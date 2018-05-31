@@ -45,6 +45,7 @@
 #define CURRENT_TRANSACTION_VERSION                     2
 #define MIN_TRANSACTION_VERSION							            2
 #define CRYPTONOTE_V2_POW_BLOCK_VERSION                 3
+#define CRYPTONOTE_CLASSIC_POW_BLOCK_VERSION                 4
 #define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT              60*60*2
 #define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
 #define BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW               60
