@@ -33,7 +33,6 @@
 
 // bounds checking is done before writing to buffer, but buffer size
 // should be a sensible maximum
-#define BUFFER_SIZE 1000000
 #define NUM_BLOCKS_PER_CHUNK 1
 #define BLOCKCHAIN_RAW "blockchain.raw"
 
