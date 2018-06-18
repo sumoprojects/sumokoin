@@ -53,6 +53,8 @@
 #define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V2           60*24
 #define BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V2            12
 
+#define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V3           60*5
+
 // MONEY_SUPPLY - total number coins to be generated
 #define MONEY_SUPPLY                                    ((uint64_t)88888888000000000)
 #define EMISSION_SPEED_FACTOR                           19
@@ -81,6 +83,9 @@
 #define DIFFICULTY_WINDOW_V2							              17
 #define DIFFICULTY_CUT_V2                               6
 #define DIFFICULTY_BLOCKS_COUNT_V2                      DIFFICULTY_WINDOW_V2 + DIFFICULTY_CUT_V2*2
+
+#define DIFFICULTY_WINDOW_V3                            60
+#define DIFFICULTY_BLOCKS_COUNT_V3                      DIFFICULTY_WINDOW_V3 + 1
 
 #define CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS       1
 #define CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS      DIFFICULTY_TARGET * CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS
