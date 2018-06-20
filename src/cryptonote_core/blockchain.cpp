@@ -85,7 +85,8 @@ static const struct {
   { 1, 1, 0, 1482806500 },
   { 2, 21300, 0, 1497657600 },
   { 3, MAINNET_HARDFORK_V3_HEIGHT, 0, 1522800000 },
-  { 4, 137500, 0, 1528045200 }
+  { 4, 137500, 0, 1528045200 },
+  { 5, 165000, 0, 1529643600 }
 };
 static const uint64_t mainnet_hard_fork_version_1_till = (uint64_t)-1;
 
@@ -1396,7 +1397,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     if(is_a_checkpoint)
     {
       //do reorganize!
-      LOG_PRINT_GREEN("###### REORGANIZE on height: " << alt_chain.front()->second.height << " of " << m_db->height() - 1 << ", checkpoint is found in alternative chain on height " << bei.height, LOG_LEVEL_0);
+      LOG_PRINT_GREEN("###### REORGANIZE on height: " << alt_chain.front()->second.height << " of " << m_db->height() - 1 << ", checkpoint is found in alternative chain on height " << bei.height, LOG_LEVEL_1);
 
       bool r = switch_to_alternative_blockchain(alt_chain, true);
 
@@ -1408,7 +1409,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     else if(main_chain_cumulative_difficulty < bei.cumulative_difficulty) //check if difficulty bigger then in main chain
     {
       //do reorganize!
-      LOG_PRINT_GREEN("###### REORGANIZE on height: " << alt_chain.front()->second.height << " of " << m_db->height() - 1 << " with cum_difficulty " << m_db->get_block_cumulative_difficulty(m_db->height() - 1) << std::endl << " alternative blockchain size: " << alt_chain.size() << " with cum_difficulty " << bei.cumulative_difficulty, LOG_LEVEL_0);
+      LOG_PRINT_GREEN("###### REORGANIZE on height: " << alt_chain.front()->second.height << " of " << m_db->height() - 1 << " with cum_difficulty " << m_db->get_block_cumulative_difficulty(m_db->height() - 1) << std::endl << " alternative blockchain size: " << alt_chain.size() << " with cum_difficulty " << bei.cumulative_difficulty, LOG_LEVEL_1);
 
       bool r = switch_to_alternative_blockchain(alt_chain, false);
       if (r)
@@ -1419,7 +1420,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     }
     else
     {
-      LOG_PRINT_BLUE("----- BLOCK ADDED AS ALTERNATIVE ON HEIGHT " << bei.height << std::endl << "id:\t" << id << std::endl << "PoW:\t" << proof_of_work << std::endl << "difficulty:\t" << current_diff, LOG_LEVEL_0);
+      LOG_PRINT_BLUE("----- BLOCK ADDED AS ALTERNATIVE ON HEIGHT " << bei.height << std::endl << "id:\t" << id << std::endl << "PoW:\t" << proof_of_work << std::endl << "difficulty:\t" << current_diff, LOG_LEVEL_1);
       return true;
     }
   }
