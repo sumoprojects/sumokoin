@@ -1201,6 +1201,16 @@ namespace cryptonote
     bool check_block_timestamp(std::vector<uint64_t>& timestamps, const block& b) const;
 
     /**
+    * @brief wrapper for check_block_timestamp(const block& b)
+    */
+    bool check_block_timestamp(std::vector<uint64_t>& timestamps, const block& b, uint64_t& median_ts) const;
+
+    /**
+    * @brief checks and returns median block timestamp as defined by protocol
+    */
+    bool check_median_block_timestamp(const block& b, uint64_t& median_ts) const;
+
+    /**
      * @brief get the "adjusted time"
      *
      * Currently this simply returns the current time according to the

@@ -75,7 +75,6 @@ DISABLE_VS_WARNINGS(4267)
 // used to overestimate the block reward when estimating a per kB to use
 #define BLOCK_REWARD_OVERESTIMATE   ((uint64_t)(16000000000))
 #define MAINNET_HARDFORK_V3_HEIGHT  ((uint64_t)(116520))
-#define MAINNET_HARDFORK_V4_HEIGHT  ((uint64_t)(137500))
 
 static const struct {
   uint8_t version;
@@ -86,7 +85,7 @@ static const struct {
   { 1, 1, 0, 1482806500 },
   { 2, 21300, 0, 1497657600 },
   { 3, MAINNET_HARDFORK_V3_HEIGHT, 0, 1522800000 },
-  { 4, MAINNET_HARDFORK_V4_HEIGHT, 0, 1528045200 }
+  { 4, 137500, 0, 1528045200 }
 };
 static const uint64_t mainnet_hard_fork_version_1_till = (uint64_t)-1;
 
@@ -99,7 +98,8 @@ static const struct {
   { 1, 1, 0, 1482806500 },
   { 2, 5150, 0, 1497181713 },
   { 3, 103580, 0, 1522540800 },
-  { 4, 122452, 0, 1527699600 }
+  { 4, 122452, 0, 1527699600 },
+  { 5, 128680, 0, 1529308166 }
 };
 static const uint64_t testnet_hard_fork_version_1_till = (uint64_t)-1;
 
@@ -685,7 +685,17 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
     return (difficulty_type) 480000000;
   }
 
-  size_t difficult_block_count = get_current_hard_fork_version() < 2 ? DIFFICULTY_BLOCKS_COUNT : DIFFICULTY_BLOCKS_COUNT_V2;
+  size_t difficulty_blocks_count;
+  uint8_t hf_version = get_current_hard_fork_version();
+  if (hf_version == 1) {
+    difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT;
+  }
+  else if (hf_version < 5) {
+    difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V2;
+  }
+  else {
+    difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V3;
+  }
 
   // ND: Speedup
   // 1. Keep a list of the last 735 (or less) blocks that is used to compute difficulty,
@@ -698,9 +708,9 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
     m_timestamps.push_back(m_db->get_block_timestamp(index));
     m_difficulties.push_back(m_db->get_block_cumulative_difficulty(index));
 
-    while (m_timestamps.size() > difficult_block_count)
+    while (m_timestamps.size() > difficulty_blocks_count)
       m_timestamps.erase(m_timestamps.begin());
-    while (m_difficulties.size() > difficult_block_count)
+    while (m_difficulties.size() > difficulty_blocks_count)
       m_difficulties.erase(m_difficulties.begin());
 
     m_timestamps_and_difficulties_height = height;
@@ -709,7 +719,7 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
   }
   else
   {
-    size_t offset = height - std::min < size_t >(height, static_cast<size_t>(difficult_block_count));
+    size_t offset = height - std::min < size_t >(height, static_cast<size_t>(difficulty_blocks_count));
     if (offset == 0)
       ++offset;
 
@@ -726,9 +736,15 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
     m_difficulties = difficulties;
   }
   size_t target = DIFFICULTY_TARGET;
-  return get_current_hard_fork_version() < 2 ?
-    next_difficulty(timestamps, difficulties, target) :
-    next_difficulty_v2(timestamps, difficulties, target);
+  if (hf_version == 1) {
+    return next_difficulty(timestamps, difficulties, target);
+  }
+  else if (hf_version < 5) {
+    return next_difficulty_v2(timestamps, difficulties, target);
+  }
+  else {
+    return next_difficulty_v3(timestamps, difficulties, target);
+  }
 }
 //------------------------------------------------------------------
 // This function removes blocks from the blockchain until it gets to the
@@ -876,17 +892,27 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
   LOG_PRINT_L3("Blockchain::" << __func__);
   std::vector<uint64_t> timestamps;
   std::vector<difficulty_type> cumulative_difficulties;
-  size_t difficult_block_count = get_current_hard_fork_version() < 2 ? DIFFICULTY_BLOCKS_COUNT : DIFFICULTY_BLOCKS_COUNT_V2;
-
+  size_t difficulty_blocks_count;
+  uint8_t version = get_current_hard_fork_version();
+  if (version == 1) {
+    difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT;
+  }
+  else if (version < 5) {
+    difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V2;
+  }
+  else{
+    difficulty_blocks_count = DIFFICULTY_BLOCKS_COUNT_V3;
+  }
+  
   // if the alt chain isn't long enough to calculate the difficulty target
   // based on its blocks alone, need to get more blocks from the main chain
-  if (alt_chain.size() < difficult_block_count)
+  if (alt_chain.size() < difficulty_blocks_count)
   {
     CRITICAL_REGION_LOCAL(m_blockchain_lock);
 
     // Figure out start and stop offsets for main chain blocks
     size_t main_chain_stop_offset = alt_chain.size() ? alt_chain.front()->second.height : bei.height;
-    size_t main_chain_count = difficult_block_count - std::min(static_cast<size_t>(difficult_block_count), alt_chain.size());
+    size_t main_chain_count = difficulty_blocks_count - std::min(static_cast<size_t>(difficulty_blocks_count), alt_chain.size());
     main_chain_count = std::min(main_chain_count, main_chain_stop_offset);
     size_t main_chain_start_offset = main_chain_stop_offset - main_chain_count;
 
@@ -901,7 +927,7 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
     }
 
     // make sure we haven't accidentally grabbed too many blocks...maybe don't need this check?
-    CHECK_AND_ASSERT_MES((alt_chain.size() + timestamps.size()) <= difficult_block_count, false, "Internal error, alt_chain.size()[" << alt_chain.size() << "] + vtimestampsec.size()[" << timestamps.size() << "] NOT <= DIFFICULTY_WINDOW[]" << difficult_block_count);
+    CHECK_AND_ASSERT_MES((alt_chain.size() + timestamps.size()) <= difficulty_blocks_count, false, "Internal error, alt_chain.size()[" << alt_chain.size() << "] + vtimestampsec.size()[" << timestamps.size() << "] NOT <= DIFFICULTY_WINDOW[]" << difficulty_blocks_count);
 
     for (auto it : alt_chain)
     {
@@ -913,8 +939,8 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
   // and timestamps from it alone
   else
   {
-    timestamps.resize(static_cast<size_t>(difficult_block_count));
-    cumulative_difficulties.resize(static_cast<size_t>(difficult_block_count));
+    timestamps.resize(static_cast<size_t>(difficulty_blocks_count));
+    cumulative_difficulties.resize(static_cast<size_t>(difficulty_blocks_count));
     size_t count = 0;
     size_t max_i = timestamps.size() - 1;
     // get difficulties and timestamps from most recent blocks in alt chain
@@ -923,7 +949,7 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
       timestamps[max_i - count] = it->second.bl.timestamp;
       cumulative_difficulties[max_i - count] = it->second.cumulative_difficulty;
       count++;
-      if (count >= difficult_block_count)
+      if (count >= difficulty_blocks_count)
         break;
     }
   }
@@ -932,9 +958,15 @@ difficulty_type Blockchain::get_next_difficulty_for_alternative_chain(const std:
   size_t target = DIFFICULTY_TARGET;
 
   // calculate the difficulty target for the block and return it
-  return get_current_hard_fork_version() < 2 ?
-    next_difficulty(timestamps, cumulative_difficulties, target) :
-    next_difficulty_v2(timestamps, cumulative_difficulties, target);
+  if (version == 1) {
+    return next_difficulty(timestamps, cumulative_difficulties, target);
+  }
+  else if (version < 5) {
+    return next_difficulty_v2(timestamps, cumulative_difficulties, target);
+  }
+  else{
+    return next_difficulty_v3(timestamps, cumulative_difficulties, target);
+  }
 }
 //------------------------------------------------------------------
 // This function does a sanity check on basic things that all miner
@@ -1054,6 +1086,11 @@ bool Blockchain::create_block_template(block& b, const account_public_address& m
   b.minor_version = m_hardfork->get_ideal_version();
   b.prev_id = get_tail_id();
   b.timestamp = time(NULL);
+
+  uint64_t median_timestamp;
+  if (!check_median_block_timestamp(b, median_timestamp)) {
+    b.timestamp = std::max(median_timestamp, m_db->get_top_block_timestamp() - CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V3);
+  }
 
   diffic = get_difficulty_for_next_block();
   CHECK_AND_ASSERT_MES(diffic, false, "difficulty overhead.");
@@ -2823,21 +2860,34 @@ uint64_t Blockchain::get_adjusted_time() const
   return time(NULL);
 }
 //------------------------------------------------------------------
-//TODO: revisit, has changed a bit on upstream
-bool Blockchain::check_block_timestamp(std::vector<uint64_t>& timestamps, const block& b) const
+bool Blockchain::check_block_timestamp(std::vector<uint64_t>& timestamps, const block& b, uint64_t& median_ts) const
 {
   LOG_PRINT_L3("Blockchain::" << __func__);
-  uint64_t median_ts = epee::misc_utils::median(timestamps);
-  size_t blockchain_timestamp_check_window = get_current_hard_fork_version() < 2 ?
-                                                BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW :
-                                                BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V2;
-  if(b.timestamp < median_ts)
+  median_ts = epee::misc_utils::median(timestamps);
+
+  uint8_t hf_version = get_current_hard_fork_version();
+  size_t blockchain_timestamp_check_window = hf_version < 2 ? BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW : BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V2;
+
+  uint64_t top_block_timestamp = timestamps.back();
+  if (hf_version > 4 && b.timestamp < top_block_timestamp - CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V3)
   {
-    LOG_PRINT_L1("Timestamp of block with id: " << get_block_hash(b) << ", " << b.timestamp << ", less than median of last " << blockchain_timestamp_check_window << " blocks, " << median_ts);
+    LOG_PRINT_L3("Timestamp of block with id: " << get_block_hash(b) << ", " << b.timestamp << ", is less than top block timestamp - FTL " << top_block_timestamp - CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V3);
+    return false;
+  }
+
+  if (b.timestamp < median_ts)
+  {
+    LOG_PRINT_L3("Timestamp of block with id: " << get_block_hash(b) << ", " << b.timestamp << ", less than median of last " << blockchain_timestamp_check_window << " blocks, " << median_ts);
     return false;
   }
 
   return true;
+}
+//------------------------------------------------------------------
+bool Blockchain::check_block_timestamp(std::vector<uint64_t>& timestamps, const block& b) const
+{
+  uint64_t median_ts;
+  return check_block_timestamp(timestamps, b, median_ts);
 }
 //------------------------------------------------------------------
 // This function grabs the timestamps from the most recent <n> blocks,
@@ -2850,18 +2900,31 @@ bool Blockchain::check_block_timestamp(std::vector<uint64_t>& timestamps, const 
 bool Blockchain::check_block_timestamp(const block& b) const
 {
   LOG_PRINT_L3("Blockchain::" << __func__);
-  uint64_t block_future_time_limit = get_current_hard_fork_version() < 2 ? 
-                                          CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT : 
-                                          CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V2;
-  size_t blockchain_timestamp_check_window = get_current_hard_fork_version() < 2 ?
-                                                  BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW :
-                                                  BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V2;
-  if (b.timestamp > get_adjusted_time() + block_future_time_limit)
+  uint64_t cryptonote_block_future_time_limit;
+  uint8_t hf_version = get_current_hard_fork_version();
+  if (hf_version < 2) {
+    cryptonote_block_future_time_limit = CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT;
+  }
+  else if (hf_version < 5) {
+    cryptonote_block_future_time_limit = CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V2;
+  }
+  else {
+    cryptonote_block_future_time_limit = CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V3;
+  }
+
+  if (b.timestamp > get_adjusted_time() + cryptonote_block_future_time_limit)
   {
-    LOG_PRINT_L1("Timestamp of block with id: " << get_block_hash(b) << ", " << b.timestamp << 
-      ", bigger than adjusted time + " << (get_current_hard_fork_version() < 2 ? "2 hours" : "30 minutes"));
+    LOG_PRINT_L1("Timestamp of block with id: " << get_block_hash(b) << ", " << b.timestamp << ", bigger than adjusted time + " << (hf_version < 2 ? "2 hours" : (hf_version < 5 ? "30 minutes" : "5 minutes")));
     return false;
   }
+
+  uint64_t median_ts;
+  return check_median_block_timestamp(b, median_ts);
+}
+//------------------------------------------------------------------
+bool Blockchain::check_median_block_timestamp(const block& b, uint64_t& median_ts) const
+{
+  size_t blockchain_timestamp_check_window = get_current_hard_fork_version() < 2 ? BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW : BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V2;
 
   // if not enough blocks, no proper median yet, return true
   if (m_db->height() < blockchain_timestamp_check_window)
@@ -2874,12 +2937,12 @@ bool Blockchain::check_block_timestamp(const block& b) const
 
   // need most recent 60 blocks, get index of first of those
   size_t offset = h - blockchain_timestamp_check_window;
-  for(;offset < h; ++offset)
+  for (; offset < h; ++offset)
   {
     timestamps.push_back(m_db->get_block_timestamp(offset));
   }
 
-  return check_block_timestamp(timestamps, b);
+  return check_block_timestamp(timestamps, b, median_ts);
 }
 //------------------------------------------------------------------
 void Blockchain::return_tx_to_pool(const std::vector<transaction> &txs)
