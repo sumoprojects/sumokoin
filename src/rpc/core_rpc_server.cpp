@@ -1384,7 +1384,22 @@ namespace cryptonote
 	  return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-
+  bool core_rpc_server::on_get_top(const COMMAND_RPC_GET_TOP::request& req, COMMAND_RPC_GET_TOP::response& res)
+  {
+    CHECK_CORE_BUSY();
+    crypto::hash top_hash;
+    if (!m_core.get_blockchain_top(res.height, top_hash))
+    {
+      res.status = "Failed";
+      return false;
+    }
+    ++res.height; // turn top block height into blockchain height
+    res.target_height = m_core.get_target_blockchain_height();
+    res.status = CORE_RPC_STATUS_OK;
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+	
   const command_line::arg_descriptor<std::string> core_rpc_server::arg_rpc_bind_ip   = {
       "rpc-bind-ip"
     , "IP for RPC server"
