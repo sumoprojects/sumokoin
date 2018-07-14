@@ -1,7 +1,8 @@
-/* $Id: minisoap.c,v 1.23 2014/11/04 22:31:55 nanard Exp $ */
-/* Project : miniupnp
+/* $Id: minisoap.c,v 1.25 2017/04/21 10:03:24 nanard Exp $ */
+/* vim: tabstop=4 shiftwidth=4 noexpandtab
+ * Project : miniupnp
  * Author : Thomas Bernard
- * Copyright (c) 2005-2015 Thomas Bernard
+ * Copyright (c) 2005-2018 Thomas Bernard
  * This software is subject to the conditions detailed in the
  * LICENCE file provided in this distribution.
  *
@@ -25,7 +26,7 @@
 #include <stdlib.h>
 
 #ifdef _WIN32
-#define PRINT_SOCKET_ERROR(x)    printf("Socket error: %s, %d\n", x, WSAGetLastError());
+#define PRINT_SOCKET_ERROR(x)    fprintf(stderr, "Socket error: %s, %d\n", x, WSAGetLastError());
 #else
 #define PRINT_SOCKET_ERROR(x) perror(x)
 #endif
@@ -55,7 +56,7 @@ httpWrite(int fd, const char * body, int bodysize,
 	  PRINT_SOCKET_ERROR("send");
 	}
 	/* disable send on the socket */
-	/* draytek routers dont seems to like that... */
+	/* draytek routers don't seem to like that... */
 #if 0
 #ifdef _WIN32
 	if(shutdown(fd, SD_SEND)<0) {
