@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2017, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -32,7 +32,9 @@
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <string>
-#include <vector>
+
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace daemonize
 {
@@ -54,7 +56,7 @@ namespace daemonize
       );
 
     bool run_non_interactive(
-      boost::program_options::variables_map const & vm
+        boost::program_options::variables_map const & vm
       );
 
     bool run_interactive(

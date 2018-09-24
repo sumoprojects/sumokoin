@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 //
 // All rights reserved.
 //
@@ -30,9 +30,10 @@
 
 #include "common/command_line.h"
 #include "common/scoped_message_writer.h"
+#include "common/password.h"
 #include "common/util.h"
 #include "cryptonote_core/cryptonote_core.h"
-#include "cryptonote_core/miner.h"
+#include "cryptonote_basic/miner.h"
 #include "daemon/command_server.h"
 #include "daemon/daemon.h"
 #include "daemon/executor.h"
@@ -40,12 +41,17 @@
 #include "misc_log_ex.h"
 #include "p2p/net_node.h"
 #include "rpc/core_rpc_server.h"
+#include "rpc/rpc_args.h"
 #include "daemon/command_line_args.h"
 #include "blockchain_db/db_types.h"
+#include "version.h"
 
 #ifdef STACK_TRACE
 #include "common/stack_trace.h"
 #endif // STACK_TRACE
+
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace po = boost::program_options;
 namespace bf = boost::filesystem;
@@ -54,10 +60,9 @@ int main(int argc, char const * argv[])
 {
   try {
 
-    _note_c("dbg/main", "Begin of main()");
     // TODO parse the debug options like set log level right here at start
 
-    tools::sanitize_locale();
+    tools::on_startup();
 
     epee::string_tools::set_module_name_and_folder(argv[0]);
 
@@ -68,24 +73,20 @@ int main(int argc, char const * argv[])
     po::options_description core_settings("Settings");
     po::positional_options_description positional_options;
     {
-      bf::path default_data_dir = daemonizer::get_default_data_dir();
-      bf::path default_testnet_data_dir = {default_data_dir / "testnet"};
-
       // Misc Options
 
       command_line::add_arg(visible_options, command_line::arg_help);
       command_line::add_arg(visible_options, command_line::arg_version);
       command_line::add_arg(visible_options, daemon_args::arg_os_version);
-      bf::path default_conf = default_data_dir / std::string(CRYPTONOTE_NAME ".conf");
-      command_line::add_arg(visible_options, daemon_args::arg_config_file, default_conf.string());
-      command_line::add_arg(visible_options, command_line::arg_test_dbg_lock_sleep);
-      cryptonote::core::init_options(core_settings);
+      command_line::add_arg(visible_options, daemon_args::arg_config_file);
 
       // Settings
-      bf::path default_log = default_data_dir / std::string(CRYPTONOTE_NAME ".log");
-      command_line::add_arg(core_settings, daemon_args::arg_log_file, default_log.string());
+      command_line::add_arg(core_settings, daemon_args::arg_log_file);
       command_line::add_arg(core_settings, daemon_args::arg_log_level);
+      command_line::add_arg(core_settings, daemon_args::arg_max_log_file_size);
       command_line::add_arg(core_settings, daemon_args::arg_max_concurrency);
+      command_line::add_arg(core_settings, daemon_args::arg_zmq_rpc_bind_ip);
+      command_line::add_arg(core_settings, daemon_args::arg_zmq_rpc_bind_port);
 
       daemonizer::init_options(hidden_options, visible_options);
       daemonize::t_executor::init_options(core_settings);
@@ -137,49 +138,8 @@ int main(int argc, char const * argv[])
       return 0;
     }
 
-    epee::debug::g_test_dbg_lock_sleep() = command_line::get_arg(vm, command_line::arg_test_dbg_lock_sleep);
-
-    std::string db_type = command_line::get_arg(vm, command_line::arg_db_type);
-
-    // verify that blockchaindb type is valid
-    if(cryptonote::blockchain_db_types.count(db_type) == 0)
-    {
-      std::cout << "Invalid database type (" << db_type << "), available types are:" << std::endl;
-      for (const auto& type : cryptonote::blockchain_db_types)
-      {
-        std::cout << "\t" << type << std::endl;
-      }
-      return 0;
-    }
-
-    bool testnet_mode = command_line::get_arg(vm, command_line::arg_testnet_on);
-
-    auto data_dir_arg = testnet_mode ? command_line::arg_testnet_data_dir : command_line::arg_data_dir;
-
-    // data_dir
-    //   default: e.g. ~/.sumokoin/ or ~/.sumokoin/testnet
-    //   if data-dir argument given:
-    //     absolute path
-    //     relative path: relative to cwd
-
-    // Create data dir if it doesn't exist
-    boost::filesystem::path data_dir = boost::filesystem::absolute(
-        command_line::get_arg(vm, data_dir_arg));
-    tools::create_directories_if_necessary(data_dir.string());
-
-    // FIXME: not sure on windows implementation default, needs further review
-    //bf::path relative_path_base = daemonizer::get_relative_path_base(vm);
-    bf::path relative_path_base = data_dir;
-
     std::string config = command_line::get_arg(vm, daemon_args::arg_config_file);
-
-    boost::filesystem::path data_dir_path(data_dir);
     boost::filesystem::path config_path(config);
-    if (!config_path.has_parent_path())
-    {
-      config_path = data_dir / config_path;
-    }
-
     boost::system::error_code ec;
     if (bf::exists(config_path, ec))
     {
@@ -194,7 +154,65 @@ int main(int argc, char const * argv[])
         throw;
       }
     }
+    else if (!command_line::is_arg_defaulted(vm, daemon_args::arg_config_file))
+    {
+      std::cerr << "Can't find config file " << config << std::endl;
+      return 1;
+    }
+
+    const bool testnet = command_line::get_arg(vm, cryptonote::arg_testnet_on);
+    const bool stagenet = command_line::get_arg(vm, cryptonote::arg_stagenet_on);
+    if (testnet && stagenet)
+    {
+      std::cerr << "Can't specify more than one of --tesnet and --stagenet" << ENDL;
+      return 1;
+    }
+
+    std::string db_type = command_line::get_arg(vm, cryptonote::arg_db_type);
+
+    // verify that blockchaindb type is valid
+    if(!cryptonote::blockchain_valid_db_type(db_type))
+    {
+      std::cout << "Invalid database type (" << db_type << "), available types are: " <<
+        cryptonote::blockchain_db_types(", ") << std::endl;
+      return 0;
+    }
+
+    // data_dir
+    //   default: e.g. ~/.bitmonero/ or ~/.bitmonero/testnet
+    //   if data-dir argument given:
+    //     absolute path
+    //     relative path: relative to cwd
+
+    // Create data dir if it doesn't exist
+    boost::filesystem::path data_dir = boost::filesystem::absolute(
+        command_line::get_arg(vm, cryptonote::arg_data_dir));
+
+    // FIXME: not sure on windows implementation default, needs further review
+    //bf::path relative_path_base = daemonizer::get_relative_path_base(vm);
+    bf::path relative_path_base = data_dir;
+
     po::notify(vm);
+
+    // log_file_path
+    //   default: <data_dir>/<CRYPTONOTE_NAME>.log
+    //   if log-file argument given:
+    //     absolute path
+    //     relative path: relative to data_dir
+    bf::path log_file_path {data_dir / std::string(CRYPTONOTE_NAME ".log")};
+    if (!command_line::is_arg_defaulted(vm, daemon_args::arg_log_file))
+      log_file_path = command_line::get_arg(vm, daemon_args::arg_log_file);
+    log_file_path = bf::absolute(log_file_path, relative_path_base);
+    mlog_configure(log_file_path.string(), true, command_line::get_arg(vm, daemon_args::arg_max_log_file_size));
+
+    // Set log level
+    if (!command_line::is_arg_defaulted(vm, daemon_args::arg_log_level))
+    {
+      mlog_set_log(command_line::get_arg(vm, daemon_args::arg_log_level).c_str());
+    }
+
+    // after logs initialized
+    tools::create_directories_if_necessary(data_dir.string());
 
     // If there are positional options, we're running a daemon command
     {
@@ -202,13 +220,9 @@ int main(int argc, char const * argv[])
 
       if (command.size())
       {
-        auto rpc_ip_str = command_line::get_arg(vm, cryptonote::core_rpc_server::arg_rpc_bind_ip);
+        const cryptonote::rpc_args::descriptors arg{};
+        auto rpc_ip_str = command_line::get_arg(vm, arg.rpc_bind_ip);
         auto rpc_port_str = command_line::get_arg(vm, cryptonote::core_rpc_server::arg_rpc_bind_port);
-        if (testnet_mode)
-        {
-          rpc_port_str = command_line::get_arg(vm, cryptonote::core_rpc_server::arg_testnet_rpc_bind_port);
-        }
-        auto user_agent = command_line::get_arg(vm, cryptonote::core_rpc_server::arg_user_agent);
 
         uint32_t rpc_ip;
         uint16_t rpc_port;
@@ -223,70 +237,53 @@ int main(int argc, char const * argv[])
           return 1;
         }
 
-        daemonize::t_command_server rpc_commands{rpc_ip, rpc_port, user_agent};
+        boost::optional<tools::login> login{};
+        if (command_line::has_arg(vm, arg.rpc_login))
+        {
+          login = tools::login::parse(
+            command_line::get_arg(vm, arg.rpc_login), false, [](bool verify) {
+#ifdef HAVE_READLINE
+        rdln::suspend_readline pause_readline;
+#endif
+              return tools::password_container::prompt(verify, "Daemon client password");
+            }
+          );
+          if (!login)
+          {
+            std::cerr << "Failed to obtain password" << std::endl;
+            return 1;
+          }
+        }
+
+        daemonize::t_command_server rpc_commands{rpc_ip, rpc_port, std::move(login)};
         if (rpc_commands.process_command_vec(command))
         {
           return 0;
         }
         else
         {
-          std::cerr << "Unknown command" << std::endl;
+#ifdef HAVE_READLINE
+          rdln::suspend_readline pause_readline;
+#endif
+          std::cerr << "Unknown command: " << command.front() << std::endl;
           return 1;
         }
       }
     }
 
-    // Start with log level 0
-    epee::log_space::get_set_log_detalisation_level(true, LOG_LEVEL_0);
-
-    // Set log level
-    {
-      int new_log_level = command_line::get_arg(vm, daemon_args::arg_log_level);
-      if(new_log_level < LOG_LEVEL_MIN || new_log_level > LOG_LEVEL_MAX)
-      {
-        LOG_PRINT_L0("Wrong log level value: " << new_log_level);
-      }
-      else if (epee::log_space::get_set_log_detalisation_level(false) != new_log_level)
-      {
-        epee::log_space::get_set_log_detalisation_level(true, new_log_level);
-        int otshell_utils_log_level = 100 - (new_log_level * 20);
-        gCurrentLogger.setDebugLevel(otshell_utils_log_level);
-        LOG_PRINT_L0("LOG_LEVEL set to " << new_log_level);
-      }
-    }
-
-    // log_file_path
-    //   default: <data_dir>/<CRYPTONOTE_NAME>.log
-    //   if log-file argument given:
-    //     absolute path
-    //     relative path: relative to data_dir
-
-    // Set log file
-    {
-      bf::path log_file_path {data_dir / std::string(CRYPTONOTE_NAME ".log")};
-      if (! vm["log-file"].defaulted())
-        log_file_path = command_line::get_arg(vm, daemon_args::arg_log_file);
-      log_file_path = bf::absolute(log_file_path, relative_path_base);
-
-      epee::log_space::log_singletone::add_logger(
-          LOGGER_FILE
-        , log_file_path.filename().string().c_str()
-        , log_file_path.parent_path().string().c_str()
-        );
 #ifdef STACK_TRACE
-      tools::set_stack_trace_log(log_file_path.filename().string());
+    tools::set_stack_trace_log(log_file_path.filename().string());
 #endif // STACK_TRACE
-    }
 
-    if (command_line::has_arg(vm, daemon_args::arg_max_concurrency))
+    if (!command_line::is_arg_defaulted(vm, daemon_args::arg_max_concurrency))
       tools::set_max_concurrency(command_line::get_arg(vm, daemon_args::arg_max_concurrency));
 
     // logging is now set up
-    LOG_PRINT_L0("Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL << ")");
+    MGINFO("Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL << ")");
 
-    _note_c("dbg/main", "Moving from main() into the daemonize now.");
+    MINFO("Moving from main() into the daemonize now.");
 
-    return daemonizer::daemonize(argc, argv, daemonize::t_executor{}, vm);
+    return daemonizer::daemonize(argc, argv, daemonize::t_executor{}, vm) ? 0 : 1;
   }
   catch (std::exception const & ex)
   {

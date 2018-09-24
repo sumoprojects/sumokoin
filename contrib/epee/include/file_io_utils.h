@@ -28,197 +28,40 @@
 #ifndef _FILE_IO_UTILS_H_
 #define _FILE_IO_UTILS_H_
 
-
-//#include <sys/types.h>
-//#include <sys/stat.h>
-
 #include <iostream>
-#include <boost/filesystem.hpp>
-
-
-#ifndef MAKE64
-	#define MAKE64(low,high)	((__int64)(((DWORD)(low)) | ((__int64)((DWORD)(high))) << 32))
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
+#ifdef WIN32
+#include <windows.h>
+#include "string_tools.h"
 #endif
 
-#ifdef WINDOWS_PLATFORM
-#include <psapi.h>
-#include <strsafe.h>
-#include <string.h>
-#include <mbstring.h>
+// On Windows there is a problem with non-ASCII characters in path and file names
+// as far as support by the standard components used is concerned:
 
-#endif
+// The various file stream classes, e.g. std::ifstream and std::ofstream, are
+// part of the GNU C++ Library / libstdc++. On the most basic level they use the
+// fopen() call as defined / made accessible to programs compiled within MSYS2
+// by the stdio.h header file maintained by the MinGW project.
 
+// The critical point: The implementation of fopen() is part of MSVCRT, the
+// Microsoft Visual C/C++ Runtime Library, and this method does NOT offer any
+// Unicode support.
 
+// Monero code that would want to continue to use the normal file stream classes
+// but WITH Unicode support could therefore not solve this problem on its own,
+// but 2 different projects from 2 different maintaining groups would need changes
+// in this particular direction - something probably difficult to achieve and
+// with a long time to wait until all new versions / releases arrive.
+
+// Implemented solution approach: Circumvent the problem by stopping to use std
+// file stream classes on Windows and directly use Unicode-capable WIN32 API
+// calls. Most of the code doing so is concentrated in this header file here.
 
 namespace epee
 {
 namespace file_io_utils
 {
-#ifdef WINDOWS_PLATFORM
-
-	inline 
-	std::string get_temp_file_name_a()
-	{
-		std::string str_result;
-		char	sz_temp[MAX_PATH*2] = {0};
-		if(!::GetTempPathA( sizeof( sz_temp ), sz_temp ))
-			return str_result;
-		
-		char	sz_temp_file[MAX_PATH*2] = {0};
-		if(!::GetTempFileNameA( sz_temp, "mail", 0, sz_temp_file))
-			return str_result;
-		sz_temp_file[sizeof(sz_temp_file)-1] = 0; //be happy!
-		str_result = sz_temp_file;
-		return str_result;
-	}
-
-
-#ifdef BOOST_LEXICAL_CAST_INCLUDED
-	inline
-	bool get_not_used_filename(const std::string& folder, OUT std::string& result_name)
-	{	
-		DWORD folder_attr = ::GetFileAttributesA(folder.c_str());
-		if(folder_attr == INVALID_FILE_ATTRIBUTES)
-			return false;
-		if(!(folder_attr&FILE_ATTRIBUTE_DIRECTORY))
-			return false;
-
-
-		std::string base_name = folder + "\\tmp";
-		std::string tmp_name;
-		bool name_found = false;
-		int current_index = 0;
-		tmp_name = base_name + boost::lexical_cast<std::string>(current_index) + ".tmp";
-		while(!name_found)
-		{
-			if(INVALID_FILE_ATTRIBUTES == ::GetFileAttributesA(tmp_name.c_str()))
-				name_found = true;
-			else
-			{
-				current_index++;
-				tmp_name = base_name + boost::lexical_cast<std::string>(current_index) + ".tmp";
-			}
-		}
-		result_name = tmp_name;
-		return true;
-	}
-#endif
-	
-	inline 
-		std::string get_temp_folder_a()
-	{
-		std::string str_result;
-		char	sz_temp[MAX_PATH*2] = {0};
-		if(!::GetTempPathA( sizeof( sz_temp ), sz_temp ))
-			return str_result;
-		sz_temp[(sizeof(sz_temp)/sizeof(sz_temp[0])) -1] = 0;
-		str_result = sz_temp;
-		return str_result;
-	}
-
-	std::string convert_from_device_path_to_standart(const std::string& path)
-	{
-
-
-		STRSAFE_LPSTR pszFilename = (STRSAFE_LPSTR)path.c_str();
-
-		// Translate path with device name to drive letters.
-		char szTemp[4000] = {0};
-
-		if (::GetLogicalDriveStringsA(sizeof(szTemp)-1, szTemp)) 
-		{
-			char szName[MAX_PATH];
-			char szDrive[3] = " :";
-			BOOL bFound = FALSE;
-			char* p = szTemp;
-
-			do 
-			{
-				// Copy the drive letter to the template string
-				*szDrive = *p;
-
-				// Look up each device name
-				if (::QueryDosDeviceA(szDrive, szName, sizeof(szName)))
-				{
-					UINT uNameLen = strlen(szName);
-
-					if (uNameLen < MAX_PATH) 
-					{
-						bFound = _mbsnbicmp((const unsigned char*)pszFilename, (const unsigned char*)szName, 
-							uNameLen) == 0;
-
-						if (bFound) 
-						{
-							// Reconstruct pszFilename using szTempFile
-							// Replace device path with DOS path
-							char szTempFile[MAX_PATH] = {0};
-							StringCchPrintfA(szTempFile,
-								MAX_PATH,
-								"%s%s",
-								szDrive,
-								pszFilename+uNameLen);
-							return szTempFile;
-							//::StringCchCopyNA(pszFilename, MAX_PATH+1, szTempFile, strlen(szTempFile));
-						}
-					}
-				}
-
-				// Go to the next NULL character.
-				while (*p++);
-			} while (!bFound && *p); // end of string
-		}
-
-		return "";
-	}
-	
-	inline 
-		std::string get_process_path_by_pid(DWORD pid)
-	{
-		std::string res;
-
-		HANDLE hprocess = 0;
-		if( hprocess = ::OpenProcess( PROCESS_QUERY_INFORMATION|PROCESS_VM_READ, FALSE, pid) )
-		{
-			char buff[MAX_PATH]= {0};
-			if(!::GetModuleFileNameExA( hprocess, 0, buff, MAX_PATH - 1 ))
-				res = "Unknown_b";
-			else 
-			{
-				buff[MAX_PATH - 1]=0; //be happy!
-				res = buff;
-				std::string::size_type a = res.rfind( '\\' );
-				if ( a != std::string::npos )
-					res.erase( 0, a+1);					
-
-			}
-			::CloseHandle( hprocess );
-		}else
-			res = "Unknown_a";
-
-		return res;
-	}
-
-
-
-
-
-	inline 
-	std::wstring get_temp_file_name_w()
-	{
-		std::wstring str_result;
-		wchar_t	sz_temp[MAX_PATH*2] = {0};
-		if(!::GetTempPathW( sizeof(sz_temp)/sizeof(sz_temp[0]), sz_temp ))
-			return str_result;
-
-		wchar_t	sz_temp_file[MAX_PATH+1] = {0};
-		if(!::GetTempFileNameW( sz_temp, L"mail", 0, sz_temp_file))
-			return str_result;
-
-		sz_temp_file[(sizeof(sz_temp_file)/sizeof(sz_temp_file[0]))-1] = 0; //be happy!
-		str_result = sz_temp_file;
-		return str_result;
-	}
-#endif
 	inline 
 		bool is_file_exist(const std::string& path)
 	{
@@ -226,39 +69,23 @@ namespace file_io_utils
 		return boost::filesystem::exists(p);
 	}
 
-	/*
-	inline 
-		bool save_string_to_handle(HANDLE hfile, const std::string& str)
-	{
-		
-
-
-		if( INVALID_HANDLE_VALUE != hfile )
-		{
-			DWORD dw;
-			if( !::WriteFile( hfile, str.data(), (DWORD) str.size(), &dw, NULL) )
-			{
-				int err_code = GetLastError();
-				//LOG_PRINT("Failed to write to file handle: " << hfile<< " Last error code:" << err_code << " : " << log_space::get_win32_err_descr(err_code), LOG_LEVEL_2);
-				return false;
-			}
-			::CloseHandle(hfile);
-			return true;
-		}else
-		{
-			//LOG_WIN32_ERROR(::GetLastError());
-			return false;
-		}
-
-		return false;
-	}*/
-
-
-
 	inline
 		bool save_string_to_file(const std::string& path_to_file, const std::string& str)
 	{
-
+#ifdef WIN32
+                std::wstring wide_path;
+                try { wide_path = string_tools::utf8_to_utf16(path_to_file); } catch (...) { return false; }
+                HANDLE file_handle = CreateFileW(wide_path.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+                if (file_handle == INVALID_HANDLE_VALUE)
+                    return false;
+                DWORD bytes_written;
+                DWORD bytes_to_write = (DWORD)str.size();
+                BOOL result = WriteFile(file_handle, str.data(), bytes_to_write, &bytes_written, NULL);
+                CloseHandle(file_handle);
+                if (bytes_written != bytes_to_write)
+                    result = FALSE;
+                return result;
+#else
 		try
 		{
 			std::ofstream fstream;
@@ -273,36 +100,11 @@ namespace file_io_utils
 		{
 			return false;
 		}
+#endif
 	}
 
-	/*
 	inline
-		bool load_form_handle(HANDLE hfile, std::string& str)
-	{
-		if( INVALID_HANDLE_VALUE != hfile )
-		{
-			bool res = true;
-			DWORD dw = 0;
-			DWORD fsize = ::GetFileSize(hfile, &dw);
-			if(fsize > 300000000)
-			{
-				::CloseHandle(hfile);
-				return false;
-			}
-			if(fsize)
-			{
-				str.resize(fsize);
-				if(!::ReadFile( hfile, (LPVOID)str.data(), (DWORD)str.size(), &dw, NULL))
-					res = false;
-			}
-			::CloseHandle(hfile);
-			return res;
-		}
-		return false;
-	}
-	*/
-	inline
-	bool get_file_time(const std::string& path_to_file, OUT time_t& ft)
+	bool get_file_time(const std::string& path_to_file, time_t& ft)
 	{
 		boost::system::error_code ec;
 		ft = boost::filesystem::last_write_time(boost::filesystem::path(path_to_file), ec);
@@ -325,8 +127,27 @@ namespace file_io_utils
 
 
 	inline
-		bool load_file_to_string(const std::string& path_to_file, std::string& target_str)
+		bool load_file_to_string(const std::string& path_to_file, std::string& target_str, size_t max_size = 1000000000)
 	{
+#ifdef WIN32
+                std::wstring wide_path;
+                try { wide_path = string_tools::utf8_to_utf16(path_to_file); } catch (...) { return false; }
+                HANDLE file_handle = CreateFileW(wide_path.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+                if (file_handle == INVALID_HANDLE_VALUE)
+                    return false;
+                DWORD file_size = GetFileSize(file_handle, NULL);
+                if ((file_size == INVALID_FILE_SIZE) || (uint64_t)file_size > (uint64_t)max_size) {
+                    CloseHandle(file_handle);
+                    return false;
+                }
+                target_str.resize(file_size);
+                DWORD bytes_read;
+                BOOL result = ReadFile(file_handle, &target_str[0], file_size, &bytes_read, NULL);
+                CloseHandle(file_handle);
+                if (bytes_read != file_size)
+                    result = FALSE;
+                return result;
+#else
 		try
 		{
 			std::ifstream fstream;
@@ -335,7 +156,7 @@ namespace file_io_utils
 
 			std::ifstream::pos_type file_size = fstream.tellg();
 			
-			if(file_size > 1000000000)
+			if((uint64_t)file_size > (uint64_t)max_size) // ensure a large domain for comparison, and negative -> too large
 				return false;//don't go crazy
 			size_t file_size_t = static_cast<size_t>(file_size);
 
@@ -351,11 +172,13 @@ namespace file_io_utils
 		{
 			return false;
 		}
+#endif
 	}
 
 	inline
 		bool append_string_to_file(const std::string& path_to_file, const std::string& str)
 	{
+                // No special Windows implementation because so far not used in Monero code
 		try
 		{
 			std::ofstream fstream;
@@ -372,83 +195,40 @@ namespace file_io_utils
 		}
 	}
 
-	/*
-	bool remove_dir_and_subirs(const char* path_to_dir);
-
-	inline 
-		bool clean_dir(const char* path_to_dir)
+	inline
+		bool get_file_size(const std::string& path_to_file, uint64_t &size)
 	{
-		if(!path_to_dir)
-			return false;
-
-		std::string folder = path_to_dir;
-		WIN32_FIND_DATAA find_data = {0};
-		HANDLE hfind = ::FindFirstFileA((folder + "\\*.*").c_str(), &find_data);
-		if(INVALID_HANDLE_VALUE == hfind)
-			return false;
-		do{
-			if(!strcmp("..", find_data.cFileName) || (!strcmp(".", find_data.cFileName)))
-				continue;
-
-			if(find_data.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
-			{
-				if(!remove_dir_and_subirs((folder + "\\" + find_data.cFileName).c_str()))
-					return false;
-			}else
-			{
-				if(!::DeleteFileA((folder + "\\" + find_data.cFileName).c_str()))
-					return false;
-			}
-
-
-		}while(::FindNextFileA(hfind, &find_data));
-		::FindClose(hfind);
-
-		return true;
-	}
-	*/
-#ifdef WINDOWS_PLATFORM
-	inline bool get_folder_content(const std::string& path, std::list<WIN32_FIND_DATAA>& OUT target_list)
-	{
-		WIN32_FIND_DATAA find_data = {0};
-		HANDLE hfind = ::FindFirstFileA((path + "\\*.*").c_str(), &find_data);
-		if(INVALID_HANDLE_VALUE == hfind)
-			return false;
-		do{
-			if(!strcmp("..", find_data.cFileName) || (!strcmp(".", find_data.cFileName)))
-				continue;
-
-			target_list.push_back(find_data);
-
-		}while(::FindNextFileA(hfind, &find_data));
-		::FindClose(hfind);
-
-		return true;
-	}
-#endif
-	inline bool get_folder_content(const std::string& path, std::list<std::string>& OUT target_list, bool only_files = false)
-	{
+#ifdef WIN32
+                std::wstring wide_path;
+                try { wide_path = string_tools::utf8_to_utf16(path_to_file); } catch (...) { return false; }
+                HANDLE file_handle = CreateFileW(wide_path.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+                if (file_handle == INVALID_HANDLE_VALUE)
+                    return false;
+                LARGE_INTEGER file_size;
+                BOOL result = GetFileSizeEx(file_handle, &file_size);
+                CloseHandle(file_handle);
+                if (result) {
+                    size = file_size.QuadPart;
+                }
+                return size;
+#else
 		try
 		{
-
-			boost::filesystem::directory_iterator end_itr; // default construction yields past-the-end
-			for ( boost::filesystem::directory_iterator itr( path ); itr != end_itr; ++itr )
-			{
-				if ( only_files && boost::filesystem::is_directory(itr->status()) )
-				{
-					continue;
-				}
-				target_list.push_back(itr->path().filename().string());
-			}
-
+			std::ifstream fstream;
+			fstream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+			fstream.open(path_to_file, std::ios_base::binary | std::ios_base::in | std::ios::ate);
+			size = fstream.tellg();
+			fstream.close();
+			return true;
 		}
 
 		catch(...)
 		{
 			return false;
 		}
-		return true;
+#endif
 	}
+
 }
 }
 

@@ -202,6 +202,15 @@ int netblockstrtoaddr(const char* ip, int port, struct sockaddr_storage* addr,
 	socklen_t* addrlen, int* net);
 
 /**
+ * Store port number into sockaddr structure
+ * @param addr: sockaddr structure, ip4 or ip6.
+ * @param addrlen: length of addr.
+ * @param port: port number to put into the addr.
+ */
+void sockaddr_store_port(struct sockaddr_storage* addr, socklen_t addrlen,
+	int port);
+
+/**
  * Print string with neat domain name, type and class.
  * @param v: at what verbosity level to print this.
  * @param str: string of message.
@@ -344,6 +353,19 @@ void sock_list_merge(struct sock_list** list, struct regional* region,
  * @param str: what failed.
  */
 void log_crypto_err(const char* str);
+
+/**
+ * Set SSL_OP_NOxxx options on SSL context to disable bad crypto
+ * @param ctxt: SSL_CTX*
+ * @return false on failure.
+ */
+int listen_sslctx_setup(void* ctxt);
+
+/**
+ * Further setup of listening SSL context, after keys loaded.
+ * @param ctxt: SSL_CTX*
+ */
+void listen_sslctx_setup_2(void* ctxt);
 
 /** 
  * create SSL listen context

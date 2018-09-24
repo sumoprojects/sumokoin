@@ -30,6 +30,10 @@
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 #include "string_tools.h"
+
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net"
+
 namespace epee
 {
 namespace levin
@@ -95,7 +99,7 @@ int levin_client_impl::invoke(int command, const std::string& in_buff, std::stri
 
 	if(head.m_signature!=LEVIN_SIGNATURE) 
 	{
-		LOG_PRINT_L1("Signature missmatch in response");
+		LOG_PRINT_L1("Signature mismatch in response");
 		return -1;
 	}
 	
@@ -156,7 +160,7 @@ inline
 
   if(head.m_signature!=LEVIN_SIGNATURE) 
   {
-    LOG_PRINT_L1("Signature missmatch in response");
+    LOG_PRINT_L1("Signature mismatch in response");
     return -1;
   }
 

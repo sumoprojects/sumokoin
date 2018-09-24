@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2016, The Monero Project
+# Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
 #
@@ -33,22 +33,32 @@ set(mnemonics_headers)
 
 set(mnemonics_private_headers
   electrum-words.h
+  chinese_simplified.h
   english.h
+  dutch.h
+  french.h
   german.h
   italian.h
   japanese.h
   language_base.h
+  english_old.h
   portuguese.h
   russian.h
   singleton.h
-  spanish.h)
+  spanish.h
+  esperanto.h
+  lojban.h)
 
-sumokoin_private_headers(mnemonics
+monero_private_headers(mnemonics
   ${mnemonics_private_headers})
-sumokoin_add_library(mnemonics
+monero_add_library(mnemonics
   ${mnemonics_sources}
   ${mnemonics_headers}
   ${mnemonics_private_headers})
 target_link_libraries(mnemonics
+  PUBLIC
+    epee
+    easylogging
+    ${Boost_SYSTEM_LIBRARY}
   PRIVATE
     ${EXTRA_LIBRARIES})

@@ -67,15 +67,18 @@ static struct config_strlist* cfgfiles = NULL;
 
 /** give commandline usage for testbound. */
 static void
-testbound_usage()
+testbound_usage(void)
 {
 	printf("usage: testbound [options]\n");
 	printf("\ttest the unbound daemon.\n");
 	printf("-h      this help\n");
 	printf("-p file	playback text file\n");
+	printf("-1 	detect SHA1 support (exit code 0 or 1)\n");
 	printf("-2 	detect SHA256 support (exit code 0 or 1)\n");
 	printf("-g 	detect GOST support (exit code 0 or 1)\n");
 	printf("-e 	detect ECDSA support (exit code 0 or 1)\n");
+	printf("-c 	detect CLIENT_SUBNET support (exit code 0 or 1)\n");
+	printf("-i 	detect IPSECMOD support (exit code 0 or 1)\n");
 	printf("-s 	testbound self-test - unit test of testbound parts.\n");
 	printf("-o str  unbound commandline options separated by spaces.\n");
 	printf("Version %s\n", PACKAGE_VERSION);
@@ -132,6 +135,65 @@ echo_cmdline(int argc, char* argv[])
 	fprintf(stderr, "\n");
 }
 
+/** spool temp file name */
+static void
+spool_temp_file_name(int* lineno, FILE* cfg, char* id)
+{
+	char line[MAX_LINE_LEN];
+	/* find filename for new file */
+	while(isspace((unsigned char)*id))
+		id++;
+	if(*id == '\0') 
+		fatal_exit("TEMPFILE_NAME must have id, line %d", *lineno);
+	id[strlen(id)-1]=0; /* remove newline */
+	fake_temp_file("_temp_", id, line, sizeof(line));
+	fprintf(cfg, "\"%s\"\n", line);
+}
+
+/** spool temp file */
+static void
+spool_temp_file(FILE* in, int* lineno, char* id)
+{
+	char line[MAX_LINE_LEN];
+	char* parse;
+	FILE* spool;
+	/* find filename for new file */
+	while(isspace((unsigned char)*id))
+		id++;
+	if(*id == '\0') 
+		fatal_exit("TEMPFILE_CONTENTS must have id, line %d", *lineno);
+	id[strlen(id)-1]=0; /* remove newline */
+	fake_temp_file("_temp_", id, line, sizeof(line));
+	/* open file and spool to it */
+	spool = fopen(line, "w");
+	if(!spool) fatal_exit("could not open %s: %s", line, strerror(errno));
+	fprintf(stderr, "testbound is spooling temp file: %s\n", line);
+	if(!cfg_strlist_insert(&cfgfiles, strdup(line))) 
+		fatal_exit("out of memory");
+	line[sizeof(line)-1] = 0;
+	while(fgets(line, MAX_LINE_LEN-1, in)) {
+		parse = line;
+		(*lineno)++;
+		while(isspace((unsigned char)*parse))
+			parse++;
+		if(strncmp(parse, "$INCLUDE_TEMPFILE", 17) == 0) {
+			char l2[MAX_LINE_LEN];
+			char* tid = parse+17;
+			while(isspace((unsigned char)*tid))
+				tid++;
+			tid[strlen(tid)-1]=0; /* remove newline */
+			fake_temp_file("_temp_", tid, l2, sizeof(l2));
+			snprintf(line, sizeof(line), "$INCLUDE %s\n", l2);
+		}
+		if(strncmp(parse, "TEMPFILE_END", 12) == 0) {
+			fclose(spool);
+			return;
+		}
+		fputs(line, spool);
+	}
+	fatal_exit("no TEMPFILE_END in input file");
+}
+
 /** spool autotrust file */
 static void
 spool_auto_file(FILE* in, int* lineno, FILE* cfg, char* id)
@@ -142,7 +204,7 @@ spool_auto_file(FILE* in, int* lineno, FILE* cfg, char* id)
 	/* find filename for new file */
 	while(isspace((unsigned char)*id))
 		id++;
-	if(strlen(id)==0) 
+	if(*id == '\0') 
 		fatal_exit("AUTROTRUST_FILE must have id, line %d", *lineno);
 	id[strlen(id)-1]=0; /* remove newline */
 	fake_temp_file("_auto_", id, line, sizeof(line));
@@ -208,6 +270,14 @@ setup_config(FILE* in, int* lineno, int* pass_argc, char* pass_argv[])
 		}
 		if(strncmp(parse, "AUTOTRUST_FILE", 14) == 0) {
 			spool_auto_file(in, lineno, cfg, parse+14);
+			continue;
+		}
+		if(strncmp(parse, "TEMPFILE_NAME", 13) == 0) {
+			spool_temp_file_name(lineno, cfg, parse+13);
+			continue;
+		}
+		if(strncmp(parse, "TEMPFILE_CONTENTS", 17) == 0) {
+			spool_temp_file(in, lineno, parse+17);
 			continue;
 		}
 		if(strncmp(parse, "CONFIG_END", 10) == 0) {
@@ -279,12 +349,25 @@ main(int argc, char* argv[])
 	pass_argc = 1;
 	pass_argv[0] = "unbound";
 	add_opts("-d", &pass_argc, pass_argv);
-	while( (c=getopt(argc, argv, "2egho:p:s")) != -1) {
+	while( (c=getopt(argc, argv, "12egciho:p:s")) != -1) {
 		switch(c) {
 		case 's':
 			free(pass_argv[1]);
 			testbound_selftest();
+			checklock_stop();
+			if(log_get_lock()) {
+				lock_quick_destroy((lock_quick_type*)log_get_lock());
+			}
 			exit(0);
+		case '1':
+#ifdef USE_SHA1
+			printf("SHA1 supported\n");
+			exit(0);
+#else
+			printf("SHA1 not supported\n");
+			exit(1);
+#endif
+			break;
 		case '2':
 #if (defined(HAVE_EVP_SHA256) || defined(HAVE_NSS) || defined(HAVE_NETTLE)) && defined(USE_SHA2)
 			printf("SHA256 supported\n");
@@ -314,6 +397,24 @@ main(int argc, char* argv[])
 			}
 #else
 			printf("GOST not supported\n");
+			exit(1);
+#endif
+			break;
+		case 'c':
+#ifdef CLIENT_SUBNET
+			printf("CLIENT_SUBNET supported\n");
+			exit(0);
+#else
+			printf("CLIENT_SUBNET not supported\n");
+			exit(1);
+#endif
+			break;
+		case 'i':
+#ifdef USE_IPSECMOD
+			printf("IPSECMOD supported\n");
+			exit(0);
+#else
+			printf("IPSECMOD not supported\n");
 			exit(1);
 #endif
 			break;
@@ -359,7 +460,10 @@ main(int argc, char* argv[])
 	for(c=1; c<pass_argc; c++)
 		free(pass_argv[c]);
 	if(res == 0) {
-		log_info("Testbound Exit Success");
+		log_info("Testbound Exit Success\n");
+		if(log_get_lock()) {
+			lock_quick_destroy((lock_quick_type*)log_get_lock());
+		}
 #ifdef HAVE_PTHREAD
 		/* dlopen frees its thread state (dlopen of gost engine) */
 		pthread_exit(NULL);

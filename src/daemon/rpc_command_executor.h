@@ -6,7 +6,7 @@
 
 */
 
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -38,12 +38,15 @@
 
 #pragma once
 
+#include <boost/optional/optional_fwd.hpp>
+
+#include "common/common_fwd.h"
 #include "common/rpc_client.h"
-#include "misc_log_ex.h"
-#include "cryptonote_core/cryptonote_core.h"
-#include "cryptonote_protocol/cryptonote_protocol_handler.h"
-#include "p2p/net_node.h"
+#include "cryptonote_basic/cryptonote_basic.h"
 #include "rpc/core_rpc_server.h"
+
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "daemon"
 
 namespace daemonize {
 
@@ -57,7 +60,7 @@ public:
   t_rpc_command_executor(
       uint32_t ip
     , uint16_t port
-    , const std::string &user_agent
+    , const boost::optional<tools::login>& user
     , bool is_rpc = true
     , cryptonote::core_rpc_server* rpc_server = NULL
     );
@@ -65,6 +68,8 @@ public:
   ~t_rpc_command_executor();
 
   bool print_peer_list();
+
+  bool print_peer_list_stats();
 
   bool save_blockchain();
 
@@ -82,13 +87,15 @@ public:
 
   bool set_log_level(int8_t level);
 
+  bool set_log_categories(const std::string &categories);
+
   bool print_height();
 
   bool print_block_by_hash(crypto::hash block_hash);
 
   bool print_block_by_height(uint64_t height);
 
-  bool print_transaction(crypto::hash transaction_hash);
+  bool print_transaction(crypto::hash transaction_hash, bool include_hex, bool include_json);
 
   bool is_key_image_spent(const crypto::key_image &ki);
 
@@ -98,7 +105,7 @@ public:
 
   bool print_transaction_pool_stats();
 
-  bool start_mining(cryptonote::account_public_address address, uint64_t num_threads, bool testnet);
+  bool start_mining(cryptonote::account_public_address address, uint64_t num_threads, cryptonote::network_type nettype, bool do_background_mining = false, bool ignore_battery = false);
 
   bool stop_mining();
 
@@ -112,14 +119,12 @@ public:
 
   bool get_limit_down();
 
-  bool set_limit(int limit);
-
-  bool set_limit_up(int limit);
-
-  bool set_limit_down(int limit);
+  bool set_limit(int64_t limit_down, int64_t limit_up);
 
   bool out_peers(uint64_t limit);
-  
+
+  bool in_peers(uint64_t limit);
+
   bool start_save_graph();
   
   bool stop_save_graph();
@@ -134,9 +139,19 @@ public:
 
   bool flush_txpool(const std::string &txid);
 
-  bool output_histogram(uint64_t min_count, uint64_t max_count);
+  bool output_histogram(const std::vector<uint64_t> &amounts, uint64_t min_count, uint64_t max_count);
 
   bool print_coinbase_tx_sum(uint64_t height, uint64_t count);
+
+  bool alt_chain_info();
+
+  bool print_blockchain_dynamic_stats(uint64_t nblocks);
+
+  bool update(const std::string &command);
+
+  bool relay_tx(const std::string &txid);
+
+  bool sync_info();
 };
 
 } // namespace daemonize

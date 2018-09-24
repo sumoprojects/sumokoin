@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2017, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 //
 // All rights reserved.
 //
@@ -28,7 +28,7 @@
 //
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#include "wallet/wallet2_api.h"
+#include "wallet/api/wallet2_api.h"
 #include "wallet/wallet2.h"
 
 #include <string>
@@ -45,7 +45,7 @@ public:
     ~PendingTransactionImpl();
     int status() const;
     std::string errorString() const;
-    bool commit();
+    bool commit(const std::string &filename = "", bool overwrite = false);
     uint64_t amount() const;
     uint64_t dust() const;
     uint64_t fee() const;

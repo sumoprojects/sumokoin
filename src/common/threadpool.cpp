@@ -87,7 +87,7 @@ threadpool::waiter::~waiter()
   {
     boost::unique_lock<boost::mutex> lock(mt);
     if (num)
-      LOG_ERROR("wait should have been called before waiter dtor - waiting now");
+      MERROR("wait should have been called before waiter dtor - waiting now");
   }
   try
   {

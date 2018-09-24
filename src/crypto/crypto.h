@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2017, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -31,13 +31,20 @@
 #pragma once
 
 #include <cstddef>
+#include <iostream>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
+#include <boost/utility/value_init.hpp>
 #include <boost/optional.hpp>
+#include <type_traits>
 #include <vector>
 
 #include "common/pod-class.h"
+#include "common/util.h"
+#include "memwipe.h"
 #include "generic-ops.h"
+#include "hex.h"
+#include "span.h"
 #include "hash.h"
 
 namespace crypto {
@@ -49,47 +56,45 @@ namespace crypto {
   extern boost::mutex random_lock;
 
 #pragma pack(push, 1)
-  POD_CLASS ec_point{
+  POD_CLASS ec_point {
     char data[32];
   };
 
-  POD_CLASS ec_scalar{
+  POD_CLASS ec_scalar {
     char data[32];
   };
 
-  POD_CLASS public_key : ec_point{
+  POD_CLASS public_key: ec_point {
     friend class crypto_ops;
   };
 
-  POD_CLASS secret_key : ec_scalar{
-    friend class crypto_ops;
-  };
+  using secret_key = tools::scrubbed<ec_scalar>;
 
-  POD_CLASS public_keyV{
+  POD_CLASS public_keyV {
     std::vector<public_key> keys;
     int rows;
   };
 
-  POD_CLASS secret_keyV{
+  POD_CLASS secret_keyV {
     std::vector<secret_key> keys;
     int rows;
   };
 
-  POD_CLASS public_keyM{
+  POD_CLASS public_keyM {
     int cols;
     int rows;
     std::vector<secret_keyV> column_vectors;
   };
 
-  POD_CLASS key_derivation : ec_point{
+  POD_CLASS key_derivation: ec_point {
     friend class crypto_ops;
   };
 
-  POD_CLASS key_image : ec_point{
+  POD_CLASS key_image: ec_point {
     friend class crypto_ops;
   };
 
-  POD_CLASS signature{
+  POD_CLASS signature {
     ec_scalar c, r;
     friend class crypto_ops;
   };
@@ -145,14 +150,14 @@ namespace crypto {
   };
 
   /* Generate N random bytes
-  */
+   */
   inline void rand(size_t N, uint8_t *bytes) {
     boost::lock_guard<boost::mutex> lock(random_lock);
     generate_random_bytes_not_thread_safe(N, bytes);
   }
 
   /* Generate a value filled with random bytes.
-  */
+   */
   template<typename T>
   typename std::enable_if<std::is_pod<T>::value, T>::type rand() {
     typename std::remove_cv<T>::type res;
@@ -162,29 +167,29 @@ namespace crypto {
   }
 
   /* Generate a new key pair
-  */
+   */
   inline secret_key generate_keys(public_key &pub, secret_key &sec, const secret_key& recovery_key = secret_key(), bool recover = false) {
     return crypto_ops::generate_keys(pub, sec, recovery_key, recover);
   }
 
   /* Check a public key. Returns true if it is valid, false otherwise.
-  */
+   */
   inline bool check_key(const public_key &key) {
     return crypto_ops::check_key(key);
   }
 
   /* Checks a private key and computes the corresponding public key.
-  */
+   */
   inline bool secret_key_to_public_key(const secret_key &sec, public_key &pub) {
     return crypto_ops::secret_key_to_public_key(sec, pub);
   }
 
   /* To generate an ephemeral key used to send money to:
-  * * The sender generates a new key pair, which becomes the transaction key. The public transaction key is included in "extra" field.
-  * * Both the sender and the receiver generate key derivation from the transaction key, the receivers' "view" key and the output index.
-  * * The sender uses key derivation and the receivers' "spend" key to derive an ephemeral public key.
-  * * The receiver can either derive the public key (to check that the transaction is addressed to him) or the private key (to spend the money).
-  */
+   * * The sender generates a new key pair, which becomes the transaction key. The public transaction key is included in "extra" field.
+   * * Both the sender and the receiver generate key derivation from the transaction key, the receivers' "view" key and the output index.
+   * * The sender uses key derivation and the receivers' "spend" key to derive an ephemeral public key.
+   * * The receiver can either derive the public key (to check that the transaction is addressed to him) or the private key (to spend the money).
+   */
   inline bool generate_key_derivation(const public_key &key1, const secret_key &key2, key_derivation &derivation) {
     return crypto_ops::generate_key_derivation(key1, key2, derivation);
   }
@@ -204,7 +209,7 @@ namespace crypto {
   }
 
   /* Generation and checking of a standard signature.
-  */
+   */
   inline void generate_signature(const hash &prefix_hash, const public_key &pub, const secret_key &sec, signature &sig) {
     crypto_ops::generate_signature(prefix_hash, pub, sec, sig);
   }
@@ -212,10 +217,10 @@ namespace crypto {
     return crypto_ops::check_signature(prefix_hash, pub, sig);
   }
 
-  /* Generation and checking of a tx proof; given a tx pubkey R, the recipient's view pubkey A, and the key
-  * derivation D, the signature proves the knowledge of the tx secret key r such that R=r*G and D=r*A
-  * When the recipient's address is a subaddress, the tx pubkey R is defined as R=r*B where B is the recipient's spend pubkey
-  */
+  /* Generation and checking of a tx proof; given a tx pubkey R, the recipient's view pubkey A, and the key 
+   * derivation D, the signature proves the knowledge of the tx secret key r such that R=r*G and D=r*A
+   * When the recipient's address is a subaddress, the tx pubkey R is defined as R=r*B where B is the recipient's spend pubkey
+   */
   inline void generate_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const boost::optional<public_key> &B, const public_key &D, const secret_key &r, signature &sig) {
     crypto_ops::generate_tx_proof(prefix_hash, R, A, B, D, r, sig);
   }
@@ -224,11 +229,11 @@ namespace crypto {
   }
 
   /* To send money to a key:
-  * * The sender generates an ephemeral key and includes it in transaction output.
-  * * To spend the money, the receiver generates a key image from it.
-  * * Then he selects a bunch of outputs, including the one he spends, and uses them to generate a ring signature.
-  * To check the signature, it is necessary to collect all the keys that were used to generate it. To detect double spends, it is necessary to check that each key image is used at most once.
-  */
+   * * The sender generates an ephemeral key and includes it in transaction output.
+   * * To spend the money, the receiver generates a key image from it.
+   * * Then he selects a bunch of outputs, including the one he spends, and uses them to generate a ring signature.
+   * To check the signature, it is necessary to collect all the keys that were used to generate it. To detect double spends, it is necessary to check that each key image is used at most once.
+   */
   inline void generate_key_image(const public_key &pub, const secret_key &sec, key_image &image) {
     crypto_ops::generate_key_image(pub, sec, image);
   }
@@ -245,7 +250,7 @@ namespace crypto {
   }
 
   /* Variants with vector<const public_key *> parameters.
-  */
+   */
   inline void generate_ring_signature(const hash &prefix_hash, const key_image &image,
     const std::vector<const public_key *> &pubs,
     const secret_key &sec, std::size_t sec_index,
@@ -257,6 +262,25 @@ namespace crypto {
     const signature *sig) {
     return check_ring_signature(prefix_hash, image, pubs.data(), pubs.size(), sig);
   }
+
+  inline std::ostream &operator <<(std::ostream &o, const crypto::public_key &v) {
+    epee::to_hex::formatted(o, epee::as_byte_span(v)); return o;
+  }
+  inline std::ostream &operator <<(std::ostream &o, const crypto::secret_key &v) {
+    epee::to_hex::formatted(o, epee::as_byte_span(v)); return o;
+  }
+  inline std::ostream &operator <<(std::ostream &o, const crypto::key_derivation &v) {
+    epee::to_hex::formatted(o, epee::as_byte_span(v)); return o;
+  }
+  inline std::ostream &operator <<(std::ostream &o, const crypto::key_image &v) {
+    epee::to_hex::formatted(o, epee::as_byte_span(v)); return o;
+  }
+  inline std::ostream &operator <<(std::ostream &o, const crypto::signature &v) {
+    epee::to_hex::formatted(o, epee::as_byte_span(v)); return o;
+  }
+
+  const static crypto::public_key null_pkey = boost::value_initialized<crypto::public_key>();
+  const static crypto::secret_key null_skey = boost::value_initialized<crypto::secret_key>();
 }
 
 CRYPTO_MAKE_HASHABLE(public_key)

@@ -30,6 +30,9 @@
 #include <boost/utility/value_init.hpp>
 #include "net/levin_base.h"
 
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net"
+
 namespace epee
 {
   namespace net_utils
@@ -48,7 +51,7 @@ namespace epee
       int res = transport.invoke(command, buff_to_send, buff_to_recv);
       if( res <=0 )
       {
-        LOG_PRINT_RED("Failed to invoke command " << command << " return code " << res, LOG_LEVEL_1);
+        MERROR("Failed to invoke command " << command << " return code " << res);
         return false;
       }
       serialization::portable_storage stg_ret;
@@ -57,8 +60,7 @@ namespace epee
         LOG_ERROR("Failed to load_from_binary on command " << command);
         return false;
       }
-      result_struct.load(stg_ret);
-      return true;
+      return result_struct.load(stg_ret);
     }
 
     template<class t_arg, class t_transport>
@@ -102,17 +104,15 @@ namespace epee
         LOG_ERROR("Failed to load_from_binary on command " << command);
         return false;
       }
-      result_struct.load(stg_ret);
-
-      return true;
+      return result_struct.load(stg_ret);
     }
 
     template<class t_result, class t_arg, class callback_t, class t_transport>
-    bool async_invoke_remote_command2(boost::uuids::uuid conn_id, int command, const t_arg& out_struct, t_transport& transport, callback_t cb, size_t inv_timeout = LEVIN_DEFAULT_TIMEOUT_PRECONFIGURED)
+    bool async_invoke_remote_command2(boost::uuids::uuid conn_id, int command, const t_arg& out_struct, t_transport& transport, const callback_t &cb, size_t inv_timeout = LEVIN_DEFAULT_TIMEOUT_PRECONFIGURED)
     {
       typename serialization::portable_storage stg;
       const_cast<t_arg&>(out_struct).store(stg);//TODO: add true const support to searilzation
-      std::string buff_to_send, buff_to_recv;
+      std::string buff_to_send;
       stg.store_to_binary(buff_to_send);
       int res = transport.invoke_async(command, buff_to_send, conn_id, [cb, command](int code, const std::string& buff, typename t_transport::connection_context& context)->bool 
       {
@@ -130,7 +130,12 @@ namespace epee
           cb(LEVIN_ERROR_FORMAT, result_struct, context);
           return false;
         }
-        result_struct.load(stg_ret);
+        if (!result_struct.load(stg_ret))
+        {
+          LOG_ERROR("Failed to load result struct on command " << command);
+          cb(LEVIN_ERROR_FORMAT, result_struct, context);
+          return false;
+        }
         cb(code, result_struct, context);
         return true;
       }, inv_timeout);
@@ -148,13 +153,13 @@ namespace epee
 
       serialization::portable_storage stg;
       out_struct.store(stg);
-      std::string buff_to_send, buff_to_recv;
+      std::string buff_to_send;
       stg.store_to_binary(buff_to_send);
 
       int res = transport.notify(command, buff_to_send, conn_id);
       if(res <=0 )
       {
-        LOG_PRINT_RED_L0("Failed to notify command " << command << " return code " << res);
+        MERROR("Failed to notify command " << command << " return code " << res);
         return false;
       }
       return true;
@@ -173,7 +178,11 @@ namespace epee
       boost::value_initialized<t_in_type> in_struct;
       boost::value_initialized<t_out_type> out_struct;
 
-      static_cast<t_in_type&>(in_struct).load(strg);
+      if (!static_cast<t_in_type&>(in_struct).load(strg))
+      {
+        LOG_ERROR("Failed to load in_struct in command " << command);
+        return -1;
+      }
       int res = cb(command, static_cast<t_in_type&>(in_struct), static_cast<t_out_type&>(out_struct), context);
       serialization::portable_storage strg_out;
       static_cast<t_out_type&>(out_struct).store(strg_out);
@@ -197,7 +206,11 @@ namespace epee
         return -1;
       }
       boost::value_initialized<t_in_type> in_struct;
-      static_cast<t_in_type&>(in_struct).load(strg);
+      if (!static_cast<t_in_type&>(in_struct).load(strg))
+      {
+        LOG_ERROR("Failed to load in_struct in notify " << command);
+        return -1;
+      }
       return cb(command, in_struct, context);
     }
 

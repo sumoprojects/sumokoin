@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -32,8 +32,8 @@
 
 #include <list>
 #include "serialization/keyvalue_serialization.h"
-#include "cryptonote_core/cryptonote_basic.h"
-#include "cryptonote_protocol/blobdatatype.h"
+#include "cryptonote_basic/cryptonote_basic.h"
+#include "cryptonote_basic/blobdatatype.h"
 namespace cryptonote
 {
 
@@ -49,6 +49,8 @@ namespace cryptonote
     bool localhost;
     bool local_ip;
 
+    std::string address;
+    std::string host;
     std::string ip;
     std::string port;
 
@@ -72,10 +74,16 @@ namespace cryptonote
   
 	uint32_t support_flags;
 
+	std::string connection_id;
+
+    uint64_t height;
+
     BEGIN_KV_SERIALIZE_MAP()
       KV_SERIALIZE(incoming)
       KV_SERIALIZE(localhost)
       KV_SERIALIZE(local_ip)
+      KV_SERIALIZE(address)
+      KV_SERIALIZE(host)
       KV_SERIALIZE(ip)
       KV_SERIALIZE(port)
       KV_SERIALIZE(peer_id)
@@ -90,6 +98,8 @@ namespace cryptonote
       KV_SERIALIZE(avg_upload)
       KV_SERIALIZE(current_upload)
       KV_SERIALIZE(support_flags)
+      KV_SERIALIZE(connection_id)
+      KV_SERIALIZE(height)
     END_KV_SERIALIZE_MAP()
   };
 
@@ -118,12 +128,10 @@ namespace cryptonote
     {
       block_complete_entry b;
       uint64_t current_blockchain_height;
-      uint32_t hop;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(b)
         KV_SERIALIZE(current_blockchain_height)
-        KV_SERIALIZE(hop)
       END_KV_SERIALIZE_MAP()
     };
   };
@@ -187,11 +195,15 @@ namespace cryptonote
   struct CORE_SYNC_DATA
   {
     uint64_t current_height;
+    uint64_t cumulative_difficulty;
     crypto::hash  top_id;
+    uint8_t top_version;
 
     BEGIN_KV_SERIALIZE_MAP()
       KV_SERIALIZE(current_height)
+      KV_SERIALIZE(cumulative_difficulty)
       KV_SERIALIZE_VAL_POD_AS_BLOB(top_id)
+      KV_SERIALIZE_OPT(top_version, (uint8_t)0)
     END_KV_SERIALIZE_MAP()
   };
 
@@ -217,11 +229,13 @@ namespace cryptonote
     {
       uint64_t start_height;
       uint64_t total_height;
+      uint64_t cumulative_difficulty;
       std::list<crypto::hash> m_block_ids;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(start_height)
         KV_SERIALIZE(total_height)
+        KV_SERIALIZE(cumulative_difficulty)
         KV_SERIALIZE_CONTAINER_POD_AS_BLOB(m_block_ids)
       END_KV_SERIALIZE_MAP()
     };
@@ -238,12 +252,10 @@ namespace cryptonote
     {
       block_complete_entry b;
       uint64_t current_blockchain_height;
-      uint32_t hop;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(b)
         KV_SERIALIZE(current_blockchain_height)
-        KV_SERIALIZE(hop)
       END_KV_SERIALIZE_MAP()
     };
   };  
@@ -257,16 +269,14 @@ namespace cryptonote
 
     struct request
     {
-      block_complete_entry b;
+      crypto::hash block_hash;
       uint64_t current_blockchain_height;      
-      std::vector<size_t> missing_tx_indices;
-      uint32_t hop;
+      std::vector<uint64_t> missing_tx_indices;
       
       BEGIN_KV_SERIALIZE_MAP()
-        KV_SERIALIZE(b)
-        KV_SERIALIZE_CONTAINER_POD_AS_BLOB(missing_tx_indices)        
-        KV_SERIALIZE(hop)   
-        KV_SERIALIZE(current_blockchain_height)     
+        KV_SERIALIZE_VAL_POD_AS_BLOB(block_hash)
+        KV_SERIALIZE(current_blockchain_height)
+        KV_SERIALIZE_CONTAINER_POD_AS_BLOB(missing_tx_indices)
       END_KV_SERIALIZE_MAP()
     };
   }; 

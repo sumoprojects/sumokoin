@@ -1,4 +1,4 @@
-// Copyright (c) 2016, The Monero Project
+// Copyright (c) 2016-2018, The Monero Project
 //
 // All rights reserved.
 //
@@ -26,14 +26,30 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "common/stack_trace.h"
-#include "misc_log_ex.h"
+#if !defined __GNUC__ || defined __MINGW32__ || defined __MINGW64__ || defined __ANDROID__
+#define USE_UNWIND
+#else
+#define ELPP_FEATURE_CRASH_LOG 1
+#endif
+#include "easylogging++/easylogging++.h"
+
+#include <stdexcept>
+#ifdef USE_UNWIND
 #define UNW_LOCAL_ONLY
 #include <libunwind.h>
 #include <cxxabi.h>
+#endif
 #ifndef STATICLIB
 #include <dlfcn.h>
 #endif
+#include <boost/algorithm/string.hpp>
+#include "common/stack_trace.h"
+#include "misc_log_ex.h"
+
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "stacktrace"
+
+#define ST_LOG(x) CINFO(el::base::Writer,el::base::DispatchAction::FileOnlyLog,MONERO_DEFAULT_LOG_CATEGORY) << x
 
 // from http://stackoverflow.com/questions/11665829/how-can-i-print-stack-trace-for-caught-exceptions-in-c-code-injection-in-c
 
@@ -94,6 +110,7 @@ void set_stack_trace_log(const std::string &log)
 
 void log_stack_trace(const char *msg)
 {
+#ifdef USE_UNWIND
   unw_context_t ctx;
   unw_cursor_t cur;
   unw_word_t ip, off;
@@ -101,38 +118,50 @@ void log_stack_trace(const char *msg)
   char sym[512], *dsym;
   int status;
   const char *log = stack_trace_log.empty() ? NULL : stack_trace_log.c_str();
+#endif
 
   if (msg)
-    LOG_PRINT2(log, msg, LOG_LEVEL_0);
-  LOG_PRINT2(log, "Unwound call stack:", LOG_LEVEL_0);
+    ST_LOG(msg);
+  ST_LOG("Unwound call stack:");
+
+#ifdef USE_UNWIND
   if (unw_getcontext(&ctx) < 0) {
-    LOG_PRINT2(log, "Failed to create unwind context", LOG_LEVEL_0);
+    ST_LOG("Failed to create unwind context");
     return;
   }
   if (unw_init_local(&cur, &ctx) < 0) {
-    LOG_PRINT2(log, "Failed to find the first unwind frame", LOG_LEVEL_0);
+    ST_LOG("Failed to find the first unwind frame");
     return;
   }
   for (level = 1; level < 999; ++level) { // 999 for safety
     int ret = unw_step(&cur);
     if (ret < 0) {
-      LOG_PRINT2(log, "Failed to find the next frame", LOG_LEVEL_0);
+      ST_LOG("Failed to find the next frame");
       return;
     }
     if (ret == 0)
       break;
     if (unw_get_reg(&cur, UNW_REG_IP, &ip) < 0) {
-      LOG_PRINT2(log, "  " << std::setw(4) << level, LOG_LEVEL_0);
+      ST_LOG("  " << std::setw(4) << level);
       continue;
     }
     if (unw_get_proc_name(&cur, sym, sizeof(sym), &off) < 0) {
-      LOG_PRINT2(log, "  " << std::setw(4) << level << std::setbase(16) << std::setw(20) << "0x" << ip, LOG_LEVEL_0);
+      ST_LOG("  " << std::setw(4) << level << std::setbase(16) << std::setw(20) << "0x" << ip);
       continue;
     }
     dsym = abi::__cxa_demangle(sym, NULL, NULL, &status);
-    LOG_PRINT2(log, "  " << std::setw(4) << level << std::setbase(16) << std::setw(20) << "0x" << ip << " " << (!status && dsym ? dsym : sym) << " + " << "0x" << off, LOG_LEVEL_0);
+    ST_LOG("  " << std::setw(4) << level << std::setbase(16) << std::setw(20) << "0x" << ip << " " << (!status && dsym ? dsym : sym) << " + " << "0x" << off);
     free(dsym);
   }
+#else
+  std::stringstream ss;
+  ss << el::base::debug::StackTrace();
+  std::vector<std::string> lines;
+  std::string s = ss.str();
+  boost::split(lines, s, boost::is_any_of("\n"));
+  for (const auto &line: lines)
+    ST_LOG(line);
+#endif
 }
 
 }  // namespace tools

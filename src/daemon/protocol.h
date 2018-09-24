@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -30,6 +30,9 @@
 
 #pragma once
 
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "daemon"
+
 namespace daemonize
 {
 
@@ -43,16 +46,16 @@ private:
 public:
   t_protocol(
       boost::program_options::variables_map const & vm
-    , t_core & core
+    , t_core & core, bool offline = false
     )
-    : m_protocol{core.get(), nullptr}
+    : m_protocol{core.get(), nullptr, offline}
   {
-    LOG_PRINT_L0("Initializing cryptonote protocol...");
+    MGINFO("Initializing cryptonote protocol...");
     if (!m_protocol.init(vm))
     {
       throw std::runtime_error("Failed to initialize cryptonote protocol.");
     }
-    LOG_PRINT_L0("Cryptonote protocol initialized OK");
+    MGINFO("Cryptonote protocol initialized OK");
   }
 
   t_protocol_raw & get()
@@ -69,11 +72,11 @@ public:
 
   ~t_protocol()
   {
-    LOG_PRINT_L0("Stopping cryptonote protocol...");
+    MGINFO("Stopping cryptonote protocol...");
     try {
       m_protocol.deinit();
       m_protocol.set_p2p_endpoint(nullptr);
-      LOG_PRINT_L0("Cryptonote protocol stopped successfully");
+      MGINFO("Cryptonote protocol stopped successfully");
     } catch (...) {
       LOG_ERROR("Failed to stop cryptonote protocol!");
     }
