@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 //
 // All rights reserved.
 //
@@ -30,68 +30,51 @@
 #include "blocksdat_file.h"
 #include "common/command_line.h"
 #include "cryptonote_core/tx_pool.h"
+#include "cryptonote_core/cryptonote_core.h"
 #include "blockchain_db/blockchain_db.h"
-#include "blockchain_db/lmdb/db_lmdb.h"
-#if defined(BERKELEY_DB)
-#include "blockchain_db/berkeleydb/db_bdb.h"
-#endif
 #include "blockchain_db/db_types.h"
 #include "version.h"
 
-namespace po = boost::program_options;
-using namespace epee; // log_space
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "bcutil"
 
-std::string join_set_strings(const std::unordered_set<std::string>& db_types_all, const char* delim)
-{
-  std::string result;
-  std::ostringstream s;
-  std::copy(db_types_all.begin(), db_types_all.end(), std::ostream_iterator<std::string>(s, delim));
-  result = s.str();
-  if (result.length() > 0)
-    result.erase(result.end()-strlen(delim), result.end());
-  return result;
-}
+namespace po = boost::program_options;
+using namespace epee;
 
 int main(int argc, char* argv[])
 {
+  TRY_ENTRY();
+
+  epee::string_tools::set_module_name_and_folder(argv[0]);
+
   std::string default_db_type = "lmdb";
 
-  std::unordered_set<std::string> db_types_all = cryptonote::blockchain_db_types;
-  db_types_all.insert("memory");
-
-  std::string available_dbs = join_set_strings(db_types_all, ", ");
+  std::string available_dbs = cryptonote::blockchain_db_types(", ");
   available_dbs = "available: " + available_dbs;
 
   uint32_t log_level = 0;
   uint64_t block_stop = 0;
   bool blocks_dat = false;
 
-  tools::sanitize_locale();
+  tools::on_startup();
 
-  boost::filesystem::path default_data_path {tools::get_default_data_dir()};
-  boost::filesystem::path default_testnet_data_path {default_data_path / "testnet"};
   boost::filesystem::path output_file_path;
 
   po::options_description desc_cmd_only("Command line options");
   po::options_description desc_cmd_sett("Command line options and settings options");
   const command_line::arg_descriptor<std::string> arg_output_file = {"output-file", "Specify output file", "", true};
-  const command_line::arg_descriptor<uint32_t> arg_log_level  = {"log-level",  "", log_level};
+  const command_line::arg_descriptor<std::string> arg_log_level  = {"log-level",  "0-4 or categories", ""};
   const command_line::arg_descriptor<uint64_t> arg_block_stop = {"block-stop", "Stop at block number", block_stop};
-  const command_line::arg_descriptor<bool>     arg_testnet_on = {
-    "testnet"
-      , "Run on testnet."
-      , false
-  };
   const command_line::arg_descriptor<std::string> arg_database = {
     "database", available_dbs.c_str(), default_db_type
   };
   const command_line::arg_descriptor<bool> arg_blocks_dat = {"blocksdat", "Output in blocks.dat format", blocks_dat};
 
 
-  command_line::add_arg(desc_cmd_sett, command_line::arg_data_dir, default_data_path.string());
-  command_line::add_arg(desc_cmd_sett, command_line::arg_testnet_data_dir, default_testnet_data_path.string());
+  command_line::add_arg(desc_cmd_sett, cryptonote::arg_data_dir);
   command_line::add_arg(desc_cmd_sett, arg_output_file);
-  command_line::add_arg(desc_cmd_sett, arg_testnet_on);
+  command_line::add_arg(desc_cmd_sett, cryptonote::arg_testnet_on);
+  command_line::add_arg(desc_cmd_sett, cryptonote::arg_stagenet_on);
   command_line::add_arg(desc_cmd_sett, arg_log_level);
   command_line::add_arg(desc_cmd_sett, arg_database);
   command_line::add_arg(desc_cmd_sett, arg_block_stop);
@@ -119,35 +102,34 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  log_level    = command_line::get_arg(vm, arg_log_level);
+  mlog_configure(mlog_get_default_log_path("sumo-blockchain-export.log"), true);
+  if (!command_line::is_arg_defaulted(vm, arg_log_level))
+    mlog_set_log(command_line::get_arg(vm, arg_log_level).c_str());
+  else
+    mlog_set_log(std::string(std::to_string(log_level) + ",bcutil:INFO").c_str());
   block_stop = command_line::get_arg(vm, arg_block_stop);
 
-  log_space::get_set_log_detalisation_level(true, log_level);
-  log_space::log_singletone::add_logger(LOGGER_CONSOLE, NULL, NULL);
   LOG_PRINT_L0("Starting...");
-  LOG_PRINT_L0("Setting log level = " << log_level);
 
-  bool opt_testnet = command_line::get_arg(vm, arg_testnet_on);
+  bool opt_testnet = command_line::get_arg(vm, cryptonote::arg_testnet_on);
+  bool opt_stagenet = command_line::get_arg(vm, cryptonote::arg_stagenet_on);
+  if (opt_testnet && opt_stagenet)
+  {
+    std::cerr << "Can't specify more than one of --testnet and --stagenet" << std::endl;
+    return 1;
+  }
   bool opt_blocks_dat = command_line::get_arg(vm, arg_blocks_dat);
 
   std::string m_config_folder;
 
-  auto data_dir_arg = opt_testnet ? command_line::arg_testnet_data_dir : command_line::arg_data_dir;
-  m_config_folder = command_line::get_arg(vm, data_dir_arg);
+  m_config_folder = command_line::get_arg(vm, cryptonote::arg_data_dir);
 
   std::string db_type = command_line::get_arg(vm, arg_database);
-  if (db_types_all.count(db_type) == 0)
+  if (!cryptonote::blockchain_valid_db_type(db_type))
   {
     std::cerr << "Invalid database type: " << db_type << std::endl;
     return 1;
   }
-#if !defined(BERKELEY_DB)
-  if (db_type == "berkeley")
-  {
-    LOG_ERROR("BerkeleyDB support disabled.");
-    return false;
-  }
-#endif
 
   if (command_line::has_arg(vm, arg_output_file))
     output_file_path = boost::filesystem::path(command_line::get_arg(vm, arg_output_file));
@@ -171,19 +153,8 @@ int main(int argc, char* argv[])
   tx_memory_pool m_mempool(*core_storage);
   core_storage = new Blockchain(m_mempool);
 
-  int db_flags = 0;
-
-  BlockchainDB* db = nullptr;
-  if (db_type == "lmdb")
-  {
-    db_flags |= MDB_RDONLY;
-    db = new BlockchainLMDB();
-  }
-#if defined(BERKELEY_DB)
-  else if (db_type == "berkeley")
-    db = new BlockchainBDB();
-#endif
-  else
+  BlockchainDB* db = new_db(db_type);
+  if (db == NULL)
   {
     LOG_ERROR("Attempted to use non-existent database type: " << db_type);
     throw std::runtime_error("Attempting to use non-existent database type");
@@ -197,16 +168,16 @@ int main(int argc, char* argv[])
   LOG_PRINT_L0("Loading blockchain from folder " << filename << " ...");
   try
   {
-    db->open(filename, db_flags);
+    db->open(filename, DBF_RDONLY);
   }
   catch (const std::exception& e)
   {
     LOG_PRINT_L0("Error opening database: " << e.what());
     return 1;
   }
-  r = core_storage->init(db, opt_testnet);
+  r = core_storage->init(db, opt_testnet ? cryptonote::TESTNET : opt_stagenet ? cryptonote::STAGENET : cryptonote::MAINNET);
 
-  CHECK_AND_ASSERT_MES(r, false, "Failed to initialize source blockchain storage");
+  CHECK_AND_ASSERT_MES(r, 1, "Failed to initialize source blockchain storage");
   LOG_PRINT_L0("Source blockchain storage initialized OK");
   LOG_PRINT_L0("Exporting blockchain raw data...");
 
@@ -220,6 +191,9 @@ int main(int argc, char* argv[])
     BootstrapFile bootstrap;
     r = bootstrap.store_blockchain_raw(core_storage, NULL, output_file_path, block_stop);
   }
-  CHECK_AND_ASSERT_MES(r, false, "Failed to export blockchain raw data");
+  CHECK_AND_ASSERT_MES(r, 1, "Failed to export blockchain raw data");
   LOG_PRINT_L0("Blockchain raw data exported OK");
+  return 0;
+
+  CATCH_ENTRY("Export error", 1);
 }

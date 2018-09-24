@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 //
 // All rights reserved.
 //
@@ -28,6 +28,8 @@
 
 #include "blocksdat_file.h"
 
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "bcutil"
 
 namespace po = boost::program_options;
 
@@ -50,7 +52,7 @@ bool BlocksdatFile::open_writer(const boost::filesystem::path& file_path, uint64
     {
       if (!boost::filesystem::is_directory(dir_path))
       {
-        LOG_PRINT_RED_L0("export directory path is a file: " << dir_path);
+        MFATAL("export directory path is a file: " << dir_path);
         return false;
       }
     }
@@ -58,7 +60,7 @@ bool BlocksdatFile::open_writer(const boost::filesystem::path& file_path, uint64
     {
       if (!boost::filesystem::create_directory(dir_path))
       {
-        LOG_PRINT_RED_L0("Failed to create directory " << dir_path);
+        MFATAL("Failed to create directory " << dir_path);
         return false;
       }
     }
@@ -66,7 +68,7 @@ bool BlocksdatFile::open_writer(const boost::filesystem::path& file_path, uint64
 
   m_raw_data_file = new std::ofstream();
 
-  LOG_PRINT_L0("creating file");
+  MINFO("creating file");
 
   m_raw_data_file->open(file_path.string(), std::ios_base::binary | std::ios_base::out | std::ios::trunc);
   if (m_raw_data_file->fail())
@@ -80,7 +82,7 @@ bool BlocksdatFile::open_writer(const boost::filesystem::path& file_path, uint64
 
 bool BlocksdatFile::initialize_file(uint64_t block_stop)
 {
-  const uint32_t nblocks = block_stop + 1;
+  const uint32_t nblocks = (block_stop + 1) / HASH_OF_HASHES_STEP;
   unsigned char nblocksc[4];
 
   nblocksc[0] = nblocks & 0xff;
@@ -99,8 +101,16 @@ bool BlocksdatFile::initialize_file(uint64_t block_stop)
 
 void BlocksdatFile::write_block(const crypto::hash& block_hash)
 {
-  const std::string data(block_hash.data, sizeof(block_hash));
-  *m_raw_data_file << data;
+  m_hashes.push_back(block_hash);
+  while (m_hashes.size() >= HASH_OF_HASHES_STEP)
+  {
+    crypto::hash hash;
+    crypto::cn_fast_hash(m_hashes.data(), HASH_OF_HASHES_STEP * sizeof(crypto::hash), hash);
+    memmove(m_hashes.data(), m_hashes.data() + HASH_OF_HASHES_STEP, (m_hashes.size() - HASH_OF_HASHES_STEP) * sizeof(crypto::hash));
+    m_hashes.resize(m_hashes.size() - HASH_OF_HASHES_STEP);
+    const std::string data(hash.data, sizeof(hash));
+    *m_raw_data_file << data;
+  }
 }
 
 bool BlocksdatFile::close()
@@ -123,21 +133,21 @@ bool BlocksdatFile::store_blockchain_raw(Blockchain* _blockchain_storage, tx_mem
 
   uint64_t block_start = 0;
   uint64_t block_stop = 0;
-  LOG_PRINT_L0("source blockchain height: " <<  m_blockchain_storage->get_current_blockchain_height()-1);
+  MINFO("source blockchain height: " <<  m_blockchain_storage->get_current_blockchain_height()-1);
   if ((requested_block_stop > 0) && (requested_block_stop < m_blockchain_storage->get_current_blockchain_height()))
   {
-    LOG_PRINT_L0("Using requested block height: " << requested_block_stop);
+    MINFO("Using requested block height: " << requested_block_stop);
     block_stop = requested_block_stop;
   }
   else
   {
     block_stop = m_blockchain_storage->get_current_blockchain_height() - 1;
-    LOG_PRINT_L0("Using block height of source blockchain: " << block_stop);
+    MINFO("Using block height of source blockchain: " << block_stop);
   }
-  LOG_PRINT_L0("Storing blocks raw data...");
+  MINFO("Storing blocks raw data...");
   if (!BlocksdatFile::open_writer(output_file, block_stop))
   {
-    LOG_PRINT_RED_L0("failed to open raw file for write");
+    MFATAL("failed to open raw file for write");
     return false;
   }
   for (m_cur_height = block_start; m_cur_height <= block_stop; ++m_cur_height)
@@ -157,7 +167,7 @@ bool BlocksdatFile::store_blockchain_raw(Blockchain* _blockchain_storage, tx_mem
   std::cout << refresh_string;
   std::cout << "block " << m_cur_height-1 << "/" << block_stop << ENDL;
 
-  LOG_PRINT_L0("Number of blocks exported: " << num_blocks_written);
+  MINFO("Number of blocks exported: " << num_blocks_written);
 
   return BlocksdatFile::close();
 }

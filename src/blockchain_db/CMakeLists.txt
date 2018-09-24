@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2016, The Monero Project
+# Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
 #
@@ -53,16 +53,17 @@ if (BERKELEY_DB)
   )
 endif()
 
-sumokoin_private_headers(blockchain_db
+monero_private_headers(blockchain_db
   ${crypto_private_headers})
-sumokoin_add_library(blockchain_db
+monero_add_library(blockchain_db
   ${blockchain_db_sources}
   ${blockchain_db_headers}
   ${blockchain_db_private_headers})
 target_link_libraries(blockchain_db
   PUBLIC
     common
-    crypto
+    cncrypto
+    ringct
     ${LMDB_LIBRARY}
     ${BDB_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}

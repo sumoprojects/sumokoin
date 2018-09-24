@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2017, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 //
 // All rights reserved.
 //
@@ -31,14 +31,14 @@
 #include <boost/iostreams/stream_buffer.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/iostreams/device/back_inserter.hpp>
-
 #include <boost/iostreams/filtering_streambuf.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 
-#include "cryptonote_core/cryptonote_basic.h"
-#include "cryptonote_core/cryptonote_boost_serialization.h"
+#include "cryptonote_basic/cryptonote_basic.h"
+#include "cryptonote_basic/cryptonote_boost_serialization.h"
 #include "cryptonote_core/blockchain.h"
 #include "blockchain_db/blockchain_db.h"
-#include "blockchain_db/lmdb/db_lmdb.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -77,4 +77,5 @@ protected:
 private:
 
   uint64_t m_cur_height; // tracks current height during export
+  std::vector<crypto::hash> m_hashes;
 };

@@ -31,6 +31,9 @@
 #include "levin_base.h"
 #include "serializeble_struct_helper.h"
 
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net"
+
 namespace epee
 {
 namespace levin
@@ -91,7 +94,7 @@ namespace levin
 		}
 		if(head.m_cb != buff.size()-sizeof(levin::bucket_head))
 		{
-			LOG_PRINT_L3("sizes missmatch, at load_struct_from_levin_message");
+			LOG_PRINT_L3("sizes mismatch, at load_struct_from_levin_message");
 			return false;
 		}
 
@@ -118,7 +121,7 @@ namespace levin
 		}
 		if(head.m_cb != buff.size()-sizeof(levin::bucket_head))
 		{
-			LOG_ERROR("sizes missmatch, at load_struct_from_levin_message");
+			LOG_ERROR("sizes mismatch, at load_struct_from_levin_message");
 			return false;
 		}
 

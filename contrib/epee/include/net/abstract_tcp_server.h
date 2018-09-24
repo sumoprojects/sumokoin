@@ -38,6 +38,9 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net"
+
 namespace epee 
 {
 namespace net_utils
@@ -293,7 +296,7 @@ namespace net_utils
 	}
 	//----------------------------------------------------------------------------------------
 	template<class THandler>
-	bool abstract_tcp_server<THandler>::invoke_connection(SOCKET hnew_sock, long ip_from, int post_from)
+	bool abstract_tcp_server<THandler>::invoke_connection(SOCKET hnew_sock, const network_address &remote_address)
 	{
 		m_connections_lock.lock();
 		m_connections.push_back(thread_context());
@@ -301,9 +304,8 @@ namespace net_utils
 		m_connections.back().m_socket = hnew_sock;
 		m_connections.back().powner = this;
 		m_connections.back().m_self_it = --m_connections.end();
-		m_connections.back().m_context.m_remote_ip = ip_from;
-		m_connections.back().m_context.m_remote_port = post_from;
-		m_connections.back().m_htread = threads_helper::create_thread(ConnectionHandlerProc, &m_connections.back());
+		m_connections.back().m_context.m_remote_address = remote_address;
+		m_connections.back().m_htread = threads_helper::create_thread(ConnectionHandlerProc, &m_connections.back()); // ugh, seems very risky
 
 		return true;
 	}

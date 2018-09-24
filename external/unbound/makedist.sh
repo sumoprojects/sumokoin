@@ -55,6 +55,7 @@ Generate a distribution tar file for unbound.
                  Detected from svn working copy if not specified.
     -wssl openssl.xx.tar.gz Also build openssl from tarball for windows dist.
     -wxp expat.xx.tar.gz Also build expat from tarball for windows dist.
+    -w32	 32bit windows compile.
     -w ...       Build windows binary dist. last args passed to configure.
 EOF
     exit 1
@@ -177,6 +178,7 @@ storehash () {
 SNAPSHOT="no"
 RC="no"
 DOWIN="no"
+W64="yes"
 WINSSL=""
 WINEXPAT=""
 
@@ -201,6 +203,9 @@ while [ "$1" ]; do
 	    WINEXPAT="$2"
 	    shift
 	    ;;
+	"-w32")
+	    W64="no"
+	    ;;
         "-w")
             DOWIN="yes"
 	    shift
@@ -222,8 +227,15 @@ if [ "$DOWIN" = "yes" ]; then
     if test "`uname`" = "Linux"; then 
 	info "Crosscompile windows dist"
         cross="yes"
-	configure="mingw32-configure"
-	strip="i686-w64-mingw32-strip"
+	if test "$W64" = "yes"; then
+		warch="x86_64"   # i686 for 32bit, or x86_64 for 64bit
+		mw64="mingw64"   # mingw32 or mingw64
+	else
+		warch="i686"
+		mw64="mingw32"
+	fi
+	configure="${mw64}-configure"   # mingw32-configure, mingw64-configure
+	strip="${warch}-w64-mingw32-strip"
 	makensis="makensis"	# from mingw32-nsis package
 	# flags for crosscompiled dependency libraries
 	cross_flag=""
@@ -241,9 +253,13 @@ if [ "$DOWIN" = "yes" ]; then
 		# configure for crosscompile, without CAPI because it fails
 		# cross-compilation and it is not used anyway
 		# before 1.0.1i need --cross-compile-prefix=i686-w64-mingw32-
-		sslflags="no-asm -DOPENSSL_NO_CAPIENG mingw"
+		if test "$mw64" = "mingw64"; then
+			sslflags="no-shared no-asm -DOPENSSL_NO_CAPIENG mingw64"
+		else
+			sslflags="no-shared no-asm -DOPENSSL_NO_CAPIENG mingw"
+		fi
 		info "winssl: Configure $sslflags"
-		CC=i686-w64-mingw32-gcc AR=i686-w64-mingw32-ar RANLIB=i686-w64-mingw32-ranlib ./Configure --prefix="$sslinstall" $sslflags || error_cleanup "OpenSSL Configure failed"
+		CC=${warch}-w64-mingw32-gcc AR=${warch}-w64-mingw32-ar RANLIB=${warch}-w64-mingw32-ranlib WINDRES=${warch}-w64-mingw32-windres ./Configure --prefix="$sslinstall" $sslflags || error_cleanup "OpenSSL Configure failed"
 		info "winssl: make"
 		make || error_cleanup "OpenSSL crosscompile failed"
 		# only install sw not docs, which take a long time.
@@ -260,11 +276,11 @@ if [ "$DOWIN" = "yes" ]; then
 		wxpinstall="`pwd`/wxpinstall"
 		cd expat-* || error_cleanup "no expat-X dir in tarball"
 		info "wxp: configure"
-		mingw32-configure --prefix="$wxpinstall" --exec-prefix="$wxpinstall" --bindir="$wxpinstall/bin" --includedir="$wxpinstall/include" --mandir="$wxpinstall/man" --libdir="$wxpinstall/lib"  || error_cleanup "libexpat configure failed"
+		$configure --prefix="$wxpinstall" --exec-prefix="$wxpinstall" --bindir="$wxpinstall/bin" --includedir="$wxpinstall/include" --mandir="$wxpinstall/man" --libdir="$wxpinstall/lib"  || error_cleanup "libexpat configure failed"
 		#info "wxp: make"
 		#make || error_cleanup "libexpat crosscompile failed"
-		info "wxp: make installlib"
-		make installlib || error_cleanup "libexpat install failed"
+		info "wxp: make install"
+		make install || error_cleanup "libexpat install failed"
 		cross_flag="$cross_flag --with-libexpat=$wxpinstall"
 		cd ..
 	fi
@@ -307,9 +323,20 @@ if [ "$DOWIN" = "yes" ]; then
     # procedure for making unbound installer on mingw. 
     info "Creating windows dist unbound $version"
     info "Calling configure"
-    echo "$configure"' --enable-debug --enable-static-exe '"$* $cross_flag"
-    $configure --enable-debug --enable-static-exe $* $cross_flag \
+    if test "$W64" = "no"; then
+	file_flag="--with-conf-file=C:\Program Files (x86)\Unbound\service.conf"
+	file2_flag="--with-rootkey-file=C:\Program Files (x86)\Unbound\root.key"
+	file3_flag="--with-rootcert-file=C:\Program Files (x86)\Unbound\icannbundle.pem"
+	version="$version"-w32
+    fi
+    echo "$configure"' --enable-debug --enable-static-exe --disable-flto '"$* $cross_flag "$file_flag" "$file2_flag" "$file3_flag""
+    if test "$W64" = "no"; then
+        $configure --enable-debug --enable-static-exe --disable-flto $* $cross_flag "$file_flag" "$file2_flag" "$file3_flag" \
 	|| error_cleanup "Could not configure"
+    else
+        $configure --enable-debug --enable-static-exe --disable-flto $* $cross_flag \
+	|| error_cleanup "Could not configure"
+    fi
     info "Calling make"
     make || error_cleanup "Could not make"
     info "Make complete"
@@ -318,26 +345,33 @@ if [ "$DOWIN" = "yes" ]; then
     file="unbound-$version.zip"
     rm -f $file
     info "Creating $file"
+    grep '^". IN DS' smallapp/unbound-anchor.c | sed -e 's/"//' -e 's/\\n.*$//' > root.key
     mkdir tmp.$$
-    $strip unbound.exe
-    $strip anchor-update.exe
-    $strip unbound-control.exe
-    $strip unbound-host.exe
-    $strip unbound-anchor.exe
-    $strip unbound-checkconf.exe
-    $strip unbound-service-install.exe
-    $strip unbound-service-remove.exe
+    # keep debug symbols
+    #$strip unbound.exe
+    #$strip anchor-update.exe
+    #$strip unbound-control.exe
+    #$strip unbound-host.exe
+    #$strip unbound-anchor.exe
+    #$strip unbound-checkconf.exe
+    #$strip unbound-service-install.exe
+    #$strip unbound-service-remove.exe
     cd tmp.$$
+    cp ../root.key .
     cp ../doc/example.conf ../doc/Changelog .
     cp ../unbound.exe ../unbound-anchor.exe ../unbound-host.exe ../unbound-control.exe ../unbound-checkconf.exe ../unbound-service-install.exe ../unbound-service-remove.exe ../LICENSE ../winrc/unbound-control-setup.cmd ../winrc/unbound-website.url ../winrc/service.conf ../winrc/README.txt ../contrib/create_unbound_ad_servers.cmd ../contrib/warmup.cmd ../contrib/unbound_cache.cmd .
     # zipfile
-    zip ../$file LICENSE README.txt unbound.exe unbound-anchor.exe unbound-host.exe unbound-control.exe unbound-checkconf.exe unbound-service-install.exe unbound-service-remove.exe unbound-control-setup.cmd example.conf service.conf unbound-website.url create_unbound_ad_servers.cmd warmup.cmd unbound_cache.cmd Changelog
+    zip ../$file LICENSE README.txt unbound.exe unbound-anchor.exe unbound-host.exe unbound-control.exe unbound-checkconf.exe unbound-service-install.exe unbound-service-remove.exe unbound-control-setup.cmd example.conf service.conf root.key unbound-website.url create_unbound_ad_servers.cmd warmup.cmd unbound_cache.cmd Changelog
     info "Testing $file"
     (cd .. ; zip -T $file )
     # installer
     info "Creating installer"
     quadversion=`cat ../config.h | grep RSRC_PACKAGE_VERSION | sed -e 's/#define RSRC_PACKAGE_VERSION //' -e 's/,/\\./g'`
     cat ../winrc/setup.nsi | sed -e 's/define VERSION.*$/define VERSION "'$version'"/' -e 's/define QUADVERSION.*$/define QUADVERSION "'$quadversion'"/' > ../winrc/setup_ed.nsi
+    if test "$W64" = "yes"; then
+	mv ../winrc/setup_ed.nsi ../winrc/setup_ed_old.nsi
+	cat ../winrc/setup_ed_old.nsi | sed -e 's/PROGRAMFILES/PROGRAMFILES64/' > ../winrc/setup_ed.nsi
+    fi
     "$makensis" ../winrc/setup_ed.nsi
     info "Created installer"
     cd ..

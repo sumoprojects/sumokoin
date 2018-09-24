@@ -155,7 +155,7 @@ namespace tests
 
     bool init(const std::string& bind_port = "", const std::string& bind_ip = "0.0.0.0")
     {
-      m_net_server.get_config_object().m_pcommands_handler = this;
+      m_net_server.get_config_object().set_handler(this);
       m_net_server.get_config_object().m_invoke_timeout = 1000;
       LOG_PRINT_L0("Binding on " << bind_ip << ":" << bind_port);
       return m_net_server.init_server(bind_port, bind_ip);
@@ -261,7 +261,7 @@ namespace tests
     boost::thread th1( boost::bind(&test_levin_server::run, &srv1));
     boost::thread th2( boost::bind(&test_levin_server::run, &srv2));
 
-    LOG_PRINT_L0("Initalized servers, waiting for worker threads started...");
+    LOG_PRINT_L0("Initialized servers, waiting for worker threads started...");
     misc_utils::sleep_no_w(1000);  
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2017, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -25,9 +25,11 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#pragma once
 
 #include <vector>
 #include <string>
+#include <functional>
 
 namespace tools
 {
@@ -99,14 +101,14 @@ public:
    *
    * @return A vector of strings containing a TXT record; or an empty vector
    */
-  // TODO: modify this to accomodate DNSSEC
+  // TODO: modify this to accommodate DNSSEC
    std::vector<std::string> get_txt_record(const std::string& url, bool& dnssec_available, bool& dnssec_valid);
 
   /**
    * @brief Gets a DNS address from OpenAlias format
    *
    * If the address looks good, but contains one @ symbol, replace that with a .
-   * e.g. donate@sumokoin.org becomes donate.sumokoin.org
+   * e.g. donate@getmonero.org becomes donate.getmonero.org
    *
    * @param oa_addr  OpenAlias address
    *
@@ -140,7 +142,7 @@ private:
    *
    * @return A vector of strings containing the requested record; or an empty vector
    */
-  // TODO: modify this to accomodate DNSSEC
+  // TODO: modify this to accommodate DNSSEC
   std::vector<std::string> get_record(const std::string& url, int record_type, std::string (*reader)(const char *,size_t), bool& dnssec_available, bool& dnssec_valid);
 
   /**
@@ -158,12 +160,14 @@ private:
 namespace dns_utils
 {
 
-  std::string address_from_txt_record(const std::string& s);
-  std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec_valid);
+std::string address_from_txt_record(const std::string& s);
+std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec_valid);
 
-  std::string get_account_address_as_str_from_url(const std::string& url, bool& dnssec_valid, bool cli_confirm = true);
+std::string get_account_address_as_str_from_url(const std::string& url, bool& dnssec_valid, std::function<std::string(const std::string&, const std::vector<std::string>&, bool)> confirm_dns);
 
-  bool load_txt_records_from_dns(std::vector<std::string> &records, const std::vector<std::string> &dns_urls);
+bool load_txt_records_from_dns(std::vector<std::string> &records, const std::vector<std::string> &dns_urls);
+
+std::vector<std::string> parse_dns_public(const char *s);
 
 }  // namespace tools::dns_utils
 

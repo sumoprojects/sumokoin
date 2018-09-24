@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 //
 // All rights reserved.
 //
@@ -28,9 +28,9 @@
 #include "wallet/wallet_args.h"
 
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/format.hpp>
 #include "common/i18n.h"
-#include "common/scoped_message_writer.h"
 #include "common/util.h"
 #include "misc_log_ex.h"
 #include "string_tools.h"
@@ -40,6 +40,9 @@
 #include <crtdbg.h>
 #endif
 
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "wallet.wallet2"
+
 // workaround for a suspected bug in pthread/kernel on MacOS X
 #ifdef __APPLE__
 #define DEFAULT_MAX_CONCURRENCY 1
@@ -47,6 +50,20 @@
 #define DEFAULT_MAX_CONCURRENCY 0
 #endif
 
+namespace
+{
+  class Print
+  {
+  public:
+    Print(const std::function<void(const std::string&, bool)> &p, bool em = false): print(p), emphasis(em) {}
+    ~Print() { print(ss.str(), emphasis); }
+    template<typename T> std::ostream &operator<<(const T &t) { ss << t; return ss; }
+  private:
+    const std::function<void(const std::string&, bool)> &print;
+    std::stringstream ss;
+    bool emphasis;
+  };
+}
 
 namespace wallet_args
 {
@@ -68,8 +85,12 @@ namespace wallet_args
   boost::optional<boost::program_options::variables_map> main(
     int argc, char** argv,
     const char* const usage,
+    const char* const notice,
     boost::program_options::options_description desc_params,
-    const boost::program_options::positional_options_description& positional_options)
+    const boost::program_options::positional_options_description& positional_options,
+    const std::function<void(const std::string&, bool)> &print,
+    const char *default_log_name,
+    bool log_to_console)
   
   {
     namespace bf = boost::filesystem;
@@ -78,13 +99,15 @@ namespace wallet_args
     _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 #endif
 
-    const command_line::arg_descriptor<uint32_t> arg_log_level = {"log-level", "", LOG_LEVEL_0};
+    const command_line::arg_descriptor<std::string> arg_log_level = {"log-level", "0-4 or categories", ""};
+    const command_line::arg_descriptor<std::size_t> arg_max_log_file_size = {"max-log-file-size", "Specify maximum log file size [B]", MAX_LOG_FILE_SIZE};
     const command_line::arg_descriptor<uint32_t> arg_max_concurrency = {"max-concurrency", wallet_args::tr("Max number of threads to use for a parallel job"), DEFAULT_MAX_CONCURRENCY};
     const command_line::arg_descriptor<std::string> arg_log_file = {"log-file", wallet_args::tr("Specify log file"), ""};
+    const command_line::arg_descriptor<std::string> arg_config_file = {"config-file", wallet_args::tr("Config file"), "", true};
 
 
     std::string lang = i18n_get_language();
-    tools::sanitize_locale();
+    tools::on_startup();
     tools::set_strict_default_file_permissions(true);
 
     epee::string_tools::set_module_name_and_folder(argv[0]);
@@ -93,92 +116,89 @@ namespace wallet_args
     command_line::add_arg(desc_general, command_line::arg_help);
     command_line::add_arg(desc_general, command_line::arg_version);
 
-
-    bf::path default_log {epee::log_space::log_singletone::get_default_log_folder()};
-    std::string log_file_name = epee::log_space::log_singletone::get_default_log_file();
-    if (log_file_name.empty())
-    {
-      // Sanity check: File path should also be empty if file name is. If not,
-      // this would be a problem in epee's discovery of current process's file
-      // path.
-      if (! default_log.empty())
-      {
-        tools::fail_msg_writer() << wallet_args::tr("unexpected empty log file name in presence of non-empty file path");
-        return boost::none;
-      }
-      // epee didn't find path to executable from argv[0], so use this default file name.
-      log_file_name = "sumo-wallet-cli.log";
-      // The full path will use cwd because epee also returned an empty default log folder.
-    }
-    default_log /= log_file_name;
-
-    command_line::add_arg(desc_params, arg_log_file, default_log.string());
+    command_line::add_arg(desc_params, arg_log_file);
     command_line::add_arg(desc_params, arg_log_level);
+    command_line::add_arg(desc_params, arg_max_log_file_size);
     command_line::add_arg(desc_params, arg_max_concurrency);
+    command_line::add_arg(desc_params, arg_config_file);
 
-    i18n_set_language("translations", "sumokoin", lang);
+    i18n_set_language("translations", "monero", lang);
 
     po::options_description desc_all;
     desc_all.add(desc_general).add(desc_params);
     po::variables_map vm;
     bool r = command_line::handle_error_helper(desc_all, [&]()
     {
-      po::store(command_line::parse_command_line(argc, argv, desc_general, true), vm);
+      auto parser = po::command_line_parser(argc, argv).options(desc_all).positional(positional_options);
+      po::store(parser.run(), vm);
 
       if (command_line::get_arg(vm, command_line::arg_help))
       {
-        tools::msg_writer() << "Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL << ")";
-        tools::msg_writer() << wallet_args::tr("Usage:") << ' ' << usage;
-        tools::msg_writer() << desc_all;
+        Print(print) << "Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL << ")" << ENDL;
+        Print(print) << wallet_args::tr("This is the command line sumokoin wallet. It needs to connect to a Sumokoin\n"
+												  "daemon to work correctly.") << ENDL;
+        Print(print) << wallet_args::tr("Usage:") << ENDL << "  " << usage;
+        Print(print) << desc_all;
         return false;
       }
       else if (command_line::get_arg(vm, command_line::arg_version))
       {
-        tools::msg_writer() << "Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL << ")";
+        Print(print) << "Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL << ")";
         return false;
       }
 
-      auto parser = po::command_line_parser(argc, argv).options(desc_params).positional(positional_options);
-      po::store(parser.run(), vm);
+      if(command_line::has_arg(vm, arg_config_file))
+      {
+        std::string config = command_line::get_arg(vm, arg_config_file);
+        bf::path config_path(config);
+        boost::system::error_code ec;
+        if (bf::exists(config_path, ec))
+        {
+          po::store(po::parse_config_file<char>(config_path.string<std::string>().c_str(), desc_params), vm);
+        }
+        else
+        {
+          MERROR(wallet_args::tr("Can't find config file ") << config);
+          return false;
+        }
+      }
+
       po::notify(vm);
       return true;
     });
     if (!r)
       return boost::none;
 
-    // log_file_path
-    //   default: < argv[0] directory >/sumo-wallet-cli.log
-    //     so if ran as "sumo-wallet-cli" (no path), log file will be in cwd
-    //
-    //   if log-file argument given:
-    //     absolute path
-    //     relative path: relative to cwd
+    std::string log_path;
+    if (!command_line::is_arg_defaulted(vm, arg_log_file))
+      log_path = command_line::get_arg(vm, arg_log_file);
+    else
+      log_path = mlog_get_default_log_path(default_log_name);
+    mlog_configure(log_path, log_to_console, command_line::get_arg(vm, arg_max_log_file_size));
+    if (!command_line::is_arg_defaulted(vm, arg_log_level))
+    {
+      mlog_set_log(command_line::get_arg(vm, arg_log_level).c_str());
+    }
+    else if (!log_to_console)
+    {
+      mlog_set_categories("");
+    }
 
-    // Set log file
-    bf::path log_file_path {bf::absolute(command_line::get_arg(vm, arg_log_file))};
+    if (notice)
+      Print(print) << notice << ENDL;
 
-    // Set up logging options
-    int log_level = LOG_LEVEL_2;
-    epee::log_space::get_set_log_detalisation_level(true, log_level);
-    //epee::log_space::log_singletone::add_logger(LOGGER_CONSOLE, NULL, NULL, LOG_LEVEL_0);
-    epee::log_space::log_singletone::add_logger(LOGGER_FILE,
-      log_file_path.filename().string().c_str(),
-      log_file_path.parent_path().string().c_str(),
-      LOG_LEVEL_4
-    );
-
-    if(command_line::has_arg(vm, arg_max_concurrency))
+    if (!command_line::is_arg_defaulted(vm, arg_max_concurrency))
       tools::set_max_concurrency(command_line::get_arg(vm, arg_max_concurrency));
 
-    tools::scoped_message_writer(epee::log_space::console_color_white, true) << "Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL << ")";
+    Print(print) << "Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL << ")";
 
-    if(command_line::has_arg(vm, arg_log_level))
-      log_level = command_line::get_arg(vm, arg_log_level);
-    LOG_PRINT_L0("Setting log level = " << log_level);
-    LOG_PRINT_L0(wallet_args::tr("default_log: ") << default_log.string());
-    tools::scoped_message_writer(epee::log_space::console_color_white, true) << boost::format(wallet_args::tr("Logging at log level %d to %s")) %
-      log_level % log_file_path.string();
-    epee::log_space::get_set_log_detalisation_level(true, log_level);
+    if (!command_line::is_arg_defaulted(vm, arg_log_level))
+      MINFO("Setting log level = " << command_line::get_arg(vm, arg_log_level));
+    else
+      MINFO("Setting log levels = " << getenv("MONERO_LOGS"));
+    MINFO(wallet_args::tr("Logging to: ") << log_path);
+
+    Print(print) << boost::format(wallet_args::tr("Logging to %s")) % log_path;
 
     return {std::move(vm)};
   }

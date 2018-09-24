@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -79,4 +79,10 @@ enum {
 };
 
 void cn_fast_hash(const void *data, size_t length, char *hash);
+
+void hash_extra_blake(const void *data, size_t length, char *hash);
+void hash_extra_groestl(const void *data, size_t length, char *hash);
+void hash_extra_jh(const void *data, size_t length, char *hash);
+void hash_extra_skein(const void *data, size_t length, char *hash);
+
 void tree_hash(const char (*hashes)[HASH_SIZE], size_t count, char *root_hash);

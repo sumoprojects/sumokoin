@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 //
 // All rights reserved.
 //
@@ -31,10 +31,6 @@
 
 namespace cryptonote
 {
-
-  const std::unordered_set<std::string> blockchain_db_types = 
-  { "lmdb"
-  , "berkeley"
-  };
-
+  bool blockchain_valid_db_type(const std::string& db_type);
+  std::string blockchain_db_types(const std::string& sep);
 } // namespace cryptonote

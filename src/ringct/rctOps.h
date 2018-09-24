@@ -35,8 +35,6 @@
 #define RCTOPS_H
 
 #include <cstddef>
-#include <mutex>
-#include <vector>
 #include <tuple>
 
 #include "crypto/generic-ops.h"
@@ -56,9 +54,6 @@ extern "C" {
 #else
 #define DP(x)
 #endif
-
-using namespace std;
-using namespace crypto;
 
 namespace rct {
 
@@ -99,13 +94,13 @@ namespace rct {
     key pkGen();
     //generates a random secret and corresponding public key
     void skpkGen(key &sk, key &pk);
-    tuple<key, key> skpkGen();
+    std::tuple<key, key> skpkGen();
     //generates a <secret , public> / Pedersen commitment to the amount
-    tuple<ctkey, ctkey> ctskpkGen(xmr_amount amount);
+    std::tuple<ctkey, ctkey> ctskpkGen(xmr_amount amount);
     //generates C =aG + bH from b, a is random
     void genC(key & C, const key & a, xmr_amount amount);
     //this one is mainly for testing, can take arbitrary amounts..
-    tuple<ctkey, ctkey> ctskpkGen(const key &bH);
+    std::tuple<ctkey, ctkey> ctskpkGen(const key &bH);
     // make a pedersen commitment with given key
     key commit(xmr_amount amount, const key &mask);
     // make a pedersen commitment with zero key
@@ -128,6 +123,7 @@ namespace rct {
 
     //for curve points: AB = A + B
     void addKeys(key &AB, const key &A, const key &B);
+    rct::key addKeys(const key &A, const key &B);
     //aGB = aG + B where a is a scalar, G is the basepoint, and B is a point
     void addKeys1(key &aGB, const key &a, const key & B);
     //aGbB = aG + bB where a, b are scalars, G is the basepoint and B is a point
@@ -138,6 +134,7 @@ namespace rct {
     //aAbB = a*A + b*B where a, b are scalars, A, B are curve points
     //B must be input after applying "precomp"
     void addKeys3(key &aAbB, const key &a, const key &A, const key &b, const ge_dsmp B);
+    void addKeys3(key &aAbB, const key &a, const ge_dsmp A, const key &b, const ge_dsmp B);
     //AB = A - B where A, B are curve points
     void subKeys(key &AB, const key &A, const  key &B);
     //checks if A, B are equal as curve points

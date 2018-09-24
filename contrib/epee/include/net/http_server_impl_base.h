@@ -36,6 +36,9 @@
 #include "net/http_server_cp2.h"
 #include "net/http_server_handlers_map2.h"
 
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net.http"
+
 namespace epee
 {
 
@@ -52,19 +55,25 @@ namespace epee
         : m_net_server(external_io_service)
     {}
 
-    bool init(const std::string& bind_port = "0", const std::string& bind_ip = "0.0.0.0", const std::string &user_agent = "")
+    bool init(std::function<void(size_t, uint8_t*)> rng, const std::string& bind_port = "0", const std::string& bind_ip = "0.0.0.0",
+      std::vector<std::string> access_control_origins = std::vector<std::string>(),
+      boost::optional<net_utils::http::login> user = boost::none)
     {
 
       //set self as callback handler
       m_net_server.get_config_object().m_phandler = static_cast<t_child_class*>(this);
+      m_net_server.get_config_object().rng = std::move(rng);
 
       //here set folder for hosting reqests
       m_net_server.get_config_object().m_folder = "";
 
-      // workaround till we get auth/encryption
-      m_net_server.get_config_object().m_required_user_agent = user_agent;
+      //set access control allow origins if configured
+      std::sort(access_control_origins.begin(), access_control_origins.end());
+      m_net_server.get_config_object().m_access_control_origins = std::move(access_control_origins);
 
-      LOG_PRINT_L0("Binding on " << bind_ip << ":" << bind_port);
+      m_net_server.get_config_object().m_user = std::move(user);
+
+      MGINFO("Binding on " << bind_ip << ":" << bind_port);
       bool res = m_net_server.init_server(bind_port, bind_ip);
       if(!res)
       {
@@ -77,15 +86,14 @@ namespace epee
     bool run(size_t threads_count, bool wait = true)
     {
       //go to loop
-      LOG_PRINT("Run net_service loop( " << threads_count << " threads)...", LOG_LEVEL_0);
-      _fact_c("net/RPClog", "Run net_service loop( " << threads_count << " threads)...");
+      MINFO("Run net_service loop( " << threads_count << " threads)...");
       if(!m_net_server.run_server(threads_count, wait))
       {
         LOG_ERROR("Failed to run net tcp server!");
       }
 
       if(wait)
-        LOG_PRINT("net_service loop stopped.", LOG_LEVEL_0);
+        MINFO("net_service loop stopped.");
       return true;
     }
 
@@ -108,6 +116,11 @@ namespace epee
     int get_binded_port()
     {
       return m_net_server.get_binded_port();
+    }
+
+    long get_connections_count() const
+    {
+      return m_net_server.get_connections_count();
     }
 
   protected: 

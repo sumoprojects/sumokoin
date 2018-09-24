@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -31,7 +31,7 @@
 #include <memory>  // std::unique_ptr
 #include <cstring>  // memcpy
 
-#include "cryptonote_core/cryptonote_format_utils.h"
+#include "cryptonote_basic/cryptonote_format_utils.h"
 #include "crypto/crypto.h"
 #include "profile_tools.h"
 
@@ -770,13 +770,13 @@ BlockchainBDB::~BlockchainBDB()
 }
 
 BlockchainBDB::BlockchainBDB(bool batch_transactions) :
+        BlockchainDB(),
         m_buffer(DB_BUFFER_COUNT, DB_BUFFER_LENGTH)
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
     // initialize folder to something "safe" just in case
     // someone accidentally misuses this class...
     m_folder = "thishsouldnotexistbecauseitisgibberish";
-    m_open = false;
     m_run_checkpoint = 0;
     m_batch_transactions = batch_transactions;
     m_write_txn = nullptr;
@@ -1813,9 +1813,10 @@ bool BlockchainBDB::has_key_image(const crypto::key_image& img) const
 // Ostensibly BerkeleyDB has batch transaction support built-in,
 // so the following few functions will be NOP.
 
-void BlockchainBDB::batch_start(uint64_t batch_num_blocks)
+bool BlockchainBDB::batch_start(uint64_t batch_num_blocks)
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
+    return false;
 }
 
 void BlockchainBDB::batch_commit()
