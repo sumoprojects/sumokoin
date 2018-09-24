@@ -189,7 +189,7 @@ namespace config
   // Number of coins burned
   static constexpr uint64_t EXCHANGE_BURNED_AMOUNT = 1044138500000000;   // 1,044,138.5 coins burned
   static constexpr uint64_t EXCHANGE_FUND_AMOUNT = EXCHANGE_BURNED_AMOUNT; // fund amount = burned coins
-  static constexpr uint64_t EXCHANGE_FUND_RELEASE_HEIGHT = 199500;  // equal v6 hardfork
+  static constexpr uint64_t EXCHANGE_FUND_RELEASE_HEIGHT = 199800;  // equal v6 hardfork
     
   namespace testnet
   {
