@@ -174,6 +174,18 @@ int iter_dp_is_useless(struct query_info* qinfo, uint16_t qflags,
 	struct delegpt* dp);
 
 /**
+ * See if qname has DNSSEC needs in the forwarding case.  This is true if
+ * there is a trust anchor above it.  Whether there is an insecure delegation
+ * to the data is unknown, but CD-retry is needed.
+ * @param env: environment with anchors.
+ * @param qinfo: query name and class.
+ * @return true if trust anchor above qname, false if no anchor or insecure
+ * point above qname.
+ */
+int iter_indicates_dnssec_fwd(struct module_env* env,
+	struct query_info *qinfo);
+
+/**
  * See if delegation is expected to have DNSSEC information (RRSIGs) in 
  * its answers, or not. Inspects delegation point (name), trust anchors,
  * and delegation message (DS RRset) to determine this.
@@ -181,7 +193,7 @@ int iter_dp_is_useless(struct query_info* qinfo, uint16_t qflags,
  * @param dp: delegation point.
  * @param msg: delegation message, with DS if a secure referral.
  * @param dclass: class of query.
- * @return 1 if dnssec is expected, 0 if not.
+ * @return 1 if dnssec is expected, 0 if not or insecure point above qname.
  */
 int iter_indicates_dnssec(struct module_env* env, struct delegpt* dp,
 	struct dns_msg* msg, uint16_t dclass);
@@ -240,7 +252,7 @@ void caps_strip_reply(struct reply_info* rep);
 int caps_failed_rcode(struct reply_info* rep);
 
 /**
- * Store parent-side rrset in seperate rrset cache entries for later 
+ * Store parent-side rrset in separate rrset cache entries for later 
  * last-resort * lookups in case the child-side versions of this information 
  * fails.
  * @param env: environment with cache, time, ...

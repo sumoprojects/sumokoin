@@ -1,6 +1,6 @@
 # Sumokoin
 
-Copyright (c) 2017, SUMOKOIN
+Copyright (c) 2017-2018, Sumokoin Project
 
 Copyright (c) 2014-2017, The Monero Project
 
@@ -67,26 +67,39 @@ sources are also used for statically-linked builds because distribution
 packages often include only shared library binaries (`.so`) but not static
 library archives (`.a`).
 
-| Dep            | Min. Version  | Vendored | Debian/Ubuntu Pkg  | Arch Pkg       | Optional | Purpose        |
-| -------------- | ------------- | ---------| ------------------ | -------------- | -------- | -------------- |
-| GCC            | 4.7.3         | NO       | `build-essential`  | `base-devel`   | NO       |                |
-| CMake          | 3.0.0         | NO       | `cmake`            | `cmake`        | NO       |                |
-| pkg-config     | any           | NO       | `pkg-config`       | `base-devel`   | NO       |                |
-| Boost          | 1.58          | NO       | `libboost-all-dev` | `boost`        | NO       |                |
-| OpenSSL      	 | basically any | NO       | `libssl-dev`       | `openssl`      | NO       | sha256 sum     |
-| BerkeleyDB     | 4.8           | NO       | `libdb{,++}-dev`   | `db`           | NO       |                |
-| libevent       | 2.0           | NO       | `libevent-dev`     | `libevent`     | NO       |                |
-| libunbound     | 1.4.16        | YES      | `libunbound-dev`   | `unbound`      | NO       |                |
-| libminiupnpc   | 2.0           | YES      | `libminiupnpc-dev` | `miniupnpc`    | YES      | NAT punching   |
-| libunwind      | any           | NO       | `libunwind8-dev`   | `libunwind`    | YES      | stack traces   |
-| ldns           | 1.6.17        | NO       | `libldns-dev`      | `ldns`         | YES      | ?              |
-| expat          | 1.1           | NO       | `libexpat1-dev`    | `expat`        | YES      | ?              |
-| GTest          | 1.5           | YES      | `libgtest-dev`^    | `gtest`        | YES      | test suite     |
-| Doxygen        | any           | NO       | `doxygen`          | `doxygen`      | YES      | documentation  |
-| Graphviz       | any           | NO       | `graphviz`         | `graphviz`     | YES      | documentation  |
+| Dep          | Min. version  | Vendored | Debian/Ubuntu pkg  | Arch pkg     | Fedora            | Optional | Purpose        |
+| ------------ | ------------- | -------- | ------------------ | ------------ | ----------------- | -------- | -------------- |
+| GCC          | 4.7.3         | NO       | `build-essential`  | `base-devel` | `gcc`             | NO       |                |
+| CMake        | 3.0.0         | NO       | `cmake`            | `cmake`      | `cmake`           | NO       |                |
+| pkg-config   | any           | NO       | `pkg-config`       | `base-devel` | `pkgconf`         | NO       |                |
+| Boost        | 1.58          | NO       | `libboost-all-dev` | `boost`      | `boost-devel`     | NO       | C++ libraries  |
+| OpenSSL      | basically any | NO       | `libssl-dev`       | `openssl`    | `openssl-devel`   | NO       | sha256 sum     |
+| libzmq       | 3.0.0         | NO       | `libzmq3-dev`      | `zeromq`     | `cppzmq-devel`    | NO       | ZeroMQ library |
+| libunbound   | 1.4.16        | YES      | `libunbound-dev`   | `unbound`    | `unbound-devel`   | NO       | DNS resolver   |
+| libsodium    | ?             | NO       | `libsodium-dev`    | ?            | `libsodium-devel` | NO       | libsodium      |
+| libminiupnpc | 2.0           | YES      | `libminiupnpc-dev` | `miniupnpc`  | `miniupnpc-devel` | YES      | NAT punching   |
+| libunwind    | any           | NO       | `libunwind8-dev`   | `libunwind`  | `libunwind-devel` | YES      | Stack traces   |
+| liblzma      | any           | NO       | `liblzma-dev`      | `xz`         | `xz-devel`        | YES      | For libunwind  |
+| libreadline  | 6.3.0         | NO       | `libreadline6-dev` | `readline`   | `readline-devel`  | YES      | Input editing  |
+| ldns         | 1.6.17        | NO       | `libldns-dev`      | `ldns`       | `ldns-devel`      | YES      | SSL toolkit    |
+| expat        | 1.1           | NO       | `libexpat1-dev`    | `expat`      | `expat-devel`     | YES      | XML parsing    |
+| GTest        | 1.5           | YES      | `libgtest-dev`^    | `gtest`      | `gtest-devel`     | YES      | Test suite     |
+| Doxygen      | any           | NO       | `doxygen`          | `doxygen`    | `doxygen`         | YES      | Documentation  |
+| Graphviz     | any           | NO       | `graphviz`         | `graphviz`   | `graphviz`        | YES      | Documentation  |
+| pcsclite     | ?             | NO       | `libpcsclite-dev`  | ?            | `pcsc-lite pcsc-lite-devel` | NO | Ledger     |          
 
 [^] On Debian/Ubuntu `libgtest-dev` only includes sources and headers. You must
 build the library binary manually. This can be done with the following command ```sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake . && sudo make && sudo mv libg* /usr/lib/ ```
+
+### Cloning the repository
+
+Clone recursively to pull-in needed submodule(s):
+
+`$ git clone --recursive https://github.com/sumoprojects/sumokoin`
+
+If you already have a repo cloned, initialize and update:
+
+`$ cd sumokoin && git submodule init && git submodule update`
 
 ### Build instructions
 
@@ -97,9 +110,9 @@ invokes cmake commands as needed.
 
 * Install the dependencies (see the list above)
 
-    \- On Ubuntu 16.04, essential dependencies can be installed with the following command:
+    \- On Ubuntu, essential dependencies can be installed with the following command:
 
-    	sudo apt install build-essential cmake libboost-all-dev libssl-dev pkg-config
+    	sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpcsclite-dev
     
 * Change to the root of the source code directory and build:
 
@@ -131,6 +144,8 @@ invokes cmake commands as needed.
 
          make release-static
 
+Dependencies need to be built with -fPIC. Static libraries usually aren't, so you may have to build them yourself with -fPIC. Refer to their documentation for how to build them.
+         
 * **Optional**: build documentation in `doc/html` (omit `HAVE_DOT=YES` if `graphviz` is not installed):
 
         HAVE_DOT=YES doxygen Doxyfile
@@ -141,7 +156,7 @@ Tested on a Raspberry Pi 2 with a clean install of minimal Debian Jessie from ht
 
 * `apt-get update && apt-get upgrade` to install all of the latest software
 
-* Install the dependencies for Sumokoin except libunwind and libboost-all-dev
+* Install the dependencies for Sumokoin from the 'Debian' column in the table above.
 
 * Increase the system swap size:
 ```	
@@ -150,27 +165,17 @@ Tested on a Raspberry Pi 2 with a clean install of minimal Debian Jessie from ht
 	CONF_SWAPSIZE=1024  
 	sudo /etc/init.d/dphys-swapfile start  
 ```
-* Install the latest version of boost (this may first require invoking `apt-get remove --purge libboost*` to remove a previous version if you're not using a clean install):
+* Clone sumokoin and checkout most recent release version:
 ```
-	cd  
-	wget https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.bz2  
-	tar xvfo boost_1_62_0.tar.bz2  
-	cd boost_1_62_0  
-	./bootstrap.sh  
-	sudo ./b2  
+        git clone https://github.com/sumoprojects/sumokoin.git
+	cd sumokoin
+	git checkout tags/v0.4.0.0
 ```
-* Wait ~8 hours
-
-	sudo ./bjam install
-
-* Wait ~4 hours
-
-* Change to the root of the source code directory and build:
-
-        cd sumokoin
+* Build:
+```
         make release
-
-* Wait ~4 hours
+```
+* Wait 4-6 hours
 
 * The resulting executables can be found in `build/release/bin`
 
@@ -179,6 +184,38 @@ Tested on a Raspberry Pi 2 with a clean install of minimal Debian Jessie from ht
 * Run Sumokoin with `sumokoind --detach`
 
 * You may wish to reduce the size of the swap file after the build has finished, and delete the boost directory from your home directory
+
+#### *Note for Raspbian Jessie users:*
+
+If you are using the older Raspbian Jessie image, compiling Sumokoin is a bit more complicated. The version of Boost available in the Debian Jessie repositories is too old to use with Sumokoin, and thus you must compile a newer version yourself. The following explains the extra steps, and has been tested on a Raspberry Pi 2 with a clean install of minimal Raspbian Jessie.
+
+* As before, `apt-get update && apt-get upgrade` to install all of the latest software, and increase the system swap size
+
+```	
+	sudo /etc/init.d/dphys-swapfile stop  
+	sudo nano /etc/dphys-swapfile  
+	CONF_SWAPSIZE=1024  
+	sudo /etc/init.d/dphys-swapfile start  
+```
+
+* Then, install the dependencies for Sumokoin except `libunwind` and `libboost-all-dev`
+
+* Install the latest version of boost (this may first require invoking `apt-get remove --purge libboost*` to remove a previous version if you're not using a clean install):
+```
+	cd  
+	wget https://sourceforge.net/projects/boost/files/boost/1.64.0/boost_1_64_0.tar.bz2  
+	tar xvfo boost_1_64_0.tar.bz2  
+	cd boost_1_64_0  
+	./bootstrap.sh  
+	sudo ./b2  
+```
+* Wait ~8 hours
+```
+	sudo ./bjam install
+```
+* Wait ~4 hours
+
+* From here, follow the [general Raspberry Pi instructions](#on-the-raspberry-pi) from the "Clone sumokoin and checkout most recent release version" step.
 
 #### On Windows:
 
@@ -207,11 +244,11 @@ application.
 
     To build for 64-bit Windows:
 
-        pacman -S mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl
+        pacman -S mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium
 
     To build for 32-bit Windows:
  
-        pacman -S mingw-w64-i686-toolchain make mingw-w64-i686-cmake mingw-w64-i686-boost mingw-w64-i686-openssl
+        pacman -S mingw-w64-i686-toolchain make mingw-w64-i686-cmake mingw-w64-i686-boost mingw-w64-i686-openssl mingw-w64-i686-zeromq mingw-w64-i686-libsodium
 
 * Open the MingW shell via `MinGW-w64-Win64 Shell` shortcut on 64-bit Windows
   or `MinGW-w64-Win64 Shell` shortcut on 32-bit Windows. Note that if you are
@@ -229,7 +266,7 @@ application.
 
         make release-static-win32
 
-* The resulting executables can be found in `build/mingw64/release/bin` or `build/mingw32/release/bin` accordingly.
+* The resulting executables can be found in `build/release/bin`.
 
 ### On FreeBSD:
 
@@ -240,9 +277,13 @@ application.
 * Clone source code, change to the root of the source code directory and build:
 
         git clone https://github.com/sumoprojects/sumokoin; cd sumokoin; make release-static;
+        
+If you are running Sumokoin in a jail you need to add the flag: `allow.sysvipc=1` to your jail configuration, otherwise lmdb will throw the error message: `Failed to open lmdb environment: Function not implemented`.
 
 
 ### On OpenBSD:
+
+#### OpenBSD < 6.2
 
 This has been tested on OpenBSD 5.8.
 
@@ -257,6 +298,79 @@ You will have to add the serialization, date_time, and regex modules to Boost wh
 
 To build: `env CC=egcc CXX=eg++ CPP=ecpp DEVELOPER_LOCAL_TOOLS=1 BOOST_ROOT=/path/to/the/boost/you/built make release-static-64`
 
+#### OpenBSD >= 6.2
+
+You will need to add a few packages to your system. `pkg_add cmake miniupnpc zeromq libiconv`.
+
+The doxygen and graphviz packages are optional and require the xbase set.
+
+
+Build the Boost library using clang. This guide is derived from: https://github.com/bitcoin/bitcoin/blob/master/doc/build-openbsd.md
+
+We assume you are compiling with a non-root user and you have `doas` enabled.
+
+Note: do not use the boost package provided by OpenBSD, as we are installing boost to `/usr/local`.
+
+```
+# Create boost building directory
+mkdir ~/boost
+cd ~/boost
+
+# Fetch boost source
+ftp -o boost_1_64_0.tar.bz2 https://netcologne.dl.sourceforge.net/project/boost/boost/1.64.0/boost_1_64_0.tar.bz2 
+
+# MUST output: (SHA256) boost_1_64_0.tar.bz2: OK
+echo "7bcc5caace97baa948931d712ea5f37038dbb1c5d89b43ad4def4ed7cb683332 boost_1_64_0.tar.bz2" | sha256 -c
+tar xfj boost_1_64_0.tar.bz2
+
+# Fetch and apply boost patches, required for OpenBSD
+ftp -o boost_test_impl_execution_monitor_ipp.patch https://raw.githubusercontent.com/openbsd/ports/bee9e6df517077a7269ff0dfd57995f5c6a10379/devel/boost/patches/patch-boost_test_impl_execution_monitor_ipp
+ftp -o boost_config_platform_bsd_hpp.patch https://raw.githubusercontent.com/openbsd/ports/90658284fb786f5a60dd9d6e8d14500c167bdaa0/devel/boost/patches/patch-boost_config_platform_bsd_hpp
+
+# MUST output: (SHA256) boost_config_platform_bsd_hpp.patch: OK
+echo "1f5e59d1154f16ee1e0cc169395f30d5e7d22a5bd9f86358f738b0ccaea5e51d boost_config_platform_bsd_hpp.patch" | sha256 -c
+# MUST output: (SHA256) boost_test_impl_execution_monitor_ipp.patch: OK
+echo "30cec182a1437d40c3e0bd9a866ab5ddc1400a56185b7e671bb3782634ed0206 boost_test_impl_execution_monitor_ipp.patch" | sha256 -c
+
+cd boost_1_64_0
+patch -p0 < ../boost_test_impl_execution_monitor_ipp.patch
+patch -p0 < ../boost_config_platform_bsd_hpp.patch
+
+# Start building boost
+echo 'using clang : : c++ : <cxxflags>"-fvisibility=hidden -fPIC" <linkflags>"" <archiver>"ar" <striper>"strip"  <ranlib>"ranlib" <rc>"" : ;' > user-config.jam
+./bootstrap.sh --without-icu --with-libraries=chrono,filesystem,program_options,system,thread,test,date_time,regex,serialization,locale --with-toolset=clang
+./b2 toolset=clang cxxflags="-stdlib=libc++" linkflags="-stdlib=libc++" -sICONV_PATH=/usr/local
+doas ./b2 -d0 runtime-link=shared threadapi=pthread threading=multi link=static variant=release --layout=tagged --build-type=complete --user-config=user-config.jam -sNO_BZIP2=1 -sICONV_PATH=/usr/local --prefix=/usr/local install
+```
+
+Build cppzmq
+
+Build the cppzmq bindings.
+
+We assume you are compiling with a non-root user and you have `doas` enabled.
+
+```
+# Create cppzmq building directory
+mkdir ~/cppzmq
+cd ~/cppzmq
+
+# Fetch cppzmq source
+ftp -o cppzmq-4.2.3.tar.gz https://github.com/zeromq/cppzmq/archive/v4.2.3.tar.gz
+
+# MUST output: (SHA256) cppzmq-4.2.3.tar.gz: OK
+echo "3e6b57bf49115f4ae893b1ff7848ead7267013087dc7be1ab27636a97144d373 cppzmq-4.2.3.tar.gz" | sha256 -c
+tar xfz cppzmq-4.2.3.tar.gz
+
+# Start building cppzmq
+cd cppzmq-4.2.3
+mkdir build
+cd build
+cmake ..
+doas make install
+```
+
+Build Sumokoin: `env DEVELOPER_LOCAL_TOOLS=1 BOOST_ROOT=/usr/local make release-static`
+
 ### Building Portable Statically Linked Binaries
 
 By default, in either dynamically or statically linked builds, binaries target the specific host processor on which the build happens and are not portable to other processors. Portable binaries can be built using the following targets:
@@ -268,6 +382,17 @@ By default, in either dynamically or statically linked builds, binaries target t
 * ```make release-static-armv6``` builds binaries on Linux portable across POSIX systems on armv6 processors
 * ```make release-static-win64``` builds binaries on 64-bit Windows portable across 64-bit Windows systems
 * ```make release-static-win32``` builds binaries on 64-bit or 32-bit Windows portable across 32-bit Windows systems
+
+### On Solaris:
+
+The default Solaris linker can't be used, you have to install GNU ld, then run cmake manually with the path to your copy of GNU ld:
+
+        mkdir -p build/release
+        cd build/release
+        cmake -DCMAKE_LINKER=/path/to/ld -D CMAKE_BUILD_TYPE=Release ../..
+        cd ../..
+
+Then you can run make as usual.
 
 ## Running sumokoind
 
@@ -297,39 +422,93 @@ config](utils/conf/sumokoind.conf).
 If you're on Mac, you may need to add the `--max-concurrency 1` option to
 sumo-wallet-cli, and possibly sumokoind, if you get crashes refreshing.
 
-## Internationalization
-
-Please see [README.i18n](README.i18n)
-
 ## Using Tor
 
-While Sumokoin isn't made to integrate with Tor, it can be used wrapped with torsocks, if you add --p2p-bind-ip 127.0.0.1 to the sumokoind command line. You also want to set DNS requests to go over TCP, so they'll be routed through Tor, by setting DNS_PUBLIC=tcp. You may also disable IGD (UPnP port forwarding negotiation), which is pointless with Tor. To allow local connections from the wallet, you might have to add TORSOCKS_ALLOW_INBOUND=1, some OSes need it and some don't. Example:
+While Sumokoin isn't made to integrate with Tor, it can be used wrapped with torsocks, by
+setting the following configuration parameters and environment variables:
 
-`DNS_PUBLIC=tcp torsocks sumokoind --p2p-bind-ip 127.0.0.1 --no-igd`
+* `--p2p-bind-ip 127.0.0.1` on the command line or `p2p-bind-ip=127.0.0.1` in
+  sumokoind.conf to disable listening for connections on external interfaces.
+* `--no-igd` on the command line or `no-igd=1` in sumokoind.conf to disable IGD
+  (UPnP port forwarding negotiation), which is pointless with Tor.
+* `DNS_PUBLIC=tcp` or `DNS_PUBLIC=tcp://x.x.x.x` where x.x.x.x is the IP of the
+  desired DNS server, for DNS requests to go over TCP, so that they are routed
+  through Tor. When IP is not specified, sumokoind uses the default list of
+  servers defined in [src/common/dns_utils.cpp](src/common/dns_utils.cpp).
+* `TORSOCKS_ALLOW_INBOUND=1` to tell torsocks to allow sumokoind to bind to interfaces
+   to accept connections from the wallet. On some Linux systems, torsocks
+   allows binding to localhost by default, so setting this variable is only
+   necessary to allow binding to local LAN/VPN interfaces to allow wallets to
+   connect from remote hosts. On other systems, it may be needed for local wallets
+   as well.
+* Do NOT pass `--detach` when running through torsocks with systemd, (see
+  [utils/systemd/sumokoind.service](utils/systemd/sumokoind.service) for details).
+* If you use the wallet with a Tor daemon via the loopback IP (eg, 127.0.0.1:9050),
+  then use `--untrusted-daemon` unless it is your own hidden service.
 
-or:
+Example command line to start sumokoind through Tor:
 
-`DNS_PUBLIC=tcp TORSOCKS_ALLOW_INBOUND=1 torsocks sumokoind --p2p-bind-ip 127.0.0.1 --no-igd`
+    DNS_PUBLIC=tcp torsocks sumokoind --p2p-bind-ip 127.0.0.1 --no-igd
 
-TAILS ships with a very restrictive set of firewall rules. Therefore, you need to add a rule to allow this connection too, in addition to telling torsocks to allow inbound connections. Full example:
+### Using Tor on Tails
 
-`sudo iptables -I OUTPUT 2 -p tcp -d 127.0.0.1 -m tcp --dport 18081 -j ACCEPT`
+TAILS ships with a very restrictive set of firewall rules. Therefore, you need
+to add a rule to allow this connection too, in addition to telling torsocks to
+allow inbound connections. Full example:
 
-`DNS_PUBLIC=tcp torsocks ./sumokoind --p2p-bind-ip 127.0.0.1 --no-igd --rpc-bind-ip 127.0.0.1 --data-dir /home/your/directory/to/the/blockchain`
-
-`./sumo-wallet-cli`
-
-## Using readline
-
-While `sumokoind` and `sumo-wallet-cli` do not use readline directly, most of the functionality can be obtained by running them via `rlwrap`. This allows command recall, edit capabilities, etc. It does not give autocompletion without an extra completion file, however. To use rlwrap, simply prepend `rlwrap` to the command line, eg:
-
-`rlwrap bin/sumo-wallet-cli --wallet-file /path/to/wallet`
-
-Note: rlwrap will save things like your seed and private keys, if you supply them on prompt. You may want to not use rlwrap when you use simplewallet to restore from seed, etc.
+    sudo iptables -I OUTPUT 2 -p tcp -d 127.0.0.1 -m tcp --dport 18081 -j ACCEPT
+    DNS_PUBLIC=tcp torsocks ./sumokoind --p2p-bind-ip 127.0.0.1 --no-igd --rpc-bind-ip 127.0.0.1 \
+        --data-dir /home/amnesia/Persistent/your/directory/to/the/blockchain
 
 # Debugging
 
 This section contains general instructions for debugging failed installs or problems encountered with Sumokoin. First ensure you are running the latest version built from the github repo.
+
+### Obtaining stack traces and core dumps on Unix systems
+
+We generally use the tool `gdb` (GNU debugger) to provide stack trace functionality, and `ulimit` to provide core dumps in builds which crash or segfault.
+
+* To use gdb in order to obtain a stack trace for a build that has stalled:
+
+Run the build.
+
+Once it stalls, enter the following command:
+
+```
+gdb /path/to/sumokoind `pidof sumokoind` 
+```
+
+Type `thread apply all bt` within gdb in order to obtain the stack trace
+
+* If however the core dumps or segfaults:
+
+Enter `ulimit -c unlimited` on the command line to enable unlimited filesizes for core dumps
+
+Enter `echo core | sudo tee /proc/sys/kernel/core_pattern` to stop cores from being hijacked by other tools
+
+Run the build.
+
+When it terminates with an output along the lines of "Segmentation fault (core dumped)", there should be a core dump file in the same directory as sumokoind. It may be named just `core`, or `core.xxxx` with numbers appended.
+
+You can now analyse this core dump with `gdb` as follows:
+
+`gdb /path/to/sumokoind /path/to/dumpfile`
+
+Print the stack trace with `bt`
+
+* To run sumokoin within gdb:
+
+Type `gdb /path/to/sumokoind`
+
+Pass command-line options with `--args` followed by the relevant arguments
+
+Type `run` to run sumokoind
+
+### Analysing memory corruption
+
+We use the tool `valgrind` for this.
+
+Run with `valgrind /path/to/sumokoind`. It will be slow.
 
 ## LMDB
 

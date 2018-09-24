@@ -27,6 +27,9 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
+#undef MONERO_DEFAULT_LOG_CATEGORY
+#define MONERO_DEFAULT_LOG_CATEGORY "net"
+
 namespace epee
 {
 namespace net_utils
@@ -468,7 +471,7 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 }
 //-------------------------------------------------------------
 template<class TProtocol>
-bool cp_server_impl<TProtocol>::add_new_connection(SOCKET new_sock, long ip_from, int port_from)
+bool cp_server_impl<TProtocol>::add_new_connection(SOCKET new_sock, const network_address &address_from)
 {
 	PROFILE_FUNC("[add_new_connection]");
 	
@@ -484,8 +487,7 @@ bool cp_server_impl<TProtocol>::add_new_connection(SOCKET new_sock, long ip_from
 	m_connections_lock.unlock();
 	conn.init_buffers();
 	conn.m_sock = new_sock;
-	conn.context.m_remote_ip = ip_from;
-	conn.context.m_remote_port = port_from;
+	conn.context.m_remote_address = address_from;
 	conn.m_completion_port = m_completion_port;
 	{
 		PROFILE_FUNC("[add_new_connection] CreateIoCompletionPort");

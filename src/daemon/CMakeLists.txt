@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2017, The Monero Project
+# Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
 #
@@ -29,9 +29,9 @@
 set(blocksdat "")
 if(PER_BLOCK_CHECKPOINT)
   if(APPLE)
-    add_custom_command(OUTPUT blocksdat.o MAIN_DEPENDENCY ../blocks/checkpoints.dat COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && touch stub.c && ${CMAKE_C_COMPILER} -o stub.o -c stub.c COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && ${CMAKE_LINKER} -r -sectcreate __DATA __blocks_dat ../blocks/checkpoints.dat -o ${CMAKE_CURRENT_BINARY_DIR}/blocksdat.o stub.o && rm -f stub.*)
+    add_custom_command(OUTPUT blocksdat.o MAIN_DEPENDENCY ../blocks/checkpoints.dat COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && touch stub.c && ${CMAKE_C_COMPILER} -o stub.o -c stub.c COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && ${CMAKE_LINKER} ${LD_RAW_FLAGS} -r -sectcreate __DATA __blocks_dat ../blocks/checkpoints.dat -o ${CMAKE_CURRENT_BINARY_DIR}/blocksdat.o stub.o && rm -f stub.*)
   else()
-    add_custom_command(OUTPUT blocksdat.o MAIN_DEPENDENCY ../blocks/checkpoints.dat COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && cp ../blocks/checkpoints.dat blocks.dat && ${CMAKE_LINKER} -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/blocksdat.o blocks.dat && rm -f blocks.dat)
+    add_custom_command(OUTPUT blocksdat.o MAIN_DEPENDENCY ../blocks/checkpoints.dat COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && cp ../blocks/checkpoints.dat blocks.dat && ${CMAKE_LINKER} ${LD_RAW_FLAGS} -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/blocksdat.o blocks.dat && rm -f blocks.dat)
   endif()
   set(blocksdat "blocksdat.o")
 endif()
@@ -59,7 +59,6 @@ set(daemon_private_headers
   rpc_command_executor.h
 
   # cryptonote_protocol
-  ../cryptonote_protocol/blobdatatype.h
   ../cryptonote_protocol/cryptonote_protocol_defs.h
   ../cryptonote_protocol/cryptonote_protocol_handler.h
   ../cryptonote_protocol/cryptonote_protocol_handler.inl
@@ -67,16 +66,15 @@ set(daemon_private_headers
 
   # p2p
   ../p2p/net_node.h
-  ../p2p/net_node.inl
   ../p2p/net_node_common.h
   ../p2p/net_peerlist.h
   ../p2p/net_peerlist_boost_serialization.h
   ../p2p/p2p_protocol_defs.h
   ../p2p/stdafx.h)
 
-sumokoin_private_headers(daemon
+monero_private_headers(daemon
   ${daemon_private_headers})
-sumokoin_add_executable(daemon
+monero_add_executable(daemon
   ${daemon_sources}
   ${daemon_headers}
   ${daemon_private_headers}
@@ -87,21 +85,25 @@ target_link_libraries(daemon
     rpc
     blockchain_db
     cryptonote_core
-    crypto
+    cncrypto
     common
-    otshell_utils
     p2p
     cryptonote_protocol
     daemonizer
+    serialization
+    daemon_rpc_server
+    epee
+    ${EPEE_READLINE}
+    version
     ${Boost_CHRONO_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_REGEX_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
-    ${OPENSSL_LIBRARIES}
+    ${ZMQ_LIB}
+    ${GNU_READLINE_LIBRARY}
     ${EXTRA_LIBRARIES})
-add_dependencies(daemon version)
 set_property(TARGET daemon
   PROPERTY
     OUTPUT_NAME "sumokoind")

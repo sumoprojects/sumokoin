@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2016, The Monero Project
+# Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
 #
@@ -27,15 +27,15 @@
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required (VERSION 2.6)
-project (sumokoin CXX)
+project (monero CXX)
 
 file(GLOB CRYPTONOTE_PROTOCOL *)
 source_group(cryptonote_protocol FILES ${CRYPTONOTE_PROTOCOL})
 
-#sumokoin_private_headers(cryptonote_protocol ${CRYPTONOTE_PROTOCOL})
-sumokoin_add_library(cryptonote_protocol ${CRYPTONOTE_PROTOCOL})
+#monero_private_headers(cryptonote_protocol ${CRYPTONOTE_PROTOCOL})
+monero_add_library(cryptonote_protocol ${CRYPTONOTE_PROTOCOL})
 target_link_libraries(cryptonote_protocol
+  PUBLIC
+    p2p
   PRIVATE
     ${EXTRA_LIBRARIES})
-add_dependencies(cryptonote_protocol
-  version)

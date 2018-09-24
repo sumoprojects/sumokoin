@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -32,50 +32,87 @@
 
 #include <boost/uuid/uuid.hpp>
 #include "serialization/keyvalue_serialization.h"
+#include "net/net_utils_base.h"
 #include "misc_language.h"
+#include "string_tools.h"
+#include "time_helper.h"
 #include "cryptonote_config.h"
+#ifdef ALLOW_DEBUG_COMMANDS
 #include "crypto/crypto.h"
+#endif
 
 namespace nodetool
 {
   typedef boost::uuids::uuid uuid;
   typedef uint64_t peerid_type;
 
+  static inline std::string peerid_to_string(peerid_type peer_id)
+  {
+    std::ostringstream s;
+    s << std::hex << peer_id;
+    return epee::string_tools::pad_string(s.str(), 16, '0', true);
+  }
+
 #pragma pack (push, 1)
   
-  struct net_address
+  struct network_address_old
   {
     uint32_t ip;
     uint32_t port;
+
+    BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE(ip)
+      KV_SERIALIZE(port)
+    END_KV_SERIALIZE_MAP()
   };
 
-  struct peerlist_entry
+  template<typename AddressType>
+  struct peerlist_entry_base
   {
-    net_address adr;
+    AddressType adr;
     peerid_type id;
     int64_t last_seen;
-  };
 
-  struct connection_entry
+    BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE(adr)
+      KV_SERIALIZE(id)
+      KV_SERIALIZE(last_seen)
+    END_KV_SERIALIZE_MAP()
+  };
+  typedef peerlist_entry_base<epee::net_utils::network_address> peerlist_entry;
+
+  template<typename AddressType>
+  struct anchor_peerlist_entry_base
   {
-    net_address adr;
+    AddressType adr;
+    peerid_type id;
+    int64_t first_seen;
+
+    BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE(adr)
+      KV_SERIALIZE(id)
+      KV_SERIALIZE(first_seen)
+    END_KV_SERIALIZE_MAP()
+  };
+  typedef anchor_peerlist_entry_base<epee::net_utils::network_address> anchor_peerlist_entry;
+
+  template<typename AddressType>
+  struct connection_entry_base
+  {
+    AddressType adr;
     peerid_type id;
     bool is_income;
+
+    BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE(adr)
+      KV_SERIALIZE(id)
+      KV_SERIALIZE(is_income)
+    END_KV_SERIALIZE_MAP()
   };
+  typedef connection_entry_base<epee::net_utils::network_address> connection_entry;
 
 #pragma pack(pop)
 
-  inline
-  bool operator < (const net_address& a, const net_address& b)
-  {
-    return  epee::misc_utils::is_less_as_pod(a, b);
-  }
-
-  inline
-    bool operator == (const net_address& a, const net_address& b)
-  {
-    return  memcmp(&a, &b, sizeof(a)) == 0;
-  }
   inline 
   std::string print_peerlist_to_string(const std::list<peerlist_entry>& pl)
   {
@@ -83,9 +120,9 @@ namespace nodetool
     time(&now_time);
     std::stringstream ss;
     ss << std::setfill ('0') << std::setw (8) << std::hex << std::noshowbase;
-    BOOST_FOREACH(const peerlist_entry& pe, pl)
+    for(const peerlist_entry& pe: pl)
     {
-      ss << pe.id << "\t" << epee::string_tools::get_ip_string_from_int32(pe.adr.ip) << ":" << boost::lexical_cast<std::string>(pe.adr.port) << " \tlast_seen: " << epee::misc_utils::get_time_interval_string(now_time - pe.last_seen) << std::endl;
+      ss << pe.id << "\t" << pe.adr.str() << " \tlast_seen: " << epee::misc_utils::get_time_interval_string(now_time - pe.last_seen) << std::endl;
     }
     return ss.str();
   }
@@ -94,13 +131,15 @@ namespace nodetool
   struct network_config
   {
     BEGIN_KV_SERIALIZE_MAP()
-      KV_SERIALIZE(connections_count)
+      KV_SERIALIZE(max_out_connection_count)
+      KV_SERIALIZE(max_in_connection_count)
       KV_SERIALIZE(handshake_interval)
       KV_SERIALIZE(packet_max_size)
       KV_SERIALIZE(config_id)
     END_KV_SERIALIZE_MAP()
 
-    uint32_t connections_count;
+    uint32_t max_out_connection_count;
+    uint32_t max_in_connection_count;
     uint32_t connection_timeout;
     uint32_t ping_connection_timeout;
     uint32_t handshake_interval;
@@ -150,12 +189,40 @@ namespace nodetool
     {
       basic_node_data node_data;
       t_playload_type payload_data;
-      std::list<peerlist_entry> local_peerlist; 
+      std::list<peerlist_entry> local_peerlist_new;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(node_data)
         KV_SERIALIZE(payload_data)
-        KV_SERIALIZE_CONTAINER_POD_AS_BLOB(local_peerlist)
+        if (is_store)
+        {
+          // saving: save both, so old and new peers can understand it
+          KV_SERIALIZE(local_peerlist_new)
+          std::list<peerlist_entry_base<network_address_old>> local_peerlist;
+          for (const auto &p: this_ref.local_peerlist_new)
+          {
+            if (p.adr.get_type_id() == epee::net_utils::ipv4_network_address::ID)
+            {
+              const epee::net_utils::network_address  &na = p.adr;
+              const epee::net_utils::ipv4_network_address &ipv4 = na.as<const epee::net_utils::ipv4_network_address>();
+              local_peerlist.push_back(peerlist_entry_base<network_address_old>({{ipv4.ip(), ipv4.port()}, p.id, p.last_seen}));
+            }
+            else
+              MDEBUG("Not including in legacy peer list: " << p.adr.str());
+          }
+          epee::serialization::selector<is_store>::serialize_stl_container_pod_val_as_blob(local_peerlist, stg, hparent_section, "local_peerlist");
+        }
+        else
+        {
+          // loading: load old list only if there is no new one
+          if (!epee::serialization::selector<is_store>::serialize(this_ref.local_peerlist_new, stg, hparent_section, "local_peerlist_new"))
+          {
+            std::list<peerlist_entry_base<network_address_old>> local_peerlist;
+            epee::serialization::selector<is_store>::serialize_stl_container_pod_val_as_blob(local_peerlist, stg, hparent_section, "local_peerlist");
+            for (const auto &p: local_peerlist)
+              ((response&)this_ref).local_peerlist_new.push_back(peerlist_entry({epee::net_utils::ipv4_network_address(p.adr.ip, p.adr.port), p.id, p.last_seen}));
+          }
+        }
       END_KV_SERIALIZE_MAP()
     };
 	};
@@ -181,12 +248,40 @@ namespace nodetool
     {
       uint64_t local_time;
       t_playload_type payload_data;
-      std::list<peerlist_entry> local_peerlist; 
+      std::list<peerlist_entry> local_peerlist_new;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(local_time)
         KV_SERIALIZE(payload_data)
-        KV_SERIALIZE_CONTAINER_POD_AS_BLOB(local_peerlist)
+        if (is_store)
+        {
+          // saving: save both, so old and new peers can understand it
+          KV_SERIALIZE(local_peerlist_new)
+          std::list<peerlist_entry_base<network_address_old>> local_peerlist;
+          for (const auto &p: this_ref.local_peerlist_new)
+          {
+            if (p.adr.get_type_id() == epee::net_utils::ipv4_network_address::ID)
+            {
+              const epee::net_utils::network_address  &na = p.adr;
+              const epee::net_utils::ipv4_network_address &ipv4 = na.as<const epee::net_utils::ipv4_network_address>();
+              local_peerlist.push_back(peerlist_entry_base<network_address_old>({{ipv4.ip(), ipv4.port()}, p.id, p.last_seen}));
+            }
+            else
+              MDEBUG("Not including in legacy peer list: " << p.adr.str());
+          }
+          epee::serialization::selector<is_store>::serialize_stl_container_pod_val_as_blob(local_peerlist, stg, hparent_section, "local_peerlist");
+        }
+        else
+        {
+          // loading: load old list only if there is no new one
+          if (!epee::serialization::selector<is_store>::serialize(this_ref.local_peerlist_new, stg, hparent_section, "local_peerlist_new"))
+          {
+            std::list<peerlist_entry_base<network_address_old>> local_peerlist;
+            epee::serialization::selector<is_store>::serialize_stl_container_pod_val_as_blob(local_peerlist, stg, hparent_section, "local_peerlist");
+            for (const auto &p: local_peerlist)
+              ((response&)this_ref).local_peerlist_new.push_back(peerlist_entry({epee::net_utils::ipv4_network_address(p.adr.ip, p.adr.port), p.id, p.last_seen}));
+          }
+        }
       END_KV_SERIALIZE_MAP()
     };
   };
@@ -357,6 +452,14 @@ namespace nodetool
   
 #endif
 
+
+  inline crypto::hash get_proof_of_trust_hash(const nodetool::proof_of_trust& pot)
+  {
+    std::string s;
+    s.append(reinterpret_cast<const char*>(&pot.peer_id), sizeof(pot.peer_id));
+    s.append(reinterpret_cast<const char*>(&pot.time), sizeof(pot.time));
+    return crypto::cn_fast_hash(s.data(), s.size());
+  }
 
 }
 

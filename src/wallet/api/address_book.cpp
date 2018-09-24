@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2017, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 //
 // All rights reserved.
 //
@@ -33,6 +33,7 @@
 #include "wallet.h"
 #include "crypto/hash.h"
 #include "wallet/wallet2.h"
+#include "common_defines.h"
 
 #include <vector>
 
@@ -41,30 +42,50 @@ namespace Monero {
 AddressBook::~AddressBook() {}
   
 AddressBookImpl::AddressBookImpl(WalletImpl *wallet)
-    : m_wallet(wallet) {}
+    : m_wallet(wallet), m_errorCode(Status_Ok) {}
 
-bool AddressBookImpl::addRow(const std::string &dst_addr , const std::string &payment_id, const std::string &description)
+bool AddressBookImpl::addRow(const std::string &dst_addr , const std::string &payment_id_str, const std::string &description)
 {
-  LOG_PRINT_L2("Adding row");
-  
   clearStatus();
   
   cryptonote::address_parse_info info;
-  if (!cryptonote::get_account_address_from_str(info, m_wallet->m_wallet->testnet(), dst_addr)) {
-    m_errorString = "Invalid destination address";
+  if(!cryptonote::get_account_address_from_str(info, m_wallet->m_wallet->nettype(), dst_addr)) {
+    m_errorString = tr("Invalid destination address");
     m_errorCode = Invalid_Address;
     return false;
   }
 
-  crypto::hash pid32 = cryptonote::null_hash;
-  bool long_pid =  (payment_id.empty())? false : tools::wallet2::parse_long_payment_id(payment_id, pid32);
-  if(!payment_id.empty() && !long_pid) {
-    m_errorString = "Invalid payment ID";
+  crypto::hash payment_id = crypto::null_hash;
+  bool has_long_pid = (payment_id_str.empty())? false : tools::wallet2::parse_long_payment_id(payment_id_str, payment_id); 
+    
+  // Short payment id provided
+  if(payment_id_str.length() == 16) {
+    m_errorString = tr("Invalid payment ID. Short payment ID should only be used in an integrated address");
+    m_errorCode = Invalid_Payment_Id;
+    return false;
+  }
+  
+  // long payment id provided but not valid
+  if(!payment_id_str.empty() && !has_long_pid) {
+    m_errorString = tr("Invalid payment ID");
     m_errorCode = Invalid_Payment_Id;
     return false;
   }
 
-  bool r = m_wallet->m_wallet->add_address_book_row(info.address, pid32, description, info.is_subaddress);
+  // integrated + long payment id provided
+  if(has_long_pid && info.has_payment_id) {
+    m_errorString = tr("Integrated address and long payment ID can't be used at the same time");
+    m_errorCode = Invalid_Payment_Id;
+    return false;
+  }
+
+  // Pad short pid with zeros
+  if (info.has_payment_id)
+  {
+    memcpy(payment_id.data, info.payment_id.data, 8);
+  }
+  
+  bool r =  m_wallet->m_wallet->add_address_book_row(info.address,payment_id,description,info.is_subaddress);
   if (r)
     refresh();
   else
@@ -83,16 +104,25 @@ void AddressBookImpl::refresh()
   for (size_t i = 0; i < rows.size(); ++i) {
     tools::wallet2::address_book_row * row = &rows.at(i);
     
-    std::string payment_id = (row->m_payment_id == cryptonote::null_hash)? "" : epee::string_tools::pod_to_hex(row->m_payment_id);
-    std::string address = cryptonote::get_account_address_as_str(m_wallet->m_wallet->testnet(), row->m_is_subaddress, row->m_address);
-
+    std::string payment_id = (row->m_payment_id == crypto::null_hash)? "" : epee::string_tools::pod_to_hex(row->m_payment_id);
+    std::string address = cryptonote::get_account_address_as_str(m_wallet->m_wallet->nettype(), row->m_is_subaddress, row->m_address);
+    // convert the zero padded short payment id to integrated address
+    if (!row->m_is_subaddress && payment_id.length() > 16 && payment_id.substr(16).find_first_not_of('0') == std::string::npos) {
+        payment_id = payment_id.substr(0,16);
+        crypto::hash8 payment_id_short;
+        if(tools::wallet2::parse_short_payment_id(payment_id, payment_id_short)) {
+          address = cryptonote::get_account_integrated_address_as_str(m_wallet->m_wallet->nettype(), row->m_address, payment_id_short);
+          // Don't show payment id when integrated address is used
+          payment_id = "";
+        }
+    }
     AddressBookRow * abr = new AddressBookRow(i, address, payment_id, row->m_description);
     m_rows.push_back(abr);
   }
   
 }
 
-bool AddressBookImpl::deleteRow(int rowId) 
+bool AddressBookImpl::deleteRow(std::size_t rowId)
 {
   LOG_PRINT_L2("Deleting address book row " << rowId);
   bool r = m_wallet->m_wallet->delete_address_book_row(rowId);
@@ -100,6 +130,28 @@ bool AddressBookImpl::deleteRow(int rowId)
     refresh();
   return r;
 } 
+
+int AddressBookImpl::lookupPaymentID(const std::string &payment_id) const
+{
+    // turn short ones into long ones for comparison
+    const std::string long_payment_id = payment_id + std::string(64 - payment_id.size(), '0');
+
+    int idx = -1;
+    for (const auto &row: m_rows) {
+        ++idx;
+        // this does short/short and long/long
+        if (payment_id == row->getPaymentId())
+            return idx;
+        // short/long
+        if (long_payment_id == row->getPaymentId())
+            return idx;
+        // one case left: payment_id was long, row's is short
+        const std::string long_row_payment_id = row->getPaymentId() + std::string(64 - row->getPaymentId().size(), '0');
+        if (payment_id == long_row_payment_id)
+            return idx;
+    }
+    return -1;
+}
 
 void AddressBookImpl::clearRows() {
    for (auto r : m_rows) {

@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2017, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -33,6 +33,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/portable_binary_oarchive.hpp>
 #include <boost/archive/portable_binary_iarchive.hpp>
+#include <boost/filesystem/operations.hpp>
 
 
 namespace tools
@@ -54,7 +55,7 @@ namespace tools
       return false;
     }
 
-    const std::unique_ptr<FILE, tools::close_file> data_file_file{ _fdopen(data_file_descriptor, "wb") };
+    const std::unique_ptr<FILE, tools::close_file> data_file_file{_fdopen(data_file_descriptor, "wb")};
     if (nullptr == data_file_file)
     {
       // Call CloseHandle is not necessary
@@ -96,9 +97,9 @@ namespace tools
   {
     TRY_ENTRY();
 
-    std::ifstream data_file;
-    data_file.open(file_path, std::ios_base::binary | std::ios_base::in);
-    if (data_file.fail())
+    std::ifstream data_file;  
+    data_file.open( file_path, std::ios_base::binary | std::ios_base::in);
+    if(data_file.fail())
       return false;
     try
     {
@@ -106,13 +107,13 @@ namespace tools
       boost::archive::portable_binary_iarchive a(data_file);
       a >> obj;
     }
-    catch (...)
+    catch(...)
     {
       // if failed, try reading in unportable mode
       boost::filesystem::copy_file(file_path, file_path + ".unportable", boost::filesystem::copy_option::overwrite_if_exists);
       data_file.close();
-      data_file.open(file_path, std::ios_base::binary | std::ios_base::in);
-      if (data_file.fail())
+      data_file.open( file_path, std::ios_base::binary | std::ios_base::in);
+      if(data_file.fail())
         return false;
       boost::archive::binary_iarchive a(data_file);
       a >> obj;
@@ -121,4 +122,3 @@ namespace tools
     CATCH_ENTRY_L0("unserialize_obj_from_file", false);
   }
 }
-

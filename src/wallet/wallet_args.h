@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
 //
 // All rights reserved.
 //
@@ -48,6 +48,9 @@ namespace wallet_args
   boost::optional<boost::program_options::variables_map> main(
     int argc, char** argv,
     const char* const usage,
+    const char* const notice,
     boost::program_options::options_description desc_params,
-    const boost::program_options::positional_options_description& positional_options);
+    const boost::program_options::positional_options_description& positional_options,
+    const std::function<void(const std::string&, bool)> &print,
+    const char *default_log_name, bool log_to_console = false);
 }

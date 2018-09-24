@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2017, The Monero Project
+# Copyright (c) 2014-2018, The Monero Project
 #
 # All rights reserved.
 #
@@ -27,15 +27,21 @@
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 set(crypto_sources
+  aesb.c
   blake256.c
-  chacha8.c
+  chacha.c
   crypto-ops-data.c
   crypto-ops.c
   crypto.cpp
   groestl.c
+  hash-extra-blake.c
+  hash-extra-groestl.c
+  hash-extra-jh.c
+  hash-extra-skein.c
   hash.c
   jh.c
   keccak.c
+  oaes_lib.c
   random.c
   skein.c
   tree-hash.c
@@ -47,7 +53,7 @@ set(crypto_headers)
 
 set(crypto_private_headers
   blake256.h
-  chacha8.h
+  chacha.h
   crypto-ops.h
   crypto.h
   generic-ops.h
@@ -58,19 +64,33 @@ set(crypto_private_headers
   initializer.h
   jh.h
   keccak.h
+  oaes_config.h
+  oaes_lib.h
   random.h
   skein.h
   skein_port.h
   cn_slow_hash.hpp)
 
-sumokoin_private_headers(crypto
+monero_private_headers(cncrypto
   ${crypto_private_headers})
-sumokoin_add_library(crypto
+monero_add_library(cncrypto
   ${crypto_sources}
   ${crypto_headers}
   ${crypto_private_headers})
-target_link_libraries(crypto
+target_link_libraries(cncrypto
   PUBLIC
+    epee
     ${Boost_SYSTEM_LIBRARY}
   PRIVATE
     ${EXTRA_LIBRARIES})
+    
+# Because of the way Qt works on android with JNI, the code does not live in the main android thread
+# So this code runs with a 1 MB default stack size. 
+# This will force the use of the heap for the allocation of the scratchpad
+if (ANDROID OR IOS)
+  if( BUILD_GUI_DEPS )
+    add_definitions(-DFORCE_USE_HEAP=1)
+  endif()
+endif()
+
+
