@@ -272,7 +272,7 @@ application.
 
 * Update packages and install the dependencies (on FreeBSD 11.0 x64):
 		
-		pkg update; pkg install wget git pkgconf gcc49 cmake db6 icu libevent unbound googletest ldns expat bison boost-libs;
+		pkg update; pkg install wget git pkgconf gcc49 cmake db6 icu libevent unbound googletest ldns expat bison boost-libs cppzmq;
 
 * Clone source code, change to the root of the source code directory and build:
 
