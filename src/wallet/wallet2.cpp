@@ -7960,9 +7960,9 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_from(const crypton
 	      
                 // distribute total transferred amount between outputs
         uint64_t amount_transferred = available_for_fee - needed_fee;
-        uint64_t dt_amount = amount_transferred / outputs;
+        uint64_t dt_amount = amount_transferred / outs;
         // residue is distributed as one atomic unit per output until it reaches zero
-        uint64_t residue = amount_transferred % outputs;
+        uint64_t residue = amount_transferred % outs;
         for (auto &dt: tx.dsts)
         {
           uint64_t dt_residue = 0;
