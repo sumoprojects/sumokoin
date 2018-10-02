@@ -7930,7 +7930,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_from(const crypton
       needed_fee = calculate_fee(fee_per_kb, estimated_tx_size, fee_multiplier);
 
             // add N - 1 outputs for correct initial fee estimation
-      for (size_t i = 0; i < ((outputs > 1) ? outputs - 1 : outputs); ++i)
+      for (size_t i = 0; i < ((outs > 1) ? outs - 1 : outs); ++i)
         tx.dsts.push_back(tx_destination_entry(1, address, is_subaddress));
 
       LOG_PRINT_L2("Trying to create a tx now, with " << tx.dsts.size() << " destinations and " <<
@@ -7950,7 +7950,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_from(const crypton
         print_money(needed_fee) << " needed)");
 	    
 	     // add last output, missed for fee estimation
-      if (outputs > 1)
+      if (outs > 1)
         tx.dsts.push_back(tx_destination_entry(1, address, is_subaddress));
 
       THROW_WALLET_EXCEPTION_IF(needed_fee > available_for_fee, error::wallet_internal_error, "Transaction cannot pay for itself");
