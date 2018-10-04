@@ -53,6 +53,7 @@
 #include "cryptonote_core.h"
 #include "ringct/rctSigs.h"
 #include "common/perf_timer.h"
+#include "common/notify.h"
 #if defined(PER_BLOCK_CHECKPOINT)
 #include "blocks/blocks.h"
 #endif
@@ -3590,6 +3591,10 @@ leave:
   // appears to be a NOP *and* is called elsewhere.  wat?
   m_tx_pool.on_blockchain_inc(new_height, id);
 
+	 std::shared_ptr<tools::Notify> block_notify = m_block_notify;
+  if (block_notify)
+    block_notify->notify(epee::string_tools::pod_to_hex(id).c_str());
+	
   return true;
 }
 //------------------------------------------------------------------
