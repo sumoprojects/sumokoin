@@ -67,6 +67,7 @@ class Serialization_portability_wallet_Test;
 namespace tools
 {
   class ringdb;
+  class Notify;
 
   class i_wallet2_callback
   {
@@ -1075,6 +1076,8 @@ namespace tools
     bool set_blackballed_outputs(const std::vector<crypto::public_key> &outputs, bool add = false);
     bool unblackball_output(const crypto::public_key &output);
     bool is_output_blackballed(const crypto::public_key &output) const;
+    
+    void set_tx_notify(const std::shared_ptr<tools::Notify> &notify) { m_tx_notify = notify; }
 
   private:
     /*!
@@ -1232,6 +1235,8 @@ namespace tools
     std::string m_ring_database;
     bool m_ring_history_saved;
     std::unique_ptr<ringdb> m_ringdb;
+    
+    std::shared_ptr<tools::Notify> m_tx_notify;
   };
 }
 BOOST_CLASS_VERSION(tools::wallet2, 24)
