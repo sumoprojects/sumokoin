@@ -53,6 +53,7 @@ using namespace epee;
 #include "ringct/rctTypes.h"
 #include "blockchain_db/blockchain_db.h"
 #include "ringct/rctSigs.h"
+#include "common/notify.h"
 #include "version.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
@@ -264,6 +265,7 @@ namespace cryptonote
     command_line::add_arg(desc, arg_offline);
     command_line::add_arg(desc, arg_disable_dns_checkpoints);
     command_line::add_arg(desc, arg_max_txpool_size);
+    command_line::add_arg(desc, arg_block_notify);
 
     miner::init_options(desc);
     BlockchainDB::init_options(desc);
@@ -507,6 +509,17 @@ namespace cryptonote
 
     m_blockchain_storage.set_user_options(blocks_threads,
         blocks_per_sync, sync_mode, fast_sync);
+    
+    try
+    {
+      if (!command_line::is_arg_defaulted(vm, arg_block_notify))
+        m_blockchain_storage.set_block_notify(std::shared_ptr<tools::Notify>(new tools::Notify(command_line::get_arg(vm, arg_block_notify).c_str())));
+    }
+    catch (const std::exception &e)
+    {
+      MERROR("Failed to parse block notify spec");
+    }
+
 
     r = m_blockchain_storage.init(db.release(), m_nettype, m_offline, test_options);
 
