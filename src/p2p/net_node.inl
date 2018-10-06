@@ -713,9 +713,9 @@ namespace nodetool
         return;
       }
  
-      if (rsp.version != SUMOKOIN_VERSION)
+      if (rsp != SUMOKOIN_VERSION)
       {
-        MLOG_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.node_data.version);
+        MLOG_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp);
         hsh_result = false;
       }
       }, P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT);
@@ -747,15 +747,15 @@ namespace nodetool
          LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
         return;
       }
-          if (rsp.node_data.version.size() == 0)
+          if (rsp.size() == 0)
       {
         MLOG_CYAN("Peer " << context.m_remote_address.str() << " did not provide version information");
         block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
         return;
       }
-      else if (rsp.node_data.version != SUMOKOIN_VERSION)
+      else if (rsp != SUMOKOIN_VERSION)
       {
-        MLOG_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.node_data.version);
+        MLOG_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp);
         block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
         return;
       }
