@@ -39,6 +39,7 @@
 #include "cryptonote_config.h"
 #ifdef ALLOW_DEBUG_COMMANDS
 #include "crypto/crypto.h"
+#include <version.h>
 #endif
 
 namespace nodetool
@@ -287,7 +288,6 @@ namespace nodetool
   };
 
   /************************************************************************/
-  /*                                                                      */
   /************************************************************************/
 
   struct COMMAND_PING
@@ -420,9 +420,11 @@ namespace nodetool
     struct response
     {
       peerid_type my_id;
+      std::string version;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(my_id)
+	KV_SERIALIZE(version)      
       END_KV_SERIALIZE_MAP()    
     };
   };
