@@ -1706,7 +1706,7 @@ namespace nodetool
       block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
       return 1;
     }
-     if (arg.node_data.version != MONERO_VERSION)
+     if (arg.node_data.version != SUMOKOIN_VERSION)
     {
       MGINFO_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << arg.node_data.version);
       drop_connection(context);
