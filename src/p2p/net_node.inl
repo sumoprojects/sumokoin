@@ -731,28 +731,7 @@ namespace nodetool
      return hsh_result;
    }
  
-   template<class t_payload_net_handler>
-   bool node_server<t_payload_net_handler>::do_handshake_with_peer(peerid_type& pi, p2p_connection_context& context_, bool just_take_peerlist)
-   {
-     typename COMMAND_HANDSHAKE::request arg;
-     typename COMMAND_HANDSHAKE::response rsp;
-     get_local_node_data(arg.node_data);
-     m_payload_handler.get_payload_sync_data(arg.payload_data);
- 
-     epee::simple_event ev;
-     std::atomic<bool> hsh_result(false);
- 
-     bool r = epee::net_utils::async_invoke_remote_command2<typename COMMAND_HANDSHAKE::response>(context_.m_connection_id, COMMAND_HANDSHAKE::ID, arg, m_net_server.get_config_object(),
-       [this, &pi, &ev, &hsh_result, &just_take_peerlist](int code, const typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
-     {
-       epee::misc_utils::auto_scope_leave_caller scope_exit_handler = epee::misc_utils::create_scope_leave_handler([&](){ev.raise();});
- 
-       if(code < 0)
-       {
-         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
-        return;
-      }
-       if (rsp.node_data.version.size() == 0)
+          if (rsp.node_data.version.size() == 0)
       {
         MGINFO_CYAN("Peer " << context.m_remote_address.str() << " did not provide version information");
         block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
