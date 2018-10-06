@@ -713,7 +713,7 @@ namespace nodetool
         return;
       }
  
-      if (rsp != SUMOKOIN_VERSION)
+      if (rsp.version != SUMOKOIN_VERSION)
       {
         MLOG_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version");
         hsh_result = false;
@@ -753,7 +753,7 @@ namespace nodetool
         block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
         return;
       }
-      else if (rsp != SUMOKOIN_VERSION)
+      else if (rsp.version != SUMOKOIN_VERSION)
       {
         MLOG_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version");
         block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
