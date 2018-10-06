@@ -715,12 +715,12 @@ namespace nodetool
  
        if (rsp.version.size() == 0)
        {
-         MINFO_CYAN("Peer " << context.m_remote_address.str() << " did not provide version information");
+         MGINFO_CYAN("Peer " << context.m_remote_address.str() << " did not provide version information");
          hsh_result = false;
       }
       else if (rsp.version != SUMOKOIN_VERSION)
       {
-        MINFO_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.version);
+        MGINFO_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.version);
         hsh_result = false;
       }
       }, P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT);
