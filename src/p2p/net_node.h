@@ -204,6 +204,7 @@ namespace nodetool
 
     bool connections_maker();
     bool peer_sync_idle_maker();
+    bool do_request_peer_id(peerid_type& pi, p2p_connection_context& context, bool just_take_peerlist = false);
     bool do_handshake_with_peer(peerid_type& pi, p2p_connection_context& context, bool just_take_peerlist = false);
     bool do_peer_timed_sync(const epee::net_utils::connection_context_base& context, peerid_type peer_id);
 
