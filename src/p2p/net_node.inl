@@ -713,9 +713,9 @@ namespace nodetool
         return;
       }
  
-      if (rsp.version != SUMOKOIN_VERSION_FULL)
+      if (rsp.version != SUMOKOIN_VERSION)
       {
-        MGINFO_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.version);
+        MGLOG_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.version);
         hsh_result = false;
       }
       }, P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT);
@@ -755,7 +755,7 @@ namespace nodetool
       }
       else if (rsp.node_data.version != SUMOKOIN_VERSION)
       {
-        MGINFO_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.node_data.version);
+        MGLOG_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.node_data.version);
         block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
         return;
       }
