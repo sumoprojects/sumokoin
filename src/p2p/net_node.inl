@@ -706,14 +706,14 @@ namespace nodetool
       [this, &pi, &ev, &hsh_result, &just_take_peerlist](int code, const typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
     {
       epee::misc_utils::auto_scope_leave_caller scope_exit_handler = epee::misc_utils::create_scope_leave_handler([&](){ev.raise();});
-     rsp.version = SUMOKOIN_VERSION_FULL;
+     
       if(code < 0)
       {
         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
         return;
       }
  
-      if (rsp.version != SUMOKOIN_VERSION_FULL)
+      if (rsp.version != SUMOKOIN_VERSION)
       {
         MLOG_CYAN("Peer " << context.m_remote_address.host_str() << " is on an incorrect version: " << rsp.version);
         hsh_result = false;
