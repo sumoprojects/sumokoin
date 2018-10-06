@@ -689,7 +689,38 @@ namespace nodetool
     return true;
   }
   //-----------------------------------------------------------------------------------
-
+  template<class t_payload_net_handler>
+  bool node_server<t_payload_net_handler>::do_request_peer_id(peerid_type& pi, p2p_connection_context& context_, bool just_take_peerlist)
+  {
+    typename COMMAND_REQUEST_PEER_ID::request arg;
+    typename COMMAND_REQUEST_PEER_ID::response rsp;
+     epee::simple_event ev;
+    std::atomic<bool> hsh_result(true);
+     bool r = epee::net_utils::async_invoke_remote_command2<typename COMMAND_REQUEST_PEER_ID::response>(context_.m_connection_id, COMMAND_REQUEST_PEER_ID::ID, arg, m_net_server.get_config_object(),
+      [this, &ev, &hsh_result](int code, const typename COMMAND_REQUEST_PEER_ID::response& rsp, p2p_connection_context& context)
+    {
+      epee::misc_utils::auto_scope_leave_caller scope_exit_handler = epee::misc_utils::create_scope_leave_handler([&](){ev.raise();});
+       if(code < 0)
+      {
+        LOG_WARNING_CC(context, "COMMAND_REQUEST_PEER_ID invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
+        hsh_result = false;
+        return;
+      }
+       if (rsp.version.size() == 0)
+      {
+        MGINFO_CYAN("Peer " << context.m_remote_address.str() << " did not provide version information");
+        hsh_result = false;
+      }
+      else if (rsp.version != MONERO_VERSION)
+      {
+        MGINFO_CYAN("Peer " << context.m_remote_address.str() << " replied with incorrect version: " << rsp.version);
+        hsh_result = false;
+      }
+     }, P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT);
+     if (r)
+      ev.wait();
+     return hsh_result;
+  }
 
   template<class t_payload_net_handler>
   bool node_server<t_payload_net_handler>::do_handshake_with_peer(peerid_type& pi, p2p_connection_context& context_, bool just_take_peerlist)
@@ -928,6 +959,14 @@ namespace nodetool
     }
 
     peerid_type pi = AUTO_VAL_INIT(pi);
+    
+     res = do_request_peer_id(pi, con, just_take_peerlist);
+    if (!res)
+    {
+      block_host(con.m_remote_address, P2P_IP_BLOCKTIME);
+      return false;
+    }
+    
     res = do_handshake_with_peer(pi, con, just_take_peerlist);
 
     if(!res)
@@ -992,6 +1031,14 @@ namespace nodetool
     }
 
     peerid_type pi = AUTO_VAL_INIT(pi);
+    
+       res = do_request_peer_id(pi, con, true);
+    if (!res)
+    {
+      block_host(con.m_remote_address, P2P_IP_BLOCKTIME);
+      return false;
+    }
+
     res = do_handshake_with_peer(pi, con, true);
 
     if (!res) {
@@ -1447,6 +1494,7 @@ namespace nodetool
   int node_server<t_payload_net_handler>::handle_get_peer_id(int command, COMMAND_REQUEST_PEER_ID::request& arg, COMMAND_REQUEST_PEER_ID::response& rsp, p2p_connection_context& context)
   {
     rsp.my_id = m_config.m_peer_id;
+    rsp.version = "0.0.0.0";
     return 1;
   }
 #endif
