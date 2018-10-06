@@ -689,88 +689,136 @@ namespace nodetool
     return true;
   }
   //-----------------------------------------------------------------------------------
-
-
-  template<class t_payload_net_handler>
-  bool node_server<t_payload_net_handler>::do_handshake_with_peer(peerid_type& pi, p2p_connection_context& context_, bool just_take_peerlist)
-  {
-    typename COMMAND_HANDSHAKE::request arg;
-    typename COMMAND_HANDSHAKE::response rsp;
-    get_local_node_data(arg.node_data);
-    m_payload_handler.get_payload_sync_data(arg.payload_data);
-
-    epee::simple_event ev;
-    std::atomic<bool> hsh_result(false);
-
-    bool r = epee::net_utils::async_invoke_remote_command2<typename COMMAND_HANDSHAKE::response>(context_.m_connection_id, COMMAND_HANDSHAKE::ID, arg, m_net_server.get_config_object(),
-      [this, &pi, &ev, &hsh_result, &just_take_peerlist](int code, const typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
-    {
-      epee::misc_utils::auto_scope_leave_caller scope_exit_handler = epee::misc_utils::create_scope_leave_handler([&](){ev.raise();});
-
-      if(code < 0)
+   template<class t_payload_net_handler>
+   bool node_server<t_payload_net_handler>::do_request_peer_id(peerid_type& pi, p2p_connection_context& context_, bool just_take_peerlist)
+   {
+     typename COMMAND_REQUEST_PEER_ID::request arg;
+     typename COMMAND_REQUEST_PEER_ID::response rsp;
+ 
+     epee::simple_event ev;
+     std::atomic<bool> hsh_result(true);
+ 
+     bool r = epee::net_utils::async_invoke_remote_command2<typename COMMAND_REQUEST_PEER_ID::response>(context_.m_connection_id, COMMAND_REQUEST_PEER_ID::ID, arg, m_net_server.get_config_object(),
+       [this, &ev, &hsh_result](int code, const typename COMMAND_REQUEST_PEER_ID::response& rsp, p2p_connection_context& context)
+     {
+       epee::misc_utils::auto_scope_leave_caller scope_exit_handler = epee::misc_utils::create_scope_leave_handler([&](){ev.raise();});
+ 
+       if(code < 0)
+       {
+         LOG_WARNING_CC(context, "COMMAND_REQUEST_PEER_ID invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
+         hsh_result = false;
+         return;
+       }
+ 
+       if (rsp.version.size() == 0)
+       {
+         MGINFO_CYAN("Peer " << context.m_remote_address.str() << " did not provide version information");
+         hsh_result = false;
+      }
+      else if (rsp.version != MONERO_VERSION)
       {
-        LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
+         MGINFO_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.version);
+        hsh_result = false;
+      }
+      }, P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT);
+ 
+     if (r)
+       ev.wait();
+ 
+     return hsh_result;
+   }
+ 
+   template<class t_payload_net_handler>
+   bool node_server<t_payload_net_handler>::do_handshake_with_peer(peerid_type& pi, p2p_connection_context& context_, bool just_take_peerlist)
+   {
+     typename COMMAND_HANDSHAKE::request arg;
+     typename COMMAND_HANDSHAKE::response rsp;
+     get_local_node_data(arg.node_data);
+     m_payload_handler.get_payload_sync_data(arg.payload_data);
+ 
+     epee::simple_event ev;
+     std::atomic<bool> hsh_result(false);
+ 
+     bool r = epee::net_utils::async_invoke_remote_command2<typename COMMAND_HANDSHAKE::response>(context_.m_connection_id, COMMAND_HANDSHAKE::ID, arg, m_net_server.get_config_object(),
+       [this, &pi, &ev, &hsh_result, &just_take_peerlist](int code, const typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
+     {
+       epee::misc_utils::auto_scope_leave_caller scope_exit_handler = epee::misc_utils::create_scope_leave_handler([&](){ev.raise();});
+ 
+       if(code < 0)
+       {
+         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
         return;
       }
-
-      if(rsp.node_data.network_id != m_network_id)
+       if (rsp.node_data.version.size() == 0)
+      {
+        MGINFO_CYAN("Peer " << context.m_remote_address.str() << " did not provide version information");
+        block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
+        return;
+      }
+      else if (rsp.node_data.version != MONERO_VERSION)
+      {
+        MGINFO_CYAN("Peer " << context.m_remote_address.str() << " is on incorrect version: " << rsp.node_data.version);
+        block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
+        return;
+      }
+       if(rsp.node_data.network_id != m_network_id)
       {
         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE Failed, wrong network!  (" << epee::string_tools::get_str_from_guid_a(rsp.node_data.network_id) << "), closing connection.");
-        return;
-      }
-
-      if(!handle_remote_peerlist(rsp.local_peerlist_new, rsp.node_data.local_time, context))
-      {
-        LOG_WARNING_CC(context, "COMMAND_HANDSHAKE: failed to handle_remote_peerlist(...), closing connection.");
-        add_host_fail(context.m_remote_address);
-        return;
-      }
-      hsh_result = true;
-      if(!just_take_peerlist)
-      {
-        if(!m_payload_handler.process_payload_sync_data(rsp.payload_data, context, true))
-        {
-          LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoked, but process_payload_sync_data returned false, dropping connection.");
-          hsh_result = false;
-          return;
-        }
-
-        pi = context.peer_id = rsp.node_data.peer_id;
-        m_peerlist.set_peer_just_seen(rsp.node_data.peer_id, context.m_remote_address);
-
-        if(rsp.node_data.peer_id == m_config.m_peer_id)
-        {
-          LOG_DEBUG_CC(context, "Connection to self detected, dropping connection");
-          hsh_result = false;
-          return;
-        }
-        LOG_DEBUG_CC(context, " COMMAND_HANDSHAKE INVOKED OK");
-      }else
-      {
-        LOG_DEBUG_CC(context, " COMMAND_HANDSHAKE(AND CLOSE) INVOKED OK");
-      }
-    }, P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT);
-
-    if(r)
-    {
-      ev.wait();
-    }
-
-    if(!hsh_result)
-    {
-      LOG_WARNING_CC(context_, "COMMAND_HANDSHAKE Failed");
-      m_net_server.get_config_object().close(context_.m_connection_id);
-    }
-    else
-    {
-      try_get_support_flags(context_, [](p2p_connection_context& flags_context, const uint32_t& support_flags) 
-      {
-        flags_context.support_flags = support_flags;
-      });
-    }
-
-    return hsh_result;
-  }
+         return;
+       }
+ 
+       if(!handle_remote_peerlist(rsp.local_peerlist_new, rsp.node_data.local_time, context))
+       {
+         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE: failed to handle_remote_peerlist(...), closing connection.");
+         add_host_fail(context.m_remote_address);
+         return;
+       }
+       hsh_result = true;
+       if(!just_take_peerlist)
+       {
+         if(!m_payload_handler.process_payload_sync_data(rsp.payload_data, context, true))
+         {
+           LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoked, but process_payload_sync_data returned false, dropping connection.");
+           hsh_result = false;
+           return;
+         }
+ 
+         pi = context.peer_id = rsp.node_data.peer_id;
+         m_peerlist.set_peer_just_seen(rsp.node_data.peer_id, context.m_remote_address);
+ 
+         if(rsp.node_data.peer_id == m_config.m_peer_id)
+         {
+           LOG_DEBUG_CC(context, "Connection to self detected, dropping connection");
+           hsh_result = false;
+           return;
+         }
+         LOG_DEBUG_CC(context, " COMMAND_HANDSHAKE INVOKED OK");
+       }else
+       {
+         LOG_DEBUG_CC(context, " COMMAND_HANDSHAKE(AND CLOSE) INVOKED OK");
+       }
+     }, P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT);
+ 
+     if(r)
+     {
+       ev.wait();
+     }
+ 
+     if(!hsh_result)
+     {
+       LOG_WARNING_CC(context_, "COMMAND_HANDSHAKE Failed");
+       m_net_server.get_config_object().close(context_.m_connection_id);
+     }
+     else
+     {
+       try_get_support_flags(context_, [](p2p_connection_context& flags_context, const uint32_t& support_flags) 
+       {
+         flags_context.support_flags = support_flags;
+       });
+     }
+ 
+     return hsh_result;
+   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
   bool node_server<t_payload_net_handler>::do_peer_timed_sync(const epee::net_utils::connection_context_base& context_, peerid_type peer_id)
