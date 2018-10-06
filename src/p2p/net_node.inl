@@ -1494,7 +1494,7 @@ namespace nodetool
   int node_server<t_payload_net_handler>::handle_get_peer_id(int command, COMMAND_REQUEST_PEER_ID::request& arg, COMMAND_REQUEST_PEER_ID::response& rsp, p2p_connection_context& context)
   {
     rsp.my_id = m_config.m_peer_id;
-    rsp.version = "0.0.0.0";
+    rsp.version = SUMOKOIN_VERSION;
     return 1;
   }
 #endif
