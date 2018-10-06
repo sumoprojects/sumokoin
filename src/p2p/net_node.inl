@@ -715,7 +715,7 @@ namespace nodetool
  
       if (rsp.version != SUMOKOIN_VERSION)
       {
-        MLOG_CYAN( context.m_remote_address.str() << "Peer is on an incorrect version");
+        MLOG_CYAN( context.m_remote_address() << "Peer is on an incorrect version");
         hsh_result = false;
       }
       }, P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT);
@@ -749,13 +749,13 @@ namespace nodetool
       }
           if (rsp.size() == 0)
       {
-        MLOG_CYAN( context.m_remote_address.str() << "did not provide version information");
+        MLOG_CYAN( context.m_remote_address << "did not provide version information");
         block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
         return;
       }
       else if (rsp.version != SUMOKOIN_VERSION)
       {
-        MLOG_CYAN( context.m_remote_address.str() << "Peer is on an incorrect version");
+        MLOG_CYAN( context.m_remote_address << "Peer is on an incorrect version");
         block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
         return;
       }
