@@ -713,12 +713,7 @@ namespace nodetool
         return;
       }
  
-       if (rsp.version.size() == 0)
-       {
-         MGINFO_CYAN("Peer " << context.m_remote_address.str() << " did not provide version information");
-         hsh_result = false;
-      }
-      else if (rsp.version != SUMOKOIN_VERSION)
+      if (rsp.version != SUMOKOIN_VERSION_FULL)
       {
         MGINFO_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.version);
         hsh_result = false;
