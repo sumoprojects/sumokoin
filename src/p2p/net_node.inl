@@ -715,7 +715,7 @@ namespace nodetool
  
       if (rsp.version != SUMOKOIN_VERSION)
       {
-        MLOG_CYAN("Peer " << context.m_remote_address.host_str() << " is on an incorrect version: " << rsp.version);
+        MLOG_CYAN("Peer " << context.m_remote_address.host_str() << " is on an incorrect version: " << rsp.node_data.version);
         hsh_result = false;
       }
       }, P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT);
