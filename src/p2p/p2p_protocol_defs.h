@@ -155,12 +155,14 @@ namespace nodetool
     uint64_t local_time;
     uint32_t my_port;
     peerid_type peer_id;
+    std::string version;
 
     BEGIN_KV_SERIALIZE_MAP()
       KV_SERIALIZE_VAL_POD_AS_BLOB(network_id)
       KV_SERIALIZE(peer_id)
       KV_SERIALIZE(local_time)
       KV_SERIALIZE(my_port)
+      KV_SERIALIZE(version)
     END_KV_SERIALIZE_MAP()
   };
   
