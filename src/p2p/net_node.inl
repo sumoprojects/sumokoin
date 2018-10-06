@@ -718,7 +718,7 @@ namespace nodetool
          MGINFO_CYAN("Peer " << context.m_remote_address.str() << " did not provide version information");
          hsh_result = false;
       }
-      else if (rsp.version != MONERO_VERSION)
+      else if (rsp.version != SUMOKOIN_VERSION)
       {
         MGINFO_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.version);
         hsh_result = false;
@@ -737,7 +737,7 @@ namespace nodetool
         block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
         return;
       }
-      else if (rsp.node_data.version != MONERO_VERSION)
+      else if (rsp.node_data.version != SUMOKOIN_VERSION)
       {
         MGINFO_CYAN("Peer " << context.m_remote_address.str() << " is on an incorrect version: " << rsp.node_data.version);
         block_host(context.m_remote_address, P2P_IP_BLOCKTIME);
