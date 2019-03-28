@@ -1,10 +1,10 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* define if a library can reference the 'main' symbol */
-#cmakedefine CAN_REFERENCE_MAIN
-
 /* Directory to chroot to */
 #define CHROOT_DIR "@UNBOUND_CHROOT_DIR@"
+
+/* Define this to enable client subnet option. */
+#cmakedefine CLIENT_SUBNET
 
 /* Do sha512 definitions in config.h */
 #cmakedefine COMPAT_SHA512
@@ -29,6 +29,9 @@
    it for smaller install size, but the libunbound export table is polluted by
    internal symbols */
 #cmakedefine EXPORT_ALL_SYMBOLS
+
+/* Define to 1 if you have the `accept4' function. */
+#cmakedefine HAVE_ACCEPT4
 
 /* Define to 1 if you have the `arc4random' function. */
 #cmakedefine HAVE_ARC4RANDOM
@@ -79,6 +82,14 @@
    don't. */
 #cmakedefine HAVE_DECL_INET_PTON
 
+/* Define to 1 if you have the declaration of `NID_ED25519', and to 0 if you
+   don't. */
+#cmakedefine HAVE_DECL_NID_ED25519
+
+/* Define to 1 if you have the declaration of `NID_ED448', and to 0 if you
+   don't. */
+#cmakedefine HAVE_DECL_NID_ED448
+
 /* Define to 1 if you have the declaration of `NID_secp384r1', and to 0 if you
    don't. */
 #cmakedefine HAVE_DECL_NID_SECP384R1
@@ -90,6 +101,10 @@
 /* Define to 1 if you have the declaration of `reallocarray', and to 0 if you
    don't. */
 #cmakedefine HAVE_DECL_REALLOCARRAY
+
+/* Define to 1 if you have the declaration of `redisConnect', and to 0 if you
+   don't. */
+#cmakedefine HAVE_DECL_REDISCONNECT
 
 /* Define to 1 if you have the declaration of `sk_SSL_COMP_pop_free', and to 0
    if you don't. */
@@ -156,6 +171,9 @@
 
 /* Define to 1 if you have the `EVP_cleanup' function. */
 #cmakedefine HAVE_EVP_CLEANUP
+
+/* Define to 1 if you have the `EVP_DigestVerify' function. */
+#cmakedefine HAVE_EVP_DIGESTVERIFY
 
 /* Define to 1 if you have the `EVP_dss1' function. */
 #cmakedefine HAVE_EVP_DSS1
@@ -226,6 +244,9 @@
 /* Define to 1 if you have the <grp.h> header file. */
 #cmakedefine HAVE_GRP_H
 
+/* Define to 1 if you have the <hiredis/hiredis.h> header file. */
+#cmakedefine HAVE_HIREDIS_HIREDIS_H
+
 /* If you have HMAC_Update */
 #cmakedefine HAVE_HMAC_UPDATE
 
@@ -255,6 +276,9 @@
 
 /* Define to 1 if you have the `kill' function. */
 #cmakedefine HAVE_KILL
+
+/* Define to 1 if you have the <libkern/OSByteOrder.h> header file. */
+#cmakedefine HAVE_LIBKERN_OSBYTEORDER_H
 
 /* Define if we have LibreSSL */
 #cmakedefine HAVE_LIBRESSL
@@ -288,6 +312,9 @@
 
 /* Define to 1 if you have the <nettle/dsa-compat.h> header file. */
 #cmakedefine HAVE_NETTLE_DSA_COMPAT_H
+
+/* Define to 1 if you have the <nettle/eddsa.h> header file. */
+#cmakedefine HAVE_NETTLE_EDDSA_H
 
 /* Use libnss for crypto */
 #cmakedefine HAVE_NSS
@@ -415,6 +442,12 @@
 /* Define to 1 if you have the `SSL_CTX_set_security_level' function. */
 #cmakedefine HAVE_SSL_CTX_SET_SECURITY_LEVEL
 
+/* Define to 1 if you have the `SSL_get0_peername' function. */
+#cmakedefine HAVE_SSL_GET0_PEERNAME
+
+/* Define to 1 if you have the `SSL_set1_host' function. */
+#cmakedefine HAVE_SSL_SET1_HOST
+
 /* Define to 1 if you have the <stdarg.h> header file. */
 #cmakedefine HAVE_STDARG_H
 
@@ -462,6 +495,9 @@
 
 /* Define to 1 if systemd should be used */
 #undef HAVE_SYSTEMD
+
+/* Define to 1 if you have the <sys/endian.h> header file. */
+#cmakedefine HAVE_SYS_ENDIAN_H
 
 /* Define to 1 if you have the <sys/ipc.h> header file. */
 #cmakedefine HAVE_SYS_IPC_H
@@ -544,8 +580,7 @@
 /* if lex has yylex_destroy */
 #cmakedefine LEX_HAS_YYLEX_DESTROY
 
-/* Define to the sub-directory in which libtool stores uninstalled libraries.
-   */
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
 /* Define to the maximum message length to pass to syslog. */
@@ -637,6 +672,9 @@
 /* define if (v)snprintf does not return length needed, (but length used) */
 #undef SNPRINTF_RET_BROKEN
 
+/* Define to 1 if libsodium supports sodium_set_misuse_handler */
+#cmakedefine SODIUM_MISUSE_HANDLER
+
 /* Define to 1 if you have the ANSI C header files. */
 #cmakedefine STDC_HEADERS
 
@@ -667,6 +705,9 @@
 /* Define to 1 to enable dnscrypt support */
 #cmakedefine USE_DNSCRYPT
 
+/* Define to 1 to enable dnscrypt with xchacha20 support */
+#cmakedefine USE_DNSCRYPT_XCHACHA20
+
 /* Define to 1 to enable dnstap support */
 #cmakedefine USE_DNSTAP
 
@@ -679,8 +720,17 @@
 /* Define this to enable an EVP workaround for older openssl */
 #cmakedefine USE_ECDSA_EVP_WORKAROUND
 
+/* Define this to enable ED25519 support. */
+#cmakedefine USE_ED25519
+
+/* Define this to enable ED448 support. */
+#cmakedefine USE_ED448
+
 /* Define this to enable GOST support. */
 #cmakedefine USE_GOST
+
+/* Define to 1 to use ipsecmod support. */
+#cmakedefine USE_IPSECMOD
 
 /* Define if you want to use internal select based events */
 #define USE_MINI_EVENT 1
@@ -691,15 +741,14 @@
 /* Define this to enable client TCP Fast Open. */
 #cmakedefine USE_OSX_MSG_FASTOPEN
 
+/* Define this to use hiredis client. */
+#cmakedefine USE_REDIS
+
 /* Define this to enable SHA1 support. */
 #cmakedefine USE_SHA1
 
 /* Define this to enable SHA256 and SHA512 support. */
 #cmakedefine USE_SHA2
-
-/* Define this to disable code that can trigger Valgrind/AddressSanitizer
-   errors. See https://www.nlnetlabs.nl/bugs-script/show_bug.cgi?id=1301 */
-#define VALGRIND
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
@@ -845,38 +894,45 @@
 
 #if defined(OMITTED__D_GNU_SOURCE) && !defined(_GNU_SOURCE)
 #define _GNU_SOURCE 1
-#endif
+#endif 
 
 #if defined(OMITTED__D_BSD_SOURCE) && !defined(_BSD_SOURCE)
 #define _BSD_SOURCE 1
-#endif
+#endif 
 
 #if defined(OMITTED__D_DEFAULT_SOURCE) && !defined(_DEFAULT_SOURCE)
 #define _DEFAULT_SOURCE 1
-#endif
+#endif 
 
 #if defined(OMITTED__D__EXTENSIONS__) && !defined(__EXTENSIONS__)
 #define __EXTENSIONS__ 1
-#endif
+#endif 
 
 #if defined(OMITTED__D_POSIX_C_SOURCE_200112) && !defined(_POSIX_C_SOURCE)
 #define _POSIX_C_SOURCE 200112
-#endif
+#endif 
 
 #if defined(OMITTED__D_XOPEN_SOURCE_600) && !defined(_XOPEN_SOURCE)
 #define _XOPEN_SOURCE 600
-#endif
+#endif 
 
 #if defined(OMITTED__D_XOPEN_SOURCE_EXTENDED_1) && !defined(_XOPEN_SOURCE_EXTENDED)
 #define _XOPEN_SOURCE_EXTENDED 1
-#endif
+#endif 
 
 #if defined(OMITTED__D_ALL_SOURCE) && !defined(_ALL_SOURCE)
 #define _ALL_SOURCE 1
-#endif
+#endif 
 
 #if defined(OMITTED__D_LARGEFILE_SOURCE_1) && !defined(_LARGEFILE_SOURCE)
 #define _LARGEFILE_SOURCE 1
+#endif 
+
+
+
+
+#ifndef UNBOUND_DEBUG
+#  define NDEBUG
 #endif
 
 /** Use small-ldns codebase */
@@ -897,6 +953,7 @@
 #endif
 
 #if STDC_HEADERS
+#include <stdlib.h>
 #include <stddef.h>
 #endif
 
@@ -952,12 +1009,12 @@
 #define ARG_LL "%I64"
 #endif
 
-
 #ifndef AF_LOCAL
 #define AF_LOCAL AF_UNIX
 #endif
 
 
+ 
 #ifdef HAVE_ATTR_FORMAT
 #  define ATTR_FORMAT(archetype, string_index, first_to_check) \
     __attribute__ ((format (archetype, string_index, first_to_check)))
@@ -987,7 +1044,6 @@
 #define MAXHOSTNAMELEN 256
 #endif
 
-
 #if !defined(HAVE_SNPRINTF) || defined(SNPRINTF_RET_BROKEN)
 #define snprintf snprintf_unbound
 #define vsnprintf vsnprintf_unbound
@@ -995,7 +1051,6 @@
 int snprintf (char *str, size_t count, const char *fmt, ...);
 int vsnprintf (char *str, size_t count, const char *fmt, va_list arg);
 #endif /* HAVE_SNPRINTF or SNPRINTF_RET_BROKEN */
-
 
 #ifndef HAVE_INET_PTON
 #define inet_pton inet_pton_unbound
@@ -1069,7 +1124,7 @@ void* reallocarray(void *ptr, size_t nmemb, size_t size);
 #ifdef HAVE_WINSOCK2_H
 #define FD_SET_T (u_int)
 #else
-#define FD_SET_T
+#define FD_SET_T 
 #endif
 
 
@@ -1101,6 +1156,16 @@ char *strsep(char **stringp, const char *delim);
 int isblank(int c);
 #endif
 
+/*
+#if defined(HAVE_INET_NTOP) && !HAVE_DECL_INET_NTOP
+const char *inet_ntop(int af, const void *src, char *dst, size_t size);
+#endif
+
+#if defined(HAVE_INET_PTON) && !HAVE_DECL_INET_PTON
+int inet_pton(int af, const char* src, void* dst);
+#endif
+*/
+
 #if !defined(HAVE_STRPTIME) || !defined(STRPTIME_WORKS)
 #define strptime unbound_strptime
 struct tm;
@@ -1131,6 +1196,7 @@ uint32_t arc4random(void);
 void arc4random_buf(void* buf, size_t n);
 void _ARC4_LOCK(void);
 void _ARC4_UNLOCK(void);
+void _ARC4_LOCK_DESTROY(void);
 #endif
 #ifndef HAVE_ARC4RANDOM_UNIFORM
 uint32_t arc4random_uniform(uint32_t upper_bound);
@@ -1196,6 +1262,8 @@ void *unbound_stat_realloc_log(void *ptr, size_t size, const char* file,
 
 /** default port for DNS traffic. */
 #define UNBOUND_DNS_PORT 53
+/** default port for DNS over TLS traffic. */
+#define UNBOUND_DNS_OVER_TLS_PORT 853
 /** default port for unbound control traffic, registered port with IANA,
     ub-dns-control  8953/tcp    unbound dns nameserver control */
 #define UNBOUND_CONTROL_PORT 8953
