@@ -28,8 +28,12 @@
 
 set(blocksdat "")
 if(PER_BLOCK_CHECKPOINT)
-  if(APPLE)
+  if(APPLE AND DEPENDS)
+    add_custom_command(OUTPUT blocksdat.o MAIN_DEPENDENCY ../blocks/checkpoints.dat COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && touch stub.c && ${CMAKE_C_COMPILER} --target=x86_64-apple-darwin11 -o stub.o -c stub.c COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && ${CMAKE_LINKER} -r -sectcreate __DATA __blocks_dat ../blocks/checkpoints.dat -o ${CMAKE_CURRENT_BINARY_DIR}/blocksdat.o stub.o && rm -f stub.*)
+  elseif(APPLE AND NOT DEPENDS)
     add_custom_command(OUTPUT blocksdat.o MAIN_DEPENDENCY ../blocks/checkpoints.dat COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && touch stub.c && ${CMAKE_C_COMPILER} -o stub.o -c stub.c COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && ${CMAKE_LINKER} ${LD_RAW_FLAGS} -r -sectcreate __DATA __blocks_dat ../blocks/checkpoints.dat -o ${CMAKE_CURRENT_BINARY_DIR}/blocksdat.o stub.o && rm -f stub.*)
+  elseif(LINUX_32)
+    add_custom_command(OUTPUT blocksdat.o MAIN_DEPENDENCY ../blocks/checkpoints.dat COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && cp ../blocks/checkpoints.dat blocks.dat && ${CMAKE_LINKER} -m elf_i386 ${LD_RAW_FLAGS} -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/blocksdat.o blocks.dat && rm -f blocks.dat)
   else()
     add_custom_command(OUTPUT blocksdat.o MAIN_DEPENDENCY ../blocks/checkpoints.dat COMMAND cd ${CMAKE_CURRENT_SOURCE_DIR} && cp ../blocks/checkpoints.dat blocks.dat && ${CMAKE_LINKER} ${LD_RAW_FLAGS} -r -b binary -o ${CMAKE_CURRENT_BINARY_DIR}/blocksdat.o blocks.dat && rm -f blocks.dat)
   endif()
@@ -91,6 +95,28 @@ monero_private_headers(blockchain_usage
 
 
 
+set(blockchain_ancestry_sources
+  blockchain_ancestry.cpp
+  )
+
+set(blockchain_ancestry_private_headers)
+
+monero_private_headers(blockchain_ancestry
+	  ${blockchain_ancestry_private_headers})
+
+
+
+set(blockchain_depth_sources
+  blockchain_depth.cpp
+  )
+
+set(blockchain_depth_private_headers)
+
+monero_private_headers(blockchain_depth
+	  ${blockchain_depth_private_headers})
+
+
+
 monero_add_executable(blockchain_import
   ${blockchain_import_sources}
   ${blockchain_import_private_headers}
@@ -100,7 +126,6 @@ target_link_libraries(blockchain_import
   PRIVATE
     cryptonote_core
     blockchain_db
-    p2p
     version
     epee
     ${Boost_FILESYSTEM_LIBRARY}
@@ -116,7 +141,7 @@ endif()
 
 set_property(TARGET blockchain_import
 	PROPERTY
-	OUTPUT_NAME "sumo-blockchain-import")
+	OUTPUT_NAME "monero-blockchain-import")
 install(TARGETS blockchain_import DESTINATION bin)
 
 monero_add_executable(blockchain_export
@@ -127,7 +152,6 @@ target_link_libraries(blockchain_export
   PRIVATE
     cryptonote_core
     blockchain_db
-    p2p
     version
     epee
     ${Boost_FILESYSTEM_LIBRARY}
@@ -138,7 +162,7 @@ target_link_libraries(blockchain_export
 
 set_property(TARGET blockchain_export
 	PROPERTY
-	OUTPUT_NAME "sumo-blockchain-export")
+	OUTPUT_NAME "monero-blockchain-export")
 install(TARGETS blockchain_export DESTINATION bin)
 
 monero_add_executable(blockchain_blackball
@@ -150,7 +174,6 @@ target_link_libraries(blockchain_blackball
     wallet
     cryptonote_core
     blockchain_db
-    p2p
     version
     epee
     ${Boost_FILESYSTEM_LIBRARY}
@@ -161,7 +184,7 @@ target_link_libraries(blockchain_blackball
 
 set_property(TARGET blockchain_blackball
 	PROPERTY
-	OUTPUT_NAME "sumo-blockchain-blackball")
+	OUTPUT_NAME "monero-blockchain-mark-spent-outputs")
 install(TARGETS blockchain_blackball DESTINATION bin)
 
 
@@ -173,7 +196,6 @@ target_link_libraries(blockchain_usage
   PRIVATE
     cryptonote_core
     blockchain_db
-    p2p
     version
     epee
     ${Boost_FILESYSTEM_LIBRARY}
@@ -184,6 +206,48 @@ target_link_libraries(blockchain_usage
 
 set_property(TARGET blockchain_usage
 	PROPERTY
-	OUTPUT_NAME "sumo-blockchain-usage")
+	OUTPUT_NAME "monero-blockchain-usage")
 install(TARGETS blockchain_usage DESTINATION bin)
+
+monero_add_executable(blockchain_ancestry
+  ${blockchain_ancestry_sources}
+  ${blockchain_ancestry_private_headers})
+
+target_link_libraries(blockchain_ancestry
+  PRIVATE
+    cryptonote_core
+    blockchain_db
+    version
+    epee
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${EXTRA_LIBRARIES})
+
+set_property(TARGET blockchain_ancestry
+	PROPERTY
+	OUTPUT_NAME "monero-blockchain-ancestry")
+install(TARGETS blockchain_ancestry DESTINATION bin)
+
+monero_add_executable(blockchain_depth
+  ${blockchain_depth_sources}
+  ${blockchain_depth_private_headers})
+
+target_link_libraries(blockchain_depth
+  PRIVATE
+    cryptonote_core
+    blockchain_db
+    version
+    epee
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${EXTRA_LIBRARIES})
+
+set_property(TARGET blockchain_depth
+	PROPERTY
+	OUTPUT_NAME "monero-blockchain-depth")
+install(TARGETS blockchain_depth DESTINATION bin)
 

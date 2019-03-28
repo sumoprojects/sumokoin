@@ -33,6 +33,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <unistd.h>
 #include "misc_log_ex.h"
 #include "bootstrap_file.h"
 #include "bootstrap_serialization.h"
@@ -164,7 +165,7 @@ int pop_blocks(cryptonote::core& core, int num_blocks)
   return num_blocks;
 }
 
-int check_flush(cryptonote::core &core, std::list<block_complete_entry> &blocks, bool force)
+int check_flush(cryptonote::core &core, std::vector<block_complete_entry> &blocks, bool force)
 {
   if (blocks.empty())
     return 0;
@@ -176,7 +177,7 @@ int check_flush(cryptonote::core &core, std::list<block_complete_entry> &blocks,
   if (!force && new_height % HASH_OF_HASHES_STEP)
     return 0;
 
-  std::list<crypto::hash> hashes;
+  std::vector<crypto::hash> hashes;
   for (const auto &b: blocks)
   {
     cryptonote::block block;
@@ -312,7 +313,7 @@ int import_from_file(cryptonote::core& core, const std::string& import_file_path
   MINFO("Reading blockchain from bootstrap file...");
   std::cout << ENDL;
 
-  std::list<block_complete_entry> blocks;
+  std::vector<block_complete_entry> blocks;
 
   // Skip to start_height before we start adding.
   {
@@ -437,7 +438,7 @@ int import_from_file(cryptonote::core& core, const std::string& import_file_path
         {
           cryptonote::blobdata block;
           cryptonote::block_to_blob(bp.block, block);
-          std::list<cryptonote::blobdata> txs;
+          std::vector<cryptonote::blobdata> txs;
           for (const auto &tx: bp.txs)
           {
             txs.push_back(cryptonote::blobdata());
@@ -473,17 +474,18 @@ int import_from_file(cryptonote::core& core, const std::string& import_file_path
             txs.push_back(tx);
           }
 
-          size_t block_size;
+          size_t block_weight;
           difficulty_type cumulative_difficulty;
           uint64_t coins_generated;
 
-          block_size = bp.block_size;
+          block_weight = bp.block_weight;
           cumulative_difficulty = bp.cumulative_difficulty;
           coins_generated = bp.coins_generated;
 
           try
           {
-            core.get_blockchain_storage().get_db().add_block(b, block_size, cumulative_difficulty, coins_generated, txs);
+            uint64_t long_term_block_weight = core.get_blockchain_storage().get_next_long_term_block_weight(block_weight);
+            core.get_blockchain_storage().get_db().add_block(b, block_weight, long_term_block_weight, cumulative_difficulty, coins_generated, txs);
           }
           catch (const std::exception& e)
           {
@@ -593,8 +595,8 @@ int main(int argc, char* argv[])
   const command_line::arg_descriptor<std::string> arg_database = {
     "database", available_dbs.c_str(), default_db_type
   };
-  const command_line::arg_descriptor<bool> arg_verify =  {"guard-against-pwnage",
-    "Verify blocks and transactions during import (only disable if you exported the file yourself)", true};
+  const command_line::arg_descriptor<bool> arg_noverify =  {"dangerous-unverified-import",
+    "Blindly trust the import file and use potentially malicious blocks and transactions during import (only enable if you exported the file yourself)", false};
   const command_line::arg_descriptor<bool> arg_batch  =  {"batch",
     "Batch transactions for faster import", true};
   const command_line::arg_descriptor<bool> arg_resume =  {"resume",
@@ -614,7 +616,7 @@ int main(int argc, char* argv[])
   // call add_options() directly for these arguments since
   // command_line helpers support only boolean switch, not boolean argument
   desc_cmd_sett.add_options()
-    (arg_verify.name, make_semantic(arg_verify), arg_verify.description)
+    (arg_noverify.name, make_semantic(arg_noverify), arg_noverify.description)
     (arg_batch.name,  make_semantic(arg_batch),  arg_batch.description)
     (arg_resume.name, make_semantic(arg_resume), arg_resume.description)
     ;
@@ -633,7 +635,7 @@ int main(int argc, char* argv[])
   if (! r)
     return 1;
 
-  opt_verify    = command_line::get_arg(vm, arg_verify);
+  opt_verify    = !command_line::get_arg(vm, arg_noverify);
   opt_batch     = command_line::get_arg(vm, arg_batch);
   opt_resume    = command_line::get_arg(vm, arg_resume);
   block_stop    = command_line::get_arg(vm, arg_block_stop);
@@ -641,7 +643,7 @@ int main(int argc, char* argv[])
 
   if (command_line::get_arg(vm, command_line::arg_help))
   {
-    std::cout << "Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL << ")" << ENDL << ENDL;
+    std::cout << "Monero '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL << ")" << ENDL << ENDL;
     std::cout << desc_options << std::endl;
     return 1;
   }
@@ -679,7 +681,7 @@ int main(int argc, char* argv[])
   m_config_folder = command_line::get_arg(vm, cryptonote::arg_data_dir);
   db_arg_str = command_line::get_arg(vm, arg_database);
 
-  mlog_configure(mlog_get_default_log_path("sumo-blockchain-import.log"), true);
+  mlog_configure(mlog_get_default_log_path("monero-blockchain-import.log"), true);
   if (!command_line::is_arg_defaulted(vm, arg_log_level))
     mlog_set_log(command_line::get_arg(vm, arg_log_level).c_str());
   else
@@ -737,6 +739,18 @@ int main(int argc, char* argv[])
 
   MINFO("bootstrap file path: " << import_file_path);
   MINFO("database path:       " << m_config_folder);
+
+  if (!opt_verify)
+  {
+    MCLOG_RED(el::Level::Warning, "global", "\n"
+      "Import is set to proceed WITHOUT VERIFICATION.\n"
+      "This is a DANGEROUS operation: if the file was tampered with in transit, or obtained from a malicious source,\n"
+      "you could end up with a compromised database. It is recommended to NOT use " << arg_noverify.name << ".\n"
+      "*****************************************************************************************\n"
+      "You have 90 seconds to press ^C or terminate this program before unverified import starts\n"
+      "*****************************************************************************************");
+    sleep(90);
+  }
 
   cryptonote::cryptonote_protocol_stub pr; //TODO: stub only for this kind of test, make real validation of relayed objects
   cryptonote::core core(&pr);

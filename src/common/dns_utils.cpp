@@ -46,10 +46,11 @@ namespace bf = boost::filesystem;
 static const char *DEFAULT_DNS_PUBLIC_ADDR[] =
 {
   "194.150.168.168",    // CCC (Germany)
-  "81.3.27.54",         // Lightning Wire Labs (Germany)
-  "31.3.135.232",       // OpenNIC (Switzerland)
   "80.67.169.40",       // FDN (France)
-  "209.58.179.186",     // Cyberghost (Singapore)
+  "89.233.43.71",       // http://censurfridns.dk (Denmark)
+  "109.69.8.51",        // punCAT (Spain)
+  "77.109.148.137",     // Xiala.net (Switzerland)
+  "193.58.251.251",     // SkyDNS (Russia)
 };
 
 static boost::mutex instance_lock;
@@ -97,11 +98,16 @@ get_builtin_cert(void)
 */
 
 /** return the built in root DS trust anchor */
-static const char*
+static const char* const*
 get_builtin_ds(void)
 {
-  return
-". IN DS 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D\n";
+  static const char * const ds[] =
+  {
+    ". IN DS 19036 8 2 49AAC11D7B6F6446702E54A1607371607A1A41855200FD2CE1CDDE32F24E8FB5\n",
+    ". IN DS 20326 8 2 E06D44B80B8F1D39A95C0B0D7C65D08458E880409BBC683457104237C7F8EC8D\n",
+    NULL
+  };
+  return ds;
 }
 
 /************************************************************
@@ -240,7 +246,12 @@ DNSResolver::DNSResolver() : m_data(new DNSResolverData())
     ub_ctx_hosts(m_data->m_ub_context, NULL);
   }
 
-  ub_ctx_add_ta(m_data->m_ub_context, string_copy(::get_builtin_ds()));
+  const char * const *ds = ::get_builtin_ds();
+  while (*ds)
+  {
+    MINFO("adding trust anchor: " << *ds);
+    ub_ctx_add_ta(m_data->m_ub_context, string_copy(*ds++));
+  }
 }
 
 DNSResolver::~DNSResolver()
@@ -370,9 +381,9 @@ std::string address_from_txt_record(const std::string& s)
   return {};
 }
 /**
- * @brief gets a sumo address from the TXT record of a DNS entry
+ * @brief gets a monero address from the TXT record of a DNS entry
  *
- * gets the sumo address from the TXT record of the DNS entry associated
+ * gets the monero address from the TXT record of the DNS entry associated
  * with <url>.  If this lookup fails, or the TXT record does not contain an
  * XMR address in the correct format, returns an empty string.  <dnssec_valid>
  * will be set true or false according to whether or not the DNS query passes
@@ -381,7 +392,7 @@ std::string address_from_txt_record(const std::string& s)
  * @param url the url to look up
  * @param dnssec_valid return-by-reference for DNSSEC status of query
  *
- * @return a sumo address (as a string) or an empty string
+ * @return a monero address (as a string) or an empty string
  */
 std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec_valid)
 {
@@ -398,7 +409,7 @@ std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec
   }
   else dnssec_valid = false;
 
-  // for each txt record, try to find a sumo address in it.
+  // for each txt record, try to find a monero address in it.
   for (auto& rec : records)
   {
     std::string addr = address_from_txt_record(rec);
@@ -505,7 +516,7 @@ bool load_txt_records_from_dns(std::vector<std::string> &good_records, const std
 
   if (num_valid_records < 2)
   {
-    LOG_PRINT_L0("WARNING: no two valid SumoPulse DNS checkpoint records were received");
+    LOG_PRINT_L0("WARNING: no two valid MoneroPulse DNS checkpoint records were received");
     return false;
   }
 
@@ -527,7 +538,7 @@ bool load_txt_records_from_dns(std::vector<std::string> &good_records, const std
 
   if (good_records_index < 0)
   {
-    LOG_PRINT_L0("WARNING: no two SumoPulse DNS checkpoint records matched");
+    LOG_PRINT_L0("WARNING: no two MoneroPulse DNS checkpoint records matched");
     return false;
   }
 

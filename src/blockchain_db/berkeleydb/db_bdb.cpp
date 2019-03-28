@@ -224,7 +224,7 @@ struct Dbt_safe : public Dbt
 namespace cryptonote
 {
 
-void BlockchainBDB::add_block(const block& blk, const size_t& block_size, const difficulty_type& cumulative_difficulty, const uint64_t& coins_generated, const crypto::hash& blk_hash)
+void BlockchainBDB::add_block(const block& blk, size_t block_weight, const difficulty_type& cumulative_difficulty, const uint64_t& coins_generated, const crypto::hash& blk_hash)
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
     check_open();
@@ -255,7 +255,7 @@ void BlockchainBDB::add_block(const block& blk, const size_t& block_size, const 
     if (res)
         throw0(DB_ERROR("Failed to add block blob to db transaction."));
 
-    Dbt_copy<size_t> sz(block_size);
+    Dbt_copy<size_t> sz(block_weight);
     if (m_block_sizes->put(DB_DEFAULT_TX, &key, &sz, 0))
         throw0(DB_ERROR("Failed to add block size to db transaction."));
 
@@ -313,7 +313,7 @@ void BlockchainBDB::remove_block()
         throw1(DB_ERROR("Failed to add removal of block hash to db transaction"));
 }
 
-void BlockchainBDB::add_transaction_data(const crypto::hash& blk_hash, const transaction& tx, const crypto::hash& tx_hash)
+void BlockchainBDB::add_transaction_data(const crypto::hash& blk_hash, const transaction& tx, const crypto::hash& tx_hash, const crypto::hash& tx_prunable_hash)
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
     check_open();
@@ -655,7 +655,7 @@ bool BlockchainBDB::for_all_blocks(std::function<bool(uint64_t, const crypto::ha
     return ret;
 }
 
-bool BlockchainBDB::for_all_transactions(std::function<bool(const crypto::hash&, const cryptonote::transaction&)> f) const
+bool BlockchainBDB::for_all_transactions(std::function<bool(const crypto::hash&, const cryptonote::transaction&)> f, bool pruned) const
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
     check_open();
@@ -1213,6 +1213,11 @@ std::vector<std::string> BlockchainBDB::get_filenames() const
     return full_paths;
 }
 
+bool BlockchainBDB::remove_data_file(const std::string& folder)
+{
+    return true;
+}
+
 std::string BlockchainBDB::get_db_name() const
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
@@ -1348,7 +1353,7 @@ uint64_t BlockchainBDB::get_top_block_timestamp() const
     return get_block_timestamp(m_height - 1);
 }
 
-size_t BlockchainBDB::get_block_size(const uint64_t& height) const
+size_t BlockchainBDB::get_block_weight(const uint64_t& height) const
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
     check_open();
@@ -1856,7 +1861,7 @@ void BlockchainBDB::block_txn_abort()
   // TODO
 }
 
-uint64_t BlockchainBDB::add_block(const block& blk, const size_t& block_size, const difficulty_type& cumulative_difficulty, const uint64_t& coins_generated, const std::vector<transaction>& txs)
+uint64_t BlockchainBDB::add_block(const block& blk, size_t block_weight, const difficulty_type& cumulative_difficulty, const uint64_t& coins_generated, const std::vector<transaction>& txs)
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
     check_open();
@@ -1869,7 +1874,7 @@ uint64_t BlockchainBDB::add_block(const block& blk, const size_t& block_size, co
     uint64_t num_outputs = m_num_outputs;
     try
     {
-        BlockchainDB::add_block(blk, block_size, cumulative_difficulty, coins_generated, txs);
+        BlockchainDB::add_block(blk, block_weight, cumulative_difficulty, coins_generated, txs);
         m_write_txn = NULL;
 
         TIME_MEASURE_START(time1);

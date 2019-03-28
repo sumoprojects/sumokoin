@@ -32,36 +32,41 @@
 
 namespace hw {
 
-    #ifdef WITH_DEVICE_LEDGER    
+  #undef MONERO_DEFAULT_LOG_CATEGORY
+  #define MONERO_DEFAULT_LOG_CATEGORY "device"
+
+  void buffer_to_str(char *to_buff,  size_t to_len, const char *buff, size_t len) {
+    CHECK_AND_ASSERT_THROW_MES(to_len > (len*2), "destination buffer too short. At least" << (len*2+1) << " bytes required");
+    for (size_t i=0; i<len; i++) {
+      sprintf(to_buff+2*i, "%.02x", (unsigned char)buff[i]);
+    }
+  }
+
+  void log_hexbuffer(const std::string &msg,  const char* buff, size_t len) {
+    char logstr[1025];
+    buffer_to_str(logstr, sizeof(logstr),  buff, len);
+    MDEBUG(msg<< ": " << logstr);
+  }
+
+  void log_message(const std::string &msg, const std::string &info ) {
+    MDEBUG(msg << ": " << info);
+  }
+
+
+  #ifdef WITH_DEVICE_LEDGER    
     namespace ledger {
     
     #undef MONERO_DEFAULT_LOG_CATEGORY
     #define MONERO_DEFAULT_LOG_CATEGORY "device.ledger"
 
-    void buffer_to_str(char *to_buff,  size_t to_len, const char *buff, size_t len) {
-      CHECK_AND_ASSERT_THROW_MES(to_len > (len*2), "destination buffer too short. At least" << (len*2+1) << " bytes required");
-      for (size_t i=0; i<len; i++) {
-        sprintf(to_buff+2*i, "%.02x", (unsigned char)buff[i]);
-      }
-    }
-
-    void log_hexbuffer(const std::string &msg,  const char* buff, size_t len) {
-      char logstr[1025];
-      buffer_to_str(logstr, sizeof(logstr),  buff, len);
-      MDEBUG(msg<< ": " << logstr);
-    }
-
-    void log_message(const std::string &msg, const std::string &info ) {
-      MDEBUG(msg << ": " << info);
-    }
-
+    
     #ifdef DEBUG_HWDEVICE
     extern crypto::secret_key dbg_viewkey;
     extern crypto::secret_key dbg_spendkey;
 
 
     void decrypt(char* buf, size_t len) {
-      #ifdef IODUMMYCRYPT_HWDEVICE
+      #if defined(IODUMMYCRYPT_HWDEVICE) || defined(IONOCRYPT_HWDEVICE)
       size_t i;
       if (len == 32) {
         //view key?
@@ -81,10 +86,12 @@ namespace hw {
           return;
         }
       }
+      #if defined(IODUMMYCRYPT_HWDEVICE)
       //std decrypt: XOR.55h
       for (i = 0; i<len;i++) {
           buf[i] ^= 0x55;
         }
+      #endif
       #endif
     }
 
