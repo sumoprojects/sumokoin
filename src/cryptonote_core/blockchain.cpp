@@ -826,6 +826,7 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
   std::vector<uint64_t> timestamps;
   std::vector<difficulty_type> difficulties;
   auto height = m_db->height();
+  top_hash = get_tail_id(); // get it again now that we have the lock
   // Reset network hashrate to 2.0 MHz when hardfork v3 comes
   if (m_nettype == MAINNET && (uint64_t)height >= MAINNET_HARDFORK_V3_HEIGHT && (uint64_t)height <= MAINNET_HARDFORK_V3_HEIGHT + (uint64_t)DIFFICULTY_BLOCKS_COUNT_V2){
     return (difficulty_type)480000000;
