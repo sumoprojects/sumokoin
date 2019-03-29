@@ -37,7 +37,7 @@
 #define CRYPTONOTE_DNS_TIMEOUT_MS                       20000
 
 #define CRYPTONOTE_MAX_BLOCK_NUMBER                     500000000
-#define CRYPTONOTE_MAX_BLOCK_SIZE                       500000000  // block header blob limit, never used!
+#define CRYPTONOTE_MAX_BLOCK_WEIGHT                     500000000  // block header blob limit, never used!
 #define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE	    196608 //size of block (bytes) that is the maximum that miners will produce
 #define CRYPTONOTE_MAX_TX_SIZE                          1000000000
 #define CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER          0
@@ -75,7 +75,8 @@
 // COIN - number of smallest units in one coin
 #define COIN                                            ((uint64_t)1000000000) // pow(10, 9)
 
-#define FEE_PER_KB                                      ((uint64_t)500000) 
+#define FEE_PER_KB                                      ((uint64_t)500000)
+#define FEE_PER_BYTE                                    ((uint64_t)300)
 #define DYNAMIC_FEE_PER_KB_BASE_FEE                     ((uint64_t)500000) // 0.0005 * pow(10, 9)
 #define DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD            ((uint64_t)64000000000) // 64 * pow(10, 9)
 
@@ -149,18 +150,21 @@
 
 #define DEFAULT_MIXIN                                   12     // default & minimum mixin allowed
 #define MAX_MIXIN                                       240 
-#define DEFAULT_MIXIN_V2                                101   
+#define DEFAULT_MIXIN_V2                                48   
 
-#define TRANSACTION_SIZE_LIMIT                          ((uint64_t) ((CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 110 / 100) - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE))
+#define TRANSACTION_WEIGHT_LIMIT                        ((uint64_t) ((CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 110 / 100) - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE))
 #define BLOCK_SIZE_GROWTH_FAVORED_ZONE                  ((uint64_t) (CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 4))
 
 
 #define HF_VERSION_DYNAMIC_FEE                  1
 #define HF_VERSION_PER_BYTE_FEE                 7
+#define HF_VERSION_LONG_TERM_BLOCK_WEIGHT       9
+#define HF_VERSION_SMALLER_BP                   9
+
 #define PER_KB_FEE_QUANTIZATION_DECIMALS        6
 #define HASH_OF_HASHES_STEP                     256
 #define BULLETPROOF_MAX_OUTPUTS                 16
-#define DEFAULT_TXPOOL_MAX_SIZE                 259200000ull // 3 days at 240000, in bytes
+#define DEFAULT_TXPOOL_MAX_WEIGHT               259200000ull // 3 days at 240000, in bytes
 #define BULLETPROOF_HF_VERSION                  7
 
 #define HF_VERSION_SMALLER_BP                   9

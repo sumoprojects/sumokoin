@@ -122,8 +122,8 @@ namespace cryptonote
      *
      * @return true on success, false if any initialization steps fail
      */
-    bool init(BlockchainDB* db, const network_type nettype = MAINNET, bool offline = false, const cryptonote::test_options *test_options = NULL, difficulty_type fixed_difficulty = 0);
-
+    bool init(BlockchainDB* db, const network_type nettype = MAINNET, bool offline = false, const cryptonote::test_options *test_options = NULL);
+    
     /**
      * @brief Initialize the Blockchain state
      *
@@ -550,6 +550,15 @@ namespace cryptonote
     bool check_tx_inputs(transaction& tx, uint64_t& pmax_used_block_height, crypto::hash& max_used_block_id, tx_verification_context &tvc, bool kept_by_block = false);
 
     /**
+    * @brief get fee quantization mask
+    *
+    * The dynamic fee may be quantized, to mask out the last decimal places
+    *
+    * @return the fee quantized mask
+    */
+    static uint64_t get_fee_quantization_mask();
+
+    /**
      * @brief get dynamic per kB fee for a given block size
      *
      * The dynamic fee is based on the block size in a past window, and
@@ -575,7 +584,7 @@ namespace cryptonote
      *
      * @return the per kB fee estimate
      */
-    uint64_t get_dynamic_per_kb_fee_estimate(uint64_t grace_blocks) const;
+    uint64_t get_dynamic_base_fee_estimate(uint64_t grace_blocks) const;
 
     /**
      * @brief validate a transaction's fee

@@ -113,6 +113,8 @@ using namespace cryptonote;
 
 #define MULTISIG_EXPORT_FILE_MAGIC "Sumokoin multisig export\001"
 
+#define OUTPUT_EXPORT_FILE_MAGIC "Sumokoin output export\003"
+
 #define SEGREGATION_FORK_HEIGHT ((uint64_t)(-1))
 #define TESTNET_SEGREGATION_FORK_HEIGHT ((uint64_t)(-1))
 #define STAGENET_SEGREGATION_FORK_HEIGHT ((uint64_t)(-1))
@@ -1028,7 +1030,8 @@ bool wallet2::get_multisig_seed(epee::wipeable_string& seed, const epee::wipeabl
   if (!passphrase.empty())
   {
     crypto::secret_key key;
-    crypto::cn_slow_hash(passphrase.data(), passphrase.size(), (crypto::hash&)key);
+    cn_pow_hash_v1 kdf_hash;
+    kdf_hash.hash(passphrase.data(), passphrase.size(), ((crypto::hash&)key).data);
     sc_reduce32((unsigned char*)key.data);
     data = encrypt(data, key, true);
   }
@@ -6750,7 +6753,7 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
     {
       double x = gamma(engine);
       x = exp(x);
-      uint64_t block_offset = x / DIFFICULTY_TARGET_V2; // this assumes constant target over the whole rct range
+      uint64_t block_offset = x / DIFFICULTY_TARGET; // this assumes constant target over the whole rct range
       if (block_offset >= rct_offsets.size() - 1)
         return std::numeric_limits<uint64_t>::max(); // bad pick
       block_offset = rct_offsets.size() - 2 - block_offset;
@@ -9065,9 +9068,9 @@ bool wallet2::use_fork_rules(uint8_t version, int64_t early_blocks) const
 //----------------------------------------------------------------------------------------------------
 uint64_t wallet2::get_upper_transaction_weight_limit() const
 {
-  if (m_upper_transaction_size_limit > 0)
-    return m_upper_transaction_size_limit;
-  return TRANSACTION_SIZE_LIMIT;
+  if (m_upper_transaction_weight_limit > 0)
+    return m_upper_transaction_weight_limit;
+  return TRANSACTION_WEIGHT_LIMIT;
 }
 //----------------------------------------------------------------------------------------------------
 std::vector<size_t> wallet2::select_available_outputs(const std::function<bool(const transfer_details &td)> &f) const
@@ -9183,7 +9186,7 @@ std::vector<size_t> wallet2::select_available_mixable_outputs()
   return select_available_outputs_from_histogram(get_min_ring_size(), true, true, true);
 }
 //----------------------------------------------------------------------------------------------------
-std::vector<wallet2::pending_tx> wallet2::create_unmixable_sweep_transactions(bool trusted_daemon)
+std::vector<wallet2::pending_tx> wallet2::create_unmixable_sweep_transactions()
 {
   // From hard fork 1, we don't consider small amounts to be dust anymore
   const bool hf1_rules = use_fork_rules(1, 0); // first hard fork has version 1
@@ -10099,7 +10102,7 @@ bool wallet2::check_reserve_proof(const cryptonote::account_public_address &addr
       crypto::secret_key shared_secret;
       crypto::derivation_to_scalar(derivation, proof.index_in_tx, shared_secret);
       rct::ecdhTuple ecdh_info = tx.rct_signatures.ecdhInfo[proof.index_in_tx];
-      rct::ecdhDecode(ecdh_info, rct::sk2rct(shared_secret));
+      rct::ecdhDecode(ecdh_info, rct::sk2rct(shared_secret), tx.rct_signatures.type == rct::RCTTypeBulletproof2);
       amount = rct::h2d(ecdh_info.amount);
     }
     total += amount;

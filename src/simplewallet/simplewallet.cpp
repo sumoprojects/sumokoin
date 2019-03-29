@@ -34,6 +34,11 @@
  * 
  * \brief Source file that defines simple_wallet class.
  */
+
+#ifdef _WIN32
+  #define __STDC_FORMAT_MACROS // explicitly define the PRIu64 macro on mingw
+#endif
+
 #include <thread>
 #include <iostream>
 #include <sstream>
@@ -1867,7 +1872,7 @@ bool simple_wallet::set_default_ring_size(const std::vector<std::string> &args/*
   {
     if (strchr(args[1].c_str(), '-'))
     {
-      fail_msg_writer() << tr("ring size must be an integer >= ") << DEFAULT_MIXIN;
+      fail_msg_writer() << tr("ring size must be an integer >= ") << DEFAULT_MIXIN + 1;
       return true;
     }
     uint32_t ring_size = boost::lexical_cast<uint32_t>(args[1]);
@@ -1890,7 +1895,7 @@ bool simple_wallet::set_default_ring_size(const std::vector<std::string> &args/*
   }
   catch(const boost::bad_lexical_cast &)
   {
-    fail_msg_writer() << tr("ring size must be an integer >= ") << MIN_RING_SIZE;
+    fail_msg_writer() << tr("ring size must be an integer >= ") << DEFAULT_MIXIN + 1;
     return true;
   }
   catch(...)
@@ -5069,7 +5074,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
             if (vin.type() == typeid(txin_to_key))
             {
               const txin_to_key& in_to_key = boost::get<txin_to_key>(vin);
-              if (in_to_key.key_offsets.size() != DEFAULT_MIX + 1)
+              if (in_to_key.key_offsets.size() != DEFAULT_MIXIN + 1)
                 default_ring_size = false;
             }
           }
@@ -5831,7 +5836,7 @@ bool simple_wallet::donate(const std::vector<std::string> &args_)
   local_args.push_back(amount_str);
   if (!payment_id_str.empty())
     local_args.push_back(payment_id_str);
-  message_writer() << (boost::format(tr("Donating %s %s to Sumokoin Project (donate.sumokoin.org or %s).")) % amount_str % cryptonote::get_unit(cryptonote::get_default_decimal_point()) % MONERO_DONATION_ADDR).str();
+  message_writer() << (boost::format(tr("Donating %s %s to Sumokoin Project (donate.sumokoin.org or %s).")) % amount_str % cryptonote::get_unit(cryptonote::get_default_decimal_point()) % SUMOKOIN_DONATION_ADDR).str();
   transfer(local_args);
   return true;
 }

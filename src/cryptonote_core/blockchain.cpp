@@ -1216,10 +1216,9 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
   }
   partial_block_reward = false;
 
-  std::vector<size_t> last_blocks_sizes;
-  get_last_n_blocks_sizes(last_blocks_sizes, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
-
-  if (!get_block_reward(epee::misc_utils::median(last_blocks_sizes), cumulative_block_size, already_generated_coins, base_reward, m_db->height()))
+  std::vector<uint64_t> last_blocks_weights;
+  get_last_n_blocks_weights(last_blocks_weights, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
+  if (!get_block_reward(epee::misc_utils::median(last_blocks_weights), cumulative_block_size, already_generated_coins, base_reward, m_db->height()))
   {
     MERROR_VER("block size " << cumulative_block_size << " is bigger than allowed for this blockchain");
     return false;
@@ -1402,7 +1401,7 @@ bool Blockchain::create_block_template(block& b, const account_public_address& m
   //make blocks coin-base tx looks close to real coinbase tx to get truthful blob weight
   uint8_t hf_version = m_hardfork->get_current_version();
   size_t max_outs = 1;
-  bool r = construct_miner_tx(height, median_weight, already_generated_coins, txs_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version);
+  bool r = construct_miner_tx(m_nettype, height, median_weight, already_generated_coins, txs_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version);
   CHECK_AND_ASSERT_MES(r, false, "Failed to construct miner tx, first chance");
   size_t cumulative_weight = txs_weight + get_transaction_weight(b.miner_tx);
 #if defined(DEBUG_CREATE_BLOCK_TEMPLATE)
@@ -1411,7 +1410,7 @@ bool Blockchain::create_block_template(block& b, const account_public_address& m
 #endif
   for (size_t try_count = 0; try_count != 10; ++try_count)
   {
-    r = construct_miner_tx(m_nettype, height, median_size, already_generated_coins, cumulative_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version);
+    r = construct_miner_tx(m_nettype, height, median_weight, already_generated_coins, cumulative_weight, fee, miner_address, b.miner_tx, ex_nonce, max_outs, hf_version);
 
     CHECK_AND_ASSERT_MES(r, false, "Failed to construct miner tx, second chance");
     size_t coinbase_weight = get_transaction_weight(b.miner_tx);
@@ -2384,14 +2383,53 @@ bool Blockchain::check_tx_outputs(const transaction& tx, tx_verification_context
     }
   }
 
-  // allow bulletproofs
+  // from v7, allow bulletproofs
   if (hf_version < BULLETPROOF_HF_VERSION) {
-    const bool bulletproof = tx.rct_signatures.type == rct::RCTTypeFullBulletproof || tx.rct_signatures.type == rct::RCTTypeSimpleBulletproof;
-    if (bulletproof || !tx.rct_signatures.p.bulletproofs.empty())
-    {
-      MERROR("Bulletproofs are not allowed before v" << BULLETPROOF_HF_VERSION);
-      tvc.m_invalid_output = true;
-      return false;
+    if (tx.version >= 2) {
+      const bool bulletproof = rct::is_rct_bulletproof(tx.rct_signatures.type);
+      if (bulletproof || !tx.rct_signatures.p.bulletproofs.empty())
+      {
+        MERROR_VER("Bulletproofs are not allowed before v" << BULLETPROOF_HF_VERSION);
+        tvc.m_invalid_output = true;
+        return false;
+      }
+    }
+  }
+
+  // from v8, forbid borromean range proofs
+  if (hf_version > BULLETPROOF_HF_VERSION) {
+    if (tx.version >= 2) {
+      const bool borromean = rct::is_rct_borromean(tx.rct_signatures.type);
+      if (borromean)
+      {
+        MERROR_VER("Borromean range proofs are not allowed after v" << BULLETPROOF_HF_VERSION);
+        tvc.m_invalid_output = true;
+        return false;
+      }
+    }
+  }
+
+  // from v9, allow bulletproofs v2
+  if (hf_version < HF_VERSION_SMALLER_BP) {
+    if (tx.version >= 2) {
+      if (tx.rct_signatures.type == rct::RCTTypeBulletproof2)
+      {
+        MERROR_VER("Ringct type " << (unsigned)rct::RCTTypeBulletproof2 << " is not allowed before v" << HF_VERSION_SMALLER_BP);
+        tvc.m_invalid_output = true;
+        return false;
+      }
+    }
+  }
+
+  // from v10, allow only bulletproofs v2
+  if (hf_version > HF_VERSION_SMALLER_BP) {
+    if (tx.version >= 2) {
+      if (tx.rct_signatures.type == rct::RCTTypeBulletproof)
+      {
+        MERROR_VER("Ringct type " << (unsigned)rct::RCTTypeBulletproof << " is not allowed from v" << (HF_VERSION_SMALLER_BP + 1));
+        tvc.m_invalid_output = true;
+        return false;
+      }
     }
   }
 
@@ -2885,6 +2923,19 @@ void Blockchain::check_ring_signature(const crypto::hash &tx_prefix_hash, const 
 }
 
 //------------------------------------------------------------------
+uint64_t Blockchain::get_fee_quantization_mask()
+{
+  static uint64_t mask = 0;
+  if (mask == 0)
+  {
+    mask = 1;
+    for (size_t n = PER_KB_FEE_QUANTIZATION_DECIMALS; n < CRYPTONOTE_DISPLAY_DECIMAL_POINT; ++n)
+      mask *= 10;
+  }
+  return mask;
+}
+
+//------------------------------------------------------------------
 uint64_t Blockchain::get_dynamic_per_kb_fee(uint64_t block_reward, size_t median_block_size)
 {
   if (median_block_size < BLOCK_SIZE_GROWTH_FAVORED_ZONE)
@@ -2910,7 +2961,7 @@ uint64_t Blockchain::get_dynamic_per_kb_fee(uint64_t block_reward, size_t median
 bool Blockchain::check_fee(size_t blob_size, uint64_t fee) const
 {
   uint64_t fee_per_kb;
-  uint64_t median = m_current_block_cumul_sz_limit / 2;
+  uint64_t median = m_current_block_cumul_weight_limit / 2;
   uint64_t height = m_db->height();
   uint64_t cal_height = height - height % COIN_EMISSION_HEIGHT_INTERVAL;
   uint64_t cal_generated_coins = cal_height ? m_db->get_block_already_generated_coins(cal_height - 1) : 0;
@@ -2933,13 +2984,13 @@ bool Blockchain::check_fee(size_t blob_size, uint64_t fee) const
 }
 
 //------------------------------------------------------------------
-uint64_t Blockchain::get_dynamic_per_kb_fee_estimate(uint64_t grace_blocks) const
+uint64_t Blockchain::get_dynamic_base_fee_estimate(uint64_t grace_blocks) const
 {
   if (grace_blocks >= CRYPTONOTE_REWARD_BLOCKS_WINDOW)
     grace_blocks = CRYPTONOTE_REWARD_BLOCKS_WINDOW - 1;
 
   std::vector<size_t> sz;
-  get_last_n_blocks_sizes(sz, CRYPTONOTE_REWARD_BLOCKS_WINDOW - grace_blocks);
+  get_last_n_blocks_weights(sz, CRYPTONOTE_REWARD_BLOCKS_WINDOW - grace_blocks);
   for (size_t i = 0; i < grace_blocks; ++i)
     sz.push_back(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE);
 
@@ -3567,7 +3618,7 @@ uint64_t Blockchain::get_next_long_term_block_weight(uint64_t block_weight) cons
   for (uint64_t h = 0; h < nblocks; ++h)
     weights[h] = m_db->get_block_long_term_weight(db_height - nblocks + h);
   uint64_t long_term_median = epee::misc_utils::median(weights);
-  uint64_t long_term_effective_median_block_weight = std::max<uint64_t>(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V5, long_term_median);
+  uint64_t long_term_effective_median_block_weight = std::max<uint64_t>(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE, long_term_median);
 
   uint64_t short_term_constraint = long_term_effective_median_block_weight + long_term_effective_median_block_weight * 2 / 5;
   uint64_t long_term_block_weight = std::min<uint64_t>(block_weight, short_term_constraint);
@@ -3580,13 +3631,18 @@ bool Blockchain::update_next_cumulative_weight_limit(uint64_t *long_term_effecti
   PERF_TIMER(update_next_cumulative_weight_limit);
 
   LOG_PRINT_L3("Blockchain::" << __func__);
+
+  const uint8_t hf_version = get_current_hard_fork_version();
+  uint64_t full_reward_zone = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE;
   
-  uint64_t median = epee::misc_utils::median(sz);
-  m_current_block_cumul_sz_median = median;
+  std::vector<uint64_t> weights;
+  get_last_n_blocks_weights(weights, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
+  uint64_t median = epee::misc_utils::median(weights);
+  m_current_block_cumul_weight_median = median;
   if(median <= full_reward_zone)
     median = full_reward_zone;
 
-  m_current_block_cumul_sz_limit = median*2;
+  m_current_block_cumul_weight_limit = median*2;
   return true;
 }
 //------------------------------------------------------------------
@@ -4033,12 +4089,14 @@ bool Blockchain::prepare_handle_incoming_blocks(const std::vector<block_complete
     if (!blocks_exist)
     {
       m_blocks_longhash_table.clear();
-      uint64_t thread_height = height;
+      
+      if (m_hash_ctxes.size() < threads)
+        m_hash_ctxes.resize(threads);
+
       tools::threadpool::waiter waiter;
       for (uint64_t i = 0; i < threads; i++)
       {
-        tpool.submit(&waiter, boost::bind(&Blockchain::block_longhash_worker, this, thread_height, std::cref(blocks[i]), std::ref(maps[i])), true);
-        thread_height += blocks[i].size();
+        tpool.submit(&waiter, boost::bind(&Blockchain::block_longhash_worker, this, std::ref(m_hash_ctxes[i]), std::cref(blocks[i]), std::ref(maps[i])), true);
       }
 
       waiter.wait(&tpool);
