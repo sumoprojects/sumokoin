@@ -72,7 +72,7 @@ namespace crypto
      * \param  language_name   Language of the seed as found gets written here.
      * \return                 false if not a multiple of 3 words, or if word is not in the words list
      */
-    bool words_to_bytes(const epee::wipeable_string &words, std::string& dst, size_t len, bool duplicate,
+    bool words_to_bytes(const epee::wipeable_string &words, epee::wipeable_string& dst, size_t len, bool duplicate,
       std::string &language_name);
     /*!
      * \brief Converts seed words to bytes (secret key).
