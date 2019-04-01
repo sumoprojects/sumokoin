@@ -13,6 +13,76 @@
 #endif /* _WIN32 */
 #include "miniupnpc.h"
 
+struct upnp_dev_list {
+	struct upnp_dev_list * next;
+	char * descURL;
+	struct UPNPDev * * array;
+	size_t count;
+	size_t allocated_count;
+};
+
+#define ADD_DEVICE_COUNT_STEP 16
+
+void add_device(struct upnp_dev_list * * list_head, struct UPNPDev * dev)
+{
+	struct upnp_dev_list * elt;
+	size_t i;
+
+	if(dev == NULL)
+		return;
+	for(elt = *list_head; elt != NULL; elt = elt->next) {
+		if(strcmp(elt->descURL, dev->descURL) == 0) {
+			for(i = 0; i < elt->count; i++) {
+				if (strcmp(elt->array[i]->st, dev->st) == 0 && strcmp(elt->array[i]->usn, dev->usn) == 0) {
+					return;	/* already found */
+				}
+			}
+			if(elt->count >= elt->allocated_count) {
+				struct UPNPDev * * tmp;
+				elt->allocated_count += ADD_DEVICE_COUNT_STEP;
+				tmp = realloc(elt->array, elt->allocated_count * sizeof(struct UPNPDev *));
+				if(tmp == NULL) {
+					fprintf(stderr, "Failed to realloc(%p, %lu)\n", elt->array, (unsigned long)(elt->allocated_count * sizeof(struct UPNPDev *)));
+					return;
+				}
+				elt->array = tmp;
+			}
+			elt->array[elt->count++] = dev;
+			return;
+		}
+	}
+	elt = malloc(sizeof(struct upnp_dev_list));
+	if(elt == NULL) {
+		fprintf(stderr, "Failed to malloc(%lu)\n", (unsigned long)sizeof(struct upnp_dev_list));
+		return;
+	}
+	elt->next = *list_head;
+	elt->descURL = strdup(dev->descURL);
+	if(elt->descURL == NULL) {
+		fprintf(stderr, "Failed to strdup(%s)\n", dev->descURL);
+		free(elt);
+		return;
+	}
+	elt->allocated_count = ADD_DEVICE_COUNT_STEP;
+	elt->array = malloc(ADD_DEVICE_COUNT_STEP * sizeof(struct UPNPDev *));
+	if(elt->array == NULL) {
+		fprintf(stderr, "Failed to malloc(%lu)\n", (unsigned long)(ADD_DEVICE_COUNT_STEP * sizeof(struct UPNPDev *)));
+		free(elt->descURL);
+		free(elt);
+		return;
+	}
+	elt->array[0] = dev;
+	elt->count = 1;
+	*list_head = elt;
+}
+
+void free_device(struct upnp_dev_list * elt)
+{
+	free(elt->descURL);
+	free(elt->array);
+	free(elt);
+}
+
 int main(int argc, char * * argv)
 {
 	const char * searched_device = NULL;
@@ -24,6 +94,8 @@ int main(int argc, char * * argv)
 	int error = 0;
 	struct UPNPDev * devlist = 0;
 	struct UPNPDev * dev;
+	struct upnp_dev_list * sorted_list = NULL;
+	struct upnp_dev_list * dev_array;
 	int i;
 
 #ifdef _WIN32
@@ -99,8 +171,23 @@ int main(int argc, char * * argv)
 			printf("%3d: %-48s\n", i, dev->st);
 			printf("     %s\n", dev->descURL);
 			printf("     %s\n", dev->usn);
+			add_device(&sorted_list, dev);
+		}
+		putchar('\n');
+		for (dev_array = sorted_list; dev_array != NULL ; dev_array = dev_array->next) {
+			printf("%s :\n", dev_array->descURL);
+			for(i = 0; (unsigned)i < dev_array->count; i++) {
+				printf("%2d: %s\n", i+1, dev_array->array[i]->st);
+				printf("    %s\n", dev_array->array[i]->usn);
+			}
+			putchar('\n');
 		}
 		freeUPNPDevlist(devlist);
+		while(sorted_list != NULL) {
+			dev_array = sorted_list;
+			sorted_list = sorted_list->next;
+			free_device(dev_array);
+		}
 	} else {
 		printf("no device found.\n");
 	}

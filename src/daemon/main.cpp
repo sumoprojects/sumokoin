@@ -84,6 +84,7 @@ int main(int argc, char const * argv[])
       command_line::add_arg(core_settings, daemon_args::arg_log_file);
       command_line::add_arg(core_settings, daemon_args::arg_log_level);
       command_line::add_arg(core_settings, daemon_args::arg_max_log_file_size);
+      command_line::add_arg(core_settings, daemon_args::arg_max_log_files);
       command_line::add_arg(core_settings, daemon_args::arg_max_concurrency);
       command_line::add_arg(core_settings, daemon_args::arg_zmq_rpc_bind_ip);
       command_line::add_arg(core_settings, daemon_args::arg_zmq_rpc_bind_port);
@@ -162,9 +163,10 @@ int main(int argc, char const * argv[])
 
     const bool testnet = command_line::get_arg(vm, cryptonote::arg_testnet_on);
     const bool stagenet = command_line::get_arg(vm, cryptonote::arg_stagenet_on);
-    if (testnet && stagenet)
+    const bool regtest = command_line::get_arg(vm, cryptonote::arg_regtest_on);
+    if (testnet + stagenet + regtest > 1)
     {
-      std::cerr << "Can't specify more than one of --tesnet and --stagenet" << ENDL;
+      std::cerr << "Can't specify more than one of --tesnet and --stagenet and --regtest" << ENDL;
       return 1;
     }
 
@@ -203,7 +205,7 @@ int main(int argc, char const * argv[])
     if (!command_line::is_arg_defaulted(vm, daemon_args::arg_log_file))
       log_file_path = command_line::get_arg(vm, daemon_args::arg_log_file);
     log_file_path = bf::absolute(log_file_path, relative_path_base);
-    mlog_configure(log_file_path.string(), true, command_line::get_arg(vm, daemon_args::arg_max_log_file_size));
+    mlog_configure(log_file_path.string(), true, command_line::get_arg(vm, daemon_args::arg_max_log_file_size), command_line::get_arg(vm, daemon_args::arg_max_log_files));
 
     // Set log level
     if (!command_line::is_arg_defaulted(vm, daemon_args::arg_log_level))
@@ -237,11 +239,14 @@ int main(int argc, char const * argv[])
           return 1;
         }
 
+        const char *env_rpc_login = nullptr;
+        const bool has_rpc_arg = command_line::has_arg(vm, arg.rpc_login);
+        const bool use_rpc_env = !has_rpc_arg && (env_rpc_login = getenv("RPC_LOGIN")) != nullptr && strlen(env_rpc_login) > 0;
         boost::optional<tools::login> login{};
-        if (command_line::has_arg(vm, arg.rpc_login))
+        if (has_rpc_arg || use_rpc_env)
         {
           login = tools::login::parse(
-            command_line::get_arg(vm, arg.rpc_login), false, [](bool verify) {
+            has_rpc_arg ? command_line::get_arg(vm, arg.rpc_login) : std::string(env_rpc_login), false, [](bool verify) {
 #ifdef HAVE_READLINE
         rdln::suspend_readline pause_readline;
 #endif

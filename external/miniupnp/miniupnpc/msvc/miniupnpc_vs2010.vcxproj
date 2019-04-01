@@ -56,6 +56,9 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
+    <PreBuildEvent>
+      <Command>genminiupnpcstrings.vbs</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -69,6 +72,9 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
+    <PreBuildEvent>
+      <Command>genminiupnpcstrings.vbs</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\connecthostport.c" />
@@ -94,7 +100,10 @@
     <ClInclude Include="..\miniupnpc.h" />
     <ClInclude Include="..\miniupnpcstrings.h" />
     <ClInclude Include="..\miniupnpctypes.h" />
+    <ClInclude Include="..\miniupnpc_declspec.h" />
+    <ClInclude Include="..\miniupnpc_socketdef.h" />
     <ClInclude Include="..\miniwget.h" />
+    <ClInclude Include="..\miniwget_private.h" />
     <ClInclude Include="..\minixml.h" />
     <ClInclude Include="..\portlistingparse.h" />
     <ClInclude Include="..\receivedata.h" />

@@ -46,10 +46,10 @@ namespace tools
 
     // All four SumoPulse domains have DNSSEC on and valid
     static const std::vector<std::string> dns_urls = {
-        "updates.sumopulse.stream",
-        "updates.sumopulse.download",
         "updates.sumopulse.win",
-        "updates.sumopulse.bid"
+        "updates.sumopulse.bid",
+        "updates.sumopulse.stream",
+        "updates.sumopulse.download"
     };
 
     if (!tools::dns_utils::load_txt_records_from_dns(records, dns_urls))
@@ -69,12 +69,12 @@ namespace tools
         continue;
 
       bool alnum = true;
-      for (auto c: hash)
+      for (auto c: fields[3])
         if (!isalnum(c))
           alnum = false;
-      if (hash.size() != 64 && !alnum)
+      if (fields[3].size() != 64 && !alnum)
       {
-        MWARNING("Invalid hash: " << hash);
+        MWARNING("Invalid hash: " << fields[3]);
         continue;
       }
 
