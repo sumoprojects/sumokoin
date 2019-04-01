@@ -559,18 +559,19 @@ namespace cryptonote
     static uint64_t get_fee_quantization_mask();
 
     /**
-     * @brief get dynamic per kB fee for a given block size
-     *
-     * The dynamic fee is based on the block size in a past window, and
-     * the current block reward. It is expressed by kB.
-     *
-     * @param block_reward the current block reward
-     * @param median_block_size the median blob's size in the past window
-     * @param version hard fork version for rules and constants to use
-     *
-     * @return the per kB fee
-     */
-    static uint64_t get_dynamic_per_kb_fee(uint64_t block_reward, size_t median_block_size);
+    * @brief get dynamic per kB or byte fee for a given block weight
+    *
+    * The dynamic fee is based on the block weight in a past window, and
+    * the current block reward. It is expressed by kB before v8, and
+    * per byte from v8.
+    *
+    * @param block_reward the current block reward
+    * @param median_block_weight the median block weight in the past window
+    * @param version hard fork version for rules and constants to use
+    *
+    * @return the fee
+    */
+    static uint64_t get_dynamic_base_fee(uint64_t block_reward, size_t median_block_weight, uint8_t version);
 
     /**
      * @brief get dynamic per kB fee estimate for the next few blocks

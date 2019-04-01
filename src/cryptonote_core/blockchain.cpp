@@ -2409,7 +2409,7 @@ bool Blockchain::check_tx_outputs(const transaction& tx, tx_verification_context
     }
   }
 
-  // from v9, allow bulletproofs v2
+  // from v7, allow bulletproofs v2
   if (hf_version < HF_VERSION_SMALLER_BP) {
     if (tx.version >= 2) {
       if (tx.rct_signatures.type == rct::RCTTypeBulletproof2)
@@ -2421,7 +2421,7 @@ bool Blockchain::check_tx_outputs(const transaction& tx, tx_verification_context
     }
   }
 
-  // from v10, allow only bulletproofs v2
+  // from v8, allow only bulletproofs v2
   if (hf_version > HF_VERSION_SMALLER_BP) {
     if (tx.version >= 2) {
       if (tx.rct_signatures.type == rct::RCTTypeBulletproof)
@@ -2936,17 +2936,32 @@ uint64_t Blockchain::get_fee_quantization_mask()
 }
 
 //------------------------------------------------------------------
-uint64_t Blockchain::get_dynamic_per_kb_fee(uint64_t block_reward, size_t median_block_size)
+uint64_t Blockchain::get_dynamic_base_fee(uint64_t block_reward, size_t median_block_weight, uint8_t version)
 {
-  if (median_block_size < BLOCK_SIZE_GROWTH_FAVORED_ZONE)
-    median_block_size = BLOCK_SIZE_GROWTH_FAVORED_ZONE;
+  const uint64_t min_block_weight = get_min_block_weight(version);
+  if (median_block_weight < min_block_weight)
+    median_block_weight = min_block_weight;
+  uint64_t hi, lo;
+
+  if (version >= HF_VERSION_PER_BYTE_FEE)
+  {
+    lo = mul128(block_reward, DYNAMIC_FEE_REFERENCE_TRANSACTION_WEIGHT, &hi);
+    div128_32(hi, lo, min_block_weight, &hi, &lo);
+    div128_32(hi, lo, median_block_weight, &hi, &lo);
+    assert(hi == 0);
+    lo /= 5;
+    return lo;
+  }
+  
+  if (median_block_weight < BLOCK_SIZE_GROWTH_FAVORED_ZONE)
+    median_block_weight = BLOCK_SIZE_GROWTH_FAVORED_ZONE;
 
   // this to avoid full block fee getting too low when block reward decline, i.e. easier for "block filler" attack
   if (block_reward < DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD)
     block_reward = DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD;
 
-  uint64_t unscaled_fee_per_kb = (DYNAMIC_FEE_PER_KB_BASE_FEE * BLOCK_SIZE_GROWTH_FAVORED_ZONE / median_block_size);
-  uint64_t hi, lo = mul128(unscaled_fee_per_kb, block_reward, &hi);
+  uint64_t unscaled_fee_per_kb = (DYNAMIC_FEE_PER_KB_BASE_FEE * BLOCK_SIZE_GROWTH_FAVORED_ZONE / median_block_weight);
+  hi, lo = mul128(unscaled_fee_per_kb, block_reward, &hi);
   static_assert(DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD % 1000000 == 0, "DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD must be divisible by 1000000");
   static_assert(DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD / 1000000 <= std::numeric_limits<uint32_t>::max(), "DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD is too large");
   // divide in two steps, since the divisor must be 32 bits, but DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD isn't
@@ -2958,8 +2973,10 @@ uint64_t Blockchain::get_dynamic_per_kb_fee(uint64_t block_reward, size_t median
 }
 
 //------------------------------------------------------------------
-bool Blockchain::check_fee(size_t blob_size, uint64_t fee) const
+bool Blockchain::check_fee(size_t tx_weight, uint64_t fee) const
 {
+  const uint8_t version = get_current_hard_fork_version();
+
   uint64_t fee_per_kb;
   uint64_t median = m_current_block_cumul_weight_limit / 2;
   uint64_t height = m_db->height();
@@ -2968,12 +2985,26 @@ bool Blockchain::check_fee(size_t blob_size, uint64_t fee) const
   uint64_t base_reward;
   if (!get_block_reward(median, 1, cal_generated_coins, base_reward, height))
     return false;
-  fee_per_kb = get_dynamic_per_kb_fee(base_reward, median);
-
+ 
   MDEBUG("Using " << print_money(fee) << "/kB fee");
 
-  float kB = (blob_size - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE) * 1.0f / 1024;
-  uint64_t needed_fee = ((uint64_t)(kB * fee_per_kb)) / 100 * 100;
+  uint64_t needed_fee;
+  if (version >= HF_VERSION_PER_BYTE_FEE)
+  {
+    const bool use_long_term_median_in_fee = version >= HF_VERSION_LONG_TERM_BLOCK_WEIGHT;
+    uint64_t fee_per_byte = get_dynamic_base_fee(base_reward, use_long_term_median_in_fee ? m_long_term_effective_median_block_weight : median, version);
+    MDEBUG("Using " << print_money(fee_per_byte) << "/byte fee");
+    needed_fee = tx_weight * fee_per_byte;
+    // quantize fee up to 8 decimals
+    const uint64_t mask = get_fee_quantization_mask();
+    needed_fee = (needed_fee + mask - 1) / mask * mask;
+  }
+  else
+  {
+    fee_per_kb = get_dynamic_base_fee(base_reward, median, version);
+    float kB = (tx_weight - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE) * 1.0f / 1024;
+    needed_fee = ((uint64_t)(kB * fee_per_kb)) / 100 * 100;
+  }
 
   if (fee < needed_fee - needed_fee / 50) // keep a little 2% buffer on acceptance - no integer overflow
   {
@@ -2986,6 +3017,8 @@ bool Blockchain::check_fee(size_t blob_size, uint64_t fee) const
 //------------------------------------------------------------------
 uint64_t Blockchain::get_dynamic_base_fee_estimate(uint64_t grace_blocks) const
 {
+  const uint8_t version = get_current_hard_fork_version();
+
   if (grace_blocks >= CRYPTONOTE_REWARD_BLOCKS_WINDOW)
     grace_blocks = CRYPTONOTE_REWARD_BLOCKS_WINDOW - 1;
 
@@ -3008,8 +3041,10 @@ uint64_t Blockchain::get_dynamic_base_fee_estimate(uint64_t grace_blocks) const
     base_reward = BLOCK_REWARD_OVERESTIMATE;
   }
 
-  uint64_t fee = get_dynamic_per_kb_fee(base_reward, median);
-  MDEBUG("Estimating " << grace_blocks << "-block fee at " << print_money(fee) << "/kB");
+  const bool use_long_term_median_in_fee = version >= HF_VERSION_LONG_TERM_BLOCK_WEIGHT;
+  uint64_t fee = get_dynamic_base_fee(base_reward, use_long_term_median_in_fee ? m_long_term_effective_median_block_weight : median, version);
+  const bool per_byte = version < HF_VERSION_PER_BYTE_FEE;
+  MDEBUG("Estimating " << grace_blocks << "-block fee at " << print_money(fee) << "/" << (per_byte ? "byte" : "kB"));
   return fee;
 }
 //------------------------------------------------------------------
@@ -3632,17 +3667,68 @@ bool Blockchain::update_next_cumulative_weight_limit(uint64_t *long_term_effecti
 
   LOG_PRINT_L3("Blockchain::" << __func__);
 
+  const uint64_t db_height = m_db->height();
   const uint8_t hf_version = get_current_hard_fork_version();
   uint64_t full_reward_zone = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE;
   
-  std::vector<uint64_t> weights;
-  get_last_n_blocks_weights(weights, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
-  uint64_t median = epee::misc_utils::median(weights);
-  m_current_block_cumul_weight_median = median;
-  if(median <= full_reward_zone)
-    median = full_reward_zone;
+  uint64_t long_term_block_weight;
 
-  m_current_block_cumul_weight_limit = median*2;
+  if (hf_version < HF_VERSION_LONG_TERM_BLOCK_WEIGHT)
+  {
+    std::vector<uint64_t> weights;
+    get_last_n_blocks_weights(weights, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
+    m_current_block_cumul_weight_median = epee::misc_utils::median(weights);
+    long_term_block_weight = weights.back();
+  }
+  else
+  {
+    const uint64_t block_weight = m_db->get_block_weight(db_height - 1);
+
+    std::vector<uint64_t> weights, new_weights;
+    uint64_t long_term_median;
+    if (db_height == 1)
+    {
+      long_term_median = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE;
+    }
+    else
+    {
+      uint64_t nblocks = std::min<uint64_t>(m_long_term_block_weights_window, db_height);
+      if (nblocks == db_height)
+        --nblocks;
+      weights.resize(nblocks);
+      for (uint64_t h = 0; h < nblocks; ++h)
+        weights[h] = m_db->get_block_long_term_weight(db_height - nblocks + h - 1);
+      new_weights = weights;
+      long_term_median = epee::misc_utils::median(weights);
+    }
+    m_long_term_effective_median_block_weight = std::max<uint64_t>(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE, long_term_median);
+
+    uint64_t short_term_constraint = m_long_term_effective_median_block_weight + m_long_term_effective_median_block_weight * 2 / 5;
+    long_term_block_weight = std::min<uint64_t>(block_weight, short_term_constraint);
+
+    if (new_weights.empty())
+      new_weights.resize(1);
+    new_weights[0] = long_term_block_weight;
+    long_term_median = epee::misc_utils::median(new_weights);
+    m_long_term_effective_median_block_weight = std::max<uint64_t>(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE, long_term_median);
+    short_term_constraint = m_long_term_effective_median_block_weight + m_long_term_effective_median_block_weight * 2 / 5;
+
+    weights.clear();
+    get_last_n_blocks_weights(weights, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
+
+    uint64_t short_term_median = epee::misc_utils::median(weights);
+    uint64_t effective_median_block_weight = std::min<uint64_t>(std::max<uint64_t>(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE, short_term_median), CRYPTONOTE_SHORT_TERM_BLOCK_WEIGHT_SURGE_FACTOR * m_long_term_effective_median_block_weight);
+
+    m_current_block_cumul_weight_median = effective_median_block_weight;
+  }
+
+  if (m_current_block_cumul_weight_median <= full_reward_zone)
+    m_current_block_cumul_weight_median = full_reward_zone;
+
+  m_current_block_cumul_weight_limit = m_current_block_cumul_weight_median * 2;
+
+  if (long_term_effective_median_block_weight)
+    *long_term_effective_median_block_weight = m_long_term_effective_median_block_weight;
   return true;
 }
 //------------------------------------------------------------------

@@ -69,6 +69,7 @@
 #define CRYPTONOTE_REWARD_BLOCKS_WINDOW                 60
 #define CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE       240 * 1024    // 240kB
 #define CRYPTONOTE_LONG_TERM_BLOCK_WEIGHT_WINDOW_SIZE   100000 // size in blocks of the long term block weight median window
+#define CRYPTONOTE_SHORT_TERM_BLOCK_WEIGHT_SURGE_FACTOR 50
 #define CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE          600
 #define CRYPTONOTE_DISPLAY_DECIMAL_POINT                9
 
@@ -79,6 +80,7 @@
 #define FEE_PER_BYTE                                    ((uint64_t)300)
 #define DYNAMIC_FEE_PER_KB_BASE_FEE                     ((uint64_t)500000) // 0.0005 * pow(10, 9)
 #define DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD            ((uint64_t)64000000000) // 64 * pow(10, 9)
+#define DYNAMIC_FEE_REFERENCE_TRANSACTION_WEIGHT        ((uint64_t)3)
 
 #define ORPHANED_BLOCKS_MAX_COUNT                       100
 
@@ -158,16 +160,14 @@
 
 #define HF_VERSION_DYNAMIC_FEE                  1
 #define HF_VERSION_PER_BYTE_FEE                 7
-#define HF_VERSION_LONG_TERM_BLOCK_WEIGHT       9
-#define HF_VERSION_SMALLER_BP                   9
+#define HF_VERSION_LONG_TERM_BLOCK_WEIGHT       8
+#define HF_VERSION_SMALLER_BP                   7
 
 #define PER_KB_FEE_QUANTIZATION_DECIMALS        6
 #define HASH_OF_HASHES_STEP                     256
 #define BULLETPROOF_MAX_OUTPUTS                 16
 #define DEFAULT_TXPOOL_MAX_WEIGHT               259200000ull // 3 days at 240000, in bytes
 #define BULLETPROOF_HF_VERSION                  7
-
-#define HF_VERSION_SMALLER_BP                   9
 
 // New constants are intended to go here
 namespace config
