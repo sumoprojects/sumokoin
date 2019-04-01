@@ -160,14 +160,14 @@
 
 #define HF_VERSION_DYNAMIC_FEE                  1
 #define HF_VERSION_PER_BYTE_FEE                 7
-#define HF_VERSION_LONG_TERM_BLOCK_WEIGHT       8
+#define HF_VERSION_BP                           7   // Bulletproof HF
 #define HF_VERSION_SMALLER_BP                   7
+#define HF_VERSION_LONG_TERM_BLOCK_WEIGHT       8
 
 #define PER_KB_FEE_QUANTIZATION_DECIMALS        6
 #define HASH_OF_HASHES_STEP                     256
 #define BULLETPROOF_MAX_OUTPUTS                 16
 #define DEFAULT_TXPOOL_MAX_WEIGHT               259200000ull // 3 days at 240000, in bytes
-#define BULLETPROOF_HF_VERSION                  7
 
 // New constants are intended to go here
 namespace config

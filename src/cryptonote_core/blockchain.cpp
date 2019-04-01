@@ -84,6 +84,9 @@ DISABLE_VS_WARNINGS(4267)
 #define BLOCK_REWARD_OVERESTIMATE   ((uint64_t)(16000000000))
 #define MAINNET_HARDFORK_V3_HEIGHT ((uint64_t)(116520))
 #define MAINNET_HARDFORK_V6_HEIGHT (config::EXCHANGE_FUND_RELEASE_HEIGHT)
+#define MAINNET_HARDFORK_V7_HEIGHT ((uint64_t)(269500))
+#define MAINNET_HARDFORK_V8_HEIGHT (MAINNET_HARDFORK_V7_HEIGHT + 360)
+
 
 static const struct {
   uint8_t version;
@@ -96,7 +99,9 @@ static const struct {
   { 3, MAINNET_HARDFORK_V3_HEIGHT, 0, 1522800000 },
   { 4, 137500, 0, 1528045200 },
   { 5, 165000, 0, 1529643600 },
-  { 6, MAINNET_HARDFORK_V6_HEIGHT, 0, 1537065522 }
+  { 6, MAINNET_HARDFORK_V6_HEIGHT, 0, 1537065522 },
+  { 7, MAINNET_HARDFORK_V7_HEIGHT, 0, 1554712638 },
+  { 8, MAINNET_HARDFORK_V8_HEIGHT, 0, 1554799038 },
 };
 static const uint64_t mainnet_hard_fork_version_1_till = (uint64_t)-1;
 
@@ -110,7 +115,10 @@ static const struct {
   { 2, 5150, 0, 1497181713 },
   { 3, 103580, 0, 1522540800 },
   { 4, 122452, 0, 1527699600 },
-  { 5, 128680, 0, 1529308166 }
+  { 5, 128680, 0, 1529308166 },
+  { 6, 130500, 0, 1529308166 },
+  { 7, 134780, 0, 1529308166 },
+  { 8, 134790, 0, 1529308166 }
 };
 static const uint64_t testnet_hard_fork_version_1_till = (uint64_t)-1;
 
@@ -124,7 +132,10 @@ static const struct {
   { 2, 5150, 0, 1497181713 },
   { 3, 103580, 0, 1522540800 },
   { 4, 122452, 0, 1527699600 },
-  { 5, 128680, 0, 1529308166 }
+  { 5, 128680, 0, 1529308166 },
+  { 6, 130500, 0, 1529308166 },
+  { 7, 134780, 0, 1529308166 },
+  { 8, 134790, 0, 1529308166 }
 };
 
 //------------------------------------------------------------------
@@ -836,6 +847,11 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
     return (difficulty_type)48000000000;
   }
 
+  // Reset network hashrate to 1.0 MHz when hardfork v7 comes
+  if (m_nettype == MAINNET && (uint64_t)height >= MAINNET_HARDFORK_V7_HEIGHT && (uint64_t)height <= MAINNET_HARDFORK_V7_HEIGHT + (uint64_t)DIFFICULTY_BLOCKS_COUNT_V3){
+    return (difficulty_type)240000000;
+  }
+  
   size_t difficulty_blocks_count;
   uint8_t hf_version = get_current_hard_fork_version();
   if (hf_version == 1) {
@@ -2384,12 +2400,12 @@ bool Blockchain::check_tx_outputs(const transaction& tx, tx_verification_context
   }
 
   // from v7, allow bulletproofs
-  if (hf_version < BULLETPROOF_HF_VERSION) {
+  if (hf_version < HF_VERSION_BP) {
     if (tx.version >= 2) {
       const bool bulletproof = rct::is_rct_bulletproof(tx.rct_signatures.type);
       if (bulletproof || !tx.rct_signatures.p.bulletproofs.empty())
       {
-        MERROR_VER("Bulletproofs are not allowed before v" << BULLETPROOF_HF_VERSION);
+        MERROR_VER("Bulletproofs are not allowed before v" << HF_VERSION_BP);
         tvc.m_invalid_output = true;
         return false;
       }
@@ -2397,12 +2413,12 @@ bool Blockchain::check_tx_outputs(const transaction& tx, tx_verification_context
   }
 
   // from v8, forbid borromean range proofs
-  if (hf_version > BULLETPROOF_HF_VERSION) {
+  if (hf_version > HF_VERSION_BP) {
     if (tx.version >= 2) {
       const bool borromean = rct::is_rct_borromean(tx.rct_signatures.type);
       if (borromean)
       {
-        MERROR_VER("Borromean range proofs are not allowed after v" << BULLETPROOF_HF_VERSION);
+        MERROR_VER("Borromean range proofs are not allowed after v" << HF_VERSION_BP);
         tvc.m_invalid_output = true;
         return false;
       }
