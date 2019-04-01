@@ -129,8 +129,8 @@ namespace nodetool
     const std::vector<std::string> m_seed_nodes_list =
     { "seeds.sumoseeds.bid"
     , "seeds.sumoseeds.win"
-    , "seeds.sumoseeds2.bid"
-    , "seeds.sumoseeds2.win"
+    , "seeds.sumoseeds.stream"
+    , "seeds.sumoseeds.download"
     };
 
     bool islimitup=false;
