@@ -84,7 +84,7 @@ DISABLE_VS_WARNINGS(4267)
 #define BLOCK_REWARD_OVERESTIMATE   ((uint64_t)(16000000000))
 #define MAINNET_HARDFORK_V3_HEIGHT ((uint64_t)(116520))
 #define MAINNET_HARDFORK_V6_HEIGHT (config::EXCHANGE_FUND_RELEASE_HEIGHT)
-#define MAINNET_HARDFORK_V7_HEIGHT ((uint64_t)(269500))
+#define MAINNET_HARDFORK_V7_HEIGHT ((uint64_t)(271000))
 #define MAINNET_HARDFORK_V8_HEIGHT (MAINNET_HARDFORK_V7_HEIGHT + 360)
 
 
@@ -100,8 +100,8 @@ static const struct {
   { 4, 137500, 0, 1528045200 },
   { 5, 165000, 0, 1529643600 },
   { 6, MAINNET_HARDFORK_V6_HEIGHT, 0, 1537065522 },
-  { 7, MAINNET_HARDFORK_V7_HEIGHT, 0, 1554712638 },
-  { 8, MAINNET_HARDFORK_V8_HEIGHT, 0, 1554799038 },
+  { 7, MAINNET_HARDFORK_V7_HEIGHT, 0, 1555234940 },
+  { 8, MAINNET_HARDFORK_V8_HEIGHT, 0, 1555321375 }
 };
 static const uint64_t mainnet_hard_fork_version_1_till = (uint64_t)-1;
 
@@ -116,9 +116,9 @@ static const struct {
   { 3, 103580, 0, 1522540800 },
   { 4, 122452, 0, 1527699600 },
   { 5, 128680, 0, 1529308166 },
-  { 6, 130500, 0, 1529308166 },
-  { 7, 134780, 0, 1529308166 },
-  { 8, 134790, 0, 1529308166 }
+  { 6, 130500, 0, 1554265083 },
+  { 7, 130570, 0, 1554306890 },
+  //{ 8, 130700, 0, 1554201989 }
 };
 static const uint64_t testnet_hard_fork_version_1_till = (uint64_t)-1;
 
@@ -133,9 +133,9 @@ static const struct {
   { 3, 103580, 0, 1522540800 },
   { 4, 122452, 0, 1527699600 },
   { 5, 128680, 0, 1529308166 },
-  { 6, 130500, 0, 1529308166 },
-  { 7, 134780, 0, 1529308166 },
-  { 8, 134790, 0, 1529308166 }
+  { 6, 130500, 0, 1554265083 },
+  { 7, 130600, 0, 1554306890 },
+  //{ 8, 130700, 0, 1554201989 }
 };
 
 //------------------------------------------------------------------
@@ -2552,7 +2552,7 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
   
   size_t n_unmixable = 0, n_mixable = 0;
   size_t mixin = std::numeric_limits<size_t>::max();
-  const size_t min_mixin = DEFAULT_MIXIN;
+  const size_t min_mixin = hf_version < 7 ? DEFAULT_MIXIN : DEFAULT_MIXIN_V2;
   const size_t max_mixin = MAX_MIXIN;
   for (const auto& txin : tx.vin)
   {
@@ -2908,13 +2908,13 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
     // for bulletproofs, check they're only multi-output after v8
     if (rct::is_rct_bulletproof(rv.type))
     {
-      if (hf_version < 8)
+      if (hf_version < HF_VERSION_BP)
       {
         for (const rct::Bulletproof &proof: rv.p.bulletproofs)
         {
           if (proof.V.size() > 1)
           {
-            MERROR_VER("Multi output bulletproofs are invalid before v8");
+            MERROR_VER("Multi output bulletproofs are invalid before v" << HF_VERSION_BP);
             return false;
           }
         }

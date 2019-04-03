@@ -847,9 +847,11 @@ namespace tools
         mixin = m_wallet->adjust_mixin(req.mixin);
       }
 
-      if (mixin < DEFAULT_MIXIN){
-        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << DEFAULT_MIXIN);
-        mixin = DEFAULT_MIXIN;
+
+      uint64_t default_mixin = m_wallet->get_min_ring_size() - 1;
+      if (mixin < default_mixin){
+        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << default_mixin);
+        mixin = default_mixin;
       }
       else if (mixin > MAX_MIXIN){
         LOG_PRINT_L1("Requested mixin " << req.mixin << " too high, using " << MAX_MIXIN);
@@ -917,9 +919,10 @@ namespace tools
         mixin = m_wallet->adjust_mixin(req.mixin);
       }
 
-      if (mixin < DEFAULT_MIXIN){
-        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << DEFAULT_MIXIN);
-        mixin = DEFAULT_MIXIN;
+      uint64_t default_mixin = m_wallet->get_min_ring_size() - 1;
+      if (mixin < default_mixin){
+        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << default_mixin);
+        mixin = default_mixin;
       }
       else if (mixin > MAX_MIXIN){
         LOG_PRINT_L1("Requested mixin " << req.mixin << " too high, using " << MAX_MIXIN);
@@ -1144,9 +1147,10 @@ namespace tools
         mixin = m_wallet->adjust_mixin(req.mixin);
       }
 
-      if (mixin < DEFAULT_MIXIN){
-        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << DEFAULT_MIXIN);
-        mixin = DEFAULT_MIXIN;
+      uint64_t default_mixin = m_wallet->get_min_ring_size() - 1;
+      if (mixin < default_mixin){
+        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << default_mixin);
+        mixin = default_mixin;
       }
       else if (mixin > MAX_MIXIN){
         LOG_PRINT_L1("Requested mixin " << req.mixin << " too high, using " << MAX_MIXIN);
@@ -1217,9 +1221,10 @@ namespace tools
         mixin = m_wallet->adjust_mixin(req.mixin);
       }
 
-      if (mixin < DEFAULT_MIXIN){
-        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << DEFAULT_MIXIN);
-        mixin = DEFAULT_MIXIN;
+      uint64_t default_mixin = m_wallet->get_min_ring_size() - 1;
+      if (mixin < default_mixin){
+        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << default_mixin);
+        mixin = default_mixin;
       }
       else if (mixin > MAX_MIXIN){
         LOG_PRINT_L1("Requested mixin " << req.mixin << " too high, using " << MAX_MIXIN);

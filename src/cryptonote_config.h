@@ -77,10 +77,10 @@
 #define COIN                                            ((uint64_t)1000000000) // pow(10, 9)
 
 #define FEE_PER_KB                                      ((uint64_t)500000)
-#define FEE_PER_BYTE                                    ((uint64_t)300)
+#define FEE_PER_BYTE                                    ((uint64_t)500)
 #define DYNAMIC_FEE_PER_KB_BASE_FEE                     ((uint64_t)500000) // 0.0005 * pow(10, 9)
 #define DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD            ((uint64_t)64000000000) // 64 * pow(10, 9)
-#define DYNAMIC_FEE_REFERENCE_TRANSACTION_WEIGHT        ((uint64_t)3)
+#define DYNAMIC_FEE_REFERENCE_TRANSACTION_WEIGHT        ((uint64_t)5000)
 
 #define ORPHANED_BLOCKS_MAX_COUNT                       100
 
