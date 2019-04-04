@@ -1025,12 +1025,16 @@ namespace cryptonote
     block b_local = b; //workaround to avoid const errors with do_serialize
     blobdata bd = get_block_hashing_blob(b);
     crypto::cn_slow_hash_type cn_type = cn_slow_hash_type::cn_original;
-    if (b_local.major_version == CRYPTONOTE_V2_POW_BLOCK_VERSION || b_local.major_version >= HF_VERSION_BP)
+    if (b_local.major_version == CRYPTONOTE_HEAVY_BLOCK_VERSION)
     {
       cn_type = cn_slow_hash_type::cn_heavy;
     }
+    else if (b_local.major_version >= HF_VERSION_BP){
+      cn_type = cn_slow_hash_type::cn_r;
+    }
     
-    crypto::cn_slow_hash(bd.data(), bd.size(), res, cn_type);
+    const int cn_variant = b_local.major_version >= HF_VERSION_BP ? b_local.major_version - 3 : 0;
+    crypto::cn_slow_hash(bd.data(), bd.size(), res, cn_variant, height, cn_type);
     return true;
   }
   //---------------------------------------------------------------
@@ -1135,7 +1139,7 @@ namespace cryptonote
   crypto::secret_key encrypt_key(crypto::secret_key key, const epee::wipeable_string &passphrase)
   {
     crypto::hash hash;
-    crypto::cn_slow_hash(passphrase.data(), passphrase.size(), hash, crypto::cn_slow_hash_type::cn_original);
+    crypto::cn_slow_hash(passphrase.data(), passphrase.size(), hash);
     sc_add((unsigned char*)key.data, (const unsigned char*)key.data, (const unsigned char*)hash.data);
     return key;
   }
@@ -1143,7 +1147,7 @@ namespace cryptonote
   crypto::secret_key decrypt_key(crypto::secret_key key, const epee::wipeable_string &passphrase)
   {
     crypto::hash hash;
-    crypto::cn_slow_hash(passphrase.data(), passphrase.size(), hash, crypto::cn_slow_hash_type::cn_original);
+    crypto::cn_slow_hash(passphrase.data(), passphrase.size(), hash);
     sc_sub((unsigned char*)key.data, (const unsigned char*)key.data, (const unsigned char*)hash.data);
     return key;
   }
