@@ -45,9 +45,9 @@ set(crypto_sources
   random.c
   skein.c
   tree-hash.c
-  cn_slow_hash_soft.cpp
-  cn_slow_hash_hard_intel.cpp
-  cn_slow_hash_hard_arm.cpp)
+  cn_heavy_hash_soft.cpp
+  cn_heavy_hash_hard_intel.cpp
+  cn_heavy_hash_hard_arm.cpp)
 
 set(crypto_headers)
 
@@ -69,7 +69,7 @@ set(crypto_private_headers
   random.h
   skein.h
   skein_port.h
-  cn_slow_hash.hpp)
+  cn_heavy_hash.hpp)
 
 monero_private_headers(cncrypto
   ${crypto_private_headers})

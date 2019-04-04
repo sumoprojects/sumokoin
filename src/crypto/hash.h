@@ -38,6 +38,7 @@
 #include "generic-ops.h"
 #include "hex.h"
 #include "span.h"
+#include "crypto/cn_heavy_hash.hpp"
 
 namespace crypto {
 
@@ -69,6 +70,33 @@ namespace crypto {
     hash h;
     cn_fast_hash(data, length, reinterpret_cast<char *>(&h));
     return h;
+  }
+
+  enum struct cn_slow_hash_type
+  {
+    cn_original,
+    cn_heavy,
+  };
+
+  inline void cn_slow_hash(const void *data, std::size_t length, hash &hash, cn_slow_hash_type type) {
+    switch (type)
+    {
+      case cn_slow_hash_type::cn_heavy:
+      {
+        static thread_local cn_heavy_hash_v2 v2;
+        v2.hash(data, length, hash.data);
+      }
+      break;
+
+      case cn_slow_hash_type::cn_original:
+      default:
+      {
+        static thread_local cn_heavy_hash_v2 v2;
+        static thread_local cn_heavy_hash_v1 v1 = cn_heavy_hash_v1::make_borrowed(v2);
+        v1.hash(data, length, hash.data);
+      }
+      break;
+    }
   }
 
   inline void tree_hash(const hash *hashes, std::size_t count, hash &root_hash) {

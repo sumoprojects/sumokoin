@@ -29,8 +29,10 @@
 // Parts of this file are originally copyright (c) 2014-2017, The Monero Project
 // Parts of this file are originally copyright (c) 2012-2013, The Cryptonote developers
 
-#include "cn_slow_hash.hpp"
-#include "keccak.h"
+#include "cn_heavy_hash.hpp"
+extern "C" {
+#include "../crypto/keccak.h"
+}
 
 #ifdef HAS_INTEL_HW
 
@@ -117,7 +119,7 @@ inline void xor_shift(__m128i& x0, __m128i& x1, __m128i& x2, __m128i& x3, __m128
 }
 
 template<size_t MEMORY, size_t ITER, size_t VERSION>
-void cn_slow_hash<MEMORY,ITER,VERSION>::implode_scratchpad_hard()
+void cn_heavy_hash<MEMORY,ITER,VERSION>::implode_scratchpad_hard()
 {
 	__m128i x0, x1, x2, x3, x4, x5, x6, x7;
 	__m128i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
@@ -211,7 +213,7 @@ void cn_slow_hash<MEMORY,ITER,VERSION>::implode_scratchpad_hard()
 }
 
 template<size_t MEMORY, size_t ITER, size_t VERSION>
-void cn_slow_hash<MEMORY,ITER,VERSION>::explode_scratchpad_hard()
+void cn_heavy_hash<MEMORY,ITER,VERSION>::explode_scratchpad_hard()
 {
 	__m128i x0, x1, x2, x3, x4, x5, x6, x7;
 	__m128i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
@@ -322,9 +324,10 @@ inline uint64_t xmm_extract_64(__m128i x)
 }
 
 template<size_t MEMORY, size_t ITER, size_t VERSION>
-void cn_slow_hash<MEMORY,ITER,VERSION>::hardware_hash(const void* in, size_t len, void* out)
+void cn_heavy_hash<MEMORY,ITER,VERSION>::hardware_hash(const void* in, size_t len, void* out, bool prehashed)
 {
-	keccak((const uint8_t *)in, len, spad.as_byte(), 200);
+	if (!prehashed)
+		keccak((const uint8_t *)in, len, spad.as_byte(), 200);
 
 	explode_scratchpad_hard();
 	
@@ -393,7 +396,7 @@ void cn_slow_hash<MEMORY,ITER,VERSION>::hardware_hash(const void* in, size_t len
 	}
 }
 
-template class cn_slow_hash<2*1024*1024, 0x80000, 0>;
-template class cn_slow_hash<4*1024*1024, 0x40000, 1>;
+template class cn_heavy_hash<2*1024*1024, 0x80000, 0>;
+template class cn_heavy_hash<4*1024*1024, 0x40000, 1>;
 
 #endif
