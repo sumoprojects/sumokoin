@@ -142,7 +142,7 @@ namespace
   const command_line::arg_descriptor<bool> arg_non_deterministic = {"non-deterministic", sw::tr("Generate non-deterministic view and spend keys"), false};
   const command_line::arg_descriptor<bool> arg_allow_mismatched_daemon_version = {"allow-mismatched-daemon-version", sw::tr("Allow communicating with a daemon that uses a different RPC version"), false};
   const command_line::arg_descriptor<uint64_t> arg_restore_height = {"restore-height", sw::tr("Restore from specific blockchain height"), 0};
-  const command_line::arg_descriptor<bool> arg_do_not_relay = {"do-not-relay", sw::tr("The newly created transaction will not be relayed to the monero network"), false};
+  const command_line::arg_descriptor<bool> arg_do_not_relay = {"do-not-relay", sw::tr("The newly created transaction will not be relayed to the Sumokoin network"), false};
   const command_line::arg_descriptor<bool> arg_create_address_file = {"create-address-file", sw::tr("Create an address file for new wallets"), false};
   const command_line::arg_descriptor<std::string> arg_subaddress_lookahead = {"subaddress-lookahead", tools::wallet2::tr("Set subaddress lookahead sizes to <major>:<minor>"), ""};
   const command_line::arg_descriptor<bool> arg_use_english_language_names = {"use-english-language-names", sw::tr("Display English language names"), false};
@@ -1868,22 +1868,24 @@ bool simple_wallet::set_default_ring_size(const std::vector<std::string> &args/*
     fail_msg_writer() << tr("wallet is watch-only and cannot transfer");
     return true;
   }
+
+  uint32_t default_ring_size = m_wallet->get_min_ring_size();
   try
   {
     if (strchr(args[1].c_str(), '-'))
     {
-      fail_msg_writer() << tr("ring size must be an integer >= ") << DEFAULT_MIXIN + 1;
+      fail_msg_writer() << tr("ring size must be an integer >= ") << default_ring_size;
       return true;
     }
     uint32_t ring_size = boost::lexical_cast<uint32_t>(args[1]);
-    if ((ring_size < DEFAULT_MIXIN + 1 || ring_size > MAX_MIXIN + 1)  && ring_size != 0)
+    if ((ring_size < default_ring_size || ring_size > MAX_MIXIN + 1) && ring_size != 0)
     {
-      fail_msg_writer() << tr("ring size must be an integer >= ") << DEFAULT_MIXIN << tr(" and <= ") << MAX_MIXIN;
+      fail_msg_writer() << tr("ring size must be an integer >= ") << default_ring_size << tr(" and <= ") << MAX_MIXIN;
       return true;
     }
  
-    if (ring_size != 0 && ring_size != DEFAULT_MIXIN + 1)
-      message_writer() << tr("WARNING: this is a non default ring size, which may harm your privacy. Default is recommended.");
+    if (ring_size != 0 && ring_size != default_ring_size)
+      message_writer() << tr(" WARNING: this is a non default ring size, which may harm your privacy. Default is recommended.");
 
     const auto pwd_container = get_and_verify_password();
     if (pwd_container)
@@ -1895,7 +1897,7 @@ bool simple_wallet::set_default_ring_size(const std::vector<std::string> &args/*
   }
   catch(const boost::bad_lexical_cast &)
   {
-    fail_msg_writer() << tr("ring size must be an integer >= ") << DEFAULT_MIXIN + 1;
+    fail_msg_writer() << tr("ring size must be an integer >= ") << default_ring_size;
     return true;
   }
   catch(...)
@@ -2701,7 +2703,7 @@ bool simple_wallet::set_variable(const std::vector<std::string> &args)
     CHECK_SIMPLE_VARIABLE("always-confirm-transfers", set_always_confirm_transfers, tr("0 or 1"));
     CHECK_SIMPLE_VARIABLE("print-ring-members", set_print_ring_members, tr("0 or 1"));
     CHECK_SIMPLE_VARIABLE("store-tx-info", set_store_tx_info, tr("0 or 1"));
-    CHECK_SIMPLE_VARIABLE("default-ring-size", set_default_ring_size, tr("integer >= ") << DEFAULT_MIXIN);
+    CHECK_SIMPLE_VARIABLE("default-ring-size", set_default_ring_size, tr("integer >= ") << m_wallet->get_min_ring_size());
     CHECK_SIMPLE_VARIABLE("auto-refresh", set_auto_refresh, tr("0 or 1"));
     CHECK_SIMPLE_VARIABLE("refresh-type", set_refresh_type, tr("full (slowest, no assumptions); optimize-coinbase (fast, assumes the whole coinbase is paid to a single address); no-coinbase (fastest, assumes we receive no coinbase transaction), default (same as optimize-coinbase)"));
     CHECK_SIMPLE_VARIABLE("priority", set_default_priority, tr("0, 1, 2, 3, or 4"));
@@ -4741,7 +4743,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
     {
       fake_outs_count = m_wallet->default_mixin();
       if (fake_outs_count == 0)
-        fake_outs_count = DEFAULT_MIXIN;
+        fake_outs_count = m_wallet->get_min_ring_size() - 1;
     }
     else if (ring_size == 0)
     {
@@ -4862,7 +4864,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
     }
     else
     {
-      if (boost::starts_with(local_args[i], "monero:"))
+      if (boost::starts_with(local_args[i], "sumo:"))
         fail_msg_writer() << tr("Invalid last argument: ") << local_args.back() << ": " << error;
       else
         fail_msg_writer() << tr("Invalid last argument: ") << local_args.back();
@@ -5074,14 +5076,14 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
             if (vin.type() == typeid(txin_to_key))
             {
               const txin_to_key& in_to_key = boost::get<txin_to_key>(vin);
-              if (in_to_key.key_offsets.size() != DEFAULT_MIXIN + 1)
+              if (in_to_key.key_offsets.size() != m_wallet->get_min_ring_size())
                 default_ring_size = false;
             }
           }
         }
         if (m_wallet->confirm_non_default_ring_size() && !default_ring_size)
         {
-          prompt << tr("WARNING: this is a non default ring size, which may harm your privacy. Default is recommended.");
+          prompt << ENDL << tr("WARNING: this is a non default ring size, which may harm your privacy. Default is recommended.");
         }
         prompt << ENDL << tr("Is this okay?  (Y/Yes/N/No): ");
         
@@ -5303,7 +5305,7 @@ bool simple_wallet::sweep_main(uint64_t below, bool locked, const std::vector<st
     {
       fake_outs_count = m_wallet->default_mixin();
       if (fake_outs_count == 0)
-        fake_outs_count = DEFAULT_MIXIN;
+        fake_outs_count = m_wallet->get_min_ring_size() - 1;
     }
     else if (ring_size == 0)
     {
@@ -5572,7 +5574,7 @@ bool simple_wallet::sweep_single(const std::vector<std::string> &args_)
     {
       fake_outs_count = m_wallet->default_mixin();
       if (fake_outs_count == 0)
-        fake_outs_count = DEFAULT_MIXIN;
+        fake_outs_count = m_wallet->get_min_ring_size() - 1;
     }
     else if (ring_size == 0)
     {
@@ -7264,7 +7266,7 @@ void simple_wallet::print_accounts(const std::string& tag)
     total_unlocked_balance += m_wallet->unlocked_balance(account_index);
   }
   success_msg_writer() << tr("----------------------------------------------------------------------------------");
-  success_msg_writer() << boost::format(tr("%15s %21s %21s")) % "Total" % print_money(total_balance) % print_money(total_unlocked_balance);
+  success_msg_writer() << boost::format(tr("%17s %21s %21s")) % "Total" % print_money(total_balance) % print_money(total_unlocked_balance);
 }
 //----------------------------------------------------------------------------------------------------
 bool simple_wallet::print_address(const std::vector<std::string> &args/* = std::vector<std::string>()*/)

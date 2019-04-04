@@ -170,7 +170,7 @@ namespace cryptonote
     for(const auto& in: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, txin, false);
-      if (txin.key_offsets.size() - 1 < DEFAULT_MIXIN){
+      if (txin.key_offsets.size() - 1 < (version <  7 ? DEFAULT_MIXIN : DEFAULT_MIXIN_V2)){
         mixin_too_low = true;
         break;
       }

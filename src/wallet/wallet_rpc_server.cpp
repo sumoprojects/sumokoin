@@ -633,7 +633,7 @@ namespace tools
           }
           if (addresses.empty())
           {
-            er.message = std::string("No Monero address found at ") + url;
+            er.message = std::string("No Sumokoin address found at ") + url;
             return {};
           }
           return addresses[0];
@@ -847,9 +847,11 @@ namespace tools
         mixin = m_wallet->adjust_mixin(req.mixin);
       }
 
-      if (mixin < DEFAULT_MIXIN){
-        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << DEFAULT_MIXIN);
-        mixin = DEFAULT_MIXIN;
+
+      uint64_t default_mixin = m_wallet->get_min_ring_size() - 1;
+      if (mixin < default_mixin){
+        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << default_mixin);
+        mixin = default_mixin;
       }
       else if (mixin > MAX_MIXIN){
         LOG_PRINT_L1("Requested mixin " << req.mixin << " too high, using " << MAX_MIXIN);
@@ -917,9 +919,10 @@ namespace tools
         mixin = m_wallet->adjust_mixin(req.mixin);
       }
 
-      if (mixin < DEFAULT_MIXIN){
-        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << DEFAULT_MIXIN);
-        mixin = DEFAULT_MIXIN;
+      uint64_t default_mixin = m_wallet->get_min_ring_size() - 1;
+      if (mixin < default_mixin){
+        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << default_mixin);
+        mixin = default_mixin;
       }
       else if (mixin > MAX_MIXIN){
         LOG_PRINT_L1("Requested mixin " << req.mixin << " too high, using " << MAX_MIXIN);
@@ -1144,9 +1147,10 @@ namespace tools
         mixin = m_wallet->adjust_mixin(req.mixin);
       }
 
-      if (mixin < DEFAULT_MIXIN){
-        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << DEFAULT_MIXIN);
-        mixin = DEFAULT_MIXIN;
+      uint64_t default_mixin = m_wallet->get_min_ring_size() - 1;
+      if (mixin < default_mixin){
+        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << default_mixin);
+        mixin = default_mixin;
       }
       else if (mixin > MAX_MIXIN){
         LOG_PRINT_L1("Requested mixin " << req.mixin << " too high, using " << MAX_MIXIN);
@@ -1217,9 +1221,10 @@ namespace tools
         mixin = m_wallet->adjust_mixin(req.mixin);
       }
 
-      if (mixin < DEFAULT_MIXIN){
-        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << DEFAULT_MIXIN);
-        mixin = DEFAULT_MIXIN;
+      uint64_t default_mixin = m_wallet->get_min_ring_size() - 1;
+      if (mixin < default_mixin){
+        LOG_PRINT_L1("Requested mixin " << req.mixin << " too low, using " << default_mixin);
+        mixin = default_mixin;
       }
       else if (mixin > MAX_MIXIN){
         LOG_PRINT_L1("Requested mixin " << req.mixin << " too high, using " << MAX_MIXIN);
@@ -1701,7 +1706,7 @@ namespace tools
         }
         if (addresses.empty())
         {
-          er.message = std::string("No Monero address found at ") + url;
+          er.message = std::string("No Sumokoin address found at ") + url;
           return {};
         }
         return addresses[0];
@@ -3582,12 +3587,12 @@ int main(int argc, char** argv) {
   bool should_terminate = false;
   std::tie(vm, should_terminate) = wallet_args::main(
     argc, argv,
-    "monero-wallet-rpc [--wallet-file=<file>|--generate-from-json=<file>|--wallet-dir=<directory>] [--rpc-bind-port=<port>]",
-    tools::wallet_rpc_server::tr("This is the RPC monero wallet. It needs to connect to a monero\ndaemon to work correctly."),
+    "sumo-wallet-rpc [--wallet-file=<file>|--generate-from-json=<file>|--wallet-dir=<directory>] [--rpc-bind-port=<port>]",
+    tools::wallet_rpc_server::tr("This is the RPC sumokoin wallet. It needs to connect to a sumokoin\ndaemon to work correctly."),
     desc_params,
     po::positional_options_description(),
     [](const std::string &s, bool emphasis){ epee::set_console_color(emphasis ? epee::console_color_white : epee::console_color_default, true); std::cout << s << std::endl; if (emphasis) epee::reset_console_color(); },
-    "monero-wallet-rpc.log",
+    "sumo-wallet-rpc.log",
     true
   );
   if (!vm)
