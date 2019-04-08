@@ -3038,7 +3038,7 @@ uint64_t Blockchain::get_dynamic_base_fee_estimate(uint64_t grace_blocks) const
   if (grace_blocks >= CRYPTONOTE_REWARD_BLOCKS_WINDOW)
     grace_blocks = CRYPTONOTE_REWARD_BLOCKS_WINDOW - 1;
 
-  std::vector<size_t> sz;
+  std::vector<uint64_t> sz;
   get_last_n_blocks_weights(sz, CRYPTONOTE_REWARD_BLOCKS_WINDOW - grace_blocks);
   for (size_t i = 0; i < grace_blocks; ++i)
     sz.push_back(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE);
