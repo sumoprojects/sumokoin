@@ -117,8 +117,8 @@ static const struct {
   { 4, 122452, 0, 1527699600 },
   { 5, 128680, 0, 1529308166 },
   { 6, 130500, 0, 1554265083 },
-  { 7, 130570, 0, 1554306890 },
-  //{ 8, 130700, 0, 1554201989 }
+  { 7, 130530, 0, 1554465078 },
+  { 8, 130560, 0, 1554479506 }
 };
 static const uint64_t testnet_hard_fork_version_1_till = (uint64_t)-1;
 
@@ -134,8 +134,8 @@ static const struct {
   { 4, 122452, 0, 1527699600 },
   { 5, 128680, 0, 1529308166 },
   { 6, 130500, 0, 1554265083 },
-  { 7, 130600, 0, 1554306890 },
-  //{ 8, 130700, 0, 1554201989 }
+  { 7, 130530, 0, 1554465078 },
+  { 8, 130560, 0, 1554479506 }
 };
 
 //------------------------------------------------------------------
@@ -1611,7 +1611,7 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     difficulty_type current_diff = get_next_difficulty_for_alternative_chain(alt_chain, bei);
     CHECK_AND_ASSERT_MES(current_diff, false, "!!!!!!! DIFFICULTY OVERHEAD !!!!!!!");
     crypto::hash proof_of_work = null_hash;
-    get_block_longhash(bei.bl, m_pow_ctx, proof_of_work);
+    get_block_longhash(bei.bl, proof_of_work, bei.height);
     if(!check_hash(proof_of_work, current_diff))
     {
       MERROR_VER("Block with id: " << id << std::endl << " for alternative chain, does not have enough proof of work: " << proof_of_work << std::endl << " expected difficulty: " << current_diff);
@@ -3399,7 +3399,7 @@ leave:
       proof_of_work = it->second;
     }
     else
-      get_block_longhash(bl, m_pow_ctx, proof_of_work);
+      proof_of_work = get_block_longhash(bl, m_db->height());
 
     // validate proof_of_work versus difficulty target
     if(!check_hash(proof_of_work, current_diffic))
@@ -3862,7 +3862,7 @@ void Blockchain::set_enforce_dns_checkpoints(bool enforce_checkpoints)
 }
 
 //------------------------------------------------------------------
-void Blockchain::block_longhash_worker(cn_pow_hash_v2 &hash_ctx, const std::vector<block> &blocks, std::unordered_map<crypto::hash, crypto::hash> &map) const
+void Blockchain::block_longhash_worker(uint64_t height, const std::vector<block> &blocks, std::unordered_map<crypto::hash, crypto::hash> &map) const
 {
   TIME_MEASURE_START(t);
   
@@ -3871,8 +3871,7 @@ void Blockchain::block_longhash_worker(cn_pow_hash_v2 &hash_ctx, const std::vect
     if (m_cancel)
        break;
     crypto::hash id = get_block_hash(block);
-    crypto::hash pow;
-    get_block_longhash(block, hash_ctx, pow);
+    crypto::hash pow = get_block_longhash(block, height++);
     map.emplace(id, pow);
   }
 
@@ -4191,14 +4190,12 @@ bool Blockchain::prepare_handle_incoming_blocks(const std::vector<block_complete
     if (!blocks_exist)
     {
       m_blocks_longhash_table.clear();
-      
-      if (m_hash_ctxes.size() < threads)
-        m_hash_ctxes.resize(threads);
-
+      uint64_t thread_height = height;
       tools::threadpool::waiter waiter;
       for (uint64_t i = 0; i < threads; i++)
       {
-        tpool.submit(&waiter, boost::bind(&Blockchain::block_longhash_worker, this, std::ref(m_hash_ctxes[i]), std::cref(blocks[i]), std::ref(maps[i])), true);
+        tpool.submit(&waiter, boost::bind(&Blockchain::block_longhash_worker, this, thread_height, std::cref(blocks[i]), std::ref(maps[i])), true);
+        thread_height += blocks[i].size();
       }
 
       waiter.wait(&tpool);

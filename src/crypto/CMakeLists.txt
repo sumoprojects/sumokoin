@@ -45,10 +45,16 @@ set(crypto_sources
   random.c
   skein.c
   tree-hash.c
-  cn_slow_hash_soft.cpp
-  cn_slow_hash_hard_intel.cpp
-  cn_slow_hash_hard_arm.cpp)
+  cn_monero_slow_hash.c
+  CryptonightR_JIT.c
+  cn_heavy_hash_soft.cpp
+  cn_heavy_hash_hard_intel.cpp
+  cn_heavy_hash_hard_arm.cpp)
 
+if(ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64")
+list(APPEND crypto_sources CryptonightR_template.S)
+endif()
+  
 set(crypto_headers)
 
 set(crypto_private_headers
@@ -69,7 +75,9 @@ set(crypto_private_headers
   random.h
   skein.h
   skein_port.h
-  cn_slow_hash.hpp)
+  cn_heavy_hash.hpp
+  CryptonightR_JIT.h
+  CryptonightR_template.h)
 
 monero_private_headers(cncrypto
   ${crypto_private_headers})
@@ -90,7 +98,7 @@ if (ARM)
 	   "Compute multiply using generic C implementation instead of ARM ASM" OFF)
   if(NO_OPTIMIZED_MULTIPLY_ON_ARM)
     message(STATUS "Using generic C implementation for multiply")
-    set_property(SOURCE slow-hash.c
+    set_property(SOURCE cn_monero_slow_hash.c
       PROPERTY COMPILE_DEFINITIONS "NO_OPTIMIZED_MULTIPLY_ON_ARM")
   endif()
 endif()
@@ -103,5 +111,8 @@ if (ANDROID OR IOS)
     add_definitions(-DFORCE_USE_HEAP=1)
   endif()
 endif()
+
+# cheat because cmake and ccache hate each other
+set_property(SOURCE CryptonightR_template.S PROPERTY LANGUAGE C)
 
 

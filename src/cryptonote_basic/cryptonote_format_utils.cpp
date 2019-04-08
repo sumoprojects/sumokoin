@@ -1020,20 +1020,29 @@ namespace cryptonote
     return p;
   }
   //---------------------------------------------------------------
-  bool get_block_longhash(const block& b, cn_pow_hash_v2 &ctx, crypto::hash& res)
+  bool get_block_longhash(const block& b, crypto::hash& res, uint64_t height)
   {
     block b_local = b; //workaround to avoid const errors with do_serialize
     blobdata bd = get_block_hashing_blob(b);
-    if (b_local.major_version == CRYPTONOTE_V2_POW_BLOCK_VERSION || b_local.major_version >= HF_VERSION_BP)
+    crypto::cn_slow_hash_type cn_type = cn_slow_hash_type::cn_original;
+    if (b_local.major_version == CRYPTONOTE_HEAVY_BLOCK_VERSION)
     {
-      ctx.hash(bd.data(), bd.size(), res.data);
+      cn_type = cn_slow_hash_type::cn_heavy;
     }
-    else
-    {
-      cn_pow_hash_v1 ctx_v1 = cn_pow_hash_v1::make_borrowed(ctx);
-      ctx_v1.hash(bd.data(), bd.size(), res.data);
+    else if (b_local.major_version >= HF_VERSION_BP){
+      cn_type = cn_slow_hash_type::cn_r;
     }
+    
+    const int cn_variant = b_local.major_version >= HF_VERSION_BP ? b_local.major_version - 3 : 0;
+    crypto::cn_slow_hash(bd.data(), bd.size(), res, cn_variant, height, cn_type);
     return true;
+  }
+  //---------------------------------------------------------------
+  crypto::hash get_block_longhash(const block& b, uint64_t height)
+  {
+    crypto::hash p = null_hash;
+    get_block_longhash(b, p, height);
+    return p;
   }
   //---------------------------------------------------------------
   std::vector<uint64_t> relative_output_offsets_to_absolute(const std::vector<uint64_t>& off)
@@ -1130,8 +1139,7 @@ namespace cryptonote
   crypto::secret_key encrypt_key(crypto::secret_key key, const epee::wipeable_string &passphrase)
   {
     crypto::hash hash;
-    cn_pow_hash_v1 kdf_hash;
-    kdf_hash.hash(passphrase.data(), passphrase.size(), hash.data);
+    crypto::cn_slow_hash(passphrase.data(), passphrase.size(), hash);
     sc_add((unsigned char*)key.data, (const unsigned char*)key.data, (const unsigned char*)hash.data);
     return key;
   }
@@ -1139,8 +1147,7 @@ namespace cryptonote
   crypto::secret_key decrypt_key(crypto::secret_key key, const epee::wipeable_string &passphrase)
   {
     crypto::hash hash;
-    cn_pow_hash_v1 kdf_hash;
-    kdf_hash.hash(passphrase.data(), passphrase.size(), hash.data);
+    crypto::cn_slow_hash(passphrase.data(), passphrase.size(), hash);
     sc_sub((unsigned char*)key.data, (const unsigned char*)key.data, (const unsigned char*)hash.data);
     return key;
   }
