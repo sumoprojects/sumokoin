@@ -1862,6 +1862,76 @@ namespace wallet_rpc
     };
   };
 
+  struct COMMAND_RPC_GENERATE_FROM_KEYS
+  {
+    struct request
+    {
+      uint64_t restore_height;
+      std::string filename;
+      std::string address;
+      std::string spendkey;
+      std::string viewkey;
+      std::string password;
+
+      BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE_OPT(restore_height, (uint64_t)0)
+      KV_SERIALIZE(filename)
+      KV_SERIALIZE(address)
+      KV_SERIALIZE(spendkey)
+      KV_SERIALIZE(viewkey)
+      KV_SERIALIZE(password)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response
+    {
+      std::string address;
+      std::string info;
+
+      BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE(address)
+      KV_SERIALIZE(info)
+      END_KV_SERIALIZE_MAP()
+    };
+  };
+
+  struct COMMAND_RPC_RESTORE_DETERMINISTIC_WALLET
+  {
+    struct request
+    {
+      uint64_t restore_height;
+      std::string filename;
+      std::string seed;
+      std::string seed_offset;
+      std::string password;
+      std::string language;
+
+      BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE_OPT(restore_height, (uint64_t)0)
+      KV_SERIALIZE(filename)
+      KV_SERIALIZE(seed)
+      KV_SERIALIZE(seed_offset)
+      KV_SERIALIZE(password)
+      KV_SERIALIZE(language)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response
+    {
+      std::string address;
+      std::string seed;
+      std::string info;
+      bool was_deprecated;
+
+      BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE(address)
+      KV_SERIALIZE(seed)
+      KV_SERIALIZE(info)
+      KV_SERIALIZE(was_deprecated)
+      END_KV_SERIALIZE_MAP()
+    };
+  };
+  
   struct COMMAND_RPC_IS_MULTISIG
   {
     struct request
