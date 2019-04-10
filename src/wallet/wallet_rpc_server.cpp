@@ -2697,7 +2697,7 @@ namespace tools
     std::string wallet_file = m_wallet_dir + "/" + req.filename;
     {
       std::vector<std::string> languages;
-      crypto::ElectrumWords::get_language_list(languages);
+      crypto::ElectrumWords::get_language_list(languages, true);
       std::vector<std::string>::iterator it;
       std::string wallet_file;
       char *ptr;
@@ -2706,7 +2706,7 @@ namespace tools
       if (it == languages.end())
       {
         er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
-        er.message = "Unknown language";
+        er.message = "Unknown language: " + req.language;
         return false;
       }
     }
