@@ -2697,7 +2697,7 @@ namespace tools
     std::string wallet_file = m_wallet_dir + "/" + req.filename;
     {
       std::vector<std::string> languages;
-      crypto::ElectrumWords::get_language_list(languages);
+      crypto::ElectrumWords::get_language_list(languages, true);
       std::vector<std::string>::iterator it;
       std::string wallet_file;
       char *ptr;
@@ -2706,7 +2706,7 @@ namespace tools
       if (it == languages.end())
       {
         er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
-        er.message = "Unknown language";
+        er.message = "Unknown language: " + req.language;
         return false;
       }
     }
@@ -2769,6 +2769,39 @@ namespace tools
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
+  bool wallet_rpc_server::on_set_seed_language(const wallet_rpc::COMMAND_RPC_SET_SEED_LANGUAGE::request& req, wallet_rpc::COMMAND_RPC_SET_SEED_LANGUAGE::response& res, epee::json_rpc::error& er){
+    if (!m_wallet) return not_open(er);
+    if (m_restricted)
+    {
+      er.code = WALLET_RPC_ERROR_CODE_DENIED;
+      er.message = "Command unavailable in restricted mode.";
+      return false;
+    }
+
+    std::vector<std::string> languages;
+    crypto::ElectrumWords::get_language_list(languages, true);
+    std::vector<std::string>::iterator it;
+    if (it == languages.end())
+    {
+      er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
+      er.message = "Unknown language: " + req.language;
+      return false;
+    }
+
+    try
+    {
+      m_wallet->set_seed_language(req.language);
+      LOG_PRINT_L0("Wallet seed language set to [" << req.language << "]");
+    }
+    catch (const std::exception& e)
+    {
+      handle_rpc_exception(std::current_exception(), er, WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR);
+      return false;
+    }
+
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
   bool wallet_rpc_server::on_open_wallet(const wallet_rpc::COMMAND_RPC_OPEN_WALLET::request& req, wallet_rpc::COMMAND_RPC_OPEN_WALLET::response& res, epee::json_rpc::error& er)
   {
     if (m_wallet_dir.empty())
@@ -2818,7 +2851,7 @@ namespace tools
     if (!wal)
     {
       er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
-      er.message = "Failed to open wallet";
+      er.message = "Failed to open wallet. Reason: " + er.message;
       return false;
     }
 
