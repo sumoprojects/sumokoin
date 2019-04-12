@@ -1201,6 +1201,7 @@ void toJsonValue(rapidjson::Document& doc, const cryptonote::rpc::DaemonInfo& in
   INSERT_INTO_JSON_OBJECT(val, doc, block_size_median, info.block_size_median);
   INSERT_INTO_JSON_OBJECT(val, doc, block_weight_median, info.block_weight_median);
   INSERT_INTO_JSON_OBJECT(val, doc, start_time, info.start_time);
+  INSERT_INTO_JSON_OBJECT(val, doc, version, info.version);
 }
 
 void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::DaemonInfo& info)
@@ -1230,6 +1231,7 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::DaemonInfo& inf
   GET_FROM_JSON_OBJECT(val, info.block_size_median, block_size_median);
   GET_FROM_JSON_OBJECT(val, info.block_weight_median, block_weight_median);
   GET_FROM_JSON_OBJECT(val, info.start_time, start_time);
+  GET_FROM_JSON_OBJECT(val, info.version, version);
 }
 
 }  // namespace json
