@@ -1722,7 +1722,6 @@ namespace tools
   //------------------------------------------------------------------------------------------------------------------------------
   bool wallet_rpc_server::on_stop_wallet(const wallet_rpc::COMMAND_RPC_STOP_WALLET::request& req, wallet_rpc::COMMAND_RPC_STOP_WALLET::response& res, epee::json_rpc::error& er)
   {
-    if (!m_wallet) return not_open(er);
     if (m_restricted)
     {
       er.code = WALLET_RPC_ERROR_CODE_DENIED;
@@ -1732,7 +1731,7 @@ namespace tools
 
     try
     {
-      m_wallet->store();
+      if (m_wallet) m_wallet->store();
       m_stop.store(true, std::memory_order_relaxed);
     }
     catch (const std::exception& e)
