@@ -907,9 +907,11 @@ namespace wallet_rpc
     struct request
     {
       std::string key_type;
+      std::string passphrase;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(key_type)
+        KV_SERIALIZE(passphrase)
       END_KV_SERIALIZE_MAP()
     };
 
