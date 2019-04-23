@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -56,12 +56,13 @@ static uint8_t get_block_version(const cryptonote::block &b)
 
 HardFork::HardFork(cryptonote::BlockchainDB &db, uint8_t original_version, uint64_t original_version_till_height, time_t forked_time, time_t update_time, uint64_t window_size, uint8_t default_threshold_percent):
   db(db),
-  original_version(original_version),
-  original_version_till_height(original_version_till_height),
   forked_time(forked_time),
   update_time(update_time),
   window_size(window_size),
-  default_threshold_percent(default_threshold_percent)
+  default_threshold_percent(default_threshold_percent),
+  original_version(original_version),
+  original_version_till_height(original_version_till_height),
+  current_fork_index(0)
 {
   if (window_size == 0)
     throw "window_size needs to be strictly positive";
@@ -184,26 +185,8 @@ void HardFork::init()
   else
     height = 1;
 
-  bool populate = false;
-  try
-  {
-    db.get_hard_fork_version(0);
-  }
-  catch (...) { populate = true; }
-  if (populate) {
-    MINFO("The DB has no hard fork info, reparsing from start");
-    height = 1;
-  }
-  MDEBUG("reorganizing from " << height);
-  if (populate) {
-    reorganize_from_chain_height(height);
-    // reorg will not touch the genesis block, use this as a flag for populating done
-    db.set_hard_fork_version(0, original_version);
-  }
-  else {
-    rescan_from_chain_height(height);
-  }
-  MDEBUG("reorganization done");
+  rescan_from_chain_height(height);
+  MDEBUG("init done");
 }
 
 uint8_t HardFork::get_block_version(uint64_t height) const
@@ -221,7 +204,6 @@ bool HardFork::reorganize_from_block_height(uint64_t height)
   if (height >= db.height())
     return false;
 
-  db.set_batch_transactions(true);
   bool stop_batch = db.batch_start();
 
   versions.clear();
@@ -266,11 +248,9 @@ bool HardFork::reorganize_from_chain_height(uint64_t height)
 bool HardFork::rescan_from_block_height(uint64_t height)
 {
   CRITICAL_REGION_LOCAL(lock);
-  db.block_txn_start(true);
-  if (height >= db.height()) {
-    db.block_txn_stop();
+  db_rtxn_guard rtxn_guard(&db);
+  if (height >= db.height())
     return false;
-  }
 
   versions.clear();
 
@@ -292,8 +272,6 @@ bool HardFork::rescan_from_block_height(uint64_t height)
   if (voted > current_fork_index) {
     current_fork_index = voted;
   }
-
-  db.block_txn_stop();
 
   return true;
 }
@@ -317,9 +295,12 @@ void HardFork::on_block_popped(uint64_t nblocks)
   uint64_t height;
   for (height = old_chain_height - 1; height >= new_chain_height; --height)
   {
+    version = versions.back();
+    last_versions[version]--;
     versions.pop_back();
     version = db.get_hard_fork_version(height);
     versions.push_front(version);
+    last_versions[version]++;
   }
 
   // does not take voting into account

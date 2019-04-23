@@ -1,15 +1,13 @@
 
 #include "net/net_utils_base.h"
-#include "string_tools.h"
 
-#include <cstring>
-#include <typeindex>
+#include <boost/uuid/uuid_io.hpp>
+
+#include "string_tools.h"
 #include "net/local_ip.h"
 
 namespace epee { namespace net_utils
 {
-	const uint8_t ipv4_network_address::ID;
-
 	bool ipv4_network_address::equal(const ipv4_network_address& other) const noexcept
 	{ return is_same_host(other) && port() == other.port(); }
 
@@ -58,24 +56,10 @@ namespace epee { namespace net_utils
 		return self_->is_same_host(*other_self);
 	}
 
-	bool create_network_address(network_address &address, const std::string &string, uint16_t default_port)
-	{
-		uint32_t ip;
-		uint16_t port;
-		if (epee::string_tools::parse_peer_from_string(ip, port, string))
-		{
-			if (default_port && !port)
-				port = default_port;
-			address = ipv4_network_address{ip, port};
-			return true;
-		}
-		return false;
-	}
-
   std::string print_connection_context(const connection_context_base& ctx)
   {
     std::stringstream ss;
-    ss << ctx.m_remote_address.str() << " " << epee::string_tools::get_str_from_guid_a(ctx.m_connection_id) << (ctx.m_is_income ? " INC":" OUT");
+    ss << ctx.m_remote_address.str() << " " << ctx.m_connection_id << (ctx.m_is_income ? " INC":" OUT");
     return ss.str();
   }
 
@@ -86,5 +70,31 @@ namespace epee { namespace net_utils
     return ss.str();
   }
 
+  const char* zone_to_string(zone value) noexcept
+  {
+    switch (value)
+    {
+    case zone::public_:
+      return "public";
+    case zone::i2p:
+      return "i2p";
+    case zone::tor:
+      return "tor";
+    default:
+      break;
+    }
+    return "invalid";
+  }
+
+  zone zone_from_string(const boost::string_ref value) noexcept
+  {
+    if (value == "public")
+      return zone::public_;
+    if (value == "i2p")
+      return zone::i2p;
+    if (value == "tor")
+      return zone::tor;
+    return zone::invalid;
+  }
 }}
 

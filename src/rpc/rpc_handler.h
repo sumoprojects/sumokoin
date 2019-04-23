@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, The Monero Project
+// Copyright (c) 2016-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -28,24 +28,35 @@
 
 #pragma once
 
+#include <boost/optional/optional.hpp>
+#include <cstdint>
 #include <string>
+#include <vector>
 
 namespace cryptonote
 {
+class core;
 
 namespace rpc
 {
 
+struct output_distribution_data
+{
+  std::vector<std::uint64_t> distribution;
+  std::uint64_t start_height;
+  std::uint64_t base;
+};
 
 class RpcHandler
 {
   public:
+    RpcHandler() { }
+    virtual ~RpcHandler() { }
 
     virtual std::string handle(const std::string& request) = 0;
 
-    RpcHandler() { }
-
-    virtual ~RpcHandler() { }
+    static boost::optional<output_distribution_data>
+      get_output_distribution(const std::function<bool(uint64_t, uint64_t, uint64_t, uint64_t&, std::vector<uint64_t>&, uint64_t&)> &f, uint64_t amount, uint64_t from_height, uint64_t to_height, bool cumulative);
 };
 
 

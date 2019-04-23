@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -38,10 +38,12 @@
 // tests
 #include "construct_tx.h"
 #include "check_tx_signature.h"
+#include "check_hash.h"
 #include "cn_slow_hash.h"
 #include "derive_public_key.h"
 #include "derive_secret_key.h"
 #include "ge_frombytes_vartime.h"
+#include "ge_tobytes.h"
 #include "generate_key_derivation.h"
 #include "generate_key_image.h"
 #include "generate_key_image_helper.h"
@@ -50,6 +52,7 @@
 #include "is_out_to_acc.h"
 #include "subaddress_expand.h"
 #include "sc_reduce32.h"
+#include "sc_check.h"
 #include "cn_fast_hash.h"
 #include "rct_mlsag.h"
 #include "equality.h"
@@ -75,10 +78,12 @@ int main(int argc, char** argv)
   const command_line::arg_descriptor<bool> arg_verbose = { "verbose", "Verbose output", false };
   const command_line::arg_descriptor<bool> arg_stats = { "stats", "Including statistics (min/median)", false };
   const command_line::arg_descriptor<unsigned> arg_loop_multiplier = { "loop-multiplier", "Run for that many times more loops", 1 };
+  const command_line::arg_descriptor<std::string> arg_timings_database = { "timings-database", "Keep timings history in a file" };
   command_line::add_arg(desc_options, arg_filter);
   command_line::add_arg(desc_options, arg_verbose);
   command_line::add_arg(desc_options, arg_stats);
   command_line::add_arg(desc_options, arg_loop_multiplier);
+  command_line::add_arg(desc_options, arg_timings_database);
 
   po::variables_map vm;
   bool r = command_line::handle_error_helper(desc_options, [&]()
@@ -91,7 +96,10 @@ int main(int argc, char** argv)
     return 1;
 
   const std::string filter = tools::glob_to_regex(command_line::get_arg(vm, arg_filter));
+  const std::string timings_database = command_line::get_arg(vm, arg_timings_database);
   Params p;
+  if (!timings_database.empty())
+    p.td = TimingsDatabase(timings_database);
   p.verbose = command_line::get_arg(vm, arg_verbose);
   p.stats = command_line::get_arg(vm, arg_stats);
   p.loop_multiplier = command_line::get_arg(vm, arg_loop_multiplier);
@@ -174,6 +182,14 @@ int main(int argc, char** argv)
   TEST_PERFORMANCE4(filter, p, test_check_tx_signature_aggregated_bulletproofs, 2, 2, 56, 16);
   TEST_PERFORMANCE4(filter, p, test_check_tx_signature_aggregated_bulletproofs, 10, 2, 56, 16);
 
+  TEST_PERFORMANCE4(filter, p, test_check_hash, 0, 1, 0, 1);
+  TEST_PERFORMANCE4(filter, p, test_check_hash, 0, 0xffffffffffffffff, 0, 0xffffffffffffffff);
+  TEST_PERFORMANCE4(filter, p, test_check_hash, 0, 0xffffffffffffffff, 0, 1);
+  TEST_PERFORMANCE4(filter, p, test_check_hash, 1, 0, 1, 0);
+  TEST_PERFORMANCE4(filter, p, test_check_hash, 1, 0, 0, 1);
+  TEST_PERFORMANCE4(filter, p, test_check_hash, 0xffffffffffffffff, 0xffffffffffffffff, 0, 1);
+  TEST_PERFORMANCE4(filter, p, test_check_hash, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffffffffffffff);
+
   TEST_PERFORMANCE0(filter, p, test_is_out_to_acc);
   TEST_PERFORMANCE0(filter, p, test_is_out_to_acc_precomp);
   TEST_PERFORMANCE0(filter, p, test_generate_key_image_helper);
@@ -182,8 +198,10 @@ int main(int argc, char** argv)
   TEST_PERFORMANCE0(filter, p, test_derive_public_key);
   TEST_PERFORMANCE0(filter, p, test_derive_secret_key);
   TEST_PERFORMANCE0(filter, p, test_ge_frombytes_vartime);
+  TEST_PERFORMANCE0(filter, p, test_ge_tobytes);
   TEST_PERFORMANCE0(filter, p, test_generate_keypair);
   TEST_PERFORMANCE0(filter, p, test_sc_reduce32);
+  TEST_PERFORMANCE0(filter, p, test_sc_check);
   TEST_PERFORMANCE1(filter, p, test_signature, false);
   TEST_PERFORMANCE1(filter, p, test_signature, true);
 
@@ -252,6 +270,7 @@ int main(int argc, char** argv)
   TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_scalarmultKey);
   TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_scalarmultH);
   TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_scalarmult8);
+  TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_ge_dsm_precomp);
   TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_ge_double_scalarmult_base_vartime);
   TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_ge_double_scalarmult_precomp_vartime);
   TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_ge_double_scalarmult_precomp_vartime2);
@@ -259,6 +278,8 @@ int main(int argc, char** argv)
   TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_addKeys3);
   TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_addKeys3_2);
   TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_isInMainSubgroup);
+  TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_zeroCommitUncached);
+  TEST_PERFORMANCE1(filter, p, test_crypto_ops, op_zeroCommitCached);
 
   TEST_PERFORMANCE2(filter, p, test_multiexp, multiexp_bos_coster, 2);
   TEST_PERFORMANCE2(filter, p, test_multiexp, multiexp_bos_coster, 4);

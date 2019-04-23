@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 //
@@ -75,18 +75,15 @@ public:
     protocol.set_p2p_endpoint(p2p.get());
     core.set_protocol(protocol.get());
 
-    const auto testnet = command_line::get_arg(vm, cryptonote::arg_testnet_on);
-    const auto stagenet = command_line::get_arg(vm, cryptonote::arg_stagenet_on);
-    const auto regtest = command_line::get_arg(vm, cryptonote::arg_regtest_on);
     const auto restricted = command_line::get_arg(vm, cryptonote::core_rpc_server::arg_restricted_rpc);
     const auto main_rpc_port = command_line::get_arg(vm, cryptonote::core_rpc_server::arg_rpc_bind_port);
-    rpcs.emplace_back(new t_rpc{vm, core, p2p, restricted, testnet ? cryptonote::TESTNET : stagenet ? cryptonote::STAGENET : regtest ? cryptonote::FAKECHAIN : cryptonote::MAINNET, main_rpc_port, "core"});
+    rpcs.emplace_back(new t_rpc{vm, core, p2p, restricted, main_rpc_port, "core"});
 
     auto restricted_rpc_port_arg = cryptonote::core_rpc_server::arg_rpc_restricted_bind_port;
     if(!command_line::is_arg_defaulted(vm, restricted_rpc_port_arg))
     {
       auto restricted_rpc_port = command_line::get_arg(vm, restricted_rpc_port_arg);
-      rpcs.emplace_back(new t_rpc{vm, core, p2p, true, testnet ? cryptonote::TESTNET : stagenet ? cryptonote::STAGENET : cryptonote::MAINNET, restricted_rpc_port, "restricted"});
+      rpcs.emplace_back(new t_rpc{vm, core, p2p, true, restricted_rpc_port, "restricted"});
     }
   }
 };
@@ -99,9 +96,11 @@ void t_daemon::init_options(boost::program_options::options_description & option
 }
 
 t_daemon::t_daemon(
-    boost::program_options::variables_map const & vm
+    boost::program_options::variables_map const & vm,
+    uint16_t public_rpc_port
   )
-  : mp_internals{new t_internals{vm}}
+  : mp_internals{new t_internals{vm}},
+  public_rpc_port(public_rpc_port)
 {
   zmq_rpc_bind_port = command_line::get_arg(vm, daemon_args::arg_zmq_rpc_bind_port);
   zmq_rpc_bind_address = command_line::get_arg(vm, daemon_args::arg_zmq_rpc_bind_ip);
@@ -116,6 +115,7 @@ t_daemon::t_daemon(t_daemon && other)
   {
     mp_internals = std::move(other.mp_internals);
     other.mp_internals.reset(nullptr);
+    public_rpc_port = other.public_rpc_port;
   }
 }
 
@@ -126,6 +126,7 @@ t_daemon & t_daemon::operator=(t_daemon && other)
   {
     mp_internals = std::move(other.mp_internals);
     other.mp_internals.reset(nullptr);
+    public_rpc_port = other.public_rpc_port;
   }
   return *this;
 }
@@ -189,6 +190,12 @@ bool t_daemon::run(bool interactive)
     MINFO(std::string("ZMQ server started at ") + zmq_rpc_bind_address
           + ":" + zmq_rpc_bind_port + ".");
 
+    if (public_rpc_port > 0)
+    {
+      MGINFO("Public RPC port " << public_rpc_port << " will be advertised to other peers over P2P");
+      mp_internals->p2p.get().set_rpc_port(public_rpc_port);
+    }
+    
     mp_internals->p2p.run(); // blocks until p2p goes down
 
     if (rpc_commands)
@@ -198,7 +205,6 @@ bool t_daemon::run(bool interactive)
 
     for(auto& rpc : mp_internals->rpcs)
       rpc->stop();
-    mp_internals->core.get().get_miner().stop();
     MGINFO("Node stopped.");
     return true;
   }
@@ -220,7 +226,6 @@ void t_daemon::stop()
   {
     throw std::runtime_error{"Can't stop stopped daemon"};
   }
-  mp_internals->core.get().get_miner().stop();
   mp_internals->p2p.stop();
   for(auto& rpc : mp_internals->rpcs)
     rpc->stop();

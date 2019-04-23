@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, The Monero Project
+// Copyright (c) 2016-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -563,13 +563,13 @@ void toJsonValue(rapidjson::Document& doc, const cryptonote::connection_info& in
 {
   val.SetObject();
 
-  auto& al = doc.GetAllocator();
   INSERT_INTO_JSON_OBJECT(val, doc, incoming, info.incoming);
   INSERT_INTO_JSON_OBJECT(val, doc, localhost, info.localhost);
   INSERT_INTO_JSON_OBJECT(val, doc, local_ip, info.local_ip);
 
   INSERT_INTO_JSON_OBJECT(val, doc, ip, info.ip);
   INSERT_INTO_JSON_OBJECT(val, doc, port, info.port);
+  INSERT_INTO_JSON_OBJECT(val, doc, rpc_port, info.rpc_port);
 
   INSERT_INTO_JSON_OBJECT(val, doc, peer_id, info.peer_id);
 
@@ -604,6 +604,7 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::connection_info& inf
 
   GET_FROM_JSON_OBJECT(val, info.ip, ip);
   GET_FROM_JSON_OBJECT(val, info.port, port);
+  GET_FROM_JSON_OBJECT(val, info.rpc_port, rpc_port);
 
   GET_FROM_JSON_OBJECT(val, info.peer_id, peer_id);
 
@@ -733,7 +734,9 @@ void toJsonValue(rapidjson::Document& doc, const cryptonote::rpc::peer& peer, ra
   INSERT_INTO_JSON_OBJECT(val, doc, id, peer.id);
   INSERT_INTO_JSON_OBJECT(val, doc, ip, peer.ip);
   INSERT_INTO_JSON_OBJECT(val, doc, port, peer.port);
+  INSERT_INTO_JSON_OBJECT(val, doc, rpc_port, peer.rpc_port);
   INSERT_INTO_JSON_OBJECT(val, doc, last_seen, peer.last_seen);
+  INSERT_INTO_JSON_OBJECT(val, doc, pruning_seed, peer.pruning_seed);
 }
 
 
@@ -747,7 +750,9 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::peer& peer)
   GET_FROM_JSON_OBJECT(val, peer.id, id);
   GET_FROM_JSON_OBJECT(val, peer.ip, ip);
   GET_FROM_JSON_OBJECT(val, peer.port, port);
+  GET_FROM_JSON_OBJECT(val, peer.rpc_port, rpc_port);
   GET_FROM_JSON_OBJECT(val, peer.last_seen, last_seen);
+  GET_FROM_JSON_OBJECT(val, peer.pruning_seed, pruning_seed);
 }
 
 void toJsonValue(rapidjson::Document& doc, const cryptonote::rpc::tx_in_pool& tx, rapidjson::Value& val)
@@ -1192,7 +1197,9 @@ void toJsonValue(rapidjson::Document& doc, const cryptonote::rpc::DaemonInfo& in
   INSERT_INTO_JSON_OBJECT(val, doc, incoming_connections_count, info.incoming_connections_count);
   INSERT_INTO_JSON_OBJECT(val, doc, white_peerlist_size, info.white_peerlist_size);
   INSERT_INTO_JSON_OBJECT(val, doc, grey_peerlist_size, info.grey_peerlist_size);
+  INSERT_INTO_JSON_OBJECT(val, doc, mainnet, info.mainnet);
   INSERT_INTO_JSON_OBJECT(val, doc, testnet, info.testnet);
+  INSERT_INTO_JSON_OBJECT(val, doc, stagenet, info.stagenet);
   INSERT_INTO_JSON_OBJECT(val, doc, nettype, info.nettype);
   INSERT_INTO_JSON_OBJECT(val, doc, top_block_hash, info.top_block_hash);
   INSERT_INTO_JSON_OBJECT(val, doc, cumulative_difficulty, info.cumulative_difficulty);
@@ -1201,7 +1208,6 @@ void toJsonValue(rapidjson::Document& doc, const cryptonote::rpc::DaemonInfo& in
   INSERT_INTO_JSON_OBJECT(val, doc, block_size_median, info.block_size_median);
   INSERT_INTO_JSON_OBJECT(val, doc, block_weight_median, info.block_weight_median);
   INSERT_INTO_JSON_OBJECT(val, doc, start_time, info.start_time);
-  INSERT_INTO_JSON_OBJECT(val, doc, version, info.version);
 }
 
 void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::DaemonInfo& info)
@@ -1222,7 +1228,9 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::DaemonInfo& inf
   GET_FROM_JSON_OBJECT(val, info.incoming_connections_count, incoming_connections_count);
   GET_FROM_JSON_OBJECT(val, info.white_peerlist_size, white_peerlist_size);
   GET_FROM_JSON_OBJECT(val, info.grey_peerlist_size, grey_peerlist_size);
+  GET_FROM_JSON_OBJECT(val, info.mainnet, mainnet);
   GET_FROM_JSON_OBJECT(val, info.testnet, testnet);
+  GET_FROM_JSON_OBJECT(val, info.stagenet, stagenet);
   GET_FROM_JSON_OBJECT(val, info.nettype, nettype);
   GET_FROM_JSON_OBJECT(val, info.top_block_hash, top_block_hash);
   GET_FROM_JSON_OBJECT(val, info.cumulative_difficulty, cumulative_difficulty);
@@ -1231,7 +1239,29 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::DaemonInfo& inf
   GET_FROM_JSON_OBJECT(val, info.block_size_median, block_size_median);
   GET_FROM_JSON_OBJECT(val, info.block_weight_median, block_weight_median);
   GET_FROM_JSON_OBJECT(val, info.start_time, start_time);
-  GET_FROM_JSON_OBJECT(val, info.version, version);
+}
+
+void toJsonValue(rapidjson::Document& doc, const cryptonote::rpc::output_distribution& dist, rapidjson::Value& val)
+{
+  val.SetObject();
+
+  INSERT_INTO_JSON_OBJECT(val, doc, distribution, dist.data.distribution);
+  INSERT_INTO_JSON_OBJECT(val, doc, amount, dist.amount);
+  INSERT_INTO_JSON_OBJECT(val, doc, start_height, dist.data.start_height);
+  INSERT_INTO_JSON_OBJECT(val, doc, base, dist.data.base);
+}
+
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_distribution& dist)
+{
+  if (!val.IsObject())
+  {
+    throw WRONG_TYPE("json object");
+  }
+
+  GET_FROM_JSON_OBJECT(val, dist.data.distribution, distribution);
+  GET_FROM_JSON_OBJECT(val, dist.amount, amount);
+  GET_FROM_JSON_OBJECT(val, dist.data.start_height, start_height);
+  GET_FROM_JSON_OBJECT(val, dist.data.base, base);
 }
 
 }  // namespace json

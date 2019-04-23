@@ -476,7 +476,9 @@
 #cmakedefine HAVE_STRLCPY
 
 /* Define to 1 if you have the `strptime' function. */
+#ifndef HAVE_STRPTIME
 #cmakedefine HAVE_STRPTIME
+#endif
 
 /* Define to 1 if you have the `strsep' function. */
 #cmakedefine HAVE_STRSEP
@@ -932,7 +934,9 @@
 
 
 #ifndef UNBOUND_DEBUG
+# ifndef NDEBUG
 #  define NDEBUG
+# endif
 #endif
 
 /** Use small-ldns codebase */

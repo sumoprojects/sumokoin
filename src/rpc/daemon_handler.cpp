@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018, The Monero Project
+// Copyright (c) 2017-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -141,7 +141,7 @@ namespace rpc
 
     auto& chain = m_core.get_blockchain_storage();
 
-    if (!chain.find_blockchain_supplement(req.known_hashes, res.hashes, res.start_height, res.current_height))
+    if (!chain.find_blockchain_supplement(req.known_hashes, res.hashes, res.start_height, res.current_height, false))
     {
       res.status = Message::STATUS_FAILED;
       res.error_details = "Blockchain::find_blockchain_supplement() returned false";
@@ -263,20 +263,43 @@ namespace rpc
 
   void DaemonHandler::handle(const SendRawTx::Request& req, SendRawTx::Response& res)
   {
-    auto tx_blob = cryptonote::tx_to_blob(req.tx);
+    handleTxBlob(cryptonote::tx_to_blob(req.tx), req.relay, res);
+  }
+
+  void DaemonHandler::handle(const SendRawTxHex::Request& req, SendRawTxHex::Response& res)
+  {
+    std::string tx_blob;
+    if(!epee::string_tools::parse_hexstr_to_binbuff(req.tx_as_hex, tx_blob))
+    {
+      MERROR("[SendRawTxHex]: Failed to parse tx from hexbuff: " << req.tx_as_hex);
+      res.status = Message::STATUS_FAILED;
+      res.error_details = "Invalid hex";
+      return;
+    }
+    handleTxBlob(tx_blob, req.relay, res);
+  }
+
+  void DaemonHandler::handleTxBlob(const std::string& tx_blob, bool relay, SendRawTx::Response& res)
+  {
+    if (!m_p2p.get_payload_object().is_synchronized())
+    {
+      res.status = Message::STATUS_FAILED;
+      res.error_details = "Not ready to accept transactions; try again later";
+      return;
+    }
 
     cryptonote_connection_context fake_context = AUTO_VAL_INIT(fake_context);
     tx_verification_context tvc = AUTO_VAL_INIT(tvc);
 
-    if(!m_core.handle_incoming_tx(tx_blob, tvc, false, false, !req.relay) || tvc.m_verifivation_failed)
+    if(!m_core.handle_incoming_tx(tx_blob, tvc, false, false, !relay) || tvc.m_verifivation_failed)
     {
       if (tvc.m_verifivation_failed)
       {
-        LOG_PRINT_L0("[on_send_raw_tx]: tx verification failed");
+        MERROR("[SendRawTx]: tx verification failed");
       }
       else
       {
-        LOG_PRINT_L0("[on_send_raw_tx]: Failed to process tx");
+        MERROR("[SendRawTx]: Failed to process tx");
       }
       res.status = Message::STATUS_FAILED;
       res.error_details = "";
@@ -284,11 +307,6 @@ namespace rpc
       if (tvc.m_low_mixin)
       {
         res.error_details = "mixin too low";
-      }
-      if (tvc.m_high_mixin)
-      {
-        if (!res.error_details.empty()) res.error_details += " and ";
-        res.error_details = "mixin too high";
       }
       if (tvc.m_double_spend)
       {
@@ -325,12 +343,6 @@ namespace rpc
         if (!res.error_details.empty()) res.error_details += " and ";
         res.error_details = "tx is not ringct";
       }
-      if (tvc.m_invalid_tx_version)
-      {
-        if (!res.error_details.empty()) res.error_details += " and ";
-        res.error_details = "invalid tx version";
-      }
-
       if (res.error_details.empty())
       {
         res.error_details = "an unknown issue was found with the transaction";
@@ -339,9 +351,9 @@ namespace rpc
       return;
     }
 
-    if(!tvc.m_should_be_relayed || !req.relay)
+    if(!tvc.m_should_be_relayed || !relay)
     {
-      LOG_PRINT_L0("[on_send_raw_tx]: tx accepted, but not relayed");
+      MERROR("[SendRawTx]: tx accepted, but not relayed");
       res.error_details = "Not relayed";
       res.relayed = false;
       res.status = Message::STATUS_OK;
@@ -424,7 +436,8 @@ namespace rpc
 
     auto& chain = m_core.get_blockchain_storage();
 
-    res.info.difficulty = chain.get_difficulty_for_next_block();
+    res.info.wide_difficulty = chain.get_difficulty_for_next_block();
+    res.info.difficulty = (res.info.wide_difficulty << 64 >> 64).convert_to<uint64_t>();
 
     res.info.target = chain.get_difficulty_target();
 
@@ -434,18 +447,19 @@ namespace rpc
 
     res.info.alt_blocks_count = chain.get_alternative_blocks_count();
 
-    uint64_t total_conn = m_p2p.get_connections_count();
-    res.info.outgoing_connections_count = m_p2p.get_outgoing_connections_count();
+    uint64_t total_conn = m_p2p.get_public_connections_count();
+    res.info.outgoing_connections_count = m_p2p.get_public_outgoing_connections_count();
     res.info.incoming_connections_count = total_conn - res.info.outgoing_connections_count;
 
-    res.info.white_peerlist_size = m_p2p.get_peerlist_manager().get_white_peers_count();
+    res.info.white_peerlist_size = m_p2p.get_public_white_peers_count();
 
-    res.info.grey_peerlist_size = m_p2p.get_peerlist_manager().get_gray_peers_count();
+    res.info.grey_peerlist_size = m_p2p.get_public_gray_peers_count();
 
     res.info.mainnet = m_core.get_nettype() == MAINNET;
     res.info.testnet = m_core.get_nettype() == TESTNET;
     res.info.stagenet = m_core.get_nettype() == STAGENET;
-    res.info.cumulative_difficulty = m_core.get_blockchain_storage().get_db().get_block_cumulative_difficulty(res.info.height - 1);
+    res.info.wide_cumulative_difficulty = m_core.get_blockchain_storage().get_db().get_block_cumulative_difficulty(res.info.height - 1);
+    res.info.cumulative_difficulty = (res.info.wide_cumulative_difficulty << 64 >> 64).convert_to<uint64_t>();
     res.info.block_size_limit = res.info.block_weight_limit = m_core.get_blockchain_storage().get_current_cumulative_block_weight_limit();
     res.info.block_size_median = res.info.block_weight_median = m_core.get_blockchain_storage().get_current_cumulative_block_weight_median();
     res.info.start_time = (uint64_t)m_core.get_start_time();
@@ -737,10 +751,51 @@ namespace rpc
     res.status = Message::STATUS_OK;
   }
 
-  void DaemonHandler::handle(const GetPerKBFeeEstimate::Request& req, GetPerKBFeeEstimate::Response& res)
+  void DaemonHandler::handle(const GetFeeEstimate::Request& req, GetFeeEstimate::Response& res)
   {
-    res.estimated_fee_per_kb = m_core.get_blockchain_storage().get_dynamic_base_fee_estimate(req.num_grace_blocks);
+    res.hard_fork_version = m_core.get_blockchain_storage().get_current_hard_fork_version();
+    res.estimated_base_fee = m_core.get_blockchain_storage().get_dynamic_base_fee_estimate(req.num_grace_blocks);
+
+    if (res.hard_fork_version < HF_VERSION_PER_BYTE_FEE)
+    {
+       res.size_scale = 1024; // per KiB fee
+       res.fee_mask = 1;
+    }
+    else
+    {
+      res.size_scale = 1; // per byte fee
+      res.fee_mask = Blockchain::get_fee_quantization_mask();
+    }
     res.status = Message::STATUS_OK;
+  }
+
+  void DaemonHandler::handle(const GetOutputDistribution::Request& req, GetOutputDistribution::Response& res)
+  {
+    try
+    {
+      res.distributions.reserve(req.amounts.size());
+
+      const uint64_t req_to_height = req.to_height ? req.to_height : (m_core.get_current_blockchain_height() - 1);
+      for (std::uint64_t amount : req.amounts)
+      {
+        auto data = rpc::RpcHandler::get_output_distribution([this](uint64_t amount, uint64_t from, uint64_t to, uint64_t &start_height, std::vector<uint64_t> &distribution, uint64_t &base) { return m_core.get_output_distribution(amount, from, to, start_height, distribution, base); }, amount, req.from_height, req_to_height, req.cumulative);
+        if (!data)
+        {
+          res.distributions.clear();
+          res.status = Message::STATUS_FAILED;
+          res.error_details = "Failed to get output distribution";
+          return;
+        }
+        res.distributions.push_back(output_distribution{std::move(*data), amount, req.cumulative});
+      }
+      res.status = Message::STATUS_OK;
+    }
+    catch (const std::exception& e)
+    {
+      res.distributions.clear();
+      res.status = Message::STATUS_FAILED;
+      res.error_details = e.what();
+    }
   }
 
   bool DaemonHandler::getBlockHeaderByHash(const crypto::hash& hash_in, cryptonote::rpc::BlockHeaderResponse& header)
@@ -773,7 +828,8 @@ namespace rpc
       header.reward += out.amount;
     }
 
-    header.difficulty = m_core.get_blockchain_storage().block_difficulty(header.height);
+    header.wide_difficulty = m_core.get_blockchain_storage().block_difficulty(header.height);
+    header.difficulty = (header.wide_difficulty << 64 >> 64).convert_to<uint64_t>();
 
     return true;
   }
@@ -800,6 +856,7 @@ namespace rpc
       REQ_RESP_TYPES_MACRO(request_type, KeyImagesSpent, req_json, resp_message, handle);
       REQ_RESP_TYPES_MACRO(request_type, GetTxGlobalOutputIndices, req_json, resp_message, handle);
       REQ_RESP_TYPES_MACRO(request_type, SendRawTx, req_json, resp_message, handle);
+      REQ_RESP_TYPES_MACRO(request_type, SendRawTxHex, req_json, resp_message, handle);
       REQ_RESP_TYPES_MACRO(request_type, GetInfo, req_json, resp_message, handle);
       REQ_RESP_TYPES_MACRO(request_type, StartMining, req_json, resp_message, handle);
       REQ_RESP_TYPES_MACRO(request_type, StopMining, req_json, resp_message, handle);
@@ -817,7 +874,8 @@ namespace rpc
       REQ_RESP_TYPES_MACRO(request_type, GetOutputHistogram, req_json, resp_message, handle);
       REQ_RESP_TYPES_MACRO(request_type, GetOutputKeys, req_json, resp_message, handle);
       REQ_RESP_TYPES_MACRO(request_type, GetRPCVersion, req_json, resp_message, handle);
-      REQ_RESP_TYPES_MACRO(request_type, GetPerKBFeeEstimate, req_json, resp_message, handle);
+      REQ_RESP_TYPES_MACRO(request_type, GetFeeEstimate, req_json, resp_message, handle);
+      REQ_RESP_TYPES_MACRO(request_type, GetOutputDistribution, req_json, resp_message, handle);
 
       // if none of the request types matches
       if (resp_message == NULL)

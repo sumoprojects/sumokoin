@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2018, The Monero Project
+# Copyright (c) 2014-2019, The Monero Project
 #
 # All rights reserved.
 #
@@ -26,10 +26,6 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-if(WIN32)
-  set(EXTRA_LIBRARIES "${EXTRA_LIBRARIES};bcrypt")
-endif()
-
 set(functional_tests_sources
   main.cpp
   transactions_flow_test.cpp
@@ -53,6 +49,13 @@ target_link_libraries(functional_tests
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
     ${EXTRA_LIBRARIES})
-set_property(TARGET functional_tests
-  PROPERTY
-    FOLDER "tests")
+
+execute_process(COMMAND ${PYTHON_EXECUTABLE} "-c" "import requests; print('OK')" OUTPUT_VARIABLE REQUESTS_OUTPUT OUTPUT_STRIP_TRAILING_WHITESPACE)
+if (REQUESTS_OUTPUT STREQUAL "OK")
+  add_test(
+    NAME    functional_tests_rpc
+    COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/functional_tests_rpc.py" "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" all)
+else()
+  message(WARNING "functional_tests_rpc skipped, needs the 'requests' python module")
+  set(CTEST_CUSTOM_TESTS_IGNORE ${CTEST_CUSTOM_TESTS_IGNORE} functional_tests_rpc)
+endif()

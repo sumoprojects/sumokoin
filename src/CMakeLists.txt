@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2018, The Monero Project
+# Copyright (c) 2014-2019, The Monero Project
 #
 # All rights reserved.
 #
@@ -33,11 +33,6 @@ if (WIN32 OR STATIC)
   # miniupnp changed their static define
   add_definitions(-DMINIUPNP_STATICLIB)
 endif ()
-
-# warnings are cleared only for GCC on Linux
-if (NOT (MINGW OR APPLE OR FREEBSD OR OPENBSD OR DRAGONFLY))
-  add_compile_options("${WARNINGS_AS_ERRORS_FLAG}") # applies only to targets that follow
-endif()
 
 function (monero_private_headers group)
   source_group("${group}\\Private"
@@ -114,7 +109,9 @@ add_subdirectory(ringct)
 add_subdirectory(checkpoints)
 add_subdirectory(cryptonote_basic)
 add_subdirectory(cryptonote_core)
+add_subdirectory(lmdb)
 add_subdirectory(multisig)
+add_subdirectory(net)
 if(NOT IOS)
   add_subdirectory(blockchain_db)
 endif()
@@ -145,3 +142,4 @@ if(PER_BLOCK_CHECKPOINT)
 endif()
 
 add_subdirectory(device)
+add_subdirectory(device_trezor)

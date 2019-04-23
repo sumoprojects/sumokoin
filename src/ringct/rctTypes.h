@@ -120,17 +120,14 @@ namespace rct {
     // If the pedersen commitment to an amount is C = aG + bH,
     // "mask" contains a 32 byte key a
     // "amount" contains a hex representation (in 32 bytes) of a 64 bit number
-    // "senderPk" is not the senders actual public key, but a one-time public key generated for
     // the purpose of the ECDH exchange
     struct ecdhTuple {
         key mask;
         key amount;
-        key senderPk;
 
         BEGIN_SERIALIZE_OBJECT()
           FIELD(mask) // not saved from v2 BPs
           FIELD(amount)
-          // FIELD(senderPk) // not serialized, as we do not use it in monero currently
         END_SERIALIZE()
     };
 
@@ -187,11 +184,14 @@ namespace rct {
       rct::keyV L, R;
       rct::key a, b, t;
 
-      Bulletproof() {}
+      Bulletproof():
+        A({}), S({}), T1({}), T2({}), taux({}), mu({}), a({}), b({}), t({}) {}
       Bulletproof(const rct::key &V, const rct::key &A, const rct::key &S, const rct::key &T1, const rct::key &T2, const rct::key &taux, const rct::key &mu, const rct::keyV &L, const rct::keyV &R, const rct::key &a, const rct::key &b, const rct::key &t):
         V({V}), A(A), S(S), T1(T1), T2(T2), taux(taux), mu(mu), L(L), R(R), a(a), b(b), t(t) {}
       Bulletproof(const rct::keyV &V, const rct::key &A, const rct::key &S, const rct::key &T1, const rct::key &T2, const rct::key &taux, const rct::key &mu, const rct::keyV &L, const rct::keyV &R, const rct::key &a, const rct::key &b, const rct::key &t):
         V(V), A(A), S(S), T1(T1), T2(T2), taux(taux), mu(mu), L(L), R(R), a(a), b(b), t(t) {}
+
+      bool operator==(const Bulletproof &other) const { return V == other.V && A == other.A && S == other.S && T1 == other.T1 && T2 == other.T2 && taux == other.taux && mu == other.mu && L == other.L && R == other.R && a == other.a && b == other.b && t == other.t; }
 
       BEGIN_SERIALIZE_OBJECT()
         // Commitments aren't saved, they're restored via outPk
