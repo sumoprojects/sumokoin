@@ -352,6 +352,26 @@ bool Blockchain::init(BlockchainDB* db, const network_type nettype, bool offline
   m_nettype = test_options != NULL ? FAKECHAIN : nettype;
   m_offline = offline;
   m_fixed_difficulty = fixed_difficulty;
+
+  if (m_nettype == MAINNET){
+    memcpy(m_exchange_fund_view_key.data, config::EXCHANGE_FUND_VIEWKEY, 32);
+
+    address_parse_info exchange_fund_addr;
+    if (!get_account_address_from_str(exchange_fund_addr, m_nettype, std::string(config::EXCHANGE_FUND_ADDRESS)))
+    {
+      LOG_ERROR("Failed to parse exchange fund address");
+      return false;
+    }
+
+    m_exchange_fund_spend_key = exchange_fund_addr.address.m_spend_public_key;
+    crypto::public_key vk;
+    if (!secret_key_to_public_key(m_exchange_fund_view_key, vk) || vk != exchange_fund_addr.address.m_view_public_key)
+    {
+      LOG_ERROR("Exchange fund private view key verification failed!");
+      return false;
+    }
+  }
+
   if (m_hardfork == nullptr)
   {
     if (m_nettype ==  FAKECHAIN || m_nettype == STAGENET)
