@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018, The Monero Project
+// Copyright (c) 2017-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -44,12 +44,12 @@ namespace tools
 
     MDEBUG("Checking updates for " << buildtag << " " << software);
 
-    // All four SumoPulse domains have DNSSEC on and valid
+    // All four MoneroPulse domains have DNSSEC on and valid
     static const std::vector<std::string> dns_urls = {
-        "updates.sumopulse.win",
-        "updates.sumopulse.bid",
         "updates.sumopulse.stream",
-        "updates.sumopulse.download"
+        "updates.sumopulse.download",
+        "updates.sumopulse.win",
+        "updates.sumopulse.bid"
     };
 
     if (!tools::dns_utils::load_txt_records_from_dns(records, dns_urls))

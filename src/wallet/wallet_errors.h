@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -72,6 +72,7 @@ namespace tools
     //         tx_parse_error
     //         get_tx_pool_error
     //         out_of_hashchain_bounds_error
+    //       signature_check_failed
     //       transfer_error *
     //         get_outs_general_error
     //         not_enough_unlocked_money
@@ -213,6 +214,14 @@ namespace tools
     struct password_needed : public wallet_runtime_error
     {
       explicit password_needed(std::string&& loc, const std::string &msg = "Password needed")
+        : wallet_runtime_error(std::move(loc), msg)
+      {
+      }
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct password_entry_failed : public wallet_runtime_error
+    {
+      explicit password_entry_failed(std::string&& loc, const std::string &msg = "Password entry failed")
         : wallet_runtime_error(std::move(loc), msg)
       {
       }
@@ -416,6 +425,14 @@ namespace tools
       }
 
       std::string to_string() const { return refresh_error::to_string(); }
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct signature_check_failed : public wallet_logic_error
+    {
+      explicit signature_check_failed(std::string&& loc, const std::string& message)
+        : wallet_logic_error(std::move(loc), "Signature check failed " + message)
+      {
+      }
     };
     //----------------------------------------------------------------------------------------------------
     struct transfer_error : public wallet_logic_error
@@ -682,26 +699,43 @@ namespace tools
       explicit tx_too_big(std::string&& loc, const cryptonote::transaction& tx, uint64_t tx_weight_limit)
         : transfer_error(std::move(loc), "transaction is too big")
         , m_tx(tx)
+        , m_tx_valid(true)
+        , m_tx_weight(cryptonote::get_transaction_weight(tx))
         , m_tx_weight_limit(tx_weight_limit)
       {
       }
 
+      explicit tx_too_big(std::string&& loc, uint64_t tx_weight, uint64_t tx_weight_limit)
+        : transfer_error(std::move(loc), "transaction would be too big")
+        , m_tx_valid(false)
+        , m_tx_weight(tx_weight)
+        , m_tx_weight_limit(tx_weight_limit)
+      {
+      }
+
+      bool tx_valid() const { return m_tx_valid; }
       const cryptonote::transaction& tx() const { return m_tx; }
+      uint64_t tx_weight() const { return m_tx_weight; }
       uint64_t tx_weight_limit() const { return m_tx_weight_limit; }
 
       std::string to_string() const
       {
         std::ostringstream ss;
-        cryptonote::transaction tx = m_tx;
         ss << transfer_error::to_string() <<
           ", tx_weight_limit = " << m_tx_weight_limit <<
-          ", tx weight = " << get_transaction_weight(m_tx) <<
-          ", tx:\n" << cryptonote::obj_to_json_str(tx);
+          ", tx weight = " << m_tx_weight;
+        if (m_tx_valid)
+        {
+          cryptonote::transaction tx = m_tx;
+          ss << ", tx:\n" << cryptonote::obj_to_json_str(tx);
+        }
         return ss.str();
       }
 
     private:
       cryptonote::transaction m_tx;
+      bool m_tx_valid;
+      uint64_t m_tx_weight;
       uint64_t m_tx_weight_limit;
     };
     //----------------------------------------------------------------------------------------------------
@@ -802,6 +836,31 @@ namespace tools
     private:
       std::string m_keys_file;
       std::string m_wallet_file;
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct mms_error : public wallet_logic_error
+    {
+    protected:
+      explicit mms_error(std::string&& loc, const std::string& message)
+        : wallet_logic_error(std::move(loc), message)
+      {
+      }
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct no_connection_to_bitmessage : public mms_error
+    {
+      explicit no_connection_to_bitmessage(std::string&& loc, const std::string& address)
+        : mms_error(std::move(loc), "no connection to PyBitmessage at address " + address)
+      {
+      }
+    };
+    //----------------------------------------------------------------------------------------------------
+    struct bitmessage_api_error : public mms_error
+    {
+      explicit bitmessage_api_error(std::string&& loc, const std::string& error_string)
+        : mms_error(std::move(loc), "PyBitmessage returned " + error_string)
+      {
+      }
     };
     //----------------------------------------------------------------------------------------------------
 

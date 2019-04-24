@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2018, The Monero Project
+# Copyright (c) 2014-2019, The Monero Project
 #
 # All rights reserved.
 #
@@ -43,6 +43,7 @@ set(unit_tests_sources
   crypto.cpp
   decompose_amount_into_digits.cpp
   device.cpp
+  difficulty.cpp
   dns_resolver.cpp
   epee_boosted_tcp_server.cpp
   epee_levin_protocol_handler_async.cpp
@@ -52,9 +53,12 @@ set(unit_tests_sources
   json_serialization.cpp
   get_xtype_from_string.cpp
   hashchain.cpp
+  hmac_keccak.cpp
   http.cpp
   keccak.cpp
+  logging.cpp
   long_term_block_weight.cpp
+  lmdb.cpp
   main.cpp
   memwipe.cpp
   mlocker.cpp
@@ -62,8 +66,11 @@ set(unit_tests_sources
   mul_div.cpp
   multiexp.cpp
   multisig.cpp
+  net.cpp
   notify.cpp
+  output_distribution.cpp
   parse_amount.cpp
+  pruning.cpp
   random.cpp
   serialization.cpp
   sha256.cpp
@@ -97,7 +104,9 @@ target_link_libraries(unit_tests
     cryptonote_protocol
     cryptonote_core
     blockchain_db
+    lmdb_lib
     rpc
+    net
     serialization
     wallet
     p2p
@@ -125,3 +134,7 @@ SET_PROPERTY(SOURCE memwipe.cpp PROPERTY COMPILE_FLAGS -Ofast)
 add_test(
   NAME    unit_tests
   COMMAND unit_tests --data-dir "${TEST_DATA_DIR}")
+
+add_executable(test_notifier test_notifier.cpp)
+target_link_libraries(test_notifier ${EXTRA_LIBRARIES})
+set_property(TARGET test_notifier PROPERTY FOLDER "tests")

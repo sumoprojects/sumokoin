@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018, The Monero Project
+// Copyright (c) 2017-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -68,6 +68,8 @@ class DaemonHandler : public RpcHandler
 
     void handle(const SendRawTx::Request& req, SendRawTx::Response& res);
 
+    void handle(const SendRawTxHex::Request& req, SendRawTxHex::Response& res);
+
     void handle(const StartMining::Request& req, StartMining::Response& res);
 
     void handle(const GetInfo::Request& req, GetInfo::Response& res);
@@ -126,13 +128,17 @@ class DaemonHandler : public RpcHandler
 
     void handle(const GetRPCVersion::Request& req, GetRPCVersion::Response& res);
 
-    void handle(const GetPerKBFeeEstimate::Request& req, GetPerKBFeeEstimate::Response& res);
+    void handle(const GetFeeEstimate::Request& req, GetFeeEstimate::Response& res);
+
+    void handle(const GetOutputDistribution::Request& req, GetOutputDistribution::Response& res);
 
     std::string handle(const std::string& request);
 
   private:
 
     bool getBlockHeaderByHash(const crypto::hash& hash_in, cryptonote::rpc::BlockHeaderResponse& response);
+
+    void handleTxBlob(const std::string& tx_blob, bool relay, SendRawTx::Response& res);
 
     cryptonote::core& m_core;
     t_p2p& m_p2p;

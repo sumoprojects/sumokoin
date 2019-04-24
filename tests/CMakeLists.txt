@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2018, The Monero Project
+# Copyright (c) 2014-2019, The Monero Project
 # 
 # All rights reserved.
 # 
@@ -90,6 +90,10 @@ add_subdirectory(hash)
 add_subdirectory(net_load_tests)
 if (BUILD_GUI_DEPS)
   add_subdirectory(libwallet_api_tests)
+endif()
+
+if (TREZOR_DEBUG)
+  add_subdirectory(trezor)
 endif()
 
 # add_subdirectory(daemon_tests)

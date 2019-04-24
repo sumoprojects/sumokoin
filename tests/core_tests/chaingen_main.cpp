@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -44,6 +44,7 @@ namespace
   const command_line::arg_descriptor<bool>        arg_generate_and_play_test_data = {"generate_and_play_test_data", ""};
   const command_line::arg_descriptor<bool>        arg_test_transactions           = {"test_transactions", ""};
   const command_line::arg_descriptor<std::string> arg_filter                      = { "filter", "Regular expression filter for which tests to run" };
+  const command_line::arg_descriptor<bool>        arg_list_tests                  = {"list_tests", ""};
 }
 
 int main(int argc, char* argv[])
@@ -64,6 +65,7 @@ int main(int argc, char* argv[])
   command_line::add_arg(desc_options, arg_generate_and_play_test_data);
   command_line::add_arg(desc_options, arg_test_transactions);
   command_line::add_arg(desc_options, arg_filter);
+  command_line::add_arg(desc_options, arg_list_tests);
 
   po::variables_map vm;
   bool r = command_line::handle_error_helper(desc_options, [&]()
@@ -87,6 +89,7 @@ int main(int argc, char* argv[])
   size_t tests_count = 0;
   std::vector<std::string> failed_tests;
   std::string tests_folder = command_line::get_arg(vm, arg_test_data_path);
+  bool list_tests = false;
   if (command_line::get_arg(vm, arg_generate_test_data))
   {
     GENERATE("chain001.dat", gen_simple_chain_001);
@@ -95,7 +98,7 @@ int main(int argc, char* argv[])
   {
     PLAY("chain001.dat", gen_simple_chain_001);
   }
-  else if (command_line::get_arg(vm, arg_generate_and_play_test_data))
+  else if (command_line::get_arg(vm, arg_generate_and_play_test_data) || (list_tests = command_line::get_arg(vm, arg_list_tests)))
   {
     GENERATE_AND_PLAY(gen_simple_chain_001);
     GENERATE_AND_PLAY(gen_simple_chain_split_1);
@@ -229,10 +232,10 @@ int main(int argc, char* argv[])
     GENERATE_AND_PLAY(gen_multisig_tx_valid_25_1_2_many_inputs);
     GENERATE_AND_PLAY(gen_multisig_tx_valid_48_1_234);
     GENERATE_AND_PLAY(gen_multisig_tx_valid_48_1_234_many_inputs);
-    GENERATE_AND_PLAY(gen_multisig_tx_valid_24_1_no_signers);
-    GENERATE_AND_PLAY(gen_multisig_tx_valid_25_1_no_signers);
-    GENERATE_AND_PLAY(gen_multisig_tx_valid_48_1_no_signers);
-    GENERATE_AND_PLAY(gen_multisig_tx_valid_48_1_23_no_threshold);
+    GENERATE_AND_PLAY(gen_multisig_tx_invalid_24_1_no_signers);
+    GENERATE_AND_PLAY(gen_multisig_tx_invalid_25_1_no_signers);
+    GENERATE_AND_PLAY(gen_multisig_tx_invalid_48_1_no_signers);
+    GENERATE_AND_PLAY(gen_multisig_tx_invalid_48_1_23_no_threshold);
 
     GENERATE_AND_PLAY(gen_bp_tx_valid_1);
     GENERATE_AND_PLAY(gen_bp_tx_invalid_1_1);
@@ -251,9 +254,12 @@ int main(int argc, char* argv[])
     GENERATE_AND_PLAY(gen_bp_tx_invalid_borromean_type);
 
     el::Level level = (failed_tests.empty() ? el::Level::Info : el::Level::Error);
-    MLOG(level, "\nREPORT:");
-    MLOG(level, "  Test run: " << tests_count);
-    MLOG(level, "  Failures: " << failed_tests.size());
+    if (!list_tests)
+    {
+      MLOG(level, "\nREPORT:");
+      MLOG(level, "  Test run: " << tests_count);
+      MLOG(level, "  Failures: " << failed_tests.size());
+    }
     if (!failed_tests.empty())
     {
       MLOG(level, "FAILED TESTS:");

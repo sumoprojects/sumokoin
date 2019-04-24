@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2019, The Monero Project
 //
 // All rights reserved.
 //
@@ -26,10 +26,8 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifdef _WIN32
-#define __STDC_FORMAT_MACROS // explicitly define the PRIu64 macro on mingw
-#endif
-
+#define __STDC_FORMAT_MACROS 1
+#include <inttypes.h>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/archive/portable_binary_iarchive.hpp>
@@ -63,6 +61,7 @@ static MDB_dbi dbi_relative_rings;
 static MDB_dbi dbi_outputs;
 static MDB_dbi dbi_processed_txidx;
 static MDB_dbi dbi_spent;
+static MDB_dbi dbi_per_amount;
 static MDB_dbi dbi_ring_instances;
 static MDB_dbi dbi_stats;
 static MDB_env *env = NULL;
@@ -242,7 +241,7 @@ static void init(std::string cache_filename)
 
   dbr = mdb_env_create(&env);
   CHECK_AND_ASSERT_THROW_MES(!dbr, "Failed to create LDMB environment: " + std::string(mdb_strerror(dbr)));
-  dbr = mdb_env_set_maxdbs(env, 6);
+  dbr = mdb_env_set_maxdbs(env, 7);
   CHECK_AND_ASSERT_THROW_MES(!dbr, "Failed to set max env dbs: " + std::string(mdb_strerror(dbr)));
   const std::string actual_filename = get_cache_filename(cache_filename); 
   dbr = mdb_env_open(env, actual_filename.c_str(), flags, 0664);
@@ -269,6 +268,10 @@ static void init(std::string cache_filename)
   CHECK_AND_ASSERT_THROW_MES(!dbr, "Failed to open LMDB dbi: " + std::string(mdb_strerror(dbr)));
   mdb_set_dupsort(txn, dbi_spent, compare_uint64);
 
+  dbr = mdb_dbi_open(txn, "per_amount", MDB_CREATE | MDB_INTEGERKEY, &dbi_per_amount);
+  CHECK_AND_ASSERT_THROW_MES(!dbr, "Failed to open LMDB dbi: " + std::string(mdb_strerror(dbr)));
+  mdb_set_compare(txn, dbi_per_amount, compare_uint64);
+
   dbr = mdb_dbi_open(txn, "ring_instances", MDB_CREATE, &dbi_ring_instances);
   CHECK_AND_ASSERT_THROW_MES(!dbr, "Failed to open LMDB dbi: " + std::string(mdb_strerror(dbr)));
 
@@ -287,6 +290,7 @@ static void close()
     mdb_dbi_close(env, dbi_relative_rings);
     mdb_dbi_close(env, dbi_outputs);
     mdb_dbi_close(env, dbi_processed_txidx);
+    mdb_dbi_close(env, dbi_per_amount);
     mdb_dbi_close(env, dbi_spent);
     mdb_dbi_close(env, dbi_ring_instances);
     mdb_dbi_close(env, dbi_stats);
@@ -587,6 +591,55 @@ static std::vector<output_data> get_spent_outputs(MDB_txn *txn)
   }
   mdb_cursor_close(cur);
   return outs;
+}
+
+static void get_per_amount_outputs(MDB_txn *txn, uint64_t amount, uint64_t &total, uint64_t &spent)
+{
+  MDB_cursor *cur;
+  int dbr = mdb_cursor_open(txn, dbi_per_amount, &cur);
+  CHECK_AND_ASSERT_THROW_MES(!dbr, "Failed to open cursor for per amount outputs: " + std::string(mdb_strerror(dbr)));
+  MDB_val k, v;
+  mdb_size_t count = 0;
+  k.mv_size = sizeof(uint64_t);
+  k.mv_data = (void*)&amount;
+  dbr = mdb_cursor_get(cur, &k, &v, MDB_SET);
+  if (dbr == MDB_NOTFOUND)
+  {
+    total = spent = 0;
+  }
+  else
+  {
+    CHECK_AND_ASSERT_THROW_MES(!dbr, "Failed to get per amount outputs: " + std::string(mdb_strerror(dbr)));
+    total = ((const uint64_t*)v.mv_data)[0];
+    spent = ((const uint64_t*)v.mv_data)[1];
+  }
+  mdb_cursor_close(cur);
+}
+
+static void inc_per_amount_outputs(MDB_txn *txn, uint64_t amount, uint64_t total, uint64_t spent)
+{
+  MDB_cursor *cur;
+  int dbr = mdb_cursor_open(txn, dbi_per_amount, &cur);
+  CHECK_AND_ASSERT_THROW_MES(!dbr, "Failed to open cursor for per amount outputs: " + std::string(mdb_strerror(dbr)));
+  MDB_val k, v;
+  mdb_size_t count = 0;
+  k.mv_size = sizeof(uint64_t);
+  k.mv_data = (void*)&amount;
+  dbr = mdb_cursor_get(cur, &k, &v, MDB_SET);
+  if (dbr == 0)
+  {
+    total += ((const uint64_t*)v.mv_data)[0];
+    spent += ((const uint64_t*)v.mv_data)[1];
+  }
+  else
+  {
+    CHECK_AND_ASSERT_THROW_MES(dbr == MDB_NOTFOUND, "Failed to get per amount outputs: " + std::string(mdb_strerror(dbr)));
+  }
+  uint64_t data[2] = {total, spent};
+  v.mv_size = 2 * sizeof(uint64_t);
+  v.mv_data = (void*)data;
+  dbr = mdb_cursor_put(cur, &k, &v, 0);
+  mdb_cursor_close(cur);
 }
 
 static uint64_t get_processed_txidx(const std::string &name)
@@ -1080,7 +1133,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  mlog_configure(mlog_get_default_log_path("sumo-blockchain-find-spent-outputs.log"), true);
+  mlog_configure(mlog_get_default_log_path("sumo-blockchain-mark-spent-outputs.log"), true);
   if (!command_line::is_arg_defaulted(vm, arg_log_level))
     mlog_set_log(command_line::get_arg(vm, arg_log_level).c_str());
   else
@@ -1197,6 +1250,7 @@ int main(int argc, char* argv[])
     for_all_transactions(filename, start_idx, n_txes, [&](const cryptonote::transaction_prefix &tx)->bool
     {
       std::cout << "\r" << start_idx << "/" << n_txes << "         \r" << std::flush;
+      const bool miner_tx = tx.vin.size() == 1 && tx.vin[0].type() == typeid(txin_gen);
       for (const auto &in: tx.vin)
       {
         if (in.type() != typeid(txin_to_key))
@@ -1214,6 +1268,9 @@ int main(int argc, char* argv[])
         std::vector<uint64_t> new_ring = canonicalize(txin.key_offsets);
         const uint32_t ring_size = txin.key_offsets.size();
         const uint64_t instances = inc_ring_instances(txn, txin.amount, new_ring);
+        uint64_t pa_total = 0, pa_spent = 0;
+        if (!opt_rct_only)
+          get_per_amount_outputs(txn, txin.amount, pa_total, pa_spent);
         if (n == 0 && ring_size == 1)
         {
           const std::pair<uint64_t, uint64_t> output = std::make_pair(txin.amount, absolute[0]);
@@ -1239,6 +1296,21 @@ int main(int argc, char* argv[])
             blackballs.push_back(output);
             if (add_spent_output(cur, output_data(txin.amount, absolute[o])))
               inc_stat(txn, txin.amount ? "pre-rct-duplicate-rings" : "rct-duplicate-rings");
+          }
+        }
+        else if (n == 0 && !opt_rct_only && pa_spent + 1 == pa_total)
+        {
+          for (size_t o = 0; o < pa_total; ++o)
+          {
+            const std::pair<uint64_t, uint64_t> output = std::make_pair(txin.amount, o);
+            if (opt_verbose)
+            {
+              MINFO("Marking output " << output.first << "/" << output.second << " as spent, due to as many outputs of that amount being spent as exist so far");
+              std::cout << "\r" << start_idx << "/" << n_txes << "         \r" << std::flush;
+            }
+            blackballs.push_back(output);
+            if (add_spent_output(cur, output_data(txin.amount, o)))
+              inc_stat(txn, txin.amount ? "pre-rct-full-count" : "rct-full-count");
           }
         }
         else if (n == 0 && opt_check_subsets && get_ring_subset_instances(txn, txin.amount, new_ring) >= new_ring.size())
@@ -1303,9 +1375,28 @@ int main(int argc, char* argv[])
           }
         }
         if (n == 0)
+        {
           set_relative_ring(txn, txin.k_image, new_ring);
+          if (!opt_rct_only)
+            inc_per_amount_outputs(txn, txin.amount, 0, 1);
+        }
       }
       set_processed_txidx(txn, canonical, start_idx+1);
+      if (!opt_rct_only)
+      {
+        for (const auto &out: tx.vout)
+        {
+          uint64_t amount = out.amount;
+          if (miner_tx && tx.version >= 2)
+            amount = 0;
+
+          if (opt_rct_only && amount != 0)
+            continue;
+          if (out.target.type() != typeid(txout_to_key))
+            continue;
+          inc_per_amount_outputs(txn, amount, 1, 0);
+        }
+      }
 
       ++records;
       if (records >= records_per_sync)
@@ -1437,6 +1528,7 @@ skip_secondary_passes:
     { "pre-rct-ring-size-1", pre_rct }, { "rct-ring-size-1", rct },
     { "pre-rct-duplicate-rings", pre_rct }, { "rct-duplicate-rings", rct },
     { "pre-rct-subset-rings", pre_rct }, { "rct-subset-rings", rct },
+    { "pre-rct-full-count", pre_rct }, { "rct-full-count", rct },
     { "pre-rct-key-image-attack", pre_rct }, { "rct-key-image-attack", rct },
     { "pre-rct-extra", pre_rct }, { "rct-ring-extra", rct },
     { "pre-rct-chain-reaction", pre_rct }, { "rct-chain-reaction", rct },
