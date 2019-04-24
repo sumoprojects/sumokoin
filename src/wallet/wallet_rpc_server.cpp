@@ -3094,6 +3094,7 @@ namespace tools
     std::vector<std::string> languages;
     crypto::ElectrumWords::get_language_list(languages, true);
     std::vector<std::string>::iterator it;
+    it = std::find(languages.begin(), languages.end(), req.language);
     if (it == languages.end())
     {
       er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
