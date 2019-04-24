@@ -531,7 +531,9 @@ namespace cryptonote {
 
     // No limits should be employed, but this is correct way to employ a 20% symmetrical limit:
     // nextDifficulty=max(previous_Difficulty*0.8,min(previous_Difficulty/0.8, next_Difficulty));
-    next_difficulty = boost::multiprecision::uint128_t(nextDifficulty);
+    next_difficulty = static_cast<difficulty_type>(nextDifficulty);
+    if (next_difficulty.is_zero())
+      next_difficulty = 1;
     return next_difficulty;
   }
 
