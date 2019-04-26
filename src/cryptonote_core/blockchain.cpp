@@ -1851,16 +1851,16 @@ bool Blockchain::get_outs(const COMMAND_RPC_GET_OUTPUTS_BIN::request& req, COMMA
 
   res.outs.clear();
   res.outs.reserve(req.outputs.size());
-	
+
   std::vector<cryptonote::output_data_t> data;
   try
   {
-  std::vector<uint64_t> amounts, offsets;
-  amounts.reserve(req.outputs.size());
-  offsets.reserve(req.outputs.size());
-      for (const auto &i: req.outputs)
+    std::vector<uint64_t> amounts, offsets;
+    amounts.reserve(req.outputs.size());
+    offsets.reserve(req.outputs.size());
+    for (const auto &i: req.outputs)
     {
-       amounts.push_back(i.amount);
+      amounts.push_back(i.amount);
       offsets.push_back(i.index);
     }
     m_db->get_output_key(epee::span<const uint64_t>(amounts.data(), amounts.size()), offsets, data);
@@ -1872,7 +1872,7 @@ bool Blockchain::get_outs(const COMMAND_RPC_GET_OUTPUTS_BIN::request& req, COMMA
     for (const auto &t: data)
       res.outs.push_back({t.pubkey, t.commitment, is_tx_spendtime_unlocked(t.unlock_time), t.height, crypto::null_hash});
 
-      if (req.get_txid)
+    if (req.get_txid)
     {
       for (size_t i = 0; i < req.outputs.size(); ++i)
       {
