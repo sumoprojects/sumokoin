@@ -1854,11 +1854,11 @@ bool Blockchain::get_outs(const COMMAND_RPC_GET_OUTPUTS_BIN::request& req, COMMA
 	
   std::vector<cryptonote::output_data_t> data;
   try
+  {
   std::vector<uint64_t> amounts, offsets;
   amounts.reserve(req.outputs.size());
   offsets.reserve(req.outputs.size());
-  {
-    for (const auto &i: req.outputs)
+      for (const auto &i: req.outputs)
     {
        amounts.push_back(i.amount);
       offsets.push_back(i.index);
