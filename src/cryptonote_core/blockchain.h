@@ -520,7 +520,8 @@ namespace cryptonote
      *
      * @return false if the transaction does not exist, or if no indices are found, otherwise true
      */
-   bool get_tx_outputs_gindexs(const crypto::hash& tx_id, size_t n_txes, std::vector<std::vector<uint64_t>>& indexs) const;
+    bool get_tx_outputs_gindexs(const crypto::hash& tx_id, std::vector<uint64_t>& indexs) const;
+    bool get_tx_outputs_gindexs(const crypto::hash& tx_id, size_t n_txes, std::vector<std::vector<uint64_t>>& indexs) const;
 
     /**
      * @brief stores the blockchain
