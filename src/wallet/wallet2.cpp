@@ -222,6 +222,8 @@ namespace
         add_reason(reason, "fee too low");
       if (res.not_rct)
         add_reason(reason, "tx is not ringct");
+      if (res.sanity_check_failed)
+        add_reason(reason, "tx sanity check failed");
       if (res.not_relayed)
         add_reason(reason, "tx was not relayed");
       return reason;
@@ -1661,8 +1663,8 @@ void wallet2::scan_output(const cryptonote::transaction &tx, bool miner_tx, cons
     if (!m_encrypt_keys_after_refresh)
     {
       boost::optional<epee::wipeable_string> pwd = m_callback->on_get_password(pool ? "output found in pool" : "output received");
-      THROW_WALLET_EXCEPTION_IF(!pwd, error::password_needed, tr("Password is needed to compute key image for incoming monero"));
-      THROW_WALLET_EXCEPTION_IF(!verify_password(*pwd), error::password_needed, tr("Invalid password: password is needed to compute key image for incoming monero"));
+      THROW_WALLET_EXCEPTION_IF(!pwd, error::password_needed, tr("Password is needed to compute key image for incoming SUMO"));
+      THROW_WALLET_EXCEPTION_IF(!verify_password(*pwd), error::password_needed, tr("Invalid password: password is needed to compute key image for incoming SUMO"));
       decrypt_keys(*pwd);
       m_encrypt_keys_after_refresh = *pwd;
     }
@@ -3130,6 +3132,7 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
     }
   });
 
+  auto scope_exit_handler_hwdev = epee::misc_utils::create_scope_leave_handler([&](){hwdev.computing_key_images(false);});
   bool first = true;
   while(m_run.load(std::memory_order_relaxed))
   {
@@ -3255,7 +3258,6 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
     LOG_PRINT_L1("Failed to check pending transactions");
   }
 
-  hwdev.computing_key_images(false);
   m_first_refresh_done = true;
 
   LOG_PRINT_L1("Refresh done, blocks received: " << blocks_fetched << ", balance (all accounts): " << print_money(balance_all()) << ", unlocked: " << print_money(unlocked_balance_all()));
@@ -9495,7 +9497,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_2(std::vector<cryp
         tx.ptx = test_ptx;
         tx.weight = get_transaction_weight(test_tx, txBlob.size());
         tx.outs = outs;
-        tx.needed_fee = needed_fee;
+        tx.needed_fee = test_ptx.fee;
         accumulated_fee += test_ptx.fee;
         accumulated_change += test_ptx.change_dts.amount;
         adding_fee = false;
@@ -9893,7 +9895,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_from(const crypton
       tx.ptx = test_ptx;
       tx.weight = get_transaction_weight(test_tx, txBlob.size());
       tx.outs = outs;
-      tx.needed_fee = needed_fee;
+      tx.needed_fee = test_ptx.fee;
       accumulated_fee += test_ptx.fee;
       accumulated_change += test_ptx.change_dts.amount;
       if (!unused_transfers_indices.empty() || !unused_dust_indices.empty())
@@ -12916,7 +12918,7 @@ mms::multisig_wallet_state wallet2::get_multisig_wallet_state() const
   state.num_transfer_details = m_transfers.size();
   if (state.multisig)
   {
-    THROW_WALLET_EXCEPTION_IF(!m_original_keys_available, error::wallet_internal_error, "MMS use not possible because own original Monero address not available");
+    THROW_WALLET_EXCEPTION_IF(!m_original_keys_available, error::wallet_internal_error, "MMS use not possible because own original Sumokoin address not available");
     state.address = m_original_address;
     state.view_secret_key = m_original_view_secret_key;
   }

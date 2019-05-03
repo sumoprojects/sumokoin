@@ -296,7 +296,7 @@ namespace tools
     tools::wallet2::BackgroundMiningSetupType setup = m_wallet->setup_background_mining();
     if (setup == tools::wallet2::BackgroundMiningNo)
     {
-      MLOG_RED(el::Level::Warning, "Background mining not enabled. Run \"set setup-background-mining 1\" in monero-wallet-cli to change.");
+      MLOG_RED(el::Level::Warning, "Background mining not enabled. Run \"set setup-background-mining 1\" in sumo-wallet-cli to change.");
       return;
     }
 
@@ -321,8 +321,8 @@ namespace tools
     {
       MINFO("The daemon is not set up to background mine.");
       MINFO("With background mining enabled, the daemon will mine when idle and not on batttery.");
-      MINFO("Enabling this supports the network you are using, and makes you eligible for receiving new monero");
-      MINFO("Set setup-background-mining to 1 in monero-wallet-cli to change.");
+      MINFO("Enabling this supports the network you are using, and makes you eligible for receiving new SUMO");
+      MINFO("Set setup-background-mining to 1 in sumo-wallet-cli to change.");
       return;
     }
 
@@ -765,7 +765,7 @@ namespace tools
           }
           if (addresses.empty())
           {
-            er.message = std::string("No Monero address found at ") + url;
+            er.message = std::string("No Sumokoin address found at ") + url;
             return {};
           }
           return addresses[0];
@@ -1847,6 +1847,8 @@ namespace tools
         rpc_transfers.tx_hash      = epee::string_tools::pod_to_hex(td.m_txid);
         rpc_transfers.subaddr_index = {td.m_subaddr_index.major, td.m_subaddr_index.minor};
         rpc_transfers.key_image    = td.m_key_image_known ? epee::string_tools::pod_to_hex(td.m_key_image) : "";
+        rpc_transfers.block_height = td.m_block_height;
+        rpc_transfers.frozen       = td.m_frozen;
         rpc_transfers.unlocked     = m_wallet->is_transfer_unlocked(td);
         res.transfers.push_back(rpc_transfers);
       }
@@ -4117,7 +4119,7 @@ namespace tools
             }
             if (addresses.empty())
             {
-              er.message = std::string("No Monero address found at ") + url;
+              er.message = std::string("No Sumokoin address found at ") + url;
               return {};
             }
             address = addresses[0];

@@ -61,6 +61,10 @@ namespace daemonizer
       "run-as-service"
     , "Hidden -- true if running as windows service"
     };
+    const command_line::arg_descriptor<bool> arg_non_interactive = {
+      "non-interactive"
+    , "Run non-interactive"
+    };
 
     std::string get_argument_string(int argc, char const * argv[])
     {
@@ -83,6 +87,7 @@ namespace daemonizer
     command_line::add_arg(normal_options, arg_start_service);
     command_line::add_arg(normal_options, arg_stop_service);
     command_line::add_arg(hidden_options, arg_is_service);
+    command_line::add_arg(hidden_options, arg_non_interactive);
   }
 
   inline boost::filesystem::path get_default_data_dir()
@@ -176,8 +181,11 @@ namespace daemonizer
     }
     else // interactive
     {
-      //LOG_PRINT_L0("Monero '" << MONERO_RELEASE_NAME << "' (v" << MONERO_VERSION_FULL);
-      return executor.run_interactive(vm);
+      //LOG_PRINT_L0("Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL);
+      if (command_line::has_arg(vm, arg_non_interactive))
+        return executor.run_non_interactive(vm);
+      else
+        return executor.run_interactive(vm);
     }
 
     return false;
