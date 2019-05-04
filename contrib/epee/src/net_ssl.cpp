@@ -195,7 +195,7 @@ boost::asio::ssl::context ssl_options_t::create_context() const
   ssl_context.set_options(boost::asio::ssl::context::no_tlsv1_1);
 
   // only allow a select handful of tls v1.3 and v1.2 ciphers to be used
-  SSL_CTX_set_cipher_list(ssl_context.native_handle(), "ECDHE-ECDSA-CHACHA20-POLY1305-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-CHACHA20-POLY1305");
+  SSL_CTX_set_cipher_list(ssl_context.native_handle(), "ECDHE-ECDSA-CHACHA20-POLY1305-SHA256:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256");
 
   // set options on the SSL context for added security
   SSL_CTX *ctx = ssl_context.native_handle();
@@ -214,6 +214,10 @@ boost::asio::ssl::context ssl_options_t::create_context() const
 #ifdef SSL_OP_NO_COMPRESSION
   SSL_CTX_set_options(ctx, SSL_OP_NO_COMPRESSION);
 #endif
+#ifdef SSL_OP_CIPHER_SERVER_PREFERENCE
+  SSL_CTX_set_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+#endif
+  SSL_CTX_set_ecdh_auto(ctx, 1);
 
   switch (verification)
   {
