@@ -76,10 +76,10 @@ namespace crypto
 
 namespace
 {
-  uint32_t create_checksum_index(const std::vector<epee::wipeable_string> &word_list,
+  uint32_t create_checksum_index(const std::vector<epee::wipeable_string> &seed_word_list,
     const Language::Base *language);
   bool checksum_test(std::vector<epee::wipeable_string> seed, const Language::Base *language);
-  uint32_t create_second_checksum_index(const std::vector<epee::wipeable_string> &word_list,
+  uint32_t create_second_checksum_index(const std::vector<epee::wipeable_string> &seed_word_list,
     uint32_t word_list_length, const Language::Base *language);
   bool second_checksum_test(std::vector<epee::wipeable_string> seed, const std::vector<std::string> &word_list,
     const Language::Base *language);
@@ -190,11 +190,11 @@ namespace
 
   /*!
    * \brief Creates a checksum index in the word list array on the list of words.
-   * \param  word_list            Vector of words
+   * \param  seed_word_list       Vector of seed words
    * \param  language             Language instance pointer
    * \return                      Checksum index
    */
-  uint32_t create_checksum_index(const std::vector<epee::wipeable_string> &word_list,
+    uint32_t create_checksum_index(const std::vector<epee::wipeable_string> &seed_word_list,
     const Language::Base *language)
   {
     epee::wipeable_string trimmed_words = "", word;
@@ -202,7 +202,7 @@ namespace
     const auto &word_map = language->get_word_map();
     const auto &trimmed_word_map = language->get_trimmed_word_map();
     const uint32_t unique_prefix_length = language->get_unique_prefix_length();
-    for (std::vector<epee::wipeable_string>::const_iterator it = word_list.begin(); it != word_list.end(); it++)
+    for (std::vector<epee::wipeable_string>::const_iterator it = seed_word_list.begin(); it != seed_word_list.end(); it++)
     {
       word = Language::utf8prefix(*it, unique_prefix_length);
       auto it2 = trimmed_word_map.find(word);
@@ -212,17 +212,17 @@ namespace
     }
     boost::crc_32_type result;
     result.process_bytes(trimmed_words.data(), trimmed_words.length());
-    return result.checksum() % word_list.size();
+    return result.checksum() % seed_word_list.size();
   }
 
   /*!
   * \brief Creates a checksum index in the word list array on the list of words.
-  * \param  word_list            Vector of seed words plus checksum (generated at create_checksum_index())
-  * \param word_list_length      Lenght of word list
-  * \param  language             Language instance pointer
-  * \return                      Second checksum index
+  * \param seed_word_list       Vector of seed words (plus first checksum)
+  * \param word_list_length     Length of full word list
+  * \param language             Language instance pointer
+  * \return                     Second checksum index
   */
-  uint32_t create_second_checksum_index(const std::vector<epee::wipeable_string> &word_list, 
+  uint32_t create_second_checksum_index(const std::vector<epee::wipeable_string> &seed_word_list,
         uint32_t word_list_length, const Language::Base *language)
   {
     epee::wipeable_string trimmed_words = "", word;
@@ -230,7 +230,7 @@ namespace
     const auto &word_map = language->get_word_map();
     const auto &trimmed_word_map = language->get_trimmed_word_map();
     const uint32_t unique_prefix_length = language->get_unique_prefix_length();
-    for (std::vector<epee::wipeable_string>::const_iterator it = word_list.begin(); it != word_list.end(); it++)
+    for (std::vector<epee::wipeable_string>::const_iterator it = seed_word_list.begin(); it != seed_word_list.end(); it++)
     {
       word = Language::utf8prefix(*it, unique_prefix_length);
       auto it2 = trimmed_word_map.find(word);
@@ -275,7 +275,7 @@ namespace
   * \brief Does the checksum test on the seed + prev checksum passed.
   * \param seed                  Vector of seed words
   * \param  language             Language instance pointer
-  * \param word_list             Vector of word list
+  * \param word_list             Vector of full word list
   * \return                      True if the test passed false if not.
   */
   bool second_checksum_test(std::vector<epee::wipeable_string> seed, const std::vector<std::string> &word_list,
@@ -297,7 +297,7 @@ namespace
     epee::wipeable_string trimmed_last_word = last_word.length() > unique_prefix_length ? Language::utf8prefix(last_word, unique_prefix_length) :
       last_word;
     bool ret = trimmed_checksum == trimmed_last_word;
-    MINFO("Checksum (2) is " << (ret ? "valid" : "invalid"));
+    MINFO("Second checksum is " << (ret ? "valid" : "invalid"));
     return ret;
   }
 }
@@ -371,7 +371,7 @@ namespace crypto
         const std::vector<std::string> &word_list = language->get_word_list();
         if (!second_checksum_test(seed, word_list, language))
         {
-          // Checksum 2 fail
+          // Second checksum failed
           MERROR("Invalid seed: invalid second checksum");
           return false;
         }
@@ -383,7 +383,7 @@ namespace crypto
       {
         if (!checksum_test(seed, language))
         {
-          // Checksum fail
+          // Checksum failed
           MERROR("Invalid seed: invalid checksum");
           return false;
         }
