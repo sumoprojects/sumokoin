@@ -79,6 +79,10 @@ namespace
   uint32_t create_checksum_index(const std::vector<epee::wipeable_string> &word_list,
     const Language::Base *language);
   bool checksum_test(std::vector<epee::wipeable_string> seed, const Language::Base *language);
+  uint32_t create_second_checksum_index(const std::vector<epee::wipeable_string> &word_list,
+    uint32_t word_list_length, const Language::Base *language);
+  bool second_checksum_test(std::vector<epee::wipeable_string> seed, const std::vector<std::string> &word_list,
+    const Language::Base *language);
 
   /*!
    * \brief Finds the word list that contains the seed words and puts the indices
@@ -187,7 +191,7 @@ namespace
   /*!
    * \brief Creates a checksum index in the word list array on the list of words.
    * \param  word_list            Vector of words
-   * \param unique_prefix_length  the prefix length of each word to use for checksum
+   * \param  language             Language instance pointer
    * \return                      Checksum index
    */
   uint32_t create_checksum_index(const std::vector<epee::wipeable_string> &word_list,
@@ -214,7 +218,8 @@ namespace
   /*!
   * \brief Creates a checksum index in the word list array on the list of words.
   * \param  word_list            Vector of seed words plus checksum (generated at create_checksum_index())
-  * \param word_list_length      lengh of word list
+  * \param word_list_length      Lenght of word list
+  * \param  language             Language instance pointer
   * \return                      Second checksum index
   */
   uint32_t create_second_checksum_index(const std::vector<epee::wipeable_string> &word_list, 
@@ -241,7 +246,7 @@ namespace
   /*!
    * \brief Does the checksum test on the seed passed.
    * \param seed                  Vector of seed words
-   * \param unique_prefix_length  the prefix length of each word to use for checksum
+   * \param  language             Language instance pointer
    * \return                      True if the test passed false if not.
    */
   bool checksum_test(std::vector<epee::wipeable_string> seed, const Language::Base *language)
@@ -269,7 +274,7 @@ namespace
   /*!
   * \brief Does the checksum test on the seed + prev checksum passed.
   * \param seed                  Vector of seed words
-  * \param unique_prefix_length  the prefix length of each word to use for checksum
+  * \param  language             Language instance pointer
   * \param word_list             Vector of word list
   * \return                      True if the test passed false if not.
   */
