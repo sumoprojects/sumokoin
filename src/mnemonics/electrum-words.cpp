@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2018, Sumokoin Project
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2017-2019, Sumokoin Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -38,22 +38,14 @@
  */
 
 #include <string>
-#include <cassert>
-#include <map>
 #include <cstdint>
 #include <vector>
 #include <unordered_map>
-#include <boost/algorithm/string.hpp>
 #include "wipeable_string.h"
 #include "misc_language.h"
-#include "crypto/crypto.h"  // for declaration of crypto::secret_key
-#include <fstream>
 #include "int-util.h"
 #include "mnemonics/electrum-words.h"
-#include <stdexcept>
-#include <boost/filesystem.hpp>
 #include <boost/crc.hpp>
-#include <boost/algorithm/string/join.hpp>
 
 #include "chinese_simplified.h"
 #include "english.h"
@@ -85,12 +77,8 @@ namespace crypto
 namespace
 {
   uint32_t create_checksum_index(const std::vector<epee::wipeable_string> &word_list,
-    uint32_t unique_prefix_length);
-  uint32_t create_checksum_index_2(const std::vector<epee::wipeable_string> &word_list,
-    uint32_t unique_prefix_length, uint32_t word_list_length);
-  bool checksum_test(std::vector<epee::wipeable_string> seed, uint32_t unique_prefix_length);
-  bool checksum_test_2(std::vector<epee::wipeable_string> seed, uint32_t unique_prefix_length,
-    const std::vector<std::string> &word_list);
+    const Language::Base *language);
+  bool checksum_test(std::vector<epee::wipeable_string> seed, const Language::Base *language);
 
   /*!
    * \brief Finds the word list that contains the seed words and puts the indices
@@ -129,8 +117,8 @@ namespace
     for (std::vector<Language::Base*>::iterator it1 = language_instances.begin();
       it1 != language_instances.end(); it1++)
     {
-      const std::unordered_map<epee::wipeable_string, uint32_t> &word_map = (*it1)->get_word_map();
-      const std::unordered_map<epee::wipeable_string, uint32_t> &trimmed_word_map = (*it1)->get_trimmed_word_map();
+      const std::unordered_map<epee::wipeable_string, uint32_t, Language::WordHash, Language::WordEqual> &word_map = (*it1)->get_word_map();
+      const std::unordered_map<epee::wipeable_string, uint32_t, Language::WordHash, Language::WordEqual> &trimmed_word_map = (*it1)->get_trimmed_word_map();
       // To iterate through seed words
       bool full_match = true;
 
@@ -164,7 +152,7 @@ namespace
         // if we were using prefix only, and we have a checksum, check it now
         // to avoid false positives due to prefix set being too common
         if (has_checksum)
-          if (!checksum_test(seed, (*it1)->get_unique_prefix_length()))
+          if (!checksum_test(seed, *it1))
           {
             fallback = *it1;
             full_match = false;
@@ -203,48 +191,47 @@ namespace
    * \return                      Checksum index
    */
   uint32_t create_checksum_index(const std::vector<epee::wipeable_string> &word_list,
-    uint32_t unique_prefix_length)
+    const Language::Base *language)
   {
-    epee::wipeable_string trimmed_words = "";
+    epee::wipeable_string trimmed_words = "", word;
 
+    const auto &word_map = language->get_word_map();
+    const auto &trimmed_word_map = language->get_trimmed_word_map();
+    const uint32_t unique_prefix_length = language->get_unique_prefix_length();
     for (std::vector<epee::wipeable_string>::const_iterator it = word_list.begin(); it != word_list.end(); it++)
     {
-      if (it->length() > unique_prefix_length)
-      {
-        trimmed_words += Language::utf8prefix(*it, unique_prefix_length);
-      }
-      else
-      {
-        trimmed_words += *it;
-      }
+      word = Language::utf8prefix(*it, unique_prefix_length);
+      auto it2 = trimmed_word_map.find(word);
+      if (it2 == trimmed_word_map.end())
+        throw std::runtime_error("Word \"" + std::string(word.data(), word.size()) + "\" not found in trimmed word map in " + language->get_english_language_name());
+      trimmed_words += it2->first;
     }
     boost::crc_32_type result;
     result.process_bytes(trimmed_words.data(), trimmed_words.length());
-    return result.checksum() % crypto::ElectrumWords::seed_length;
+    return result.checksum() % word_list.size();
   }
 
   /*!
   * \brief Creates a checksum index in the word list array on the list of words.
-  * \param  seed                 Vector of seed words plus checksum (generated at create_checksum_index())
-  * \param unique_prefix_length  the prefix length of each word to use for checksum
+  * \param  word_list            Vector of seed words plus checksum (generated at create_checksum_index())
   * \param word_list_length      lengh of word list
-  * \return                      Checksum2 index
+  * \return                      Second checksum index
   */
-    uint32_t create_checksum_index_2(const std::vector<epee::wipeable_string> &seed,
-       uint32_t unique_prefix_length, uint32_t word_list_length)
+  uint32_t create_second_checksum_index(const std::vector<epee::wipeable_string> &word_list, 
+        uint32_t word_list_length, const Language::Base *language)
   {
-    epee::wipeable_string trimmed_words = "";
+    epee::wipeable_string trimmed_words = "", word;
 
-    for (std::vector<epee::wipeable_string>::const_iterator it = seed.begin(); it != seed.end(); it++)
+    const auto &word_map = language->get_word_map();
+    const auto &trimmed_word_map = language->get_trimmed_word_map();
+    const uint32_t unique_prefix_length = language->get_unique_prefix_length();
+    for (std::vector<epee::wipeable_string>::const_iterator it = word_list.begin(); it != word_list.end(); it++)
     {
-      if (it->length() > unique_prefix_length)
-      {
-        trimmed_words += Language::utf8prefix(*it, unique_prefix_length);
-      }
-      else
-      {
-        trimmed_words += *it;
-      }
+      word = Language::utf8prefix(*it, unique_prefix_length);
+      auto it2 = trimmed_word_map.find(word);
+      if (it2 == trimmed_word_map.end())
+        throw std::runtime_error("Word \"" + std::string(word.data(), word.size()) + "\" not found in trimmed word map in " + language->get_english_language_name());
+      trimmed_words += it2->first;
     }
     boost::crc_32_type result;
     result.process_bytes(trimmed_words.data(), trimmed_words.length());
@@ -257,7 +244,7 @@ namespace
    * \param unique_prefix_length  the prefix length of each word to use for checksum
    * \return                      True if the test passed false if not.
    */
-  bool checksum_test(std::vector<epee::wipeable_string> seed, uint32_t unique_prefix_length)
+  bool checksum_test(std::vector<epee::wipeable_string> seed, const Language::Base *language)
   {
     if (seed.empty())
       return false;
@@ -265,13 +252,16 @@ namespace
     epee::wipeable_string last_word = seed.back();
     seed.pop_back();
 
-    epee::wipeable_string checksum = seed[create_checksum_index(seed, unique_prefix_length)];
+    const uint32_t unique_prefix_length = language->get_unique_prefix_length();
+
+    auto idx = create_checksum_index(seed, language);
+    epee::wipeable_string checksum = seed[idx];
 
     epee::wipeable_string trimmed_checksum = checksum.length() > unique_prefix_length ? Language::utf8prefix(checksum, unique_prefix_length) :
       checksum;
     epee::wipeable_string trimmed_last_word = last_word.length() > unique_prefix_length ? Language::utf8prefix(last_word, unique_prefix_length) :
       last_word;
-    bool ret = trimmed_checksum == trimmed_last_word;
+    bool ret = Language::WordEqual()(trimmed_checksum, trimmed_last_word);
     MINFO("Checksum is " << (ret ? "valid" : "invalid"));
     return ret;
   }
@@ -283,7 +273,8 @@ namespace
   * \param word_list             Vector of word list
   * \return                      True if the test passed false if not.
   */
-    bool checksum_test_2(std::vector<epee::wipeable_string> seed, uint32_t unique_prefix_length, const std::vector<std::string> &word_list)
+  bool second_checksum_test(std::vector<epee::wipeable_string> seed, const std::vector<std::string> &word_list,
+   const Language::Base *language)
   {
     if (seed.empty())
       return false;
@@ -291,7 +282,10 @@ namespace
     epee::wipeable_string last_word = seed.back();
     seed.pop_back();
 
-    epee::wipeable_string checksum = word_list[create_checksum_index_2(seed, unique_prefix_length, word_list.size())];
+    const uint32_t unique_prefix_length = language->get_unique_prefix_length();
+
+    auto idx = create_second_checksum_index(seed, word_list.size(), language);
+    epee::wipeable_string checksum = word_list[idx];
 
     epee::wipeable_string trimmed_checksum = checksum.length() > unique_prefix_length ? Language::utf8prefix(checksum, unique_prefix_length) :
       checksum;
@@ -340,7 +334,7 @@ namespace crypto
       }
 
       bool has_checksum = true;
-      bool has_checksum_2 = true;
+      bool has_second_checksum = true;
       if (len)
       {
         // error on non-compliant word list
@@ -354,11 +348,11 @@ namespace crypto
 
         // If it is seed with a checksum.
         has_checksum = seed.size() == (expected + 1);
-        has_checksum_2 = seed.size() == (expected + 2);
+        has_second_checksum = seed.size() == (expected + 2);
       }
 
       std::vector<uint32_t> matched_indices;
-      auto wiper = epee::misc_utils::create_scope_leave_handler([&](){memwipe(matched_indices.data(), matched_indices.size() * sizeof(matched_indices[0])); });
+      auto wiper = epee::misc_utils::create_scope_leave_handler([&](){memwipe(matched_indices.data(), matched_indices.size() * sizeof(matched_indices[0]));});
       Language::Base *language;
       if (!find_seed_language(seed, has_checksum, matched_indices, &language))
       {
@@ -366,23 +360,23 @@ namespace crypto
         return false;
       }
       language_name = language->get_language_name();
-      
-            
-      if (has_checksum_2)
+
+      if (has_second_checksum)
       {
         const std::vector<std::string> &word_list = language->get_word_list();
-        if (!checksum_test_2(seed, language->get_unique_prefix_length(), word_list))
+        if (!second_checksum_test(seed, word_list, language))
         {
           // Checksum 2 fail
-          MERROR("Invalid seed: invalid checksum 2");
+          MERROR("Invalid seed: invalid second checksum");
           return false;
         }
         seed.pop_back();
       }
 
+      uint32_t word_list_length = language->get_word_list().size();
       if (has_checksum)
       {
-        if (!checksum_test(seed, language->get_unique_prefix_length()))
+        if (!checksum_test(seed, language))
         {
           // Checksum fail
           MERROR("Invalid seed: invalid checksum");
@@ -390,9 +384,6 @@ namespace crypto
         }
         seed.pop_back();
       }
-
-      const std::vector<std::string> &word_list = language->get_word_list();
-      uint32_t word_list_length = word_list.size();
 
       for (unsigned int i=0; i < seed.size() / 3; i++)
       {
@@ -411,6 +402,7 @@ namespace crypto
           return false;
         }
 
+        w[0] = SWAP32LE(w[0]);
         dst.append((const char*)&w[0], 4);  // copy 4 bytes to position
         memwipe(w, sizeof(w));
       }
@@ -496,12 +488,11 @@ namespace crypto
         memwipe(w, sizeof(w));
       }
 
-      words.pop_back();
-      epee::wipeable_string checksum_word = words_store[create_checksum_index(words_store, language->get_unique_prefix_length())];
-      words += ' ';
-      words += checksum_word;
-      words_store.push_back(checksum_word);
-      words += (' ' + word_list[create_checksum_index_2(words_store, language->get_unique_prefix_length(), word_list_length)]);
+      epee::wipeable_string checksum = words_store[create_checksum_index(words_store, language)];
+      words_store.push_back(checksum);
+      words += checksum;
+      std::string second_checksum = word_list[create_second_checksum_index(words_store, word_list_length, language)];
+      words += (' ' + second_checksum);
 
       return true;
     }
