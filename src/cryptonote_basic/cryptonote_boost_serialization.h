@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -40,6 +40,7 @@
 #include <boost/archive/portable_binary_iarchive.hpp>
 #include <boost/archive/portable_binary_oarchive.hpp>
 #include "cryptonote_basic.h"
+#include "difficulty.h"
 #include "common/unordered_containers_boost_serialization.h"
 #include "crypto/crypto.h"
 #include "ringct/rctTypes.h"
@@ -339,6 +340,41 @@ namespace boost
     if (x.type == rct::RCTTypeBulletproof || x.type == rct::RCTTypeBulletproof2)
       a & x.p.pseudoOuts;
   }
+
+  template <class Archive>
+  inline void serialize(Archive &a, rct::RCTConfig &x, const boost::serialization::version_type ver)
+  {
+    a & x.range_proof_type;
+    a & x.bp_version;
+  }
+
+  template <class Archive>
+  inline void serialize(Archive &a, cryptonote::difficulty_type &x, const boost::serialization::version_type ver)
+  {
+    if (Archive::is_loading::value)
+    {
+      // load high part
+      uint64_t v = 0;
+      a & v;
+      x = v;
+      // load low part
+      x = x << 64;
+      a & v;
+      x += v;
+    }
+    else
+    {
+      // store high part
+      cryptonote::difficulty_type x_ = (x >> 64) & 0xffffffffffffffff;
+      uint64_t v = x_.convert_to<uint64_t>();
+      a & v;
+      // store low part
+      x_ = x & 0xffffffffffffffff;
+      v = x_.convert_to<uint64_t>();
+      a & v;
+    }
+  }
+
 }
 }
 

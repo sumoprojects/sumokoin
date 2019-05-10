@@ -72,11 +72,30 @@ public:
   virtual uint64_t height() const override { return blocks.size(); }
   virtual size_t get_block_weight(const uint64_t &h) const override { return blocks[h].weight; }
   virtual uint64_t get_block_long_term_weight(const uint64_t &h) const override { return blocks[h].long_term_weight; }
-  virtual crypto::hash top_block_hash() const override {
+  virtual std::vector<uint64_t> get_block_weights(uint64_t start_height, size_t count) const override {
+    std::vector<uint64_t> ret;
+    ret.reserve(count);
+    while (count-- && start_height < blocks.size()) ret.push_back(blocks[start_height++].weight);
+    return ret;
+  }
+  virtual std::vector<uint64_t> get_long_term_block_weights(uint64_t start_height, size_t count) const override {
+    std::vector<uint64_t> ret;
+    ret.reserve(count);
+    while (count-- && start_height < blocks.size()) ret.push_back(blocks[start_height++].long_term_weight);
+    return ret;
+  }
+  virtual crypto::hash get_block_hash_from_height(const uint64_t &height) const override {
+    crypto::hash hash = crypto::null_hash;
+    *(uint64_t*)&hash = height;
+    return hash;
+  }
+  virtual crypto::hash top_block_hash(uint64_t *block_height = NULL) const override {
     uint64_t h = height();
     crypto::hash top = crypto::null_hash;
     if (h)
       *(uint64_t*)&top = h - 1;
+    if (block_height)
+      *block_height = h - 1;
     return top;
   }
   virtual void pop_block(cryptonote::block &blk, std::vector<cryptonote::transaction> &txs) override { blocks.pop_back(); }
@@ -103,7 +122,7 @@ private:
     get_test_options(): hard_forks{std::make_pair(1, (uint64_t)0), std::make_pair((uint8_t)hf_version, (uint64_t)LONG_TERM_BLOCK_WEIGHT_WINDOW), std::make_pair((uint8_t)0, (uint64_t)0)} {} \
   } opts; \
   cryptonote::Blockchain *blockchain = bc.get(); \
-  bool r = blockchain->init(new TestDB(), cryptonote::FAKECHAIN, true, &opts.test_options, 0); \
+  bool r = blockchain->init(new TestDB(), cryptonote::FAKECHAIN, true, &opts.test_options, 0, NULL); \
   if (!r) \
   { \
     fprintf(stderr, "Failed to init blockchain\n"); \
@@ -129,7 +148,7 @@ static void test(test_t t, uint64_t blocks)
     cryptonote::block b;
     b.major_version = 1;
     b.minor_version = 1;
-    bc->get_db().add_block(std::move(b), 300000, 300000, bc->get_db().height(), bc->get_db().height(), {});
+    bc->get_db().add_block(std::make_pair(b, ""), 300000, 300000, bc->get_db().height(), bc->get_db().height(), {});
     if (!bc->update_next_cumulative_weight_limit())
     {
       fprintf(stderr, "Failed to update cumulative weight limit 1\n");
@@ -163,7 +182,7 @@ static void test(test_t t, uint64_t blocks)
     cryptonote::block b;
     b.major_version = 10;
     b.minor_version = 10;
-    bc->get_db().add_block(std::move(b), w, ltw, bc->get_db().height(), bc->get_db().height(), {});
+    bc->get_db().add_block(std::make_pair(std::move(b), ""), w, ltw, bc->get_db().height(), bc->get_db().height(), {});
 
     if (!bc->update_next_cumulative_weight_limit())
     {
@@ -176,10 +195,10 @@ static void test(test_t t, uint64_t blocks)
 
 int main()
 {
-  mlog_configure("", false);
-  mlog_set_categories("");
+  TRY_ENTRY();
   test(test_max, 2 * LONG_TERM_BLOCK_WEIGHT_WINDOW);
   test(test_lcg, 9 * LONG_TERM_BLOCK_WEIGHT_WINDOW);
   test(test_min, 1 * LONG_TERM_BLOCK_WEIGHT_WINDOW);
   return 0;
+  CATCH_ENTRY_L0("main", 1);
 }

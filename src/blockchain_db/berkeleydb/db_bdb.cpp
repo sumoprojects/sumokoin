@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2019, The Monero Project
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -712,29 +712,6 @@ bool BlockchainBDB::for_all_outputs(std::function<bool(uint64_t amount, const cr
 
     cur.close();
     return ret;
-}
-
-blobdata BlockchainBDB::output_to_blob(const tx_out& output) const
-{
-    LOG_PRINT_L3("BlockchainBDB::" << __func__);
-    blobdata b;
-    if (!t_serializable_object_to_blob(output, b))
-        throw1(DB_ERROR("Error serializing output to blob"));
-    return b;
-}
-
-tx_out BlockchainBDB::output_from_blob(const blobdata& blob) const
-{
-    LOG_PRINT_L3("BlockchainBDB::" << __func__);
-    std::stringstream ss;
-    ss << blob;
-    binary_archive<false> ba(ss);
-    tx_out o;
-
-    if (!(::serialization::serialize(ba, o)))
-        throw1(DB_ERROR("Error deserializing tx output blob"));
-
-    return o;
 }
 
 uint64_t BlockchainBDB::get_output_global_index(const uint64_t& amount, const uint64_t& index)
@@ -1655,7 +1632,7 @@ output_data_t BlockchainBDB::get_output_key(const uint64_t& global_index) const
     return v;
 }
 
-output_data_t BlockchainBDB::get_output_key(const uint64_t& amount, const uint64_t& index)
+output_data_t BlockchainBDB::get_output_key(const uint64_t& amount, const uint64_t& index) const
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
     check_open();
@@ -1664,7 +1641,7 @@ output_data_t BlockchainBDB::get_output_key(const uint64_t& amount, const uint64
     return get_output_key(glob_index);
 }
 
-tx_out_index BlockchainBDB::get_output_tx_and_index(const uint64_t& amount, const uint64_t& index)
+tx_out_index BlockchainBDB::get_output_tx_and_index(const uint64_t& amount, const uint64_t& index) const
 {
     LOG_PRINT_L3("BlockchainBDB::" << __func__);
     std::vector < uint64_t > offsets;
@@ -1675,36 +1652,6 @@ tx_out_index BlockchainBDB::get_output_tx_and_index(const uint64_t& amount, cons
         throw1(OUTPUT_DNE("Attempting to get an output index by amount and amount index, but amount not found"));
 
     return indices[0];
-}
-
-std::vector<uint64_t> BlockchainBDB::get_tx_output_indices(const crypto::hash& h) const
-{
-    LOG_PRINT_L3("BlockchainBDB::" << __func__);
-    check_open();
-    std::vector<uint64_t> index_vec;
-
-    bdb_cur cur(DB_DEFAULT_TX, m_tx_outputs);
-
-    Dbt_copy<crypto::hash> k(h);
-    Dbt_copy<uint32_t> v;
-    auto result = cur->get(&k, &v, DB_SET);
-    if (result == DB_NOTFOUND)
-        throw1(OUTPUT_DNE("Attempting to get an output by tx hash and tx index, but output not found"));
-    else if (result)
-        throw0(DB_ERROR("DB error attempting to get an output"));
-
-    db_recno_t num_elems = 0;
-    cur->count(&num_elems, 0);
-
-    for (uint64_t i = 0; i < num_elems; ++i)
-    {
-        index_vec.push_back(v);
-        cur->get(&k, &v, DB_NEXT_DUP);
-    }
-
-    cur.close();
-
-    return index_vec;
 }
 
 std::vector<uint64_t> BlockchainBDB::get_tx_amount_output_indices(const crypto::hash& h) const

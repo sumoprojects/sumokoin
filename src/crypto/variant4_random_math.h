@@ -200,7 +200,7 @@ static inline int v4_random_math_init(struct V4_Instruction* code, const uint64_
 	memset(data, 0, sizeof(data));
 	uint64_t tmp = SWAP64LE(height);
 	memcpy(data, &tmp, sizeof(uint64_t));
-	data[20] = 0xda; // change seed
+	data[20] = -38; // change seed
 
 	// Set data_index past the last byte in data
 	// to trigger full data update with blake hash

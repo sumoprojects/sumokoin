@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2018, The Monero Project
+// Copyright (c) 2017-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -31,13 +31,12 @@
 
 
 #include "device_default.hpp"
-#include "common/int-util.h"
+#include "int-util.h"
 #include "cryptonote_basic/account.h"
 #include "cryptonote_basic/subaddress_index.h"
 #include "cryptonote_core/cryptonote_tx_utils.h"
 #include "ringct/rctOps.h"
 
-#include "log.hpp"
 #define ENCRYPTED_PAYMENT_ID_TAIL 0x8d
 #define CHACHA8_KEY_TAIL 0x8c
 
@@ -71,21 +70,21 @@ namespace hw {
         }
         
         bool device_default::init(void) {
-            dfns();
+            return true;
         }
         bool device_default::release() {
-            dfns();
+            return true;
         }
 
         bool device_default::connect(void) {
-            dfns();
+            return true;
         }
         bool device_default::disconnect() {
-            dfns();
+            return true;
         }
 
         bool  device_default::set_mode(device_mode mode) {
-            return true;
+            return device::set_mode(mode);
         }
 
         /* ======================================================================= */
@@ -273,6 +272,11 @@ namespace hw {
         /* ======================================================================= */
         /*                               TRANSACTION                               */
         /* ======================================================================= */
+        void device_default::generate_tx_proof(const crypto::hash &prefix_hash, 
+                                               const crypto::public_key &R, const crypto::public_key &A, const boost::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r, 
+                                               crypto::signature &sig) {
+            crypto::generate_tx_proof(prefix_hash, R, A, B, D, r, sig);
+        }
 
         bool device_default::open_tx(crypto::secret_key &tx_key) {
             cryptonote::keypair txkey = cryptonote::keypair::generate(*this);

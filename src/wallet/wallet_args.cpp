@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2019, The Monero Project
 //
 // All rights reserved.
 //
@@ -206,10 +206,18 @@ namespace wallet_args
     if (!command_line::is_arg_defaulted(vm, arg_log_level))
       MINFO("Setting log level = " << command_line::get_arg(vm, arg_log_level));
     else
-      MINFO("Setting log levels = " << getenv("MONERO_LOGS"));
+      MINFO("Setting log levels = " << getenv("SUMOKOIN_LOGS"));
     MINFO(wallet_args::tr("Logging to: ") << log_path);
 
     Print(print) << boost::format(wallet_args::tr("Logging to %s")) % log_path;
+
+    const ssize_t lockable_memory = tools::get_lockable_memory();
+    if (lockable_memory >= 0 && lockable_memory < 256 * 4096) // 256 pages -> at least 256 secret keys and other such small/medium objects
+      Print(print) << tr("WARNING: You may not have a high enough lockable memory limit")
+#ifdef ELPP_OS_UNIX
+        << ", " << tr("see ulimit -l")
+#endif
+        ;
 
     return {std::move(vm), should_terminate};
   }

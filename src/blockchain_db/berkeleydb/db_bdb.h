@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2019, The Monero Project
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -312,7 +312,6 @@ public:
   virtual tx_out_index get_output_tx_and_index(const uint64_t& amount, const uint64_t& index);
   virtual void get_output_tx_and_index(const uint64_t& amount, const std::vector<uint64_t> &offsets, std::vector<tx_out_index> &indices);
 
-  virtual std::vector<uint64_t> get_tx_output_indices(const crypto::hash& h) const;
   virtual std::vector<uint64_t> get_tx_amount_output_indices(const crypto::hash& h) const;
 
   virtual bool has_key_image(const crypto::key_image& img) const;
@@ -390,24 +389,6 @@ private:
   virtual uint8_t get_hard_fork_version(uint64_t height) const;
   virtual void check_hard_fork_info();
   virtual void drop_hard_fork_info();
-
-  /**
-   * @brief convert a tx output to a blob for storage
-   *
-   * @param output the output to convert
-   *
-   * @return the resultant blob
-   */
-  blobdata output_to_blob(const tx_out& output) const;
-
-  /**
-   * @brief convert a tx output blob to a tx output
-   *
-   * @param blob the blob to convert
-   *
-   * @return the resultant tx output
-   */
-  tx_out output_from_blob(const blobdata& blob) const;
 
   /**
    * @brief get the global index of the index-th output of the given amount

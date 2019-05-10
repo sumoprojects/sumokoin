@@ -18,7 +18,7 @@ Tests are located in `tests/core_tests/`, and follow a straightforward naming co
 To run only Monero's core tests (after building):
 
 ```
-cd build/debug/tests/core
+cd build/debug/tests/core_tests
 ctest
 ```
 
@@ -27,7 +27,7 @@ To run the same tests on a release build, replace `debug` with `release`.
 
 # Crypto Tests
 
-Crypto tests are located under the `tests/crypto` directory. 
+Crypto tests are located under the `tests/crypto` directory.
 
 - `crypto-tests.h` contains test harness headers
 - `main.cpp` implements the driver for the crypto tests
@@ -50,7 +50,7 @@ To run the same tests on a release build, replace `debug` with `release`.
 # Functional tests
 
 [TODO]
-Functional tests are located under the `tests/functional` directory. 
+Functional tests are located under the `tests/functional` directory.
 
 First, run a regtest daemon in the offline mode and with a fixed difficulty:
 ```
@@ -102,6 +102,8 @@ To run only Monero's performance tests (after building):
 cd build/debug/tests/performance_tests
 ./performance_tests
 ```
+
+The path may be build/Linux/master/debug (adapt as necessary for your platform).
 
 If the `performance_tests` binary does not exist, try running `make` in the `build/debug/tests/performance_tests` directory.
 

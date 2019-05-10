@@ -1,9 +1,16 @@
 # Set the system name, either Darwin, Linux, or Windows
 SET(CMAKE_SYSTEM_NAME @depends@)
-SET(CMAKE_BUILD_TYPE release)
+SET(CMAKE_BUILD_TYPE @release_type@)
 
-SET(STATIC true)
-SET(UNBOUND_STATIC true)
+OPTION(STATIC "Link libraries statically" ON)
+OPTION(TREZOR_DEBUG "Main trezor debugging switch" OFF)
+OPTION(BUILD_TESTS "Build tests." OFF)
+
+SET(STATIC ON)
+SET(UNBOUND_STATIC ON)
+
+SET(BUILD_TESTS @build_tests@)
+SET(TREZOR_DEBUG @build_tests@)
 
 # where is the target environment 
 SET(CMAKE_FIND_ROOT_PATH @prefix@ /usr)
@@ -20,6 +27,12 @@ SET(LIBUNWIND_LIBRARY_DIRS @prefix@/lib)
 
 SET(LIBUSB-1.0_LIBRARY @prefix@/lib/libusb-1.0.a)
 SET(LIBUDEV_LIBRARY @prefix@/lib/libudev.a)
+
+SET(Protobuf_FOUND 1)
+SET(Protobuf_PROTOC_EXECUTABLE @prefix@/native/bin/protoc CACHE FILEPATH "Path to the native protoc")
+SET(Protobuf_INCLUDE_DIR @prefix@/include CACHE PATH "Protobuf include dir")
+SET(Protobuf_INCLUDE_DIRS @prefix@/include CACHE PATH "Protobuf include dir")
+SET(Protobuf_LIBRARY @prefix@/lib/libprotobuf.a CACHE FILEPATH "Protobuf library")
 
 SET(ZMQ_INCLUDE_PATH @prefix@/include)
 SET(ZMQ_LIB @prefix@/lib/libzmq.a)
@@ -53,9 +66,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   SET(APPLE True)
   SET(BUILD_TAG "mac-x64")
   SET(BUILD_64 ON)
-  if(NOT TRAVIS)
-  SET(ARCH "x86_64")
-  endif()
   SET(BREW OFF)
   SET(PORT OFF)
   SET(CMAKE_OSX_SYSROOT "@sdk@/MacOSX10.11.sdk/")
