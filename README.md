@@ -76,6 +76,7 @@ library archives (`.a`).
 | OpenSSL      | basically any | NO       | `libssl-dev`       | `openssl`    | `openssl-devel`   | NO       | sha256 sum     |
 | libzmq       | 3.0.0         | NO       | `libzmq3-dev`      | `zeromq`     | `cppzmq-devel`    | NO       | ZeroMQ library |
 | OpenPGM      | ?             | NO       | `libpgm-dev`       | `libpgm`     | `openpgm-devel`   | NO       | For ZeroMQ     |
+| libnorm[2]   | ?             | NO       | `libnorm-dev`      |              |               `   | YES      | For ZeroMQ     |
 | libunbound   | 1.4.16        | YES      | `libunbound-dev`   | `unbound`    | `unbound-devel`   | NO       | DNS resolver   |
 | libsodium    | ?             | NO       | `libsodium-dev`    | `libsodium`  | `libsodium-devel` | NO       | cryptography   |
 | libunwind    | any           | NO       | `libunwind8-dev`   | `libunwind`  | `libunwind-devel` | YES      | Stack traces   |
@@ -83,12 +84,23 @@ library archives (`.a`).
 | libreadline  | 6.3.0         | NO       | `libreadline6-dev` | `readline`   | `readline-devel`  | YES      | Input editing  |
 | ldns         | 1.6.17        | NO       | `libldns-dev`      | `ldns`       | `ldns-devel`      | YES      | SSL toolkit    |
 | expat        | 1.1           | NO       | `libexpat1-dev`    | `expat`      | `expat-devel`     | YES      | XML parsing    |
-| GTest        | 1.5           | YES      | `libgtest-dev`^    | `gtest`      | `gtest-devel`     | YES      | Test suite     |
+| GTest        | 1.5           | YES      | `libgtest-dev`[1]  | `gtest`      | `gtest-devel`     | YES      | Test suite     |
 | Doxygen      | any           | NO       | `doxygen`          | `doxygen`    | `doxygen`         | YES      | Documentation  |
-| Graphviz     | any           | NO       | `graphviz`         | `graphviz`   | `graphviz`        | YES      | Documentation  |   
+| Graphviz     | any           | NO       | `graphviz`         | `graphviz`   | `graphviz`        | YES      | Documentation  |
 
 [^] On Debian/Ubuntu `libgtest-dev` only includes sources and headers. You must
 build the library binary manually. This can be done with the following command ```sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake . && sudo make && sudo mv libg* /usr/lib/ ```
+[2] libnorm-dev is needed if your zmq library was built with libnorm, and not needed otherwise
+
+Install all dependencies at once on Debian/Ubuntu:
+
+``` sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev```
+
+Install all dependencies at once on macOS with the provided Brewfile:
+``` brew update && brew bundle --file=contrib/brew/Brewfile ```
+
+FreeBSD one liner for required to build dependencies
+```pkg install git gmake cmake pkgconf boost-libs cppzmq libsodium```
 
 ### Cloning the repository
 
@@ -123,6 +135,15 @@ invokes cmake commands as needed.
     this to be worthwhile, the machine should have one core and about 2GB of RAM
     available per thread.
 
+    *Note*: If cmake can not find zmq.hpp file on macOS, installing `zmq.hpp` from
+    https://github.com/zeromq/cppzmq to `/usr/local/include` should fix that error.
+
+    *Note*: The instructions above will compile the most stable release of the
+    Monero software. If you would like to use and test the most recent software,
+    use ```git checkout master```. The master branch may contain updates that are
+    both unstable and incompatible with release software, though testing is always
+    encouraged.
+
 * The resulting executables can be found in `build/release/bin`
 
 * Add `PATH="$PATH:$HOME/sumokoin/build/release/bin"` to `.profile`
@@ -131,39 +152,51 @@ invokes cmake commands as needed.
 
 * **Optional**: build and run the test suite to verify the binaries:
 
-        make release-test
+    ```bash
+    make release-test
+    ```
 
-    *NOTE*: `coretests` test may take a few hours to complete.
+    *NOTE*: `core_tests` test may take a few hours to complete.
 
 * **Optional**: to build binaries suitable for debugging:
 
-         make debug
+    ```bash
+    make debug
+    ```
 
 * **Optional**: to build statically-linked binaries:
 
-         make release-static
+    ```bash
+    make release-static
+    ```
 
 Dependencies need to be built with -fPIC. Static libraries usually aren't, so you may have to build them yourself with -fPIC. Refer to their documentation for how to build them.
-         
+
 * **Optional**: build documentation in `doc/html` (omit `HAVE_DOT=YES` if `graphviz` is not installed):
 
-        HAVE_DOT=YES doxygen Doxyfile
+    ```bash
+    HAVE_DOT=YES doxygen Doxyfile
+    ```
 
 #### On the Raspberry Pi
 
-Tested on a Raspberry Pi 2 with a clean install of minimal Debian Jessie from https://www.raspberrypi.org/downloads/raspbian/
+Tested on a Raspberry Pi Zero with a clean install of minimal Raspbian Stretch (2017-09-07 or later) from https://www.raspberrypi.org/downloads/raspbian/. If you are using Raspian Jessie, [please see note in the following section](#note-for-raspbian-jessie-users).
 
 * `apt-get update && apt-get upgrade` to install all of the latest software
 
 * Install the dependencies for Sumokoin from the 'Debian' column in the table above.
 
 * Increase the system swap size:
-```	
-	sudo /etc/init.d/dphys-swapfile stop  
-	sudo nano /etc/dphys-swapfile  
-	CONF_SWAPSIZE=1024  
-	sudo /etc/init.d/dphys-swapfile start  
-```
+
+    ```bash
+    sudo /etc/init.d/dphys-swapfile stop  
+    sudo nano /etc/dphys-swapfile  
+    CONF_SWAPSIZE=2048
+    sudo /etc/init.d/dphys-swapfile start
+    ```
+
+* If using an external hard disk without an external power supply, ensure it gets enough power to avoid hardware issues when syncing, by adding the line "max_usb_current=1" to /boot/config.txt
+
 * Clone sumokoin and checkout most recent release version:
 ```
         git clone https://github.com/sumoprojects/sumokoin.git
@@ -171,9 +204,11 @@ Tested on a Raspberry Pi 2 with a clean install of minimal Debian Jessie from ht
 	git checkout tags/v0.5.0.0
 ```
 * Build:
-```
-        make release
-```
+
+    ```bash
+    make release
+    ```
+
 * Wait 4-6 hours
 
 * The resulting executables can be found in `build/release/bin`
@@ -190,95 +225,130 @@ If you are using the older Raspbian Jessie image, compiling Sumokoin is a bit mo
 
 * As before, `apt-get update && apt-get upgrade` to install all of the latest software, and increase the system swap size
 
-```	
-	sudo /etc/init.d/dphys-swapfile stop  
-	sudo nano /etc/dphys-swapfile  
-	CONF_SWAPSIZE=1024  
-	sudo /etc/init.d/dphys-swapfile start  
-```
+    ```bash
+    sudo /etc/init.d/dphys-swapfile stop
+    sudo nano /etc/dphys-swapfile
+    CONF_SWAPSIZE=2048
+    sudo /etc/init.d/dphys-swapfile start
+    ```
 
 * Then, install the dependencies for Sumokoin except `libunwind` and `libboost-all-dev`
 
 * Install the latest version of boost (this may first require invoking `apt-get remove --purge libboost*` to remove a previous version if you're not using a clean install):
-```
-	cd  
-	wget https://sourceforge.net/projects/boost/files/boost/1.64.0/boost_1_64_0.tar.bz2  
-	tar xvfo boost_1_64_0.tar.bz2  
-	cd boost_1_64_0  
-	./bootstrap.sh  
-	sudo ./b2  
-```
+
+    ```bash
+    cd
+    wget https://sourceforge.net/projects/boost/files/boost/1.64.0/boost_1_64_0.tar.bz2
+    tar xvfo boost_1_64_0.tar.bz2
+    cd boost_1_64_0
+    ./bootstrap.sh
+    sudo ./b2
+    ```
+
 * Wait ~8 hours
-```
-	sudo ./bjam install
-```
+
+    ```bash    
+    sudo ./bjam cxxflags=-fPIC cflags=-fPIC -a install
+    ```
+
 * Wait ~4 hours
 
-* From here, follow the [general Raspberry Pi instructions](#on-the-raspberry-pi) from the "Clone sumokoin and checkout most recent release version" step.
+* From here, follow the [general Raspberry Pi instructions](#on-the-raspberry-pi) from the "Clone monero and checkout most recent release version" step.
 
 #### On Windows:
 
 Binaries for Windows are built on Windows using the MinGW toolchain within
-[MSYS2 environment](http://msys2.github.io). The MSYS2 environment emulates a
+[MSYS2 environment](https://www.msys2.org). The MSYS2 environment emulates a
 POSIX system. The toolchain runs within the environment and *cross-compiles*
 binaries that can run outside of the environment as a regular Windows
 application.
 
-**Preparing the Build Environment**
+**Preparing the build environment**
 
-* Download and install the [MSYS2 installer](http://msys2.github.io), either the 64-bit or the 32-bit package, depending on your system.
+* Download and install the [MSYS2 installer](https://www.msys2.org), either the 64-bit or the 32-bit package, depending on your system.
 * Open the MSYS shell via the `MSYS2 Shell` shortcut
 * Update packages using pacman:  
 
-        pacman -Syuu  
+    ```bash
+    pacman -Syu
+    ```
 
 * Exit the MSYS shell using Alt+F4  
 * Edit the properties for the `MSYS2 Shell` shortcut changing "msys2_shell.bat" to "msys2_shell.cmd -mingw64" for 64-bit builds or "msys2_shell.cmd -mingw32" for 32-bit builds
 * Restart MSYS shell via modified shortcut and update packages again using pacman:  
 
-        pacman -Syuu  
+    ```bash
+    pacman -Syu
+    ```
 
 
 * Install dependencies:
 
     To build for 64-bit Windows:
 
-        pacman -S mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi
+    ```bash
+    pacman -S mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi
+    ```
 
     To build for 32-bit Windows:
- 
-        pacman -S mingw-w64-i686-toolchain make mingw-w64-i686-cmake mingw-w64-i686-boost mingw-w64-i686-openssl mingw-w64-i686-zeromq mingw-w64-i686-libsodium mingw-w64-i686-hidapi
+
+    ```bash
+    pacman -S mingw-w64-i686-toolchain make mingw-w64-i686-cmake mingw-w64-i686-boost mingw-w64-i686-openssl mingw-w64-i686-zeromq mingw-w64-i686-libsodium mingw-w64-i686-hidapi
+    ```
 
 * Open the MingW shell via `MinGW-w64-Win64 Shell` shortcut on 64-bit Windows
   or `MinGW-w64-Win64 Shell` shortcut on 32-bit Windows. Note that if you are
   running 64-bit Windows, you will have both 64-bit and 32-bit MinGW shells.
 
+**Cloning**
+
+* To git clone, run:
+
+    ```bash
+    git clone --recursive https://github.com/sumoprojects/sumokoin.git
+    ```
+
 **Building**
 
-* Make sure path to MSYS2 installed directory in `Makefile` is correct.
+* Change to the cloned directory, run:
+
+    ```bash
+    cd sumokoin
+    ```
 
 * If you are on a 64-bit system, run:
 
-        make release-static-win64
+    ```bash
+    make release-static-win64
+    ```
 
 * If you are on a 32-bit system, run:
 
-        make release-static-win32
+    ```bash
+    make release-static-win32
+    ```
 
-* The resulting executables can be found in `build/release/bin`.
+* The resulting executables can be found in `build/release/bin`
+
+* **Optional**: to build Windows binaries suitable for debugging on a 64-bit system, run:
+
+    ```bash
+    make debug-static-win64
+    ```
+
+* **Optional**: to build Windows binaries suitable for debugging on a 32-bit system, run:
+
+    ```bash
+    make debug-static-win32
+    ```
+
+* The resulting executables can be found in `build/debug/bin`
 
 ### On FreeBSD:
 
-* Update packages and install the dependencies (on FreeBSD 11.0 x64):
-		
-		pkg update; pkg install wget git pkgconf gcc49 cmake db6 icu libevent unbound googletest ldns expat bison boost-libs cppzmq;
+The project can be built from scratch by following instructions for Linux above(but use `gmake` instead of `make`). If you are running monero in a jail you need to add the flag: `allow.sysvipc=1` to your jail configuration, otherwise lmdb will throw the error message: `Failed to open lmdb environment: Function not implemented`.
 
-* Clone source code, change to the root of the source code directory and build:
-
-        git clone https://github.com/sumoprojects/sumokoin; cd sumokoin; make release-static;
-        
-If you are running Sumokoin in a jail you need to add the flag: `allow.sysvipc=1` to your jail configuration, otherwise lmdb will throw the error message: `Failed to open lmdb environment: Function not implemented`.
-
+We expect to add Monero into the ports tree in the near future, which will aid in managing installations using ports or packages.
 
 ### On OpenBSD:
 
@@ -286,20 +356,20 @@ If you are running Sumokoin in a jail you need to add the flag: `allow.sysvipc=1
 
 This has been tested on OpenBSD 5.8.
 
-You will need to add a few packages to your system. `pkg_add db cmake gcc gcc-libs g++ miniupnpc gtest`.
+You will need to add a few packages to your system. `pkg_add db cmake gcc gcc-libs g++ gtest`.
 
 The doxygen and graphviz packages are optional and require the xbase set.
 
 The Boost package has a bug that will prevent librpc.a from building correctly. In order to fix this, you will have to Build boost yourself from scratch. Follow the directions here (under "Building Boost"):
 https://github.com/bitcoin/bitcoin/blob/master/doc/build-openbsd.md
 
-You will have to add the serialization, date_time, and regex modules to Boost when building as they are needed by Sumokoin.
+You will have to add the serialization, date_time, and regex modules to Boost when building as they are needed by Monero.
 
 To build: `env CC=egcc CXX=eg++ CPP=ecpp DEVELOPER_LOCAL_TOOLS=1 BOOST_ROOT=/path/to/the/boost/you/built make release-static-64`
 
-#### OpenBSD >= 6.2
+#### OpenBSD 6.2 and 6.3
 
-You will need to add a few packages to your system. `pkg_add cmake miniupnpc zeromq libiconv`.
+You will need to add a few packages to your system. `pkg_add cmake zeromq libiconv`.
 
 The doxygen and graphviz packages are optional and require the xbase set.
 
@@ -310,13 +380,13 @@ We assume you are compiling with a non-root user and you have `doas` enabled.
 
 Note: do not use the boost package provided by OpenBSD, as we are installing boost to `/usr/local`.
 
-```
+```bash
 # Create boost building directory
 mkdir ~/boost
 cd ~/boost
 
 # Fetch boost source
-ftp -o boost_1_64_0.tar.bz2 https://netcologne.dl.sourceforge.net/project/boost/boost/1.64.0/boost_1_64_0.tar.bz2 
+ftp -o boost_1_64_0.tar.bz2 https://netcologne.dl.sourceforge.net/project/boost/boost/1.64.0/boost_1_64_0.tar.bz2
 
 # MUST output: (SHA256) boost_1_64_0.tar.bz2: OK
 echo "7bcc5caace97baa948931d712ea5f37038dbb1c5d89b43ad4def4ed7cb683332 boost_1_64_0.tar.bz2" | sha256 -c
@@ -342,13 +412,11 @@ echo 'using clang : : c++ : <cxxflags>"-fvisibility=hidden -fPIC" <linkflags>"" 
 doas ./b2 -d0 runtime-link=shared threadapi=pthread threading=multi link=static variant=release --layout=tagged --build-type=complete --user-config=user-config.jam -sNO_BZIP2=1 -sICONV_PATH=/usr/local --prefix=/usr/local install
 ```
 
-Build cppzmq
-
 Build the cppzmq bindings.
 
 We assume you are compiling with a non-root user and you have `doas` enabled.
 
-```
+```bash
 # Create cppzmq building directory
 mkdir ~/cppzmq
 cd ~/cppzmq
@@ -368,28 +436,38 @@ cmake ..
 doas make install
 ```
 
-Build Sumokoin: `env DEVELOPER_LOCAL_TOOLS=1 BOOST_ROOT=/usr/local make release-static`
+Build Sumokoin:
+```bash
+env DEVELOPER_LOCAL_TOOLS=1 BOOST_ROOT=/usr/local make release-static
+```
 
-### Building Portable Statically Linked Binaries
+#### OpenBSD >= 6.4
 
-By default, in either dynamically or statically linked builds, binaries target the specific host processor on which the build happens and are not portable to other processors. Portable binaries can be built using the following targets:
+You will need to add a few packages to your system. `pkg_add cmake gmake zeromq cppzmq libiconv boost`.
 
-* ```make release-static-64``` builds binaries on Linux on x86_64 portable across POSIX systems on x86_64 processors
-* ```make release-static-32``` builds binaries on Linux on x86_64 or i686 portable across POSIX systems on i686 processors
-* ```make release-static-armv8``` builds binaries on Linux portable across POSIX systems on armv8 processors
-* ```make release-static-armv7``` builds binaries on Linux portable across POSIX systems on armv7 processors
-* ```make release-static-armv6``` builds binaries on Linux portable across POSIX systems on armv6 processors
-* ```make release-static-win64``` builds binaries on 64-bit Windows portable across 64-bit Windows systems
-* ```make release-static-win32``` builds binaries on 64-bit or 32-bit Windows portable across 32-bit Windows systems
+The doxygen and graphviz packages are optional and require the xbase set.
+
+Build sumokoin: `env DEVELOPER_LOCAL_TOOLS=1 BOOST_ROOT=/usr/local gmake release-static`
+
+Note: you may encounter the following error, when compiling the latest version of Sumokoin as a normal user:
+
+```
+LLVM ERROR: out of memory
+c++: error: unable to execute command: Abort trap (core dumped)
+```
+
+Then you need to increase the data ulimit size to 2GB and try again: `ulimit -d 2000000`
 
 ### On Solaris:
 
 The default Solaris linker can't be used, you have to install GNU ld, then run cmake manually with the path to your copy of GNU ld:
 
-        mkdir -p build/release
-        cd build/release
-        cmake -DCMAKE_LINKER=/path/to/ld -D CMAKE_BUILD_TYPE=Release ../..
-        cd ../..
+```bash
+mkdir -p build/release
+cd build/release
+cmake -DCMAKE_LINKER=/path/to/ld -D CMAKE_BUILD_TYPE=Release ../..
+cd ../..
+```
 
 Then you can run make as usual.
 
@@ -399,7 +477,9 @@ The build places the binary in `bin/` sub-directory within the build directory
 from which cmake was invoked (repository root by default). To run in
 foreground:
 
-    ./bin/sumokoind
+```bash
+./bin/sumokoind
+```
 
 To list all available options, run `./bin/sumokoind --help`.  Options can be
 specified either on the command line or in a configuration file passed by the
@@ -409,7 +489,9 @@ of the argument without the leading dashes, for example `log-level=1`.
 
 To run in background:
 
+```bash
     ./bin/sumokoind --log-file sumokoind.log --detach
+```
 
 To run as a systemd service, copy
 [sumokoind.service](utils/systemd/sumokoind.service) to `/etc/systemd/system/` and
@@ -422,6 +504,12 @@ If you're on Mac, you may need to add the `--max-concurrency 1` option to
 sumo-wallet-cli, and possibly sumokoind, if you get crashes refreshing.
 
 ## Using Tor
+
+> There is a new, still experimental, [integration with Tor](ANONYMITY_NETWORKS.md). The
+> feature allows connecting over IPv4 and Tor simulatenously - IPv4 is used for
+> relaying blocks and relaying transactions received by peers whereas Tor is
+> used solely for relaying transactions received over local RPC. This provides
+> privacy and better protection against surrounding node (sybil) attacks.
 
 While Sumokoin isn't made to integrate with Tor, it can be used wrapped with torsocks, by
 setting the following configuration parameters and environment variables:
@@ -455,25 +543,27 @@ TAILS ships with a very restrictive set of firewall rules. Therefore, you need
 to add a rule to allow this connection too, in addition to telling torsocks to
 allow inbound connections. Full example:
 
+```bash
     sudo iptables -I OUTPUT 2 -p tcp -d 127.0.0.1 -m tcp --dport 18081 -j ACCEPT
     DNS_PUBLIC=tcp torsocks ./sumokoind --p2p-bind-ip 127.0.0.1 --no-igd --rpc-bind-ip 127.0.0.1 \
         --data-dir /home/amnesia/Persistent/your/directory/to/the/blockchain
+```
 
 # Debugging
 
-This section contains general instructions for debugging failed installs or problems encountered with Sumokoin. First ensure you are running the latest version built from the github repo.
+This section contains general instructions for debugging failed installs or problems encountered with Sumokoin. First ensure you are running the latest version built from the Github repo.
 
 ### Obtaining stack traces and core dumps on Unix systems
 
 We generally use the tool `gdb` (GNU debugger) to provide stack trace functionality, and `ulimit` to provide core dumps in builds which crash or segfault.
 
-* To use gdb in order to obtain a stack trace for a build that has stalled:
+* To use `gdb` in order to obtain a stack trace for a build that has stalled:
 
 Run the build.
 
 Once it stalls, enter the following command:
 
-```
+```bash
 gdb /path/to/sumokoind `pidof sumokoind` 
 ```
 
@@ -491,11 +581,13 @@ When it terminates with an output along the lines of "Segmentation fault (core d
 
 You can now analyse this core dump with `gdb` as follows:
 
-`gdb /path/to/sumokoind /path/to/dumpfile`
+```bash
+gdb /path/to/sumokoind /path/to/dumpfile
+```
 
 Print the stack trace with `bt`
 
-* To run sumokoin within gdb:
+#### To run sumokoin within gdb:
 
 Type `gdb /path/to/sumokoind`
 
@@ -505,17 +597,31 @@ Type `run` to run sumokoind
 
 ### Analysing memory corruption
 
-We use the tool `valgrind` for this.
+There are two tools available:
 
-Run with `valgrind /path/to/sumokoind`. It will be slow.
+#### ASAN
 
-## LMDB
+Configure Sumokoin with the -D SANITIZE=ON cmake flag, eg:
+
+```bash
+cd build/debug && cmake -D SANITIZE=ON -D CMAKE_BUILD_TYPE=Debug ../..
+```
+
+You can then run the monero tools normally. Performance will typically halve.
+
+#### valgrind
+
+Install valgrind and run as `valgrind /path/to/monerod`. It will be very slow.
+
+### LMDB
 
 Instructions for debugging suspected blockchain corruption as per @HYC
 
 There is an `mdb_stat` command in the LMDB source that can print statistics about the database but it's not routinely built. This can be built with the following command:
 
-`cd ~/sumokoin/external/db_drivers/liblmdb && make`
+```bash
+cd ~/sumokoin/external/db_drivers/liblmdb && make
+```
 
 The output of `mdb_stat -ea <path to blockchain dir>` will indicate inconsistencies in the blocks, block_heights and block_info table.
 
