@@ -96,13 +96,17 @@ namespace cryptonote
     // the whole prepare/handle/cleanup incoming block sequence.
     class LockedTXN {
     public:
-      LockedTXN(Blockchain &b): m_blockchain(b), m_batch(false) {
+      LockedTXN(Blockchain &b): m_blockchain(b), m_batch(false), m_active(false) {
         m_batch = m_blockchain.get_db().batch_start();
+        m_active = true;
       }
-      ~LockedTXN() { try { if (m_batch) { m_blockchain.get_db().batch_stop(); } } catch (const std::exception &e) { MWARNING("LockedTXN dtor filtering exception: " << e.what()); } }
+      void commit() { try { if (m_batch && m_active) { m_blockchain.get_db().batch_stop(); m_active = false; } } catch (const std::exception &e) { MWARNING("LockedTXN::commit filtering exception: " << e.what()); } }
+      void abort() { try { if (m_batch && m_active) { m_blockchain.get_db().batch_abort(); m_active = false; } } catch (const std::exception &e) { MWARNING("LockedTXN::abort filtering exception: " << e.what()); } }
+      ~LockedTXN() { abort(); }
     private:
       Blockchain &m_blockchain;
       bool m_batch;
+      bool m_active;
     };
   }
   //---------------------------------------------------------------------------------
@@ -255,10 +259,10 @@ namespace cryptonote
           m_blockchain.add_txpool_tx(id, blob, meta);
           if (!insert_key_images(tx, id, kept_by_block))
             return false;
-
           // Rounding tx fee/blob_size ratio so that txs with the same priority would be sorted by receive_time
           uint32_t fee_per_size_ratio = (uint32_t)(fee / (double)tx_weight);
           m_txs_by_fee_and_receive_time.emplace(std::pair<uint32_t, std::time_t>(fee_per_size_ratio, receive_time), id);
+          lock.commit();
         }
         catch (const std::exception &e)
         {
@@ -305,6 +309,7 @@ namespace cryptonote
         // Rounding tx fee/blob_size ratio so that txs with the same priority would be sorted by receive_time
         uint32_t fee_per_size_ratio = (uint32_t)(fee / (double)tx_weight);
         m_txs_by_fee_and_receive_time.emplace(std::pair<uint32_t, std::time_t>(fee_per_size_ratio, receive_time), id);
+        lock.commit();
       }
       catch (const std::exception &e)
       {
@@ -404,6 +409,7 @@ namespace cryptonote
         return;
       }
     }
+    lock.commit();
     if (changed)
       ++m_cookie;
     if (m_txpool_weight > bytes)
@@ -500,6 +506,7 @@ namespace cryptonote
       m_blockchain.remove_txpool_tx(id);
       m_txpool_weight -= tx_weight;
       remove_transaction_keyimages(tx, id);
+      lock.commit();
     }
     catch (const std::exception &e)
     {
@@ -584,6 +591,7 @@ namespace cryptonote
           // ignore error
         }
       }
+      lock.commit();
       ++m_cookie;
     }
     return true;
@@ -647,6 +655,7 @@ namespace cryptonote
         // continue
       }
     }
+    lock.commit();
   }
   //---------------------------------------------------------------------------------
   size_t tx_memory_pool::get_transactions_count(bool include_unrelayed_txes) const
@@ -1125,6 +1134,7 @@ namespace cryptonote
         }
       }
     }
+    lock.commit();
     if (changed)
       ++m_cookie;
   }
@@ -1260,6 +1270,7 @@ namespace cryptonote
       append_key_images(k_images, tx);
       LOG_PRINT_L2("  added, new block weight " << total_weight << "/" << max_total_weight << ", coinbase " << print_money(best_coinbase));
     }
+    lock.commit();
 
     expected_reward = best_coinbase;
     LOG_PRINT_L2("Block template filled with " << bl.tx_hashes.size() << " txes, weight "
@@ -1325,6 +1336,7 @@ namespace cryptonote
           // continue
         }
       }
+      lock.commit();
     }
     if (n_removed > 0)
       ++m_cookie;
@@ -1384,6 +1396,7 @@ namespace cryptonote
           // ignore error
         }
       }
+      lock.commit();
     }
 
     m_cookie = 0;
