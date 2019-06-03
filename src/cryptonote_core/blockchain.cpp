@@ -149,7 +149,8 @@ Blockchain::Blockchain(tx_memory_pool& tx_pool) :
   m_long_term_block_weights_cache_rolling_median(CRYPTONOTE_LONG_TERM_BLOCK_WEIGHT_WINDOW_SIZE),
   m_difficulty_for_next_block_top_hash(crypto::null_hash),
   m_difficulty_for_next_block(1),
-  m_btc_valid(false)
+  m_btc_valid(false),
+  m_batch_success(true)
 {
   LOG_PRINT_L3("Blockchain::" << __func__);
 }
@@ -606,17 +607,13 @@ void Blockchain::pop_blocks(uint64_t nblocks)
   CRITICAL_REGION_LOCAL(m_tx_pool);
   CRITICAL_REGION_LOCAL1(m_blockchain_lock);
 
-  while (!m_db->batch_start())
-  {
-    m_blockchain_lock.unlock();
-    m_tx_pool.unlock();
-    epee::misc_utils::sleep_no_w(1000);
-    m_tx_pool.lock();
-    m_blockchain_lock.lock();
-  }
+  bool stop_batch = m_db->batch_start();
 
   try
   {
+    const uint64_t blockchain_height = m_db->height();
+    if (blockchain_height > 0)
+      nblocks = std::min(nblocks, blockchain_height - 1);
     for (i=0; i < nblocks; ++i)
     {
       pop_block_from_blockchain();
@@ -624,10 +621,14 @@ void Blockchain::pop_blocks(uint64_t nblocks)
   }
   catch (const std::exception& e)
   {
-    LOG_ERROR("Error when popping blocks, only " << i << " blocks are popped: " << e.what());
+    LOG_ERROR("Error when popping blocks after processing " << i << " blocks: " << e.what());
+    if (stop_batch)
+      m_db->batch_abort();
+    return;
   }
 
-  m_db->batch_stop();
+  if (stop_batch)
+    m_db->batch_stop();
 }
 //------------------------------------------------------------------
 // This function tells BlockchainDB to remove the top block from the
@@ -1424,7 +1425,8 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
     // just as we compare it, we'll just use a slightly old template, but
     // this would be the case anyway if we'd lock, and the change happened
     // just after the block template was created
-    if (!memcmp(&miner_address, &m_btc_address, sizeof(cryptonote::account_public_address)) && m_btc_nonce == ex_nonce && m_btc_pool_cookie == m_tx_pool.cookie()) {
+    if (!memcmp(&miner_address, &m_btc_address, sizeof(cryptonote::account_public_address)) && m_btc_nonce == ex_nonce
+      && m_btc_pool_cookie == m_tx_pool.cookie() && m_btc.prev_id == get_tail_id()) {
       MDEBUG("Using cached template");
       m_btc.timestamp = time(NULL); // update timestamp unconditionally
       b = m_btc;
@@ -3896,6 +3898,7 @@ leave:
     catch (const KEY_IMAGE_EXISTS& e)
     {
       LOG_ERROR("Error adding block with hash: " << id << " to blockchain, what = " << e.what());
+      m_batch_success = false;
       bvc.m_verifivation_failed = true;
       return_tx_to_pool(txs);
       return false;
@@ -3904,6 +3907,7 @@ leave:
     {
       //TODO: figure out the best way to deal with this failure
       LOG_ERROR("Error adding block with hash: " << id << " to blockchain, what = " << e.what());
+      m_batch_success = false;
       bvc.m_verifivation_failed = true;
       return_tx_to_pool(txs);
       return false;
@@ -4213,7 +4217,10 @@ bool Blockchain::cleanup_handle_incoming_blocks(bool force_sync)
 
   try
   {
-    m_db->batch_stop();
+    if (m_batch_success)
+      m_db->batch_stop();
+    else
+      m_db->batch_abort();
     success = true;
   }
   catch (const std::exception &e)
@@ -4437,6 +4444,7 @@ bool Blockchain::prepare_handle_incoming_blocks(const std::vector<block_complete
     m_tx_pool.lock();
     m_blockchain_lock.lock();
   }
+  m_batch_success = true;
 
   const uint64_t height = m_db->height();
   if ((height + blocks_entry.size()) < m_blocks_hash_check.size())
