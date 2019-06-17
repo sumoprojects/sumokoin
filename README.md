@@ -201,7 +201,7 @@ Tested on a Raspberry Pi Zero with a clean install of minimal Raspbian Stretch (
 ```
         git clone https://github.com/sumoprojects/sumokoin.git
 	cd sumokoin
-	git checkout tags/v0.5.0.0
+	git checkout tags/v0.5.1.0
 ```
 * Build:
 
@@ -253,7 +253,7 @@ If you are using the older Raspbian Jessie image, compiling Sumokoin is a bit mo
 
 * Wait ~4 hours
 
-* From here, follow the [general Raspberry Pi instructions](#on-the-raspberry-pi) from the "Clone Sumokoin and checkout most recent release version" step.
+* From here, follow the [general Raspberry Pi instructions](#on-the-raspberry-pi) from the "Clone sumokoin and checkout most recent release version" step.
 
 #### On Windows:
 
@@ -544,7 +544,7 @@ to add a rule to allow this connection too, in addition to telling torsocks to
 allow inbound connections. Full example:
 
 ```bash
-    sudo iptables -I OUTPUT 2 -p tcp -d 127.0.0.1 -m tcp --dport 18081 -j ACCEPT
+    sudo iptables -I OUTPUT 2 -p tcp -d 127.0.0.1 -m tcp --dport 19733 -j ACCEPT
     DNS_PUBLIC=tcp torsocks ./sumokoind --p2p-bind-ip 127.0.0.1 --no-igd --rpc-bind-ip 127.0.0.1 \
         --data-dir /home/amnesia/Persistent/your/directory/to/the/blockchain
 ```
