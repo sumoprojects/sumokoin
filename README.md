@@ -607,7 +607,7 @@ Configure Sumokoin with the -D SANITIZE=ON cmake flag, eg:
 cd build/debug && cmake -D SANITIZE=ON -D CMAKE_BUILD_TYPE=Debug ../..
 ```
 
-You can then run the sumokoin tools normally. Performance will typically halve.
+You can then run the Sumokoin tools normally. Performance will typically halve.
 
 #### valgrind
 
