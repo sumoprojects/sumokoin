@@ -7703,7 +7703,7 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
           for (const auto &out: ring)
           {
             MINFO("Ring has output " << out);
-            if (out < num_outs)
+            if (out < num_outs || out == td.m_global_output_index)
             {
               MINFO("Using it");
               req.outputs.push_back({amount, out});
