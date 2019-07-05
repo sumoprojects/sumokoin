@@ -65,26 +65,37 @@
 #define HAS_ARM_HW
 #endif
 
-#ifdef HAS_INTEL_HW
-inline void cpuid(uint32_t eax, int32_t ecx, int32_t val[4])
-{
-	val[0] = 0;
-	val[1] = 0;
-	val[2] = 0;
-	val[3] = 0;
-
-#if defined(HAS_WIN_INTRIN_API)
-	__cpuidex(val, eax, ecx);
+#if defined(__INTEL_COMPILER)
+#define ASM __asm__
+#elif !defined(_MSC_VER)
+#define ASM __asm__
 #else
-	__cpuid_count(eax, ecx, val[0], val[1], val[2], val[3]);
+#define ASM __asm
 #endif
-}
 
+#if defined(_MSC_VER)
+#define cpuid(info,x)    __cpuidex(info,x,0)
+#else
+void cpuid(int CPUInfo[4], int InfoType)
+{
+    ASM __volatile__
+    (
+    "cpuid":
+        "=a" (CPUInfo[0]),
+        "=b" (CPUInfo[1]),
+        "=c" (CPUInfo[2]),
+        "=d" (CPUInfo[3]) :
+            "a" (InfoType), "c" (0)
+        );
+}
+#endif
+
+#ifdef HAS_INTEL_HW
 inline bool hw_check_aes()
 {
-	int32_t cpu_info[4];
-	cpuid(1, 0, cpu_info);
-	return (cpu_info[2] & (1 << 25)) != 0;
+    int32_t cpu_info[4];
+    cpuid(cpu_info, 1);
+    return (cpu_info[2] & (1 << 25)) != 0;
 }
 #endif
 
