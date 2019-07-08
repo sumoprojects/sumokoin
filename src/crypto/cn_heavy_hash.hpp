@@ -76,7 +76,7 @@
 #if defined(_MSC_VER)
 #define cpuid(info,x)    __cpuidex(info,x,0)
 #else
-void cpuid(int CPUInfo[4], int InfoType)
+inline void cpuid(int CPUInfo[4], int InfoType)
 {
     ASM __volatile__
     (
