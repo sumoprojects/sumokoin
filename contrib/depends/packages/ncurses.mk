@@ -53,7 +53,6 @@ define $(package)_build_cmds
 endef
 
 define $(package)_stage_cmds
-  echo $($(package)_staging_dir) &&\
   $(MAKE) install DESTDIR=$($(package)_staging_dir)
 endef
 
