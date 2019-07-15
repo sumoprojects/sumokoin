@@ -3958,7 +3958,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
 
     if (m_restoring && m_generate_from_json.empty() && m_generate_from_device.empty())
     {
-      m_wallet->explicit_refresh_from_block_height(!(command_line::is_arg_defaulted(vm, arg_restore_height) ||
+      m_wallet->explicit_refresh_from_block_height(!(command_line::is_arg_defaulted(vm, arg_restore_height) &&
         command_line::is_arg_defaulted(vm, arg_restore_date)));
       if (command_line::is_arg_defaulted(vm, arg_restore_height) && !command_line::is_arg_defaulted(vm, arg_restore_date))
       {
@@ -4075,7 +4075,9 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
 
   m_wallet->callback(this);
 
-  check_background_mining(password);
+  bool skip_check_backround_mining = !command_line::get_arg(vm, arg_command).empty();
+  if (!skip_check_backround_mining)
+    check_background_mining(password);
 
   if (welcome)
     message_writer(console_color_yellow, true) << tr("If you are new to Sumokoin, type \"welcome\" for a brief overview.");
