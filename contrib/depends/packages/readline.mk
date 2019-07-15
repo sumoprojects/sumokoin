@@ -16,10 +16,6 @@ define $(package)_set_vars
 endef
 
 define $(package)_config_cmds
-  echo $(HOST) &&\
-  echo $($(package)_staging_dir) &&\
-  export bash_cv_have_mbstate_t=yes &&\
-  export bash_cv_wcwidth_broken=yes &&\
   ./configure $($(package)_config_opts)
 endef
 
@@ -28,8 +24,6 @@ define $(package)_build_cmds
 endef
 
 define $(package)_stage_cmds
-  echo $($(package)_staging_dir) &&\
-  echo $(host_prefix) &&\
   $(MAKE) install DESTDIR=$($(package)_staging_dir) prefix=$(host_prefix) exec-prefix=$(host_prefix)
 endef
 
