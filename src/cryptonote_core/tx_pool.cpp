@@ -1183,7 +1183,7 @@ namespace cryptonote
     //baseline empty block
     get_block_reward(median_weight, total_weight, already_generated_coins, best_coinbase, height);
 
-    size_t max_total_weight = 2 * median_weight - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
+    size_t max_total_weight = (200 * median_weight)/100 - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
     std::unordered_set<crypto::key_image> k_images;
 
     LOG_PRINT_L2("Filling block template, median weight " << median_weight << ", " << m_txs_by_fee_and_receive_time.size() << " txes in the pool");
@@ -1374,7 +1374,9 @@ namespace cryptonote
           MFATAL("Failed to insert key images from txpool tx");
           return false;
         }
-        m_txs_by_fee_and_receive_time.emplace(std::pair<double, time_t>(meta.fee / (double)meta.weight, meta.receive_time), txid);
+        // Rounding tx fee/blob_size ratio so that txs with the same priority would be sorted by receive_time
+        uint32_t fee_per_size_ratio = (uint32_t)(meta.fee / (double)meta.weight);
+        m_txs_by_fee_and_receive_time.emplace(std::pair<uint32_t, std::time_t>(fee_per_size_ratio, meta.receive_time), txid);
         m_txpool_weight += meta.weight;
         return true;
       }, true);
