@@ -56,7 +56,7 @@ namespace cryptonote
   /************************************************************************/
 
   //! pair of <transaction fee, transaction hash> for organization
-  typedef std::pair<std::pair<double, std::time_t>, crypto::hash> tx_by_fee_and_receive_time_entry;
+  typedef std::pair<std::pair<uint32_t, std::time_t>, crypto::hash> tx_by_fee_and_receive_time_entry;
 
   class txCompare
   {

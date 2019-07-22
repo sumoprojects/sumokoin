@@ -603,7 +603,7 @@ bool Blockchain::deinit()
 // It starts a batch and calls private method pop_block_from_blockchain().
 void Blockchain::pop_blocks(uint64_t nblocks)
 {
-  uint64_t i;
+  uint64_t i(0);
   CRITICAL_REGION_LOCAL(m_tx_pool);
   CRITICAL_REGION_LOCAL1(m_blockchain_lock);
 
@@ -4901,7 +4901,7 @@ void Blockchain::cancel()
 }
 
 #if defined(PER_BLOCK_CHECKPOINT)
-static const char expected_block_hashes_hash[] = "8bd6c4fff119d791d1be231a3743fa3978368cabdcd513fccfad4656e8ce2c57";
+static const char expected_block_hashes_hash[] = "d890ae0285728cc2c95a39fdf27d2c3c96aa86a1a9e841ad7d2f2a5a54df9033";
 void Blockchain::load_compiled_in_block_hashes(const GetCheckpointsCallback& get_checkpoints)
 {
   if (get_checkpoints == nullptr || !m_fast_sync)
