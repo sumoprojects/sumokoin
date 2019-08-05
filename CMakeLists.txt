@@ -187,7 +187,7 @@ if(NOT MANUAL_SUBMODULES)
       if (upToDate)
         message(STATUS "Submodule '${relative_path}' is up-to-date")
       else()
-        message(FATAL_ERROR "Submodule '${relative_path}' is not up-to-date. Please update with\ngit submodule update --init --force ${relative_path}\nor run cmake with -DMANUAL_SUBMODULES=1")
+        message(FATAL_ERROR "Submodule '${relative_path}' is not up-to-date. Please update all submodules with\ngit submodule update --init --force\nor run cmake with -DMANUAL_SUBMODULES=1\n")
       endif()
     endfunction ()
     
@@ -246,6 +246,12 @@ enable_testing()
 
 option(BUILD_DOCUMENTATION "Build the Doxygen documentation." ON)
 option(BUILD_TESTS "Build tests." OFF)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(DEFAULT_BUILD_DEBUG_UTILITIES ON)
+else()
+  set(DEFAULT_BUILD_DEBUG_UTILITIES OFF)
+endif()
+option(BUILD_DEBUG_UTILITIES "Build debug utilities." DEFAULT_BUILD_DEBUG_UTILITIES)
 
 # Check whether we're on a 32-bit or 64-bit system
 if(CMAKE_SIZEOF_VOID_P EQUAL "8")
@@ -998,7 +1004,16 @@ add_subdirectory(contrib)
 add_subdirectory(src)
 
 if(BUILD_TESTS)
+  message(STATUS "Building tests")
   add_subdirectory(tests)
+else()
+  message(STATUS "Not building tests")
+endif()
+
+if(BUILD_DEBUG_UTILITIES)
+  message(STATUS "Building debug utilities")
+else()
+  message(STATUS "Not building debug utilities")
 endif()
 
 if(BUILD_DOCUMENTATION)
