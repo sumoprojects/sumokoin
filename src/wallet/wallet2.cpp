@@ -7943,7 +7943,6 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
       outs.back().push_back(std::make_tuple(td.m_global_output_index, boost::get<txout_to_key>(td.m_tx.vout[td.m_internal_output_index].target).key, mask));
 
       // then pick outs from an existing ring, if any
-      bool existing_ring_found = false;
       if (td.m_key_image_known && !td.m_key_image_partial)
       {
         std::vector<uint64_t> ring;
