@@ -105,13 +105,13 @@ namespace nodetool
     command_line::add_arg(desc, arg_p2p_hide_my_port);
     command_line::add_arg(desc, arg_no_sync);
     command_line::add_arg(desc, arg_no_igd);
+    command_line::add_arg(desc, arg_igd);
     command_line::add_arg(desc, arg_out_peers);
     command_line::add_arg(desc, arg_in_peers);
     command_line::add_arg(desc, arg_tos_flag);
     command_line::add_arg(desc, arg_limit_rate_up);
     command_line::add_arg(desc, arg_limit_rate_down);
     command_line::add_arg(desc, arg_limit_rate);
-    command_line::add_arg(desc, arg_save_graph);
   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
@@ -345,7 +345,35 @@ namespace nodetool
     public_zone.m_can_pingback = true;
     m_external_port = command_line::get_arg(vm, arg_p2p_external_port);
     m_allow_local_ip = command_line::get_arg(vm, arg_p2p_allow_local_ip);
-    m_no_igd = command_line::get_arg(vm, arg_no_igd);
+    const bool has_no_igd = command_line::get_arg(vm, arg_no_igd);
+    const std::string sigd = command_line::get_arg(vm, arg_igd);
+    if (sigd == "enabled")
+    {
+      if (has_no_igd)
+      {
+        MFATAL("Cannot have both --" << arg_no_igd.name << " and --" << arg_igd.name << " enabled");
+        return false;
+      }
+      m_igd = igd;
+    }
+    else if (sigd == "disabled")
+    {
+      m_igd =  no_igd;
+    }
+    else if (sigd == "delayed")
+    {
+      if (has_no_igd && !command_line::is_arg_defaulted(vm, arg_igd))
+      {
+        MFATAL("Cannot have both --" << arg_no_igd.name << " and --" << arg_igd.name << " delayed");
+        return false;
+      }
+      m_igd = has_no_igd ? no_igd : delayed_igd;
+    }
+    else
+    {
+      MFATAL("Invalid value for --" << arg_igd.name << ", expected enabled, disabled or delayed");
+      return false;
+    }
     m_offline = command_line::get_arg(vm, cryptonote::arg_offline);
 
     if (command_line::has_arg(vm, arg_p2p_add_peer))
@@ -378,11 +406,6 @@ namespace nodetool
           m_command_line_peers.push_back(pe);
         }
       }
-    }
-
-    if(command_line::has_arg(vm, arg_save_graph))
-    {
-      set_save_graph(true);
     }
 
     if (command_line::has_arg(vm,arg_p2p_add_exclusive_node))
@@ -771,7 +794,7 @@ namespace nodetool
       MDEBUG("External port defined as " << m_external_port);
 
     // add UPnP port mapping
-    if(!m_no_igd)
+    if(m_igd == igd)
       add_upnp_port_mapping(m_listening_port);
 
     return res;
@@ -865,7 +888,7 @@ namespace nodetool
       for(auto& zone : m_network_zones)
         zone.second.m_net_server.deinit_server();
       // remove UPnP port mapping
-      if(!m_no_igd)
+      if(m_igd == igd)
         delete_upnp_port_mapping(m_listening_port);
     }
     return store_config();
@@ -1708,8 +1731,17 @@ namespace nodetool
       }
       else
       {
-        const el::Level level = el::Level::Warning;
-        MCLOG_RED(level, "global", "No incoming connections - check firewalls/routers allow port " << get_this_peer_port());
+        if (m_igd == delayed_igd)
+        {
+          MWARNING("No incoming connections, trying to setup IGD");
+          add_upnp_port_mapping(m_listening_port);
+          m_igd = igd;
+        }
+        else
+        {
+          const el::Level level = el::Level::Warning;
+          MCLOG_RED(level, "global", "No incoming connections - check firewalls/routers allow port " << get_this_peer_port());
+        }
       }
     }
     return true;
@@ -2345,6 +2377,15 @@ namespace nodetool
   }
 
   template<class t_payload_net_handler>
+  uint32_t node_server<t_payload_net_handler>::get_max_out_public_peers() const
+  {
+    const auto public_zone = m_network_zones.find(epee::net_utils::zone::public_);
+    if (public_zone == m_network_zones.end())
+      return 0;
+    return public_zone->second.m_config.m_net_config.max_out_connection_count;
+  }
+
+  template<class t_payload_net_handler>
   void node_server<t_payload_net_handler>::change_max_in_public_peers(size_t count)
   {
     auto public_zone = m_network_zones.find(epee::net_utils::zone::public_);
@@ -2355,6 +2396,15 @@ namespace nodetool
       if(current > count)
         public_zone->second.m_net_server.get_config_object().del_in_connections(current - count);
     }
+  }
+
+  template<class t_payload_net_handler>
+  uint32_t node_server<t_payload_net_handler>::get_max_in_public_peers() const
+  {
+    const auto public_zone = m_network_zones.find(epee::net_utils::zone::public_);
+    if (public_zone == m_network_zones.end())
+      return 0;
+    return public_zone->second.m_config.m_net_config.max_in_connection_count;
   }
 
   template<class t_payload_net_handler>

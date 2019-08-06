@@ -205,6 +205,13 @@ namespace nodetool
       }
     };
 
+    enum igd_t
+    {
+      no_igd,
+      igd,
+      delayed_igd,
+    };
+
   public:
     typedef t_payload_net_handler payload_net_handler;
 
@@ -214,9 +221,8 @@ namespace nodetool
         m_rpc_port(0),
         m_allow_local_ip(false),
         m_hide_my_port(false),
-        m_no_igd(false),
+        m_igd(no_igd),
         m_offline(false),
-        m_save_graph(false),
         is_closing(false),
         m_network_id()
     {}
@@ -245,7 +251,9 @@ namespace nodetool
     size_t get_zone_count() const { return m_network_zones.size(); }
 
     void change_max_out_public_peers(size_t count);
+    uint32_t get_max_out_public_peers() const;
     void change_max_in_public_peers(size_t count);
+    uint32_t get_max_in_public_peers() const;
     virtual bool block_host(const epee::net_utils::network_address &adress, time_t seconds = P2P_IP_BLOCKTIME);
     virtual bool unblock_host(const epee::net_utils::network_address &address);
     virtual bool block_subnet(const epee::net_utils::ipv4_network_subnet &subnet, time_t seconds = P2P_IP_BLOCKTIME);
@@ -400,12 +408,6 @@ namespace nodetool
 
   public:
 
-    void set_save_graph(bool save_graph)
-    {
-      m_save_graph = save_graph;
-      epee::net_utils::connection_basic::set_save_graph(save_graph);
-    }
-
     void set_rpc_port(uint16_t rpc_port)
     {
       m_rpc_port = rpc_port;
@@ -421,9 +423,8 @@ namespace nodetool
     uint16_t m_rpc_port;
     bool m_allow_local_ip;
     bool m_hide_my_port;
-    bool m_no_igd;
+    igd_t m_igd;
     bool m_offline;
-    std::atomic<bool> m_save_graph;
     std::atomic<bool> is_closing;
     std::unique_ptr<boost::thread> mPeersLoggerThread;
     //critical_section m_connections_lock;
@@ -497,6 +498,7 @@ namespace nodetool
     extern const command_line::arg_descriptor<bool> arg_no_sync;
 
     extern const command_line::arg_descriptor<bool>        arg_no_igd;
+    extern const command_line::arg_descriptor<std::string> arg_igd;
     extern const command_line::arg_descriptor<bool>        arg_offline;
     extern const command_line::arg_descriptor<int64_t>     arg_out_peers;
     extern const command_line::arg_descriptor<int64_t>     arg_in_peers;
@@ -505,8 +507,6 @@ namespace nodetool
     extern const command_line::arg_descriptor<int64_t> arg_limit_rate_up;
     extern const command_line::arg_descriptor<int64_t> arg_limit_rate_down;
     extern const command_line::arg_descriptor<int64_t> arg_limit_rate;
-
-    extern const command_line::arg_descriptor<bool> arg_save_graph;
 }
 
 POP_WARNINGS

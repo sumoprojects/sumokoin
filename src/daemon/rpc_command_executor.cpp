@@ -47,6 +47,19 @@
 namespace daemonize {
 
 namespace {
+  const char *get_address_type_name(epee::net_utils::address_type address_type)
+  {
+    switch (address_type)
+    {
+      default:
+      case epee::net_utils::address_type::invalid: return "invalid";
+      case epee::net_utils::address_type::ipv4: return "IPv4";
+      case epee::net_utils::address_type::ipv6: return "IPv6";
+      case epee::net_utils::address_type::i2p: return "I2P";
+      case epee::net_utils::address_type::tor: return "Tor";
+    }
+  }
+
   void print_peer(std::string const & prefix, cryptonote::peer const & peer)
   {
     time_t now;
@@ -55,7 +68,7 @@ namespace {
 
     std::string id_str;
     std::string port_str;
-    std::string elapsed = epee::misc_utils::get_time_interval_string(now - last_seen);
+    std::string elapsed = peer.last_seen == 0 ? "never" : epee::misc_utils::get_time_interval_string(now - last_seen);
     std::string ip_str = epee::string_tools::get_ip_string_from_int32(peer.ip);
     std::stringstream peer_id_str;
     peer_id_str << std::hex << std::setw(16) << peer.id;
@@ -338,7 +351,8 @@ bool t_rpc_command_executor::show_difficulty() {
 
   tools::success_msg_writer() <<   "BH: " << res.height
                               << ", TH: " << res.top_block_hash
-                              << ", DIFF: " << res.wide_difficulty
+                              << ", DIFF: " << cryptonote::difficulty_type(res.wide_difficulty)
+                              << ", CUM_DIFF: " << cryptonote::difficulty_type(res.wide_cumulative_difficulty)
                               << ", HR: " << cryptonote::difficulty_type(res.wide_difficulty) / res.target << " H/s";
 
   return true;
@@ -612,6 +626,7 @@ bool t_rpc_command_executor::print_connections() {
   }
 
   tools::msg_writer() << std::setw(30) << std::left << "Remote Host"
+      << std::setw(8) << "Type"
       << std::setw(6) << "SSL"
       << std::setw(20) << "Peer id"
       << std::setw(20) << "Support Flags"      
@@ -632,6 +647,7 @@ bool t_rpc_command_executor::print_connections() {
     tools::msg_writer() 
      //<< std::setw(30) << std::left << in_out
      << std::setw(30) << std::left << address
+     << std::setw(8) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
      << std::setw(6) << (info.ssl ? "yes" : "no")
      << std::setw(20) << epee::string_tools::pad_string(info.peer_id, 16, '0', true)
      << std::setw(20) << info.support_flags
@@ -1489,13 +1505,14 @@ bool t_rpc_command_executor::get_limit_down()
   return true;
 }
 
-bool t_rpc_command_executor::out_peers(uint64_t limit)
+bool t_rpc_command_executor::out_peers(bool set, uint32_t limit)
 {
 	cryptonote::COMMAND_RPC_OUT_PEERS::request req;
 	cryptonote::COMMAND_RPC_OUT_PEERS::response res;
 	
 	epee::json_rpc::error error_resp;
 
+	req.set = set;
 	req.out_peers = limit;
 	
 	std::string fail_message = "Unsuccessful";
@@ -1516,18 +1533,20 @@ bool t_rpc_command_executor::out_peers(uint64_t limit)
 		}
 	}
 
-	tools::msg_writer() << "Max number of out peers set to " << limit << std::endl;
+	const std::string s = res.out_peers == (uint32_t)-1 ? "unlimited" : std::to_string(res.out_peers);
+	tools::msg_writer() << "Max number of out peers set to " << s << std::endl;
 
 	return true;
 }
 
-bool t_rpc_command_executor::in_peers(uint64_t limit)
+bool t_rpc_command_executor::in_peers(bool set, uint32_t limit)
 {
 	cryptonote::COMMAND_RPC_IN_PEERS::request req;
 	cryptonote::COMMAND_RPC_IN_PEERS::response res;
 
 	epee::json_rpc::error error_resp;
 
+	req.set = set;
 	req.in_peers = limit;
 
 	std::string fail_message = "Unsuccessful";
@@ -1548,61 +1567,9 @@ bool t_rpc_command_executor::in_peers(uint64_t limit)
 		}
 	}
 
-	tools::msg_writer() << "Max number of in peers set to " << limit << std::endl;
+	const std::string s = res.in_peers == (uint32_t)-1 ? "unlimited" : std::to_string(res.in_peers);
+	tools::msg_writer() << "Max number of in peers set to " << s << std::endl;
 
-	return true;
-}
-
-bool t_rpc_command_executor::start_save_graph()
-{
-	cryptonote::COMMAND_RPC_START_SAVE_GRAPH::request req;
-	cryptonote::COMMAND_RPC_START_SAVE_GRAPH::response res;
-	std::string fail_message = "Unsuccessful";
-	
-	if (m_is_rpc)
-	{
-		if (!m_rpc_client->rpc_request(req, res, "/start_save_graph", fail_message.c_str()))
-		{
-			return true;
-		}
-	}
-	
-	else
-    {
-		if (!m_rpc_server->on_start_save_graph(req, res) || res.status != CORE_RPC_STATUS_OK)
-		{
-			tools::fail_msg_writer() << make_error(fail_message, res.status);
-			return true;
-		}
-	}
-	
-	tools::success_msg_writer() << "Saving graph is now on";
-	return true;
-}
-
-bool t_rpc_command_executor::stop_save_graph()
-{
-	cryptonote::COMMAND_RPC_STOP_SAVE_GRAPH::request req;
-	cryptonote::COMMAND_RPC_STOP_SAVE_GRAPH::response res;
-	std::string fail_message = "Unsuccessful";
-	
-	if (m_is_rpc)
-	{
-		if (!m_rpc_client->rpc_request(req, res, "/stop_save_graph", fail_message.c_str()))
-		{
-			return true;
-		}
-	}
-	
-	else
-    {
-		if (!m_rpc_server->on_stop_save_graph(req, res) || res.status != CORE_RPC_STATUS_OK)
-		{
-			tools::fail_msg_writer() << make_error(fail_message, res.status);
-			return true;
-		}
-	}
-	tools::success_msg_writer() << "Saving graph is now off";
 	return true;
 }
 

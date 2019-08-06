@@ -1697,6 +1697,17 @@ void WalletImpl::setDefaultMixin(uint32_t arg)
     m_wallet->default_mixin(arg);
 }
 
+bool WalletImpl::setCacheAttribute(const std::string &key, const std::string &val)
+{
+    m_wallet->set_attribute(key, val);
+    return true;
+}
+
+std::string WalletImpl::getCacheAttribute(const std::string &key) const
+{
+    return m_wallet->get_attribute(key);
+}
+
 bool WalletImpl::setUserNote(const std::string &txid, const std::string &note)
 {
     cryptonote::blobdata txid_data;
@@ -2427,6 +2438,23 @@ bool WalletImpl::isKeysFileLocked()
 uint64_t WalletImpl::coldKeyImageSync(uint64_t &spent, uint64_t &unspent)
 {
     return m_wallet->cold_key_image_sync(spent, unspent);
+}
+
+void WalletImpl::deviceShowAddress(uint32_t accountIndex, uint32_t addressIndex, const std::string &paymentId)
+{
+    boost::optional<crypto::hash8> payment_id_param = boost::none;
+    if (!paymentId.empty())
+    {
+        crypto::hash8 payment_id;
+        bool res = tools::wallet2::parse_short_payment_id(paymentId, payment_id);
+        if (!res)
+        {
+            throw runtime_error("Invalid payment ID");
+        }
+        payment_id_param = payment_id;
+    }
+
+    m_wallet->device_show_address(accountIndex, addressIndex, payment_id_param);
 }
 } // namespace
 
