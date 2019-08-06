@@ -338,7 +338,8 @@ bool t_rpc_command_executor::show_difficulty() {
 
   tools::success_msg_writer() <<   "BH: " << res.height
                               << ", TH: " << res.top_block_hash
-                              << ", DIFF: " << res.wide_difficulty
+                              << ", DIFF: " << cryptonote::difficulty_type(res.wide_difficulty)
+                              << ", CUM_DIFF: " << cryptonote::difficulty_type(res.wide_cumulative_difficulty)
                               << ", HR: " << cryptonote::difficulty_type(res.wide_difficulty) / res.target << " H/s";
 
   return true;
