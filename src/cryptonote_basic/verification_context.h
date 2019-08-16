@@ -50,6 +50,7 @@ namespace cryptonote
     bool m_fee_too_low;
     bool m_not_rct;
     bool m_invalid_tx_version;
+    bool m_too_few_outputs;
   };
 
   struct block_verification_context
