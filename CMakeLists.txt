@@ -1003,6 +1003,7 @@ endif()
 add_subdirectory(contrib)
 add_subdirectory(src)
 
+find_package(PythonInterp)
 if(BUILD_TESTS)
   message(STATUS "Building tests")
   add_subdirectory(tests)
