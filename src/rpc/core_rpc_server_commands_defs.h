@@ -87,7 +87,7 @@ namespace cryptonote
 // advance which version they will stop working with
 // Don't go over 32767 for any of these
 #define CORE_RPC_VERSION_MAJOR 2
-#define CORE_RPC_VERSION_MINOR 7
+#define CORE_RPC_VERSION_MINOR 8
 #define MAKE_CORE_RPC_VERSION(major,minor) (((major)<<16)|(minor))
 #define CORE_RPC_VERSION MAKE_CORE_RPC_VERSION(CORE_RPC_VERSION_MAJOR, CORE_RPC_VERSION_MINOR)
 
@@ -612,6 +612,7 @@ namespace cryptonote
       bool overspend;
       bool fee_too_low;
       bool not_rct;
+      bool too_few_outputs;
       bool sanity_check_failed;
       bool untrusted;
 
@@ -627,6 +628,7 @@ namespace cryptonote
         KV_SERIALIZE(overspend)
         KV_SERIALIZE(fee_too_low)
         KV_SERIALIZE(not_rct)
+        KV_SERIALIZE(too_few_outputs)
         KV_SERIALIZE(sanity_check_failed)
         KV_SERIALIZE(untrusted)
       END_KV_SERIALIZE_MAP()
@@ -1094,10 +1096,12 @@ namespace cryptonote
     struct request_t
     {
       std::string hash;
+      std::vector<std::string> hashes;
       bool fill_pow_hash;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(hash)
+        KV_SERIALIZE(hashes)
         KV_SERIALIZE_OPT(fill_pow_hash, false);
       END_KV_SERIALIZE_MAP()
     };
@@ -1107,10 +1111,12 @@ namespace cryptonote
     {
       std::string status;
       block_header_response block_header;
+      std::vector<block_header_response> block_headers;
       bool untrusted;
       
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(block_header)
+        KV_SERIALIZE(block_headers)
         KV_SERIALIZE(status)
         KV_SERIALIZE(untrusted)
       END_KV_SERIALIZE_MAP()
@@ -1200,6 +1206,9 @@ namespace cryptonote
     peer(uint64_t id, const std::string &host, uint64_t last_seen, uint32_t pruning_seed, uint16_t rpc_port)
       : id(id), host(host), ip(0), port(0), rpc_port(rpc_port), last_seen(last_seen), pruning_seed(pruning_seed)
     {}
+    peer(uint64_t id, const std::string &host, uint16_t port, uint64_t last_seen, uint32_t pruning_seed, uint16_t rpc_port)
+      : id(id), host(host), ip(0), port(port), rpc_port(rpc_port), last_seen(last_seen), pruning_seed(pruning_seed)
+    {}
     peer(uint64_t id, uint32_t ip, uint16_t port, uint64_t last_seen, uint32_t pruning_seed, uint16_t rpc_port)
       : id(id), host(epee::string_tools::get_ip_string_from_int32(ip)), ip(ip), port(port), rpc_port(rpc_port), last_seen(last_seen), pruning_seed(pruning_seed)
     {}
@@ -1234,6 +1243,54 @@ namespace cryptonote
         KV_SERIALIZE(status)
         KV_SERIALIZE(white_list)
         KV_SERIALIZE(gray_list)
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<response_t> response;
+  };
+
+  struct public_node
+  {
+    std::string host;
+    uint64_t last_seen;
+    uint16_t rpc_port;
+
+    public_node() = delete;
+
+    public_node(const peer &peer)
+      : host(peer.host), last_seen(peer.last_seen), rpc_port(peer.rpc_port)
+    {}
+
+    BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE(host)
+      KV_SERIALIZE(last_seen)
+      KV_SERIALIZE(rpc_port)
+    END_KV_SERIALIZE_MAP()
+  };
+
+  struct COMMAND_RPC_GET_PUBLIC_NODES
+  {
+    struct request_t
+    {
+      bool gray;
+      bool white;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE_OPT(gray, false)
+        KV_SERIALIZE_OPT(white, true)
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<request_t> request;
+
+    struct response_t
+    {
+      std::string status;
+      std::vector<public_node> gray;
+      std::vector<public_node> white;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(status)
+        KV_SERIALIZE(gray)
+        KV_SERIALIZE(white)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;
@@ -2095,7 +2152,7 @@ namespace cryptonote
     struct response_t
     {
       std::string status;
-      std::list<chain_info> chains;
+      std::vector<chain_info> chains;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(status)

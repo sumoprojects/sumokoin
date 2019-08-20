@@ -2869,6 +2869,19 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
   crypto::hash tx_prefix_hash = get_transaction_prefix_hash(tx);
 
   const uint8_t hf_version = m_hardfork->get_current_version();
+
+  if (hf_version >= HF_VERSION_MIN_2_OUTPUTS)
+  {
+    if (tx.version >= 2)
+    {
+      if (tx.vout.size() < 2)
+      {
+        MERROR_VER("Tx " << get_transaction_hash(tx) << " has fewer than two outputs");
+        tvc.m_too_few_outputs = true;
+        return false;
+      }
+    }
+  }
   
   size_t n_unmixable = 0, n_mixable = 0;
   size_t mixin = std::numeric_limits<size_t>::max();
@@ -4893,9 +4906,9 @@ std::map<uint64_t, std::tuple<uint64_t, uint64_t, uint64_t>> Blockchain:: get_ou
   return m_db->get_output_histogram(amounts, unlocked, recent_cutoff, min_count);
 }
 
-std::list<std::pair<Blockchain::block_extended_info,std::vector<crypto::hash>>> Blockchain::get_alternative_chains() const
+std::vector<std::pair<Blockchain::block_extended_info,std::vector<crypto::hash>>> Blockchain::get_alternative_chains() const
 {
-  std::list<std::pair<Blockchain::block_extended_info,std::vector<crypto::hash>>> chains;
+  std::vector<std::pair<Blockchain::block_extended_info,std::vector<crypto::hash>>> chains;
 
   blocks_ext_by_hash alt_blocks;
   alt_blocks.reserve(m_db->get_alt_block_count());
