@@ -1,5 +1,5 @@
 ---
-name: "monero-osx-0.14"
+name: "sumokoin-osx-0.5"
 enable_cache: true
 suites:
 - "bionic"
@@ -24,8 +24,8 @@ packages:
 - "python-dev"
 - "python-setuptools"
 remotes:
-- "url": "https://github.com/monero-project/monero.git"
-  "dir": "monero"
+- "url": "https://github.com/sumoprojects/sumokoin.git"
+  "dir": "sumokoin"
 files:
 - "MacOSX10.11.sdk.tar.gz"
 script: |
@@ -78,7 +78,14 @@ script: |
   export PATH=${WRAP_DIR}:${PATH}
 
   git config --global core.abbrev 9
-  cd monero
+  cd sumokoin
+  # Set the version string that gets added to the tar archive name
+  version="`git describe`"
+  if [[ $version == *"-"*"-"* ]]; then
+    version="`git rev-parse --short=9 HEAD`"
+    version="`echo $version | head -c 9`"
+  fi
+
   BASEPREFIX=`pwd`/contrib/depends
 
   mkdir -p ${BASEPREFIX}/SDKs
@@ -102,7 +109,7 @@ script: |
     mkdir build && cd build
     cmake .. -DCMAKE_TOOLCHAIN_FILE=${BASEPREFIX}/${i}/share/toolchain.cmake
     make ${MAKEOPTS}
-    DISTNAME=monero-${i}
+    DISTNAME=sumokoin-${i}-${version}
     mv bin ${DISTNAME}
     find ${DISTNAME}/ | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ${OUTDIR}/${DISTNAME}.tar.gz
     cd ..
