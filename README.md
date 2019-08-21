@@ -54,11 +54,11 @@ Please view [LICENSE](LICENSE)
 
 [![License](https://img.shields.io/badge/license-BSD3-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-## Compiling Sumokoin from Source
+## Compiling Sumokoin from source
 
 ### Dependencies
 
-The following table summarizes the tools and libraries required to build.  A
+The following table summarizes the tools and libraries required to build. A
 few of the libraries are also included in this repository (marked as
 "Vendored"). By default, the build uses the library installed on the system,
 and ignores the vendored sources. However, if no library is found installed on
@@ -88,7 +88,8 @@ library archives (`.a`).
 | Doxygen      | any           | NO       | `doxygen`          | `doxygen`    | `doxygen`         | YES      | Documentation  |
 | Graphviz     | any           | NO       | `graphviz`         | `graphviz`   | `graphviz`        | YES      | Documentation  |
 
-[^] On Debian/Ubuntu `libgtest-dev` only includes sources and headers. You must
+
+[1] On Debian/Ubuntu `libgtest-dev` only includes sources and headers. You must
 build the library binary manually. This can be done with the following command ```sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake . && sudo make && sudo mv libg* /usr/lib/ ```
 [2] libnorm-dev is needed if your zmq library was built with libnorm, and not needed otherwise
 
@@ -117,7 +118,7 @@ If you already have a repo cloned, initialize and update:
 Sumokoin uses the CMake build system and a top-level [Makefile](Makefile) that
 invokes cmake commands as needed.
 
-#### On Linux and OS X
+#### On Linux and macOS
 
 * Install the dependencies (see the list above)
 
@@ -201,7 +202,7 @@ Tested on a Raspberry Pi Zero with a clean install of minimal Raspbian Stretch (
 ```
         git clone https://github.com/sumoprojects/sumokoin.git
 	cd sumokoin
-	git checkout tags/v0.5.1.0
+	git checkout tags/v0.5.1.1
 ```
 * Build:
 
@@ -533,6 +534,12 @@ gdb /path/to/sumokoind /path/to/dumpfile
 
 Print the stack trace with `bt`
 
+ * If a program crashed and cores are managed by systemd, the following can also get a stack trace for that crash:
+
+```bash
+coredumpctl -1 gdb
+```
+
 #### To run sumokoin within gdb:
 
 Type `gdb /path/to/sumokoind`
@@ -574,3 +581,20 @@ The output of `mdb_stat -ea <path to blockchain dir>` will indicate inconsistenc
 The output of `mdb_dump -s blocks <path to blockchain dir>` and `mdb_dump -s block_info <path to blockchain dir>` is useful for indicating whether blocks and block_info contain the same keys.
 
 These records are dumped as hex data, where the first line is the key and the second line is the data.
+
+# Known Issues
+
+## Protocols
+
+### Socket-based
+
+Because of the nature of the socket-based protocols that drive sumokoin, certain protocol weaknesses are somewhat unavoidable at this time. While these weaknesses can theoretically be fully mitigated, the effort required (the means) may not justify the ends. As such, please consider taking the following precautions if you are a sumokoin node operator:
+
+- Run `sumokoind` on a "secured" machine. If operational security is not your forte, at a very minimum, have a dedicated a computer running `sumokoind` and **do not** browse the web, use email clients, or use any other potentially harmful apps on your `sumokoind` machine. **Do not click links or load URL/MUA content on the same machine**. Doing so may potentially exploit weaknesses in commands which accept "localhost" and "127.0.0.1".
+- If you plan on hosting a public "remote" node, start `sumokoind` with `--restricted-rpc`. This is a must.
+
+### Blockchain-based
+
+Certain blockchain "features" can be considered "bugs" if misused correctly. Consequently, please consider the following:
+
+- When receiving sumokoin, be aware that it may be locked for an arbitrary time if the sender elected to, preventing you from spending that sumokoin until the lock time expires. You may want to hold off acting upon such a transaction until the unlock time lapses. To get a sense of that time, you can consider the remaining blocktime until unlock as seen in the `show_transfers` command.
