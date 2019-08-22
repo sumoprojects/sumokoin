@@ -54,11 +54,11 @@ Please view [LICENSE](LICENSE)
 
 [![License](https://img.shields.io/badge/license-BSD3-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-## Compiling Sumokoin from Source
+## Compiling Sumokoin from source
 
 ### Dependencies
 
-The following table summarizes the tools and libraries required to build.  A
+The following table summarizes the tools and libraries required to build. A
 few of the libraries are also included in this repository (marked as
 "Vendored"). By default, the build uses the library installed on the system,
 and ignores the vendored sources. However, if no library is found installed on
@@ -88,7 +88,8 @@ library archives (`.a`).
 | Doxygen      | any           | NO       | `doxygen`          | `doxygen`    | `doxygen`         | YES      | Documentation  |
 | Graphviz     | any           | NO       | `graphviz`         | `graphviz`   | `graphviz`        | YES      | Documentation  |
 
-[^] On Debian/Ubuntu `libgtest-dev` only includes sources and headers. You must
+
+[1] On Debian/Ubuntu `libgtest-dev` only includes sources and headers. You must
 build the library binary manually. This can be done with the following command ```sudo apt-get install libgtest-dev && cd /usr/src/gtest && sudo cmake . && sudo make && sudo mv libg* /usr/lib/ ```
 [2] libnorm-dev is needed if your zmq library was built with libnorm, and not needed otherwise
 
@@ -117,7 +118,7 @@ If you already have a repo cloned, initialize and update:
 Sumokoin uses the CMake build system and a top-level [Makefile](Makefile) that
 invokes cmake commands as needed.
 
-#### On Linux and OS X
+#### On Linux and macOS
 
 * Install the dependencies (see the list above)
 
@@ -201,7 +202,7 @@ Tested on a Raspberry Pi Zero with a clean install of minimal Raspbian Stretch (
 ```
         git clone https://github.com/sumoprojects/sumokoin.git
 	cd sumokoin
-	git checkout tags/v0.5.1.0
+	git checkout tags/v0.5.1.1
 ```
 * Build:
 
@@ -352,104 +353,14 @@ We expect to add Sumokoin into the ports tree in the near future, which will aid
 
 ### On OpenBSD:
 
-#### OpenBSD < 6.2
-
-This has been tested on OpenBSD 5.8.
-
-You will need to add a few packages to your system. `pkg_add db cmake gcc gcc-libs g++ gtest`.
-
-The doxygen and graphviz packages are optional and require the xbase set.
-
-The Boost package has a bug that will prevent librpc.a from building correctly. In order to fix this, you will have to Build boost yourself from scratch. Follow the directions here (under "Building Boost"):
-https://github.com/bitcoin/bitcoin/blob/master/doc/build-openbsd.md
-
-You will have to add the serialization, date_time, and regex modules to Boost when building as they are needed by Sumokoin.
-
-To build: `env CC=egcc CXX=eg++ CPP=ecpp DEVELOPER_LOCAL_TOOLS=1 BOOST_ROOT=/path/to/the/boost/you/built make release-static-64`
-
-#### OpenBSD 6.2 and 6.3
-
-You will need to add a few packages to your system. `pkg_add cmake zeromq libiconv`.
-
-The doxygen and graphviz packages are optional and require the xbase set.
-
-
-Build the Boost library using clang. This guide is derived from: https://github.com/bitcoin/bitcoin/blob/master/doc/build-openbsd.md
-
-We assume you are compiling with a non-root user and you have `doas` enabled.
-
-Note: do not use the boost package provided by OpenBSD, as we are installing boost to `/usr/local`.
-
-```bash
-# Create boost building directory
-mkdir ~/boost
-cd ~/boost
-
-# Fetch boost source
-ftp -o boost_1_64_0.tar.bz2 https://netcologne.dl.sourceforge.net/project/boost/boost/1.64.0/boost_1_64_0.tar.bz2
-
-# MUST output: (SHA256) boost_1_64_0.tar.bz2: OK
-echo "7bcc5caace97baa948931d712ea5f37038dbb1c5d89b43ad4def4ed7cb683332 boost_1_64_0.tar.bz2" | sha256 -c
-tar xfj boost_1_64_0.tar.bz2
-
-# Fetch and apply boost patches, required for OpenBSD
-ftp -o boost_test_impl_execution_monitor_ipp.patch https://raw.githubusercontent.com/openbsd/ports/bee9e6df517077a7269ff0dfd57995f5c6a10379/devel/boost/patches/patch-boost_test_impl_execution_monitor_ipp
-ftp -o boost_config_platform_bsd_hpp.patch https://raw.githubusercontent.com/openbsd/ports/90658284fb786f5a60dd9d6e8d14500c167bdaa0/devel/boost/patches/patch-boost_config_platform_bsd_hpp
-
-# MUST output: (SHA256) boost_config_platform_bsd_hpp.patch: OK
-echo "1f5e59d1154f16ee1e0cc169395f30d5e7d22a5bd9f86358f738b0ccaea5e51d boost_config_platform_bsd_hpp.patch" | sha256 -c
-# MUST output: (SHA256) boost_test_impl_execution_monitor_ipp.patch: OK
-echo "30cec182a1437d40c3e0bd9a866ab5ddc1400a56185b7e671bb3782634ed0206 boost_test_impl_execution_monitor_ipp.patch" | sha256 -c
-
-cd boost_1_64_0
-patch -p0 < ../boost_test_impl_execution_monitor_ipp.patch
-patch -p0 < ../boost_config_platform_bsd_hpp.patch
-
-# Start building boost
-echo 'using clang : : c++ : <cxxflags>"-fvisibility=hidden -fPIC" <linkflags>"" <archiver>"ar" <striper>"strip"  <ranlib>"ranlib" <rc>"" : ;' > user-config.jam
-./bootstrap.sh --without-icu --with-libraries=chrono,filesystem,program_options,system,thread,test,date_time,regex,serialization,locale --with-toolset=clang
-./b2 toolset=clang cxxflags="-stdlib=libc++" linkflags="-stdlib=libc++" -sICONV_PATH=/usr/local
-doas ./b2 -d0 runtime-link=shared threadapi=pthread threading=multi link=static variant=release --layout=tagged --build-type=complete --user-config=user-config.jam -sNO_BZIP2=1 -sICONV_PATH=/usr/local --prefix=/usr/local install
-```
-
-Build the cppzmq bindings.
-
-We assume you are compiling with a non-root user and you have `doas` enabled.
-
-```bash
-# Create cppzmq building directory
-mkdir ~/cppzmq
-cd ~/cppzmq
-
-# Fetch cppzmq source
-ftp -o cppzmq-4.2.3.tar.gz https://github.com/zeromq/cppzmq/archive/v4.2.3.tar.gz
-
-# MUST output: (SHA256) cppzmq-4.2.3.tar.gz: OK
-echo "3e6b57bf49115f4ae893b1ff7848ead7267013087dc7be1ab27636a97144d373 cppzmq-4.2.3.tar.gz" | sha256 -c
-tar xfz cppzmq-4.2.3.tar.gz
-
-# Start building cppzmq
-cd cppzmq-4.2.3
-mkdir build
-cd build
-cmake ..
-doas make install
-```
-
-Build Sumokoin:
-```bash
-env DEVELOPER_LOCAL_TOOLS=1 BOOST_ROOT=/usr/local make release-static
-```
-
-#### OpenBSD >= 6.4
-
 You will need to add a few packages to your system. `pkg_add cmake gmake zeromq cppzmq libiconv boost`.
 
-The doxygen and graphviz packages are optional and require the xbase set.
+The `doxygen` and `graphviz` packages are optional and require the xbase set.
+Running the test suite also requires `py-requests` package.
 
 Build sumokoin: `env DEVELOPER_LOCAL_TOOLS=1 BOOST_ROOT=/usr/local gmake release-static`
 
-Note: you may encounter the following error, when compiling the latest version of Sumokoin as a normal user:
+Note: you may encounter the following error, when compiling the latest version of sumokoin as a normal user:
 
 ```
 LLVM ERROR: out of memory
@@ -623,6 +534,12 @@ gdb /path/to/sumokoind /path/to/dumpfile
 
 Print the stack trace with `bt`
 
+ * If a program crashed and cores are managed by systemd, the following can also get a stack trace for that crash:
+
+```bash
+coredumpctl -1 gdb
+```
+
 #### To run sumokoin within gdb:
 
 Type `gdb /path/to/sumokoind`
@@ -664,3 +581,20 @@ The output of `mdb_stat -ea <path to blockchain dir>` will indicate inconsistenc
 The output of `mdb_dump -s blocks <path to blockchain dir>` and `mdb_dump -s block_info <path to blockchain dir>` is useful for indicating whether blocks and block_info contain the same keys.
 
 These records are dumped as hex data, where the first line is the key and the second line is the data.
+
+# Known Issues
+
+## Protocols
+
+### Socket-based
+
+Because of the nature of the socket-based protocols that drive sumokoin, certain protocol weaknesses are somewhat unavoidable at this time. While these weaknesses can theoretically be fully mitigated, the effort required (the means) may not justify the ends. As such, please consider taking the following precautions if you are a sumokoin node operator:
+
+- Run `sumokoind` on a "secured" machine. If operational security is not your forte, at a very minimum, have a dedicated a computer running `sumokoind` and **do not** browse the web, use email clients, or use any other potentially harmful apps on your `sumokoind` machine. **Do not click links or load URL/MUA content on the same machine**. Doing so may potentially exploit weaknesses in commands which accept "localhost" and "127.0.0.1".
+- If you plan on hosting a public "remote" node, start `sumokoind` with `--restricted-rpc`. This is a must.
+
+### Blockchain-based
+
+Certain blockchain "features" can be considered "bugs" if misused correctly. Consequently, please consider the following:
+
+- When receiving sumokoin, be aware that it may be locked for an arbitrary time if the sender elected to, preventing you from spending that sumokoin until the lock time expires. You may want to hold off acting upon such a transaction until the unlock time lapses. To get a sense of that time, you can consider the remaining blocktime until unlock as seen in the `show_transfers` command.
