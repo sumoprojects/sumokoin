@@ -9443,6 +9443,7 @@ void simple_wallet::commit_or_save(std::vector<tools::wallet2::pending_tx>& ptx_
   {
     auto & ptx = ptx_vector.back();
     const crypto::hash txid = get_transaction_hash(ptx.tx);
+    const std::string printid = epee::string_tools::pod_to_hex(txid);
     if (do_not_relay)
     {
       cryptonote::blobdata blob;
@@ -9458,7 +9459,8 @@ void simple_wallet::commit_or_save(std::vector<tools::wallet2::pending_tx>& ptx_
     {
       m_wallet->commit_tx(ptx);
       success_msg_writer(true) << tr("Transaction successfully submitted, transaction ") << txid << ENDL
-      << tr("You can check its status by using the `show_transfers` command.");
+      << tr("You can check its status by using the `show_transfers` command.") << ENDL
+      << tr("For more details check the tx on the explorer: https://explorer.sumokoin.com/tx/") << printid;
     }
     // if no exception, remove element from vector
     ptx_vector.pop_back();
