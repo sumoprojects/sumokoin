@@ -472,7 +472,9 @@ void lmdb_resized(MDB_env *env)
   mdb_env_info(env, &mei);
   uint64_t new_mapsize = mei.me_mapsize;
 
-  MGINFO("LMDB Mapsize increased." << "  Old: " << old / (1024 * 1024) << "MiB" << ", New: " << new_mapsize / (1024 * 1024) << "MiB");
+// suppress message
+// MGINFO("LMDB Mapsize increased." << "  Old: " << old / (1024 * 1024) << "MiB" << ", New: " << new_mapsize / (1024 * 1024) << "MiB");
+
 
   mdb_txn_safe::allow_new_txns();
 }
@@ -565,8 +567,9 @@ void BlockchainLMDB::do_resize(uint64_t increase_size)
   int result = mdb_env_set_mapsize(m_env, new_mapsize);
   if (result)
     throw0(DB_ERROR(lmdb_error("Failed to set new mapsize: ", result).c_str()));
+// suppress message
+//  MGINFO("LMDB Mapsize increased." << "  Old: " << mei.me_mapsize / (1024 * 1024) << "MiB" << ", New: " << new_mapsize / (1024 * 1024) << "MiB");
 
-  MGINFO("LMDB Mapsize increased." << "  Old: " << mei.me_mapsize / (1024 * 1024) << "MiB" << ", New: " << new_mapsize / (1024 * 1024) << "MiB");
 
   mdb_txn_safe::allow_new_txns();
 }
@@ -646,7 +649,10 @@ void BlockchainLMDB::check_and_resize_for_batch(uint64_t batch_num_blocks, uint6
   // size-based check
   if (need_resize(threshold_size))
   {
-    MGINFO("[batch] DB resize needed");
+
+// suppress message
+// MGINFO("[batch] DB resize needed");
+
     do_resize(increase_size);
   }
 }
