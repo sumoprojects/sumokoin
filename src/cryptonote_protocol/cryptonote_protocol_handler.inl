@@ -38,6 +38,11 @@
 #include <boost/interprocess/detail/atomic.hpp>
 #include <list>
 #include <ctime>
+#include <iostream>
+#include <string>
+#include <thread>
+#include <chrono>
+#include <cmath>
 
 #include "cryptonote_basic/cryptonote_format_utils.h"
 #include "profile_tools.h"
@@ -368,10 +373,11 @@ namespace cryptonote
     int64_t diff = static_cast<int64_t>(hshd.current_height) - static_cast<int64_t>(m_core.get_current_blockchain_height());
     uint64_t abs_diff = std::abs(diff);
     uint64_t max_block_height = std::max(hshd.current_height,m_core.get_current_blockchain_height());
-    MCLOG(is_inital ? el::Level::Info : el::Level::Debug, "global", context << "Sync data returned a new top block candidate: " << m_core.get_current_blockchain_height() << " -> " << hshd.current_height
-      << " [Your node is " << abs_diff << " blocks (" << (abs_diff / (24 * 60 * 60 / DIFFICULTY_TARGET)) << " days) "
-      << (0 <= diff ? std::string("behind") : std::string("ahead"))
-      << "] " << ENDL << "SYNCHRONIZATION started");
+// suppress it
+//   MCLOG(is_inital ? el::Level::Info : el::Level::Debug, "global", context << "Sync data returned a new top block candidate: " << m_core.get_current_blockchain_height() << " -> " << hshd.current_height
+//      << " [Your node is " << abs_diff << " blocks (" << (abs_diff / (24 * 60 * 60 / DIFFICULTY_TARGET)) << " days) "
+//      << (0 <= diff ? std::string("behind") : std::string("ahead"))
+//      << "] " << ENDL << "SYNCHRONIZATION started");
       if (hshd.current_height >= m_core.get_current_blockchain_height() + 5) // don't switch to unsafe mode just for a few blocks
       {
         m_core.safesyncmode(false);
@@ -1388,10 +1394,14 @@ namespace cryptonote
                 + std::to_string(previous_stripe) + " -> " + std::to_string(current_stripe);
             if (ELPP->vRegistry()->allowed(el::Level::Debug, "sync-info"))
               timing_message += std::string(": ") + m_block_queue.get_overview(current_blockchain_height);
-            MGINFO_YELLOW("Synced " << current_blockchain_height << "/" << target_blockchain_height
-                << progress_message << timing_message);
+            uint64_t comp_perc = (current_blockchain_height * 100 / target_blockchain_height);
+            MGINFO_YELLOWC("Synced " << current_blockchain_height << "/" << target_blockchain_height
+                << progress_message << timing_message
+		<< "[" << std::string(comp_perc / 2, (char)254u) << std::string(100 / 2 - comp_perc / 2, ' ') << "]");
+
             if (previous_stripe != current_stripe)
               notify_new_stripe(context, current_stripe);
+
           }
         }
       }
@@ -1422,7 +1432,8 @@ skip:
     }
     return 1;
   }
-  //------------------------------------------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------------------------------------------
   template<class t_core>
   void t_cryptonote_protocol_handler<t_core>::notify_new_stripe(cryptonote_connection_context& cntxt, uint32_t stripe)
   {
