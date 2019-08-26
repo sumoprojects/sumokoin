@@ -62,12 +62,17 @@
 #define MCLOG_MAGENTA(level,cat,x) MCLOG_COLOR(level,cat,"35",x)
 #define MCLOG_CYAN(level,cat,x) MCLOG_COLOR(level,cat,"36",x)
 
+#define MCLOG_COLORC(level,cat,color,x) MCLOG(level,cat,"\033[1;" color "m" << x << "\033[F" << std::flush)
+#define MCLOG_YELLOWC(level,cat,x) MCLOG_COLORC(level,cat,"33",x)
+
 #define MLOG_RED(level,x) MCLOG_RED(level,MONERO_DEFAULT_LOG_CATEGORY,x)
 #define MLOG_GREEN(level,x) MCLOG_GREEN(level,MONERO_DEFAULT_LOG_CATEGORY,x)
 #define MLOG_YELLOW(level,x) MCLOG_YELLOW(level,MONERO_DEFAULT_LOG_CATEGORY,x)
 #define MLOG_BLUE(level,x) MCLOG_BLUE(level,MONERO_DEFAULT_LOG_CATEGORY,x)
 #define MLOG_MAGENTA(level,x) MCLOG_MAGENTA(level,MONERO_DEFAULT_LOG_CATEGORY,x)
 #define MLOG_CYAN(level,x) MCLOG_CYAN(level,MONERO_DEFAULT_LOG_CATEGORY,x)
+
+#define MLOG_YELLOWC(level,x) MCLOG_YELLOWC(level,MONERO_DEFAULT_LOG_CATEGORY,x)
 
 #define MFATAL(x) MCFATAL(MONERO_DEFAULT_LOG_CATEGORY,x)
 #define MERROR(x) MCERROR(MONERO_DEFAULT_LOG_CATEGORY,x)
@@ -84,6 +89,8 @@
 #define MGINFO_BLUE(x) MCLOG_BLUE(el::Level::Info, "global",x)
 #define MGINFO_MAGENTA(x) MCLOG_MAGENTA(el::Level::Info, "global",x)
 #define MGINFO_CYAN(x) MCLOG_CYAN(el::Level::Info, "global",x)
+
+#define MGINFO_YELLOWC(x) MCLOG_YELLOWC(el::Level::Info, "global",x)
 
 #define IFLOG(level, cat, type, init, x) \
   do { \
