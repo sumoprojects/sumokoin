@@ -38,6 +38,7 @@
 #include <boost/interprocess/detail/atomic.hpp>
 #include <list>
 #include <ctime>
+#include <string>
 
 #include "cryptonote_basic/cryptonote_format_utils.h"
 #include "profile_tools.h"
@@ -1388,8 +1389,10 @@ namespace cryptonote
                 + std::to_string(previous_stripe) + " -> " + std::to_string(current_stripe);
             if (ELPP->vRegistry()->allowed(el::Level::Debug, "sync-info"))
               timing_message += std::string(": ") + m_block_queue.get_overview(current_blockchain_height);
-            MGINFO_YELLOW("Synced " << current_blockchain_height << "/" << target_blockchain_height
-                << progress_message << timing_message);
+            uint64_t comp_perc = (current_blockchain_height * 100 / target_blockchain_height);
+            MGINFO_YELLOW("Synced " << current_blockchain_height << "/" << target_blockchain_height << "\033[1;32m"
+	        << " [" << std::string(comp_perc / 2, (char)254u) << std::string(100 / 2 - comp_perc / 2, ' ') << "]" << "\033[1;33m"
+		<< progress_message << timing_message << "\033[0m" << "\033[F");
             if (previous_stripe != current_stripe)
               notify_new_stripe(context, current_stripe);
           }
@@ -2395,7 +2398,7 @@ skip:
       MINFO("Target height decreasing from " << previous_target << " to " << target);
       m_core.set_target_blockchain_height(target);
       if (target == 0 && context.m_state > cryptonote_connection_context::state_before_handshake && !m_stopping)
-        MCWARNING("global", "sumokoind is now disconnected from the network");
+        MCWARNING("global", "sumokoind is now disconnected from the network       		                                      ");
     }
 
     m_block_queue.flush_spans(context.m_connection_id, false);
