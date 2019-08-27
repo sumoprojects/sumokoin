@@ -646,7 +646,7 @@ void BlockchainLMDB::check_and_resize_for_batch(uint64_t batch_num_blocks, uint6
   // size-based check
   if (need_resize(threshold_size))
   {
-    MGINFO("[batch] DB resize needed                                                                   ");
+    MGINFO("[batch] DB resize needed          			                                                         ");
     do_resize(increase_size);
   }
 }
