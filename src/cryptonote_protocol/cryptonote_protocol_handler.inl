@@ -1392,10 +1392,8 @@ namespace cryptonote
               timing_message += std::string(": ") + m_block_queue.get_overview(current_blockchain_height);
             uint64_t comp_perc = (current_blockchain_height * 100 / target_blockchain_height);
 		  
-	    if (target_blockchain_height > current_blockchain_height) 
-            return true;
-       	    MTRACE("Checking for outgoing syncing peers...");
-    		unsigned n_syncing = 0, n_synced = 0;
+	    MTRACE("Checking for outgoing syncing peers...");
+    	    unsigned n_syncing = 0, n_synced = 0;
             boost::uuids::uuid last_synced_peer_id(boost::uuids::nil_uuid());
    	   m_p2p->for_each_connection([&](cryptonote_connection_context& context, nodetool::peerid_type peer_id, uint32_t support_flags)->bool
          {      
