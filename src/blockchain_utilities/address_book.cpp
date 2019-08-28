@@ -1,5 +1,6 @@
 // Copyright (c) 2017-2019, Sumokoin Project										
-//  Copyright 2017 by Ali Mirjamali <ali.mirjamali@gmail.com>          		
+// Copyright 2017 by Ali Mirjamali used code structure from
+// https://github.com/alimirjamali/EDUCATIONAL-CPP-Phonebook/blob/master/phonebook.cpp          		
 
 //  This program is free software: you can redistribute it and/or modify	
 //  it under the terms of the GNU General Public License as published by	
