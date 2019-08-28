@@ -1392,7 +1392,7 @@ namespace cryptonote
               timing_message += std::string(": ") + m_block_queue.get_overview(current_blockchain_height);
             uint64_t comp_perc = (current_blockchain_height * 100 / target_blockchain_height);
             MGINFO_YELLOW("Synced " << current_blockchain_height << "/" << target_blockchain_height << "\033[1;32m"
-	        << " [" << std::string(comp_perc / 2, (char)254u) << std::string(100 / 2 - comp_perc / 2, ' ') << "]" << "\033[1;33m"
+	        << " [" << std::string(comp_perc / 2, '=') << (comp_perc < 100 ? ">" : "") << std::string(100 / 2 - comp_perc / 2, ' ') << "]" << "\033[1;33m"
 		<< progress_message << timing_message << "\033[0m" << std::flush << "\033[F");
             if (previous_stripe != current_stripe)
               notify_new_stripe(context, current_stripe);
