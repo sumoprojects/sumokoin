@@ -123,6 +123,16 @@ set(blockchain_depth_private_headers)
 monero_private_headers(blockchain_depth
 	  ${blockchain_depth_private_headers})
 
+set(address_book_sources
+  address_book.cpp
+  )
+
+set(address_book_private_headers)
+
+monero_private_headers(address_book
+	  ${address_book_private_headers})
+
+
 set(blockchain_stats_sources
   blockchain_stats.cpp
   )
@@ -266,6 +276,25 @@ set_property(TARGET blockchain_depth
 	PROPERTY
 	OUTPUT_NAME "sumo-blockchain-depth")
 install(TARGETS blockchain_depth DESTINATION bin)
+
+monero_add_executable(address_book
+  ${address_book_sources}
+  ${address_book_private_headers})
+
+target_link_libraries(address_book
+  PRIVATE
+    epee
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${EXTRA_LIBRARIES})
+
+set_property(TARGET address_book
+	PROPERTY
+	OUTPUT_NAME "sumo-address-book")
+install(TARGETS address_book DESTINATION bin)
+
 
 monero_add_executable(blockchain_stats
   ${blockchain_stats_sources}
