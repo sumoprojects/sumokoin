@@ -1391,9 +1391,27 @@ namespace cryptonote
             if (ELPP->vRegistry()->allowed(el::Level::Debug, "sync-info"))
               timing_message += std::string(": ") + m_block_queue.get_overview(current_blockchain_height);
             uint64_t comp_perc = (current_blockchain_height * 100 / target_blockchain_height);
+		  
+	          MTRACE("Checking for outgoing syncing peers...");
+            unsigned n_syncing = 0, n_synced = 0;
+            boost::uuids::uuid last_synced_peer_id(boost::uuids::nil_uuid());
+            m_p2p->for_each_connection([&](cryptonote_connection_context& context, nodetool::peerid_type peer_id, uint32_t support_flags)->bool
+            {      
+              if (context.m_state == cryptonote_connection_context::state_synchronizing)
+                ++n_syncing;
+              if (context.m_state == cryptonote_connection_context::state_normal)
+              {
+                ++n_synced;
+                if (!context.m_anchor)
+                  last_synced_peer_id = context.m_connection_id;
+              }
+              return true;
+            });
+
             MGINFO_YELLOW("Synced " << current_blockchain_height << "/" << target_blockchain_height << "\033[1;32m"
 	        << " [" << std::string(comp_perc / 2, '=') << (comp_perc < 100 ? ">" : "") << std::string(100 / 2 - comp_perc / 2, ' ') << "]" << "\033[1;33m"
-		<< progress_message << timing_message << "\033[0m" << std::flush << "\033[F");
+		<< progress_message << timing_message << " syncing with " << "\033[1;32m" << n_syncing << "\033[1;33m" 
+		<< " remote nodes" << "\033[0m" << std::flush << "\033[F");
             if (previous_stripe != current_stripe)
               notify_new_stripe(context, current_stripe);
           }
