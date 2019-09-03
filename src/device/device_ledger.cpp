@@ -320,7 +320,9 @@ namespace hw {
     bool device_ledger::reset() {
       reset_buffer();
       int offset = set_command_header_noopt(INS_RESET);
-      memmove(this->buffer_send+offset, SUMOKOIN_VERSION, strlen(SUMOKOIN_VERSION));
+      const size_t verlen = strlen(SUMOKOIN_VERSION);
+      ASSERT_X(offset + verlen <= BUFFER_SEND_SIZE, "SUMOKOIN_VERSION is too long")
+      memmove(this->buffer_send+offset, SUMOKOIN_VERSION, verlen);
       offset += strlen(SUMOKOIN_VERSION);
       this->buffer_send[4] = offset-5;
       this->length_send = offset;
