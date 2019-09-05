@@ -5773,9 +5773,8 @@ void simple_wallet::check_for_inactivity_lock(bool user)
 #endif
     tools::clear_screen();
     m_in_command = true;
-    if (!user)
-    {
-      const std::string speech = tr("I locked your Monero wallet to protect you while you were away");
+    if (!user){
+      const std::string speech = tr("Your wallet was automatically locked for protection while you were away");
       std::vector<std::pair<std::string, size_t>> lines = tools::split_string_by_width(speech, 45);
 
       size_t max_len = 0;
@@ -5785,17 +5784,23 @@ void simple_wallet::check_for_inactivity_lock(bool user)
       tools::msg_writer() << " " << std::string(n_u, '_');
       for (size_t i = 0; i < lines.size(); ++i)
         tools::msg_writer() << (i == 0 ? "/" : i == lines.size() - 1 ? "\\" : "|") << " " << lines[i].first << std::string(max_len - lines[i].second, ' ') << " " << (i == 0 ? "\\" : i == lines.size() - 1 ? "/" : "|");
-      tools::msg_writer() << " " << std::string(n_u, '-') << std::endl <<
-          "        \\   (__)" << std::endl <<
-          "         \\  (oo)\\_______" << std::endl <<
-          "            (__)\\       )\\/\\" << std::endl <<
-          "                ||----w |" << std::endl <<
-          "                ||     ||" << std::endl <<
-          "" << std::endl;
+      tools::msg_writer() << " " << std::string(n_u, '-') << std::endl;
     }
+    else{
+      tools::msg_writer() << "" << std::endl <<
+                             "          Your wallet was locked!" << std::endl <<
+                             "          -----------------------" << std::endl;
+    }
+
+    tools::msg_writer() <<  "         ___ _   _ _ __ ___   ___    " << std::endl <<
+                            "        / __| | | | '_ ` _ \\ / _ \\ " << std::endl <<
+                            "        \\__ \\ |_| | | | | | | |_| |" << std::endl <<
+                            "        |___/\\__,_|_| |_| |_|\\___/ " << std::endl <<
+                            "" << std::endl;
+
     while (1)
     {
-      tools::msg_writer() << tr("Locked due to inactivity. The wallet password is required to unlock the console.");
+      tools::msg_writer() << "The wallet password is required to unlock the console." << std::endl;
       try
       {
         if (get_and_verify_password())
