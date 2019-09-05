@@ -2517,6 +2517,10 @@ namespace nodetool
   template<class t_payload_net_handler>
   bool node_server<t_payload_net_handler>::set_max_in_peers(network_zone& zone, int64_t max)
   {
+    if(max == -1) {
+      zone.m_config.m_net_config.max_in_connection_count = P2P_DEFAULT_CONNECTIONS_COUNT;
+      return true;
+    }
     zone.m_config.m_net_config.max_in_connection_count = max;
     return true;
   }
