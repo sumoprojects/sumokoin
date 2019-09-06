@@ -37,6 +37,7 @@
 #include "cryptonote_core/cryptonote_core.h"
 #include "cryptonote_basic/difficulty.h"
 #include "cryptonote_basic/hardfork.h"
+#include "version.h"
 #include <boost/format.hpp>
 #include <ctime>
 #include <string>
@@ -494,7 +495,7 @@ bool t_rpc_command_executor::show_status() {
   }
 
   std::stringstream str;
-  str << boost::format("Height: %llu/%llu (%.1f%%) on %s%s, %s, net hash %s, v%u%s, %s, %u(out)+%u(in) connections")
+  str << boost::format("Height: %llu/%llu (%.1f%%) on %s%s, %s, net hash %s, Release: %s%s/HFv%u%s, %s, %u(out)+%u(in) connections")
     % (unsigned long long)ires.height
     % (unsigned long long)net_height
     % get_sync_percentage(ires)
@@ -502,6 +503,8 @@ bool t_rpc_command_executor::show_status() {
     % bootstrap_msg
     % (!has_mining_info ? "mining info unavailable" : mining_busy ? "syncing" : mres.active ? ( ( mres.is_background_mining_enabled ? "smart " : "" ) + std::string("mining at ") + get_mining_speed(mres.speed)) : "not mining")
     % get_mining_speed(cryptonote::difficulty_type(ires.wide_difficulty) / ires.target)
+    % SUMOKOIN_RELEASE_NAME
+    % SUMOKOIN_VERSION
     % (unsigned)hfres.version
     % get_fork_extra_info(hfres.earliest_height, net_height, ires.target)
     % (hfres.state == cryptonote::HardFork::Ready ? "up to date" : hfres.state == cryptonote::HardFork::UpdateNeeded ? "update needed" : "out of date, likely forked")
