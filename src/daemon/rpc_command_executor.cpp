@@ -634,7 +634,7 @@ bool t_rpc_command_executor::print_connections() {
       << std::setw(6) << "Flags"      
       << std::setw(30) << "Recv/Sent (inactive,sec)" 
       << std::setw(18) << "State" 
-      << std::setw(9) << "Alive" 
+      << std::setw(9) << "Alive(s)" 
       << std::setw(18) << "Down(kB/s)/(now)" 
       << std::setw(18) << "Up(kB/s)/(now)"
       << std::endl;
