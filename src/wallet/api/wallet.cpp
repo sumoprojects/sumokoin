@@ -74,7 +74,7 @@ namespace {
       boost::filesystem::path dir = tools::get_default_data_dir();
       // remove .bitmonero, replace with .shared-ringdb
       dir = dir.remove_filename();
-      dir /= ".shared-ringdb";
+      dir /= ".sumo-shared-ringdb";
       if (nettype == cryptonote::TESTNET)
         dir /= "testnet";
       else if (nettype == cryptonote::STAGENET)
