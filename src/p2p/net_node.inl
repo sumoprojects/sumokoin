@@ -1030,11 +1030,11 @@ namespace nodetool
       
       if (rsp.node_data.version.size() == 0)
       {
-        MGINFO_MAGENTA("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
+        MGINFO_BLUE("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
       }
       else if (rsp.node_data.version.size() != 0 && rsp.node_data.version != SUMOKOIN_VERSION)
       {
-        MGINFO_MAGENTA("Peer " << context.m_remote_address.str() << " has a different version than ours: " << rsp.node_data.version);
+        MGINFO_BLUE("Peer " << context.m_remote_address.str() << " has a different version than ours: " << rsp.node_data.version);
       }
 
       if(rsp.node_data.network_id != m_network_id)
@@ -2299,12 +2299,12 @@ namespace nodetool
   {
     if (arg.node_data.version.size() == 0)
     {
-      MGINFO_MAGENTA("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
+      MGINFO_BLUE("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
     }
 
     if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
     {
-      MGINFO_MAGENTA("Peer " << context.m_remote_address.str() << " has a different version than ours: " << arg.node_data.version);
+      MGINFO_BLUE("Peer " << context.m_remote_address.str() << " has a different version than ours: " << arg.node_data.version);
     }
 
     if(arg.node_data.network_id != m_network_id)
