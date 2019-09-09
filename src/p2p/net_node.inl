@@ -1027,6 +1027,15 @@ namespace nodetool
         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
         return;
       }
+      
+      if (rsp.node_data.version.size() == 0)
+      {
+        MGINFO_BLUE("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
+      }
+      else if (rsp.node_data.version.size() != 0 && rsp.node_data.version != SUMOKOIN_VERSION)
+      {
+        MGINFO_BLUE("Peer " << context.m_remote_address.str() << " has a different version than ours: " << rsp.node_data.version);
+      }
 
       if(rsp.node_data.network_id != m_network_id)
       {
@@ -1898,6 +1907,7 @@ namespace nodetool
     time(&local_time);
     node_data.local_time = local_time; // \TODO This can be an identifying value across zones (public internet to tor/i2p) ...
     node_data.peer_id = zone.m_config.m_peer_id;
+    node_data.version = SUMOKOIN_VERSION;
     if(!m_hide_my_port && zone.m_can_pingback)
       node_data.my_port = m_external_port ? m_external_port : m_listening_port;
     else
@@ -2287,6 +2297,16 @@ namespace nodetool
   template<class t_payload_net_handler>
   int node_server<t_payload_net_handler>::handle_handshake(int command, typename COMMAND_HANDSHAKE::request& arg, typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
   {
+    if (arg.node_data.version.size() == 0)
+    {
+      MGINFO_BLUE("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
+    }
+
+    if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
+    {
+      MGINFO_BLUE("Peer " << context.m_remote_address.str() << " has a different version than ours: " << arg.node_data.version);
+    }
+
     if(arg.node_data.network_id != m_network_id)
     {
 

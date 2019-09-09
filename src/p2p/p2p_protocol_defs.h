@@ -42,6 +42,7 @@
 #include "cryptonote_config.h"
 #ifdef ALLOW_DEBUG_COMMANDS
 #include "crypto/crypto.h"
+#include "version.h"
 #endif
 
 namespace nodetool
@@ -167,12 +168,14 @@ namespace nodetool
     uint32_t my_port;
     uint16_t rpc_port;
     peerid_type peer_id;
-
+    std::string version;
+   
     BEGIN_KV_SERIALIZE_MAP()
       KV_SERIALIZE_VAL_POD_AS_BLOB(network_id)
       KV_SERIALIZE(peer_id)
       KV_SERIALIZE(local_time)
       KV_SERIALIZE(my_port)
+       KV_SERIALIZE(version)
       KV_SERIALIZE_OPT(rpc_port, (uint16_t)(0))
     END_KV_SERIALIZE_MAP()
   };
