@@ -2068,7 +2068,7 @@ skip:
       {
         if (m_core.get_current_blockchain_height() >= m_core.get_target_blockchain_height())
         {
-          MGINFO_GREEN("SYNCHRONIZED OK");
+          MGINFO_GREEN("\nSYNCHRONIZED OK");
           on_connection_synchronized();
         }
       }
