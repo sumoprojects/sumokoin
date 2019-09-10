@@ -61,13 +61,18 @@ namespace {
     }
   }
 
-  void print_peer(std::string const & prefix, cryptonote::peer const & peer)
+  void print_peer(std::string const & prefix, cryptonote::peer const & peer, bool pruned_only, bool publicrpc_only)
   {
+    if (pruned_only && peer.pruning_seed == 0)
+      return;
+    if (publicrpc_only && peer.rpc_port == 0)
+      return;
+
     time_t now;
     time(&now);
     time_t last_seen = static_cast<time_t>(peer.last_seen);
 
-    std::string elapsed = epee::misc_utils::get_time_interval_string(now - last_seen);
+    std::string elapsed = peer.last_seen == 0 ? "never" : epee::misc_utils::get_time_interval_string(now - last_seen);
     std::string id_str = epee::string_tools::pad_string(epee::string_tools::to_string_hex(peer.id), 16, '0', true);
     std::string port_str;
     epee::string_tools::xtype_to_string(peer.port, port_str);
@@ -170,7 +175,7 @@ t_rpc_command_executor::~t_rpc_command_executor()
   }
 }
 
-bool t_rpc_command_executor::print_peer_list(bool white, bool gray, size_t limit) {
+bool t_rpc_command_executor::print_peer_list(bool white, bool gray, size_t limit, bool pruned_only, bool publicrpc_only) {
   cryptonote::COMMAND_RPC_GET_PEER_LIST::request req;
   cryptonote::COMMAND_RPC_GET_PEER_LIST::response res;
 
@@ -197,7 +202,7 @@ bool t_rpc_command_executor::print_peer_list(bool white, bool gray, size_t limit
     const auto end = limit ? peer + std::min(limit, res.white_list.size()) : res.white_list.cend();
     for (; peer != end; ++peer)
     {
-      print_peer("white", *peer);
+      print_peer("white", *peer, pruned_only, publicrpc_only);
     }
   }
 
@@ -207,7 +212,7 @@ bool t_rpc_command_executor::print_peer_list(bool white, bool gray, size_t limit
     const auto end = limit ? peer + std::min(limit, res.gray_list.size()) : res.gray_list.cend();
     for (; peer != end; ++peer)
     {
-      print_peer("gray", *peer);
+      print_peer("gray", *peer, pruned_only, publicrpc_only);
     }
   }
 
@@ -627,18 +632,16 @@ bool t_rpc_command_executor::print_connections() {
     }
   }
 
-  tools::msg_writer() << std::setw(30) << std::left << "Remote Host"
-      << std::setw(8) << "Type"
-      << std::setw(6) << "SSL"
-      << std::setw(20) << "Peer id"
-      << std::setw(20) << "Support Flags"      
-      << std::setw(30) << "Recv/Sent (inactive,sec)"
-      << std::setw(25) << "State"
-      << std::setw(20) << "Livetime(sec)"
-      << std::setw(12) << "Down (kB/s)"
-      << std::setw(14) << "Down(now)"
-      << std::setw(10) << "Up (kB/s)" 
-      << std::setw(13) << "Up(now)"
+  tools::msg_writer() << std::setw(30) << std::left << "Remote Host" 
+      << std::setw(6) << "Type" 
+      << std::setw(4) << "SSL"
+      << std::setw(18) << "Peer id" 
+      << std::setw(6) << "Flags"      
+      << std::setw(30) << "Recv/Sent (inactive,sec)" 
+      << std::setw(18) << "State" 
+      << std::setw(9) << "Alive(s)" 
+      << std::setw(18) << "Down(kB/s)/(now)" 
+      << std::setw(18) << "Up(kB/s)/(now)"
       << std::endl;
 
   for (auto & info : res.connections)
@@ -649,18 +652,16 @@ bool t_rpc_command_executor::print_connections() {
     tools::msg_writer() 
      //<< std::setw(30) << std::left << in_out
      << std::setw(30) << std::left << address
-     << std::setw(8) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
-     << std::setw(6) << (info.ssl ? "yes" : "no")
-     << std::setw(20) << epee::string_tools::pad_string(info.peer_id, 16, '0', true)
-     << std::setw(20) << info.support_flags
+     << std::setw(6) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
+     << std::setw(4) << (info.ssl ? "yes" : "no")
+     << std::setw(18) << epee::string_tools::pad_string(info.peer_id, 16, '0', true)
+     << std::setw(6) << info.support_flags
      << std::setw(30) << std::to_string(info.recv_count) + "("  + std::to_string(info.recv_idle_time) + ")/" + std::to_string(info.send_count) + "(" + std::to_string(info.send_idle_time) + ")"
-     << std::setw(25) << info.state
-     << std::setw(20) << info.live_time
-     << std::setw(12) << info.avg_download
-     << std::setw(14) << info.current_download
-     << std::setw(10) << info.avg_upload
-     << std::setw(13) << info.current_upload
-     
+     << std::setw(18) << info.state
+     << std::setw(9) << info.live_time
+     << std::setw(18) << std::to_string(info.avg_download) + "/" + std::to_string(info.current_download)
+     << std::setw(18) << std::to_string(info.avg_upload) + "/" + std::to_string(info.current_upload)
+    
      << std::left << (info.localhost ? "[LOCALHOST]" : "")
      << std::left << (info.local_ip ? "[LAN]" : "");
     //tools::msg_writer() << boost::format("%-25s peer_id: %-25s %s") % address % info.peer_id % in_out;
@@ -2320,6 +2321,42 @@ bool t_rpc_command_executor::check_blockchain_pruning()
     {
       tools::success_msg_writer() << "Blockchain is not pruned";
     }
+    return true;
+}
+
+bool t_rpc_command_executor::set_bootstrap_daemon(
+  const std::string &address,
+  const std::string &username,
+  const std::string &password)
+{
+    cryptonote::COMMAND_RPC_SET_BOOTSTRAP_DAEMON::request req;
+    cryptonote::COMMAND_RPC_SET_BOOTSTRAP_DAEMON::response res;
+    const std::string fail_message = "Unsuccessful";
+
+    req.address = address;
+    req.username = username;
+    req.password = password;
+
+    if (m_is_rpc)
+    {
+        if (!m_rpc_client->rpc_request(req, res, "/set_bootstrap_daemon", fail_message))
+        {
+            return true;
+        }
+    }
+    else
+    {
+        if (!m_rpc_server->on_set_bootstrap_daemon(req, res) || res.status != CORE_RPC_STATUS_OK)
+        {
+            tools::fail_msg_writer() << make_error(fail_message, res.status);
+            return true;
+        }
+    }
+
+    tools::success_msg_writer()
+      << "Successfully set bootstrap daemon address to "
+      << (!req.address.empty() ? req.address : "none");
+
     return true;
 }
 

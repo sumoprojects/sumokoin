@@ -47,7 +47,7 @@
 // advance which version they will stop working with
 // Don't go over 32767 for any of these
 #define WALLET_RPC_VERSION_MAJOR 1
-#define WALLET_RPC_VERSION_MINOR 14
+#define WALLET_RPC_VERSION_MINOR 15
 #define MAKE_WALLET_RPC_VERSION(major,minor) (((major)<<16)|(minor))
 #define WALLET_RPC_VERSION MAKE_WALLET_RPC_VERSION(WALLET_RPC_VERSION_MAJOR, WALLET_RPC_VERSION_MINOR)
 namespace tools
@@ -64,10 +64,12 @@ namespace wallet_rpc
       uint32_t account_index;
       std::set<uint32_t> address_indices;
       bool all_accounts;
+      bool strict;
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(account_index)
         KV_SERIALIZE(address_indices)
         KV_SERIALIZE_OPT(all_accounts, false);
+        KV_SERIALIZE_OPT(strict, false);
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<request_t> request;
@@ -230,9 +232,11 @@ namespace wallet_rpc
     struct request_t
     {
       std::string tag;      // all accounts if empty, otherwise those accounts with this tag
+      bool strict_balances;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(tag)
+        KV_SERIALIZE_OPT(strict_balances, false)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<request_t> request;
@@ -912,6 +916,7 @@ namespace wallet_rpc
     uint64_t amount;
     uint64_t block_height;
     uint64_t unlock_time;
+    bool locked;
     cryptonote::subaddress_index subaddr_index;
     std::string address;
 
@@ -921,6 +926,7 @@ namespace wallet_rpc
       KV_SERIALIZE(amount)
       KV_SERIALIZE(block_height)
       KV_SERIALIZE(unlock_time)
+      KV_SERIALIZE(locked)
       KV_SERIALIZE(subaddr_index)
       KV_SERIALIZE(address)
     END_KV_SERIALIZE_MAP()
@@ -1362,6 +1368,7 @@ namespace wallet_rpc
     std::list<transfer_destination> destinations;
     std::string type;
     uint64_t unlock_time;
+    bool locked;
     cryptonote::subaddress_index subaddr_index;
     std::vector<cryptonote::subaddress_index> subaddr_indices;
     std::string address;
@@ -1380,6 +1387,7 @@ namespace wallet_rpc
       KV_SERIALIZE(destinations);
       KV_SERIALIZE(type);
       KV_SERIALIZE(unlock_time)
+      KV_SERIALIZE(locked)
       KV_SERIALIZE(subaddr_index);
       KV_SERIALIZE(subaddr_indices);
       KV_SERIALIZE(address);

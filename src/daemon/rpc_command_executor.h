@@ -69,7 +69,7 @@ public:
 
   ~t_rpc_command_executor();
 
-  bool print_peer_list(bool white = true, bool gray = true, size_t limit = 0);
+  bool print_peer_list(bool white = true, bool gray = true, size_t limit = 0, bool pruned_only = false, bool publicrpc_only = false);
 
   bool print_peer_list_stats();
 
@@ -162,6 +162,11 @@ public:
   bool check_blockchain_pruning();
 
   bool print_net_stats();
+
+  bool set_bootstrap_daemon(
+    const std::string &address,
+    const std::string &username,
+    const std::string &password);
 };
 
 } // namespace daemonize
