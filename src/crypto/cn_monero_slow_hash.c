@@ -743,7 +743,7 @@ BOOL SetLockPagesPrivilege(HANDLE hProcess, BOOL bEnable)
  * the allocated buffer.
  */
 
-void slow_hash_allocate_state(void)
+void cn_slow_hash_allocate_state(void)
 {
     if(hp_state != NULL)
         return;
@@ -803,7 +803,7 @@ void slow_hash_allocate_state(void)
  *@brief frees the state allocated by slow_hash_allocate_state
  */
 
-void slow_hash_free_state(void)
+void cn_slow_hash_free_state(void)
 {
     if(hp_state == NULL)
         return;
@@ -891,7 +891,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
 
     // this isn't supposed to happen, but guard against it for now.
     if(hp_state == NULL)
-        slow_hash_allocate_state();
+        cn_slow_hash_allocate_state();
 
     /* CryptoNight Step 1:  Use Keccak1600 to initialize the 'state' (and 'text') buffers from the data. */
     if (prehashed) {
@@ -1005,13 +1005,13 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
 }
 
 #elif !defined NO_AES && (defined(__arm__) || defined(__aarch64__))
-void slow_hash_allocate_state(void)
+void cn_slow_hash_allocate_state(void)
 {
   // Do nothing, this is just to maintain compatibility with the upgraded slow-hash.c
   return;
 }
 
-void slow_hash_free_state(void)
+void cn_slow_hash_free_state(void)
 {
   // As above
   return;
@@ -1578,13 +1578,13 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
 
 #define hp_jitfunc ((v4_random_math_JIT_func)NULL)
 
-void slow_hash_allocate_state(void)
+void cn_slow_hash_allocate_state(void)
 {
   // Do nothing, this is just to maintain compatibility with the upgraded slow-hash.c
   return;
 }
 
-void slow_hash_free_state(void)
+void cn_slow_hash_free_state(void)
 {
   // As above
   return;
@@ -1761,3 +1761,15 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
 }
 
 #endif
+
+void slow_hash_allocate_state(void)
+{
+  cn_slow_hash_allocate_state();
+  rx_slow_hash_allocate_state();
+}
+
+void slow_hash_free_state(void)
+{
+  cn_slow_hash_free_state();
+  rx_slow_hash_free_state();
+}

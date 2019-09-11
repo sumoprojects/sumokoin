@@ -45,9 +45,10 @@ set(crypto_sources
   oaes_lib.c
   random.c
   skein.c
-  tree-hash.c
   cn_monero_slow_hash.c
+  rx-slow-hash.c
   CryptonightR_JIT.c
+  tree-hash.c
   cn_heavy_hash_soft.cpp
   cn_heavy_hash_hard_intel.cpp
   cn_heavy_hash_hard_arm.cpp)
@@ -55,7 +56,9 @@ set(crypto_sources
 if(ARCH_ID STREQUAL "i386" OR ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "amd64")
 list(APPEND crypto_sources CryptonightR_template.S)
 endif()
-  
+
+include_directories(${RANDOMX_INCLUDE})
+
 set(crypto_headers)
 
 set(crypto_private_headers
@@ -90,6 +93,7 @@ monero_add_library(cncrypto
 target_link_libraries(cncrypto
   PUBLIC
     epee
+    randomx
     ${Boost_SYSTEM_LIBRARY}
     ${SODIUM_LIBRARY}
   PRIVATE
@@ -116,5 +120,3 @@ endif()
 
 # cheat because cmake and ccache hate each other
 set_property(SOURCE CryptonightR_template.S PROPERTY LANGUAGE C)
-
-

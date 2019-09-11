@@ -1245,6 +1245,7 @@ namespace cryptonote
       case 1: res.pow_algorithm = "CNv1 (Cryptonight variant 1)"; break;
       case 2: case 3: res.pow_algorithm = "CNv2 (Cryptonight variant 2)"; break;
       case 4: case 5: res.pow_algorithm = "CNv4 (Cryptonight variant 4)"; break;
+      case 6: res.pow_algorithm = "RandomX"; break;
       default: res.pow_algorithm = "I'm not sure actually"; break;
     }
     if (res.is_background_mining_enabled)
@@ -1594,6 +1595,17 @@ namespace cryptonote
       return false;
     }
 
+    if (b.major_version >= RX_BLOCK_VERSION)
+    {
+      uint64_t next_height;
+      crypto::rx_seedheights(height, &seed_height, &next_height);
+      seed_hash = m_core.get_block_id_by_height(seed_height);
+      if (next_height != seed_height)
+        next_seed_hash = m_core.get_block_id_by_height(next_height);
+      else
+        next_seed_hash = seed_hash;
+    }
+
     if (extra_nonce.empty())
     {
       reserved_offset = 0;
@@ -1698,6 +1710,12 @@ namespace cryptonote
     crypto::hash seed_hash, next_seed_hash;
     if (!get_block_template(info.address, req.prev_block.empty() ? NULL : &prev_block, blob_reserve, reserved_offset, wdiff, res.height, res.expected_reward, b, res.seed_height, seed_hash, next_seed_hash, error_resp))
       return false;
+    if (b.major_version >= RX_BLOCK_VERSION)
+    {
+      res.seed_hash = string_tools::pod_to_hex(seed_hash);
+      if (seed_hash != next_seed_hash)
+        res.next_seed_hash = string_tools::pod_to_hex(next_seed_hash);
+    }
 
     res.reserved_offset = reserved_offset;
     store_difficulty(wdiff, res.difficulty, res.wide_difficulty, res.difficulty_top64);
@@ -1815,8 +1833,8 @@ namespace cryptonote
         return false;
       }
       b.nonce = req.starting_nonce;
-      miner::find_nonce_for_given_block([this](const cryptonote::block &b, uint64_t height, crypto::hash &hash) {
-        return cryptonote::get_block_longhash(b, hash, height);
+      miner::find_nonce_for_given_block([this](const cryptonote::block &b, uint64_t height, unsigned int threads, crypto::hash &hash) {
+        return cryptonote::get_block_longhash(&(m_core.get_blockchain_storage()), b, hash, height, threads);
       }, b, template_res.difficulty, template_res.height);
 
       submit_req.front() = string_tools::buff_to_hex_nodelimer(block_to_blob(b));
@@ -1862,7 +1880,7 @@ namespace cryptonote
     response.reward = get_block_reward(blk);
     response.block_size = response.block_weight = m_core.get_blockchain_storage().get_db().get_block_weight(height);
     response.num_txes = blk.tx_hashes.size();
-    response.pow_hash = fill_pow_hash ? string_tools::pod_to_hex(get_block_longhash(blk, height)) : "";
+    response.pow_hash = fill_pow_hash ? string_tools::pod_to_hex(get_block_longhash(&(m_core.get_blockchain_storage()), blk, height, 0)) : "";
     response.long_term_weight = m_core.get_blockchain_storage().get_db().get_block_long_term_weight(height);
     response.miner_tx_hash = string_tools::pod_to_hex(cryptonote::get_transaction_hash(blk.miner_tx));
     return true;
@@ -2968,6 +2986,12 @@ namespace cryptonote
     }
     res.hashing_blob = epee::string_tools::buff_to_hex_nodelimer(hashing_blob);
     res.top_hash = epee::string_tools::pod_to_hex(top_hash);
+    if (hashing_blob[0] >= RX_BLOCK_VERSION)
+    {
+      res.seed_hash = string_tools::pod_to_hex(seed_hash);
+      if (seed_hash != next_seed_hash)
+        res.next_seed_hash = string_tools::pod_to_hex(next_seed_hash);
+    }
 
     res.status = CORE_RPC_STATUS_OK;
     return true;
@@ -2976,7 +3000,6 @@ namespace cryptonote
   bool core_rpc_server::on_rpc_access_submit_nonce(const COMMAND_RPC_ACCESS_SUBMIT_NONCE::request& req, COMMAND_RPC_ACCESS_SUBMIT_NONCE::response& res, epee::json_rpc::error& error_resp, const connection_context *ctx)
   {
     RPC_TRACKER(rpc_access_submit_nonce);
-
     bool r;
     if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_SUBMIT_NONCE>(invoke_http_mode::JON, "rpc_access_submit_nonce", req, res, r))
       return r;

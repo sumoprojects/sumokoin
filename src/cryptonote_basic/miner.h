@@ -52,7 +52,7 @@ namespace cryptonote
     ~i_miner_handler(){};
   };
 
-  typedef std::function<bool(const cryptonote::block&, uint64_t, crypto::hash&)> get_block_hash_t;
+  typedef std::function<bool(const cryptonote::block&, uint64_t, unsigned int, crypto::hash&)> get_block_hash_t;
 
   /************************************************************************/
   /*                                                                      */

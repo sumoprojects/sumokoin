@@ -36,8 +36,10 @@
 #include "syncobj.h"
 #include "cryptonote_basic_impl.h"
 #include "cryptonote_format_utils.h"
+#include "cryptonote_core/cryptonote_tx_utils.h"
 #include "file_io_utils.h"
 #include "common/command_line.h"
+#include "common/util.h"
 #include "string_coding.h"
 #include "string_tools.h"
 #include "storages/portable_storage_template_helper.h"
@@ -432,6 +434,7 @@ namespace cryptonote
   {
     boost::interprocess::ipcdetail::atomic_write32(&m_stop, 1);
   }
+  extern "C" void rx_stop_mining(void);
   //-----------------------------------------------------------------------------------------------------
   bool miner::stop()
   {
@@ -464,6 +467,7 @@ namespace cryptonote
     MINFO("Mining has been stopped, " << m_threads.size() << " finished" );
     m_threads.clear();
     m_threads_autodetect.clear();
+    rx_stop_mining();
     return true;
   }
   //-----------------------------------------------------------------------------------------------------
@@ -472,7 +476,7 @@ namespace cryptonote
     for(; bl.nonce != std::numeric_limits<uint32_t>::max(); bl.nonce++)
     {
       crypto::hash h;
-      gbh(bl, height, h);
+      gbh(bl, height, tools::get_max_concurrency(), h);
 
       if(check_hash(h, diffic))
       {
@@ -568,7 +572,7 @@ namespace cryptonote
 
       b.nonce = nonce;
       crypto::hash h;
-      m_gbh(b, height, h);
+      m_gbh(b, height, tools::get_max_concurrency(), h);
 
       if(check_hash(h, local_diff))
       {
