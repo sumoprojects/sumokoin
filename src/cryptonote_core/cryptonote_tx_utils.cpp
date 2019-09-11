@@ -658,15 +658,6 @@ namespace cryptonote
   bool get_block_longhash(const Blockchain *pbc, const block& b, crypto::hash& res, const uint64_t height, const int miners)
   {
     blobdata bd = get_block_hashing_blob(b);
-    crypto::cn_slow_hash_type cn_type = cn_slow_hash_type::cn_original;
-    if (b.major_version == CRYPTONOTE_HEAVY_BLOCK_VERSION)
-    {
-      cn_type = cn_slow_hash_type::cn_heavy;
-    }
-    else if (b.major_version >= HF_VERSION_BP){
-      cn_type = cn_slow_hash_type::cn_r;
-    }
-    const int pow_variant = b.major_version >= HF_VERSION_BP ? b.major_version - 3 : 0;
     if (b.major_version >= RX_BLOCK_VERSION)
     {
       uint64_t seed_height, main_height;
@@ -684,6 +675,15 @@ namespace cryptonote
       }
       rx_slow_hash(main_height, seed_height, hash.data, bd.data(), bd.size(), res.data, miners, 0);
     } else {
+      crypto::cn_slow_hash_type cn_type = cn_slow_hash_type::cn_original;
+      if (b.major_version == CRYPTONOTE_HEAVY_BLOCK_VERSION)
+      {
+        cn_type = cn_slow_hash_type::cn_heavy;
+      }
+      else if (b.major_version >= HF_VERSION_BP){
+        cn_type = cn_slow_hash_type::cn_r;
+      }
+      const int pow_variant = b.major_version >= HF_VERSION_BP ? b.major_version - 3 : 0;
       crypto::cn_slow_hash(bd.data(), bd.size(), res, pow_variant, height, cn_type);
     }
     return true;
