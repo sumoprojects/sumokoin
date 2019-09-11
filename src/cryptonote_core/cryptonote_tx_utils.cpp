@@ -667,7 +667,7 @@ namespace cryptonote
       cn_type = cn_slow_hash_type::cn_r;
     }
     const int pow_variant = b.major_version >= HF_VERSION_BP ? b.major_version - 3 : 0;
-    if (pow_variant >= 6)
+    if (b.major_version >= RX_BLOCK_VERSION)
     {
       uint64_t seed_height, main_height;
       crypto::hash hash;
