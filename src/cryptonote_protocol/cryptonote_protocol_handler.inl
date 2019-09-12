@@ -763,6 +763,22 @@ namespace cryptonote
           reg_arg.current_blockchain_height = arg.current_blockchain_height;
           reg_arg.b = b;
           relay_block(reg_arg, context);
+		
+	  MTRACE("Checking for synced peers...");
+            unsigned n_syncing = 0, n_synced = 0;
+            boost::uuids::uuid last_synced_peer_id(boost::uuids::nil_uuid());
+	    m_p2p->for_each_connection([&](cryptonote_connection_context& context, nodetool::peerid_type peer_id, uint32_t support_flags)->bool
+            {      
+              if (context.m_state == cryptonote_connection_context::state_normal)
+              {
+                ++n_synced;
+                if (!context.m_anchor)
+                  last_synced_peer_id = context.m_connection_id;
+              }
+              return true;
+            });
+          MGINFO_MAGENTA("New block added to chain. Current height: " << arg.current_blockchain_height << " " << "We are in synced state with:" <<
+                  " " << n_synced << " " << "remote peers" << std::flush << "\033[F");
         }
         else if( bvc.m_marked_as_orphaned )
         {
