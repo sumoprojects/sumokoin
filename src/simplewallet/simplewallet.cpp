@@ -42,6 +42,7 @@
 #include <sstream>
 #include <fstream>
 #include <ctype.h>
+#include <chrono>
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
@@ -5788,18 +5789,15 @@ void simple_wallet::check_for_inactivity_lock(bool user)
 #endif
     tools::clear_screen();
     m_in_command = true;
-    if (!user){
-      const std::string speech = tr("Your wallet was automatically locked for protection while you were away");
-      std::vector<std::pair<std::string, size_t>> lines = tools::split_string_by_width(speech, 45);
 
-      size_t max_len = 0;
-      for (const auto &i: lines)
-        max_len = std::max(max_len, i.second);
-      const size_t n_u = max_len + 2;
-      tools::msg_writer() << " " << std::string(n_u, '_');
-      for (size_t i = 0; i < lines.size(); ++i)
-        tools::msg_writer() << (i == 0 ? "/" : i == lines.size() - 1 ? "\\" : "|") << " " << lines[i].first << std::string(max_len - lines[i].second, ' ') << " " << (i == 0 ? "\\" : i == lines.size() - 1 ? "/" : "|");
-      tools::msg_writer() << " " << std::string(n_u, '-') << std::endl;
+    if (!user){
+      tools::msg_writer() << "" << std::endl <<
+                             "\033[1;36m        _________________________________________________    \033[0m" << std::endl <<
+                             "\033[1;36m	                                                     \033[0m" << std::endl <<
+                             "\033[1;36m	     SUMO wallet was automatically locked for        \033[0m" << std::endl <<
+                             "\033[1;36m	     your protection while you were being away       \033[0m" << std::endl <<
+                             "\033[1;36m	_________________________________________________    \033[0m" << std::endl <<
+                             std::endl;  
     }
     else{
       tools::msg_writer() << "" << std::endl <<
@@ -5807,15 +5805,24 @@ void simple_wallet::check_for_inactivity_lock(bool user)
                              "          -----------------------" << std::endl;
     }
 
-    tools::msg_writer() <<  "         ___ _   _ _ __ ___   ___    " << std::endl <<
-                            "        / __| | | | '_ ` _ \\ / _ \\ " << std::endl <<
-                            "        \\__ \\ |_| | | | | | | |_| |" << std::endl <<
-                            "        |___/\\__,_|_| |_| |_|\\___/ " << std::endl <<
-                            "" << std::endl;
-
+      tools::msg_writer() << "" << std::endl <<
+                             "\033[1;36m	  ___                        _         _              \033[0m" << std::endl <<
+                             "\033[1;36m	/ ___| _   _ _ __ ___   ___ | | _____ (_)_ __         \033[0m" << std::endl <<
+                             "\033[1;36m	\\___ \\| | | | '_ ` _ \\ / _ \\| |/ / _ \\| | '_ \\  \033[0m" << std::endl <<
+                             "\033[1;36m	 ___) | |_| | | | | | | (_) |   < (_) | | | | |       \033[0m" << std::endl <<
+                             "\033[1;36m	|____/ \\__,_|_| |_| |_|\\___/|_|\\_\\___/|_|_| |_|   \033[0m" << std::endl;
+      
+      std::string s = "PRIVACY WITHOUT COMPROMISE";
+      std::cout << setw(18) << ""; 
+      for (const auto msg : s) {
+      std::cout << "\033[1;36m" << msg << "\033[0m" << std::flush;
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+      
     while (1)
     {
-      tools::msg_writer() << "The wallet password is required to unlock the console." << std::endl;
+      tools::msg_writer() << "" << std::endl;
+      tools::msg_writer() << "\033[1m\033[37m The wallet password is required to unlock the console. \033[0m" << std::endl;
       try
       {
         if (get_and_verify_password())
