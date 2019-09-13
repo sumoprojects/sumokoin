@@ -38,6 +38,9 @@
 #include "randomx.h"
 #include "c_threads.h"
 #include "hash-ops.h"
+#include "misc_log_ex.h"
+
+#define RX_LOGCAT	"randomx"
 
 #if defined(_MSC_VER)
 #define THREADV __declspec(thread)
@@ -256,8 +259,10 @@ void rx_slow_hash(const uint64_t mainheight, const uint64_t seedheight, const ch
       flags |= RANDOMX_FLAG_JIT;
     if (cache == NULL) {
       cache = randomx_alloc_cache(flags | RANDOMX_FLAG_LARGE_PAGES);
-      if (cache == NULL)
+      if (cache == NULL) {
+        mwarning(RX_LOGCAT, "Couldn't use largePages for RandomX cache");
         cache = randomx_alloc_cache(flags);
+      }
       if (cache == NULL)
         local_abort("Couldn't allocate RandomX cache");
     }
@@ -281,19 +286,25 @@ void rx_slow_hash(const uint64_t mainheight, const uint64_t seedheight, const ch
     if (miners) {
       if (rx_dataset == NULL) {
         rx_dataset = randomx_alloc_dataset(RANDOMX_FLAG_LARGE_PAGES);
-        if (rx_dataset == NULL)
+        if (rx_dataset == NULL) {
+          mwarning(RX_LOGCAT, "Couldn't use largePages for RandomX dataset");
           rx_dataset = randomx_alloc_dataset(RANDOMX_FLAG_DEFAULT);
+        }
         if (rx_dataset != NULL)
           rx_initdata(rx_sp->rs_cache, miners, seedheight);
       }
       if (rx_dataset != NULL)
         flags |= RANDOMX_FLAG_FULL_MEM;
-      else
+      else {
         miners = 0;
+        mwarning(RX_LOGCAT, "Couldn't allocate RandomX dataset for miner");
+      }
     }
     rx_vm = randomx_create_vm(flags | RANDOMX_FLAG_LARGE_PAGES, rx_sp->rs_cache, rx_dataset);
-    if(rx_vm == NULL) //large pages failed
+    if(rx_vm == NULL) { //large pages failed
+      mwarning(RX_LOGCAT, "Couldn't use largePages for RandomX VM");
       rx_vm = randomx_create_vm(flags, rx_sp->rs_cache, rx_dataset);
+    }
     if(rx_vm == NULL) {//fallback if everything fails
       flags = RANDOMX_FLAG_DEFAULT | (miners ? RANDOMX_FLAG_FULL_MEM : 0);
       rx_vm = randomx_create_vm(flags, rx_sp->rs_cache, rx_dataset);
