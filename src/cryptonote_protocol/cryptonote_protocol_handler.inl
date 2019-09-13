@@ -777,7 +777,7 @@ namespace cryptonote
               }
               return true;
             });
-          MGINFO_MAGENTA("New block added to chain. Current height: " << arg.current_blockchain_height << " " << "We are in synced state with:" <<
+          MGINFO_MAGENTA("New block added to chain. Current height: " << arg.current_blockchain_height << " " << "We are in synced state with" <<
                   " " << n_synced << " " << "remote peers" << std::flush << "\033[F");
         }
         else if( bvc.m_marked_as_orphaned )
