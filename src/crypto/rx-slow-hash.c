@@ -62,6 +62,7 @@ static rx_state rx_s[2] = {{CTHR_MUTEX_INIT,{0},0,0},{CTHR_MUTEX_INIT,{0},0,0}};
 static randomx_dataset *rx_dataset;
 static uint64_t rx_dataset_height;
 THREADV randomx_vm *rx_vm = NULL;
+THREADV rx_toggle;
 
 static void local_abort(const char *msg)
 {
@@ -232,22 +233,26 @@ void rx_slow_hash(const uint64_t mainheight, const uint64_t seedheight, const ch
   char *hash, int miners, int is_alt) {
   uint64_t s_height = rx_seedheight(mainheight);
   int changed = 0;
-
-  int toggle = (s_height & SEEDHASH_EPOCH_BLOCKS) != 0;
+  int toggle = is_alt ? s_height : seedheight;
   randomx_flags flags = RANDOMX_FLAG_DEFAULT;
   rx_state *rx_sp;
   randomx_cache *cache;
 
+  toggle = (toggle & SEEDHASH_EPOCH_BLOCKS) != 0;
   CTHR_MUTEX_LOCK(rx_mutex);
+
   /* if alt block but with same seed as mainchain, no need for alt cache */
   if (is_alt && s_height == seedheight && !memcmp(rx_s[toggle].rs_hash, seedhash, sizeof(rx_s[toggle].rs_hash)))
     is_alt = 0;
 
   /* RPC could request an earlier block on mainchain */
-  if (!is_alt && s_height != seedheight)
+  if (!is_alt && s_height > seedheight)
     is_alt = 1;
 
   toggle ^= (is_alt != 0);
+  if (toggle != rx_toggle)
+    changed = 1;
+  rx_toggle = toggle;
 
   rx_sp = &rx_s[toggle];
   CTHR_MUTEX_LOCK(rx_sp->rs_mutex);
@@ -260,7 +265,7 @@ void rx_slow_hash(const uint64_t mainheight, const uint64_t seedheight, const ch
     if (cache == NULL) {
       cache = randomx_alloc_cache(flags | RANDOMX_FLAG_LARGE_PAGES);
       if (cache == NULL) {
-        mwarning(RX_LOGCAT, "Couldn't use largePages for RandomX cache");
+        mdebug(RX_LOGCAT, "Couldn't use largePages for RandomX cache");
         cache = randomx_alloc_cache(flags);
       }
       if (cache == NULL)
@@ -287,7 +292,7 @@ void rx_slow_hash(const uint64_t mainheight, const uint64_t seedheight, const ch
       if (rx_dataset == NULL) {
         rx_dataset = randomx_alloc_dataset(RANDOMX_FLAG_LARGE_PAGES);
         if (rx_dataset == NULL) {
-          mwarning(RX_LOGCAT, "Couldn't use largePages for RandomX dataset");
+          mdebug(RX_LOGCAT, "Couldn't use largePages for RandomX dataset");
           rx_dataset = randomx_alloc_dataset(RANDOMX_FLAG_DEFAULT);
         }
         if (rx_dataset != NULL)
@@ -302,7 +307,7 @@ void rx_slow_hash(const uint64_t mainheight, const uint64_t seedheight, const ch
     }
     rx_vm = randomx_create_vm(flags | RANDOMX_FLAG_LARGE_PAGES, rx_sp->rs_cache, rx_dataset);
     if(rx_vm == NULL) { //large pages failed
-      mwarning(RX_LOGCAT, "Couldn't use largePages for RandomX VM");
+      mdebug(RX_LOGCAT, "Couldn't use largePages for RandomX VM");
       rx_vm = randomx_create_vm(flags, rx_sp->rs_cache, rx_dataset);
     }
     if(rx_vm == NULL) {//fallback if everything fails
