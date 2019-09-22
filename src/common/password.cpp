@@ -185,7 +185,7 @@ namespace
         return false;
       if (verify)
       {
-        std::cout << "Confirm password: ";
+        std::cout << "\033[1m\033[37mConfirm password: \033[0m";
         if (!read_from_tty(pass2, hide_input))
           return false;
         if(pass1!=pass2)
