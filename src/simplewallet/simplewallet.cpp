@@ -3467,10 +3467,10 @@ bool simple_wallet::ask_wallet_create_if_needed()
   do{ 
       LOG_PRINT_L3("User asked to specify wallet file name.");
       wallet_path = input_line(
-        tr(m_restoring ? "\n\033[1;36mGIVE A NEW NAME TO YOUR RESTORED WALLET\033[0m\n \033[1m\033[37mSpecify a new wallet file name for your restored wallet (e.g., MyWallet).\n"
+        tr(m_restoring ? "\n\033[1;36mGIVE A NEW NAME TO YOUR RESTORED WALLET\033[0m\n\033[1m\033[37mSpecify a new wallet file name for your restored wallet (e.g., MyWallet).\n"
         "\033[1m\033[37mWallet file name (or Ctrl-C to quit)\033[0m" :
         
-	"\n\033[1;36mINPUT THE DETAILS OF YOUR WALLET\033[0m\n \033[1m\033[37mSpecify wallet file name (e.g., MyWallet). If the wallet doesn't exist, it will be created.\n\033[0m"
+	"\n\033[1;36mINPUT THE DETAILS OF YOUR WALLET\033[0m\n\033[1m\033[37mSpecify wallet file name (e.g., MyWallet). If the wallet doesn't exist, it will be created.\n\033[0m"
         "\033[1m\033[37mWallet file name (or Ctrl-C to quit)\033[0m")
       );
       if(std::cin.eof())
@@ -3700,7 +3700,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
           m_electrum_seed = "";
           do
           {
-            const char *prompt = m_electrum_seed.empty() ? "\033[1m\033[33mSpecify Electrum seed\033[0m" : "Electrum seed continued";
+            const char *prompt = m_electrum_seed.empty() ? "Specify Electrum seed" : "Electrum seed continued";
             epee::wipeable_string electrum_seed = input_secure_line(prompt);
             if (std::cin.eof())
               return false;
@@ -3905,6 +3905,14 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
       CHECK_AND_ASSERT_MES(r, false, tr("account creation failed"));
       password = *r;
       welcome = true;
+      std::string mnemonic_language = get_mnemonic_language();
+      m_wallet->set_seed_language(mnemonic_language);
+      m_wallet->rewrite(m_wallet_file, password);
+
+      // Display the seed
+      epee::wipeable_string seed;
+      m_wallet->get_seed(seed);
+      print_seed(seed);
     }
     
     // Asks user for all the data required to merge secret keys from multisig wallets into one master wallet, which then gets full control of the multisig wallet. The resulting wallet will be the same as any other regular wallet.
@@ -4456,7 +4464,7 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
   crypto::ElectrumWords::bytes_to_words(recovery_val, electrum_words, mnemonic_language);
   const std::string vkey = epee::string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_view_secret_key);
   success_msg_writer() <<
-    tr("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+        tr("\n\n"
            "\033[1m\033[37mYour wallet has now been generated!\033[0m\n\n"
 	   "\033[1m\033[37mWallet Details: \033[0m\n"
 	   "*******************************************************************************************************\n") <<
@@ -4465,11 +4473,11 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
 	tr("* ") << "\033[1m\033[37m" << m_wallet->get_account().get_public_address_str(m_wallet->nettype()) << "\033[0m" << tr(" *\n") <<
 	tr("*                                                                                                     *\n") <<
 	tr("* View Key:                                                                                           *\n") <<
-    tr("* ") << "\033[1m\033[37m" << vkey                                                << "\033[0m" <<
-    tr("                                    *\n") <<
+        tr("* ") << "\033[1m\033[37m" << vkey                                                << "\033[0m" <<
+        tr("                                    *\n") <<
 	tr("*                                                                                                     *\n") <<
 	tr("*******************************************************************************************************\n");
-	success_msg_writer() <<
+  success_msg_writer() <<
 	tr("\033[1m\033[4m\033[37mSeed Words: \033[0m\n");
   if (!two_random)
   {   
@@ -4909,10 +4917,9 @@ void simple_wallet::check_background_mining(const epee::wipeable_string &passwor
     return;
 
   if (setup == tools::wallet2::BackgroundMiningMaybe)
-  {
-    for (int i = 0; i < 30; ++i)
+  {    
     message_writer() << "\n";
-    message_writer() << tr("\033[1;36m One last thing before using your wallet\033[0m\n");
+    message_writer() << tr("\033[1;36mOne last thing before using your wallet\033[0m\n");
     message_writer() << tr("The daemon is not set up to background mine.");
     message_writer() << tr("With background mining enabled, the daemon will mine when idle and not on batttery.");
     message_writer() << tr("Enabling this supports the network you are using, and makes you eligible for receiving new SUMO\n");
@@ -4920,7 +4927,7 @@ void simple_wallet::check_background_mining(const epee::wipeable_string &passwor
     if (std::cin.eof() || !command_line::is_yes(accepted)) {
       m_wallet->setup_background_mining(tools::wallet2::BackgroundMiningNo);
       m_wallet->rewrite(m_wallet_file, password);
-      message_writer(console_color_red, false) << tr("Background mining not enabled. Set setup-background-mining to 1 to change.\n\n\n\n\n\n\n\n\n");
+      message_writer(console_color_red, false) << tr("Background mining not enabled. Set setup-background-mining to 1 to change.\n\n");
       return;
     }
     m_wallet->setup_background_mining(tools::wallet2::BackgroundMiningYes);
