@@ -4348,7 +4348,7 @@ std::string simple_wallet::get_mnemonic_language()
   int language_number = -1;
   crypto::ElectrumWords::get_language_list(language_list_self, false);
   crypto::ElectrumWords::get_language_list(language_list_english, true);
-  tools::msg_writer(console_color_green, true) << tr("\n\nGenerated new wallet!\nSELECT A LANGUAGE FOR YOUR WALLET SEED") << std::endl;
+  tools::msg_writer(epee::console_color_green, true) << tr("\n\nGenerated new wallet!\nSELECT A LANGUAGE FOR YOUR WALLET SEED") << std::endl;
   tools::msg_writer << tr("List of available languages for your wallet's seed:") << std::endl;
   tools::msg_writer << tr("If your display freezes, exit blind with ^C, then run again with --use-english-language-names") << std::endl;
   int ii;
