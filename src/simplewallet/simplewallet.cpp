@@ -4470,7 +4470,8 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
 	   "*******************************************************************************************************\n") <<
         tr("*                                                                                                     *\n") <<
 	tr("* Wallet Address:                                                                                     *\n") <<
-	tr("* ") << m_wallet->get_account().get_public_address_str(m_wallet->nettype())                           *\n") <<
+	tr("* ") << m_wallet->get_account().get_public_address_str(m_wallet->nettype()) <<
+	tr("                                    *\n") <<
 	tr("*                                                                                                     *\n") <<
 	tr("* View Key:                                                                                           *\n") <<
         tr("* ") << vkey                                                                                                << 
