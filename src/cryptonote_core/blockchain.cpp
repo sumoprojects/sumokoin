@@ -1845,6 +1845,19 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     }
     bei.cumulative_difficulty += current_diff;
 
+    bei.block_cumulative_weight = cryptonote::get_transaction_weight(b.miner_tx);
+    for (const crypto::hash &txid: b.tx_hashes)
+    {
+      cryptonote::tx_memory_pool::tx_details td;
+      if (!m_tx_pool.get_transaction_info(txid, td))
+      {
+        MERROR_VER("Block with id: " << epee::string_tools::pod_to_hex(id) << " (as alternative) has unknown transaction hash " << txid << ".");
+        bvc.m_verifivation_failed = true;
+        return false;
+      }
+      bei.block_cumulative_weight += td.weight;
+    }
+
     // add block to alternate blocks storage,
     // as well as the current "alt chain" container
     CHECK_AND_ASSERT_MES(!m_db->get_alt_block(id, NULL, NULL), false, "insertion of new alternative block returned as it already exists");
