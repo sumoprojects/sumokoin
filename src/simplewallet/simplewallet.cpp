@@ -4139,9 +4139,9 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
       {
         std::string heightstr;
         if (!connected || version < MAKE_CORE_RPC_VERSION(1, 6))
-          heightstr = input_line("\n\n\033[1m\033[37mRestore from specific blockchain height (optional, default 0)\033[0m");
+          heightstr = input_line("\n\nRestore from specific blockchain height (optional, default 0)");
         else
-          heightstr = input_line("\n\n\033[1m\033[37mRestore from specific blockchain height (optional, default 0),\nor alternatively from specific date (YYYY-MM-DD)\033[0m");
+          heightstr = input_line("\n\nRestore from specific blockchain height (optional, default 0),\nor alternatively from specific date (YYYY-MM-DD)");
         if (std::cin.eof())
           return false;
         if (heightstr.empty())
@@ -4348,18 +4348,18 @@ std::string simple_wallet::get_mnemonic_language()
   int language_number = -1;
   crypto::ElectrumWords::get_language_list(language_list_self, false);
   crypto::ElectrumWords::get_language_list(language_list_english, true);
-  std::cout << tr("\n\n\033[1m\033[37mGenerated new wallet!\033[0m\n\033[1;36mSELECT A LANGUAGE FOR YOUR WALLET SEED\033[0m") << std::endl;
-  std::cout << tr("\033[1m\033[37mList of available languages for your wallet's seed:\033[0m") << std::endl;
-  std::cout << tr("If your display freezes, exit blind with ^C, then run again with --use-english-language-names") << std::endl;
+  tools::msg_writer(console_color_green, true) << tr("\n\nGenerated new wallet!\nSELECT A LANGUAGE FOR YOUR WALLET SEED") << std::endl;
+  tools::msg_writer << tr("List of available languages for your wallet's seed:") << std::endl;
+  tools::msg_writer << tr("If your display freezes, exit blind with ^C, then run again with --use-english-language-names") << std::endl;
   int ii;
   std::vector<std::string>::const_iterator it;
   for (it = language_list.begin(), ii = 0; it != language_list.end(); it++, ii++)
   {
-    std::cout << "\033[1;32m" << ii << " : " << *it << "\033[0m" << std::endl;
+    std::cout << ii << " : " << *it << std::endl;
   }
   while (language_number < 0)
   {
-    language_choice = input_line(tr("\033[1m\033[37mEnter the number corresponding to the language of your choice\033[0m"));
+    language_choice = input_line(tr("Enter the number corresponding to the language of your choice"));
     if (std::cin.eof())
       return std::string();
     try
@@ -4463,31 +4463,31 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
 
   crypto::ElectrumWords::bytes_to_words(recovery_val, electrum_words, mnemonic_language);
   const std::string vkey = epee::string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_view_secret_key);
-  success_msg_writer() <<
+  success_msg_writer(console_color_blue, true) <<
         tr("\n\n"
-           "\033[1m\033[37mYour wallet has now been generated!\033[0m\n\n"
-	   "\033[1m\033[37mWallet Details: \033[0m\n"
+           "Your wallet has now been generated!"
+	   "Wallet Details: "
 	   "*******************************************************************************************************\n") <<
         tr("*                                                                                                     *\n") <<
 	tr("* Wallet Address:                                                                                     *\n") <<
-	tr("* ") << "\033[1m\033[37m" << m_wallet->get_account().get_public_address_str(m_wallet->nettype()) << "\033[0m" << tr(" *\n") <<
+	tr("* ") << m_wallet->get_account().get_public_address_str(m_wallet->nettype())                           *\n") <<
 	tr("*                                                                                                     *\n") <<
 	tr("* View Key:                                                                                           *\n") <<
-        tr("* ") << "\033[1m\033[37m" << vkey                                                << "\033[0m" <<
+        tr("* ") << vkey                                                                                                << 
         tr("                                    *\n") <<
 	tr("*                                                                                                     *\n") <<
 	tr("*******************************************************************************************************\n");
-  success_msg_writer() <<
-	tr("\033[1m\033[4m\033[37mSeed Words: \033[0m\n");
+  success_msg_writer(console_color_yellow, true) <<
+	tr("Seed Words: \n");
   if (!two_random)
   {   
     show_seed(electrum_words); 
   }
-  success_msg_writer(true) << "\n" << tr("\033[1m\033[31mNOTE: the above 26 words can be used to recover access to your wallet. "
+  success_msg_writer(console_color_red, true) << "\n" << tr("NOTE: the above 26 words can be used to recover access to your wallet. "
     "Write them down and store them somewhere safe and secure. Please do not store them in "
-    "your email or on file storage services outside of your immediate control.\033[0m\n");
+    "your email or on file storage services outside of your immediate control.");
    
-   cout << "\033[1m\033[37mPress ENTER to Continue \033[0m";
+   tools::msg_writer(console_color_green, true) << "Press ENTER to Continue ";
    cin.ignore();
 
   return password;
@@ -5833,12 +5833,12 @@ void simple_wallet::check_for_inactivity_lock(bool user)
     m_in_command = true;
 
     if (!user){
-      tools::msg_writer() << "" << std::endl <<
-                             "\033[1;36m        _________________________________________________    \033[0m" << std::endl <<
-                             "\033[1;36m	                                                     \033[0m" << std::endl <<
-                             "\033[1;36m	     SUMO wallet was automatically locked for        \033[0m" << std::endl <<
-                             "\033[1;36m	     your protection while you were being away       \033[0m" << std::endl <<
-                             "\033[1;36m	_________________________________________________    \033[0m" << std::endl <<
+      tools::msg_writer(console_color_blue, true) << "" << std::endl <<
+                             "        _________________________________________________    " << std::endl <<
+                             "	                                                     " << std::endl <<
+                             "	     SUMO wallet was automatically locked for        " << std::endl <<
+                             "	     your protection while you were being away       " << std::endl <<
+                             "	_________________________________________________    " << std::endl <<
                              std::endl;  
     }
     else{
@@ -5847,24 +5847,24 @@ void simple_wallet::check_for_inactivity_lock(bool user)
                              "          -----------------------" << std::endl;
     }
 
-      tools::msg_writer() << "" << std::endl <<
-                             "\033[1;36m	  ___                        _         _              \033[0m" << std::endl <<
-                             "\033[1;36m	/ ___| _   _ _ __ ___   ___ | | _____ (_)_ __         \033[0m" << std::endl <<
-                             "\033[1;36m	\\___ \\| | | | '_ ` _ \\ / _ \\| |/ / _ \\| | '_ \\  \033[0m" << std::endl <<
-                             "\033[1;36m	 ___) | |_| | | | | | | (_) |   < (_) | | | | |       \033[0m" << std::endl <<
-                             "\033[1;36m	|____/ \\__,_|_| |_| |_|\\___/|_|\\_\\___/|_|_| |_|   \033[0m" << std::endl;
+      tools::msg_writer(console_color_blue, true) << "" << std::endl <<
+                             "	  ___                        _         _              " << std::endl <<
+                             "	/ ___| _   _ _ __ ___   ___ | | _____ (_)_ __         " << std::endl <<
+                             "	\\___ \\| | | | '_ ` _ \\ / _ \\| |/ / _ \\| | '_ \\  " << std::endl <<
+                             "	 ___) | |_| | | | | | | (_) |   < (_) | | | | |       " << std::endl <<
+                             "	|____/ \\__,_|_| |_| |_|\\___/|_|\\_\\___/|_|_| |_|   " << std::endl;
       
       std::string s = "PRIVACY WITHOUT COMPROMISE";
       std::cout << setw(18) << ""; 
       for (const auto msg : s) {
-      std::cout << "\033[1;36m" << msg << "\033[0m" << std::flush;
+      tools::msg_writer(console_color_blue, true) << msg << std::flush;
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
       
     while (1)
     {
       tools::msg_writer() << "" << std::endl;
-      tools::msg_writer() << "\033[1m\033[37m The wallet password is required to unlock the console. \033[0m" << std::endl;
+      tools::msg_writer(console_color_white, true) << "The wallet password is required to unlock the console." << std::endl;
       try
       {
         if (get_and_verify_password())
