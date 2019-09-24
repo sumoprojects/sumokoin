@@ -9800,7 +9800,7 @@ int main(int argc, char* argv[])
   bool should_terminate = false;
   for (int i = 0; i < 40; ++i)
   std::cout << "\n";
-  tools::msg_writer() << "" << std::endl <<
+  tools::msg_writer() << "" << std::endl << 
 		             "         	           " << "   	     " << "\033[1;36m	  ___                        _         _              \033[0m" << std::endl <<
                              "         	           " << "   	     " << "\033[1;36m	/ ___| _   _ _ __ ___   ___ | | _____ (_)_ __         \033[0m" << std::endl <<
                              "         	           " << "   	     " << "\033[1;36m	\\___ \\| | | | '_ ` _ \\ / _ \\| |/ / _ \\| | '_ \\  \033[0m" << std::endl <<
