@@ -5820,7 +5820,7 @@ void simple_wallet::check_for_inactivity_lock(bool user)
     m_in_command = true;
 
     if (!user){
-      message_writer(console_color_cyan, false) << "" << std::endl <<
+      message_writer(console_color_cyan, true) << "" << std::endl <<
                              "        _________________________________________________    " << std::endl <<
                              "	                                                     " << std::endl <<
                              "	     SUMO wallet was automatically locked for        " << std::endl <<
@@ -5829,12 +5829,12 @@ void simple_wallet::check_for_inactivity_lock(bool user)
                              std::endl;
     }
     else{
-      message_writer() << "" << std::endl <<
-                             "          Your wallet was locked!" << std::endl <<
-                             "          -----------------------" << std::endl;
+      message_writer(console_color_cyan, true) << "" << std::endl <<
+                             "                   Your wallet was locked!" << std::endl <<
+                             "                   -----------------------" << std::endl;
     }
 
-      message_writer(console_color_cyan, false) << "" << std::endl <<
+      message_writer(console_color_cyan, true) << "" << std::endl <<
                              "	  ___                        _         _              " << std::endl <<
                              "	/ ___| _   _ _ __ ___   ___ | | _____ (_)_ __         " << std::endl <<
                              "	\\___ \\| | | | '_ ` _ \\ / _ \\| |/ / _ \\| | '_ \\  " << std::endl <<
