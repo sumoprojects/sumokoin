@@ -4348,12 +4348,12 @@ std::string simple_wallet::get_mnemonic_language()
   const std::vector<std::string> &language_list = m_use_english_language_names ? language_list_english : language_list_self;
   std::string language_choice;
   int language_number = -1;
-  crypto::ElectrumWords::get_language_list(language_list_self, false);
-  crypto::ElectrumWords::get_language_list(language_list_english, true);
+  crypto::ElectrumWords::get_language_list(language_list_self, true);
+  crypto::ElectrumWords::get_language_list(language_list_english, false);
   message_writer(console_color_cyan, false) << tr("\nGenerated new wallet!\n");
   message_writer(console_color_cyan, true) << tr("SELECT A LANGUAGE FOR YOUR WALLET SEED\n");
   message_writer(console_color_green, true) << tr("List of available languages for your wallet's seed:");
-  message_writer() << tr("If your display freezes, exit blind with ^C, then run again with --use-english-language-names") << std::endl;
+  // message_writer() << tr("If your display freezes, exit blind with ^C, then run again with --use-english-language-names") << std::endl;
   int ii;
   std::vector<std::string>::const_iterator it;
   for (it = language_list.begin(), ii = 0; it != language_list.end(); it++, ii++)
