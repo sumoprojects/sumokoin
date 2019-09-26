@@ -182,6 +182,7 @@
 #define HF_VERSION_SMALLER_BP                   7
 #define HF_VERSION_LONG_TERM_BLOCK_WEIGHT       8
 #define HF_VERSION_MIN_2_OUTPUTS                9
+#define HF_VERSION_ENFORCE_MIN_AGE              9
 
 #define PER_KB_FEE_QUANTIZATION_DECIMALS        6
 #define HASH_OF_HASHES_STEP                     256
