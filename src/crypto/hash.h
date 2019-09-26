@@ -111,8 +111,8 @@ namespace crypto {
     epee::to_hex::formatted(o, epee::as_byte_span(v)); return o;
   }
 
-  const static crypto::hash null_hash = boost::value_initialized<crypto::hash>();
-  const static crypto::hash8 null_hash8 = boost::value_initialized<crypto::hash8>();
+  constexpr static crypto::hash null_hash = {};
+  constexpr static crypto::hash8 null_hash8 = {};
 }
 
 CRYPTO_MAKE_HASHABLE(hash)
