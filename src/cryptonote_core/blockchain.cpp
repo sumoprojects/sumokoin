@@ -42,6 +42,7 @@
 #include "cryptonote_basic/cryptonote_boost_serialization.h"
 #include "cryptonote_config.h"
 #include "cryptonote_basic/miner.h"
+#include "hardforks/hardforks.h"
 #include "misc_language.h"
 #include "profile_tools.h"
 #include "file_io_utils.h"
@@ -83,61 +84,6 @@ DISABLE_VS_WARNINGS(4267)
 
 // used to overestimate the block reward when estimating a per kB to use
 #define BLOCK_REWARD_OVERESTIMATE   ((uint64_t)(16000000000))
-#define MAINNET_HARDFORK_V3_HEIGHT ((uint64_t)(116520))
-#define MAINNET_HARDFORK_V6_HEIGHT (config::EXCHANGE_FUND_RELEASE_HEIGHT)
-#define MAINNET_HARDFORK_V7_HEIGHT ((uint64_t)(274000))
-#define MAINNET_HARDFORK_V8_HEIGHT (MAINNET_HARDFORK_V7_HEIGHT + 360)
-
-
-static const struct {
-  uint8_t version;
-  uint64_t height;
-  uint8_t threshold;
-  time_t time;
-} mainnet_hard_forks[] = {
-  { 1, 1, 0, 1482806500 },
-  { 2, 21300, 0, 1497657600 },
-  { 3, MAINNET_HARDFORK_V3_HEIGHT, 0, 1522800000 },
-  { 4, 137500, 0, 1528045200 },
-  { 5, 165000, 0, 1529643600 },
-  { 6, MAINNET_HARDFORK_V6_HEIGHT, 0, 1537065522 },
-  { 7, MAINNET_HARDFORK_V7_HEIGHT, 0, 1555234940 },
-  { 8, MAINNET_HARDFORK_V8_HEIGHT, 0, 1555321375 }
-};
-static const uint64_t mainnet_hard_fork_version_1_till = (uint64_t)-1;
-
-static const struct {
-  uint8_t version;
-  uint64_t height;
-  uint8_t threshold;
-  time_t time;
-} testnet_hard_forks[] = {
-  { 1, 1, 0, 1482806500 },
-  { 2, 5150, 0, 1497181713 },
-  { 3, 103580, 0, 1522540800 },
-  { 4, 122452, 0, 1527699600 },
-  { 5, 128680, 0, 1529308166 },
-  { 6, 130500, 0, 1554265083 },
-  { 7, 130530, 0, 1554465078 },
-  { 8, 130560, 0, 1554479506 }
-};
-static const uint64_t testnet_hard_fork_version_1_till = (uint64_t)-1;
-
-static const struct {
-  uint8_t version;
-  uint64_t height;
-  uint8_t threshold;
-  time_t time;
-} stagenet_hard_forks[] = {
-  { 1, 1, 0, 1482806500 },
-  { 2, 5150, 0, 1497181713 },
-  { 3, 103580, 0, 1522540800 },
-  { 4, 122452, 0, 1527699600 },
-  { 5, 128680, 0, 1529308166 },
-  { 6, 130500, 0, 1554265083 },
-  { 7, 130530, 0, 1554465078 },
-  { 8, 130560, 0, 1554479506 }
-};
 
 //------------------------------------------------------------------
 Blockchain::Blockchain(tx_memory_pool& tx_pool) :
@@ -390,17 +336,17 @@ bool Blockchain::init(BlockchainDB* db, const network_type nettype, bool offline
   }
   else if (m_nettype == TESTNET)
   {
-    for (size_t n = 0; n < sizeof(testnet_hard_forks) / sizeof(testnet_hard_forks[0]); ++n)
+    for (size_t n = 0; n < num_testnet_hard_forks; ++n)
       m_hardfork->add_fork(testnet_hard_forks[n].version, testnet_hard_forks[n].height, testnet_hard_forks[n].threshold, testnet_hard_forks[n].time);
   }
   else if (m_nettype == STAGENET)
   {
-    for (size_t n = 0; n < sizeof(stagenet_hard_forks) / sizeof(stagenet_hard_forks[0]); ++n)
+    for (size_t n = 0; n < num_stagenet_hard_forks; ++n)
       m_hardfork->add_fork(stagenet_hard_forks[n].version, stagenet_hard_forks[n].height, stagenet_hard_forks[n].threshold, stagenet_hard_forks[n].time);
   }
   else
   {
-    for (size_t n = 0; n < sizeof(mainnet_hard_forks) / sizeof(mainnet_hard_forks[0]); ++n)
+    for (size_t n = 0; n < num_mainnet_hard_forks; ++n)
       m_hardfork->add_fork(mainnet_hard_forks[n].version, mainnet_hard_forks[n].height, mainnet_hard_forks[n].threshold, mainnet_hard_forks[n].time);
   }
   m_hardfork->init();
@@ -1844,6 +1790,19 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
       bei.cumulative_difficulty = m_db->get_block_cumulative_difficulty(m_db->get_block_height(b.prev_id));
     }
     bei.cumulative_difficulty += current_diff;
+
+    bei.block_cumulative_weight = cryptonote::get_transaction_weight(b.miner_tx);
+    for (const crypto::hash &txid: b.tx_hashes)
+    {
+      cryptonote::tx_memory_pool::tx_details td;
+      if (!m_tx_pool.get_transaction_info(txid, td))
+      {
+        MERROR_VER("Block with id: " << epee::string_tools::pod_to_hex(id) << " (as alternative) has unknown transaction hash " << txid << ".");
+        bvc.m_verifivation_failed = true;
+        return false;
+      }
+      bei.block_cumulative_weight += td.weight;
+    }
 
     // add block to alternate blocks storage,
     // as well as the current "alt chain" container
@@ -4828,39 +4787,6 @@ void Blockchain::safesyncmode(const bool onoff)
 HardFork::State Blockchain::get_hard_fork_state() const
 {
   return m_hardfork->get_state();
-}
-
-const std::vector<HardFork::Params>& Blockchain::get_hard_fork_heights(network_type nettype)
-{
-  static const std::vector<HardFork::Params> mainnet_heights = []()
-  {
-    std::vector<HardFork::Params> heights;
-    for (const auto& i : mainnet_hard_forks)
-      heights.emplace_back(i.version, i.height, i.threshold, i.time);
-    return heights;
-  }();
-  static const std::vector<HardFork::Params> testnet_heights = []()
-  {
-    std::vector<HardFork::Params> heights;
-    for (const auto& i : testnet_hard_forks)
-      heights.emplace_back(i.version, i.height, i.threshold, i.time);
-    return heights;
-  }();
-  static const std::vector<HardFork::Params> stagenet_heights = []()
-  {
-    std::vector<HardFork::Params> heights;
-    for (const auto& i : stagenet_hard_forks)
-      heights.emplace_back(i.version, i.height, i.threshold, i.time);
-    return heights;
-  }();
-  static const std::vector<HardFork::Params> dummy;
-  switch (nettype)
-  {
-    case MAINNET: return mainnet_heights;
-    case TESTNET: return testnet_heights;
-    case STAGENET: return stagenet_heights;
-    default: return dummy;
-  }
 }
 
 bool Blockchain::get_hard_fork_voting_info(uint8_t version, uint32_t &window, uint32_t &votes, uint32_t &threshold, uint64_t &earliest_height, uint8_t &voting) const
