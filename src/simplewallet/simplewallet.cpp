@@ -4353,7 +4353,6 @@ std::string simple_wallet::get_mnemonic_language()
   message_writer(console_color_cyan, false) << tr("\nGenerated new wallet!\n");
   message_writer(console_color_cyan, true) << tr("SELECT A LANGUAGE FOR YOUR WALLET SEED\n");
   message_writer(console_color_green, true) << tr("List of available languages for your wallet's seed:");
-  // message_writer() << tr("If your display freezes, exit blind with ^C, then run again with --use-english-language-names") << std::endl;
   int ii;
   std::vector<std::string>::const_iterator it;
   for (it = language_list.begin(), ii = 0; it != language_list.end(); it++, ii++)
@@ -4486,7 +4485,7 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
     "Write them down and store them somewhere safe and secure. Please do not store them in "
     "your email or on file storage services outside of your immediate control.");
 
-   message_writer(console_color_green, true) << "Press ENTER to Continue\n";
+   message_writer(console_color_green, true) << "Press ENTER to Continue";
    cin.ignore();
 
   return password;
@@ -4917,20 +4916,10 @@ void simple_wallet::check_background_mining(const epee::wipeable_string &passwor
 
   if (setup == tools::wallet2::BackgroundMiningMaybe)
   {
-    message_writer(console_color_cyan, false) << tr("One last thing before using your wallet\n");
-    message_writer() << tr("The daemon is not set up to background mine.");
+    message_writer(console_color_cyan, false) << tr("\nOne last thing before using your wallet");
     message_writer() << tr("With background mining enabled, the daemon will mine when idle and not on batttery.");
-    message_writer() << tr("Enabling this supports the network you are using, and makes you eligible for receiving new SUMO\n");
-    std::string accepted = input_line(tr("Do you want to do it now? (Y/Yes/N/No)"));
-    if (std::cin.eof() || !command_line::is_yes(accepted)) {
-      m_wallet->setup_background_mining(tools::wallet2::BackgroundMiningNo);
-      m_wallet->rewrite(m_wallet_file, password);
-      message_writer(console_color_red, false) << tr("Background mining not enabled. Set setup-background-mining to 1 to change.\n\n");
-      return;
-    }
-    m_wallet->setup_background_mining(tools::wallet2::BackgroundMiningYes);
-    m_wallet->rewrite(m_wallet_file, password);
-    start_background_mining();
+    message_writer() << tr("Enabling this supports the network you are using, and makes you eligible for receiving new SUMO");
+    message_writer() << tr("You can enable it by typing < set setup-background-mining 1 > at wallet prompt\n");
   }
 }
 //----------------------------------------------------------------------------------------------------
@@ -5856,7 +5845,7 @@ void simple_wallet::check_for_inactivity_lock(bool user)
       std::cout << setw(18) << "";
       for (const auto msg : s) {
       std::cout << msg << std::flush;
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      std::this_thread::sleep_for(std::chrono::milliseconds(130));
     }
 
     while (1)
