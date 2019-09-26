@@ -109,7 +109,7 @@ static const char *get_default_categories(int level)
       categories = "*:DEBUG";
       break;
     case 3:
-      categories = "*:TRACE";
+      categories = "*:TRACE,*.dump:DEBUG";
       break;
     case 4:
       categories = "*:TRACE";
@@ -497,7 +497,7 @@ static void mlog(el::Level level, const char *category, const char *format, va_l
     return;
   }
 
-  MCLOG(level, category, p);
+  MCLOG(level, category, el::Color::Default, p);
   free(p);
 }
 
