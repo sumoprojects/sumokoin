@@ -262,7 +262,7 @@ namespace
     PAUSE_READLINE();
     std::cout << prompt;
     if (yesno)
-      std::cout << "  (Y/Yes/N/No)";
+      std::cout << "(Y/Yes/N/No)";
     std::cout << ": " << std::flush;
 
     std::string buf;
@@ -278,7 +278,7 @@ namespace
   epee::wipeable_string input_secure_line(const char *prompt)
   {
     PAUSE_READLINE();
-    auto pwd_container = tools::password_container::prompt(false, prompt, false);
+    auto pwd_container = tools::password_container::prompt(false, prompt, true);
     if (!pwd_container)
     {
       MERROR("Failed to read secure line");
