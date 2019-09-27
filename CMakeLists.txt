@@ -27,6 +27,9 @@
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 list(INSERT CMAKE_MODULE_PATH 0
   "${CMAKE_SOURCE_DIR}/cmake")
 include(CheckCCompilerFlag)
@@ -115,6 +118,7 @@ string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 # when ARCH is not set to an explicit identifier, cmake's builtin is used
 # to identify the target architecture, to direct logic in this cmake script.
 # Since ARCH is a cached variable, it will not be set on first cmake invocation.
+if (NOT ARCH_ID)
 if (NOT ARCH OR ARCH STREQUAL "" OR ARCH STREQUAL "native" OR ARCH STREQUAL "default")
   if(CMAKE_SYSTEM_PROCESSOR STREQUAL "")
     set(CMAKE_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR})
@@ -122,6 +126,7 @@ if (NOT ARCH OR ARCH STREQUAL "" OR ARCH STREQUAL "native" OR ARCH STREQUAL "def
   set(ARCH_ID "${CMAKE_SYSTEM_PROCESSOR}")
 else()
   set(ARCH_ID "${ARCH}")
+endif()
 endif()
 string(TOLOWER "${ARCH_ID}" ARM_ID)
 string(SUBSTRING "${ARM_ID}" 0 3 ARM_TEST)
@@ -357,54 +362,9 @@ endif()
 # memory was the default in Cryptonote before Sumokoin implemented LMDB, it still works but is unnecessary.
 # set(DATABASE memory)
 set(DATABASE lmdb)
-
-if (DEFINED ENV{DATABASE})
-  set(DATABASE $ENV{DATABASE})
-  message(STATUS "DATABASE set: ${DATABASE}")
-else()
-  message(STATUS "Could not find DATABASE in env (not required unless you want to change database type from default: ${DATABASE})")
-endif()
-
-set(BERKELEY_DB_OVERRIDE 0)
-if (DEFINED ENV{BERKELEY_DB})
-  set(BERKELEY_DB_OVERRIDE 1)
-  set(BERKELEY_DB $ENV{BERKELEY_DB})
-elseif()
-  set(BERKELEY_DB 0)
-endif()
-
-if (DATABASE STREQUAL "lmdb")
-  message(STATUS "Using LMDB as default DB type")
-  set(BLOCKCHAIN_DB DB_LMDB)
-  add_definitions("-DDEFAULT_DB_TYPE=\"lmdb\"")
-elseif (DATABASE STREQUAL "berkeleydb")
-  find_package(BerkeleyDB)
-  if(NOT BERKELEY_DB)
-      die("Found BerkeleyDB includes, but could not find BerkeleyDB library. Please make sure you have installed libdb and libdb-dev / libdb++-dev or the equivalent.")
-  else()
-    message(STATUS "Found BerkeleyDB include (db.h) in ${BERKELEY_DB_INCLUDE_DIR}")
-    if(BERKELEY_DB_LIBRARIES)
-      message(STATUS "Found BerkeleyDB shared library")
-      set(BDB_STATIC false CACHE BOOL "BDB Static flag")
-      set(BDB_INCLUDE ${BERKELEY_DB_INCLUDE_DIR} CACHE STRING "BDB include path")
-      set(BDB_LIBRARY ${BERKELEY_DB_LIBRARIES} CACHE STRING "BDB library name")
-      set(BDB_LIBRARY_DIRS "" CACHE STRING "BDB Library dirs")
-      set(BERKELEY_DB 1)
-    else()
-      die("Found BerkeleyDB includes, but could not find BerkeleyDB library. Please make sure you have installed libdb and libdb-dev / libdb++-dev or the equivalent.")
-    endif()
-  endif()
-
-  message(STATUS "Using Berkeley DB as default DB type")
-  add_definitions("-DDEFAULT_DB_TYPE=\"berkeley\"")
-else()
-  die("Invalid database type: ${DATABASE}")
-endif()
-
-if(BERKELEY_DB)
-  add_definitions("-DBERKELEY_DB")
-endif()
-
+message(STATUS "Using LMDB as default DB type")
+set(BLOCKCHAIN_DB DB_LMDB)
+add_definitions("-DDEFAULT_DB_TYPE=\"lmdb\"")
 add_definitions("-DBLOCKCHAIN_DB=${BLOCKCHAIN_DB}")
 
 # Can't install hook in static build on OSX, because OSX linker does not support --wrap
@@ -456,7 +416,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "(SunOS|Solaris)")
 endif ()
 
 if (APPLE AND NOT IOS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -fvisibility=default")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -fvisibility=default -std=c++11")
   if (NOT OpenSSL_DIR)
       EXECUTE_PROCESS(COMMAND brew --prefix openssl
         OUTPUT_VARIABLE OPENSSL_ROOT_DIR
@@ -505,11 +465,6 @@ link_directories(${EASYLOGGING_LIBRARY_DIRS})
 
 # Final setup for liblmdb
 include_directories(${LMDB_INCLUDE})
-
-# Final setup for Berkeley DB
-if (BERKELEY_DB)
-  include_directories(${BDB_INCLUDE})
-endif()
 
 # Final setup for libunwind
 include_directories(${LIBUNWIND_INCLUDE})
@@ -956,7 +911,7 @@ if (HIDAPI_FOUND OR LibUSB_COMPILE_TEST_PASSED)
 endif()
 
 option(USE_READLINE "Build with GNU readline support." ON)
-if(USE_READLINE)
+if(USE_READLINE AND NOT DEPENDS)
   find_package(Readline)
   if(READLINE_FOUND AND GNU_READLINE_FOUND)
     add_definitions(-DHAVE_READLINE)
@@ -966,6 +921,14 @@ if(USE_READLINE)
   else()
     message(STATUS "Could not find GNU readline library so building without readline support")
   endif()
+elseif(USE_READLINE AND DEPENDS AND NOT MINGW)
+  find_path(Readline_INCLUDE_PATH readline/readline.h)
+  find_library(Readline_LIBRARY readline)
+  find_library(Terminfo_LIBRARY tinfo)
+  set(Readline_LIBRARY "${Readline_LIBRARY};${Terminfo_LIBRARY}")
+  set(GNU_READLINE_LIBRARY ${Readline_LIBRARY})
+  add_definitions(-DHAVE_READLINE)
+  set(EPEE_READLINE epee_readline)
 endif()
 
 if(ANDROID)
@@ -983,6 +946,7 @@ find_path(ZMQ_INCLUDE_PATH zmq.h)
 find_library(ZMQ_LIB zmq)
 find_library(PGM_LIBRARY pgm)
 find_library(NORM_LIBRARY norm)
+find_library(PROTOLIB_LIBRARY protolib)
 find_library(SODIUM_LIBRARY sodium)
 
 if(NOT ZMQ_INCLUDE_PATH)
@@ -996,6 +960,9 @@ if(PGM_LIBRARY)
 endif()
 if(NORM_LIBRARY)
   set(ZMQ_LIB "${ZMQ_LIB};${NORM_LIBRARY}")
+endif()
+if(PROTOLIB_LIBRARY)
+  set(ZMQ_LIB "${ZMQ_LIB};${PROTOLIB_LIBRARY}")
 endif()
 if(SODIUM_LIBRARY)
   set(ZMQ_LIB "${ZMQ_LIB};${SODIUM_LIBRARY}")
@@ -1051,3 +1018,11 @@ option(INSTALL_VENDORED_LIBUNBOUND "Install libunbound binary built from source 
 CHECK_C_COMPILER_FLAG(-std=c11 HAVE_C11)
 
 find_package(PythonInterp)
+find_program(iwyu_tool_path NAMES iwyu_tool.py iwyu_tool)
+if (iwyu_tool_path AND PYTHONINTERP_FOUND)
+  add_custom_target(iwyu
+    COMMAND "${PYTHON_EXECUTABLE}" "${iwyu_tool_path}" -p "${CMAKE_BINARY_DIR}" -- --no_fwd_decls
+    COMMENT "Running include-what-you-use tool"
+    VERBATIM
+  )
+endif()

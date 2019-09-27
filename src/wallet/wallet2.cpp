@@ -33,7 +33,6 @@
 #include <tuple>
 #include <boost/format.hpp>
 #include <boost/optional/optional.hpp>
-#include <boost/utility/value_init.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -2000,7 +1999,7 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
           uint64_t amount = tx.vout[o].amount ? tx.vout[o].amount : tx_scan_info[o].amount;
           if (!pool)
           {
-	    m_transfers.push_back(boost::value_initialized<transfer_details>());
+	    m_transfers.push_back(transfer_details{});
 	    transfer_details& td = m_transfers.back();
 	    td.m_block_height = height;
 	    td.m_internal_output_index = o;
@@ -3081,6 +3080,21 @@ bool wallet2::add_address_book_row(const cryptonote::account_public_address &add
   return false;
 }
 
+bool wallet2::set_address_book_row(size_t row_id, const cryptonote::account_public_address &address, const crypto::hash &payment_id, const std::string &description, bool is_subaddress)
+{
+  wallet2::address_book_row a;
+  a.m_address = address;
+  a.m_payment_id = payment_id;
+  a.m_description = description;
+  a.m_is_subaddress = is_subaddress;
+
+  const auto size = m_address_book.size();
+  if (row_id >= size)
+    return false;
+  m_address_book[row_id] = a;
+  return true;
+}
+
 bool wallet2::delete_address_book_row(std::size_t row_id) {
   if(m_address_book.size() <= row_id)
     return false;
@@ -3558,7 +3572,7 @@ bool wallet2::store_keys(const std::string& keys_file_name, const epee::wipeable
 
   bool r = epee::serialization::store_t_to_binary(account, account_data);
   CHECK_AND_ASSERT_MES(r, false, "failed to serialize wallet keys");
-  wallet2::keys_file_data keys_file_data = boost::value_initialized<wallet2::keys_file_data>();
+  wallet2::keys_file_data keys_file_data = {};
 
   // Create a JSON object with "key_data" and "seed_language" as keys.
   rapidjson::Document json;
@@ -5531,7 +5545,7 @@ void wallet2::store_to(const std::string &path, const epee::wipeable_string &pas
   boost::archive::portable_binary_oarchive ar(oss);
   ar << *this;
 
-  wallet2::cache_file_data cache_file_data = boost::value_initialized<wallet2::cache_file_data>();
+  wallet2::cache_file_data cache_file_data = {};
   cache_file_data.cache_data = oss.str();
   std::string cipher;
   cipher.resize(cache_file_data.cache_data.size());
@@ -8774,7 +8788,7 @@ void wallet2::light_wallet_get_unspent_outs()
     if(!add_transfer)
       continue;
     
-    m_transfers.push_back(boost::value_initialized<transfer_details>());
+    m_transfers.push_back(transfer_details{});
     transfer_details& td = m_transfers.back();
     
     td.m_block_height = o.height;

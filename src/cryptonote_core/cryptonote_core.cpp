@@ -456,7 +456,6 @@ namespace cryptonote
     bool r = handle_command_line(vm);
     CHECK_AND_ASSERT_MES(r, false, "Failed to handle command line");
 
-    std::string db_type = command_line::get_arg(vm, cryptonote::arg_db_type);
     std::string db_sync_mode = command_line::get_arg(vm, cryptonote::arg_db_sync_mode);
     bool db_salvage = command_line::get_arg(vm, cryptonote::arg_db_salvage) != 0;
     bool fast_sync = command_line::get_arg(vm, arg_fast_block_sync) != 0;
@@ -490,10 +489,10 @@ namespace cryptonote
     // folder might not be a directory, etc, etc
     catch (...) { }
 
-    std::unique_ptr<BlockchainDB> db(new_db(db_type));
+    std::unique_ptr<BlockchainDB> db(new_db());
     if (db == NULL)
     {
-      LOG_ERROR("Attempted to use non-existent database type");
+      LOG_ERROR("Failed to initialize a database");
       return false;
     }
 
@@ -748,7 +747,7 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------
   bool core::handle_incoming_tx_pre(const blobdata& tx_blob, tx_verification_context& tvc, cryptonote::transaction &tx, crypto::hash &tx_hash, bool keeped_by_block, bool relayed, bool do_not_relay)
   {
-    tvc = boost::value_initialized<tx_verification_context>();
+    tvc = {};
 
     if(tx_blob.size() > get_max_tx_size())
     {
@@ -1343,7 +1342,7 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------
   bool core::handle_block_found(block& b, block_verification_context &bvc)
   {
-    bvc = boost::value_initialized<block_verification_context>();
+    bvc = {};
     m_miner.pause();
     std::vector<block_complete_entry> blocks;
     try
@@ -1372,7 +1371,7 @@ namespace cryptonote
     CHECK_AND_ASSERT_MES(!bvc.m_verifivation_failed, false, "mined block failed verification");
     if(bvc.m_added_to_main_chain)
     {
-      cryptonote_connection_context exclude_context = boost::value_initialized<cryptonote_connection_context>();
+      cryptonote_connection_context exclude_context = {};
       NOTIFY_NEW_BLOCK::request arg = AUTO_VAL_INIT(arg);
       arg.current_blockchain_height = m_blockchain_storage.get_current_blockchain_height();
       std::vector<crypto::hash> missed_txs;
@@ -1440,7 +1439,7 @@ namespace cryptonote
   {
     TRY_ENTRY();
 
-    bvc = boost::value_initialized<block_verification_context>();
+    bvc = {};
 
     if (!check_incoming_block_size(block_blob))
     {
