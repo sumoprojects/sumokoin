@@ -32,6 +32,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "string_tools.h"
+#include <thread>
 using namespace epee;
 
 #include <unordered_set>
@@ -497,7 +498,14 @@ namespace cryptonote
     }
 
     folder /= db->get_db_name();
-    MGINFO("Loading blockchain from folder " << folder.string() << " ...");
+    MGINFO("Loading blockchain from folder " << folder.string());
+    std::cout << "\033[1;34m\033[1A\033[KLoading blockchain from folder " << "\033[1;32m" << folder.string() << "\033[0m";
+    std::string s = " ..............";
+      for (const auto msg : s) {
+      std::cout << "\033[1;34m" << msg << "\033[0m" << std::flush;
+      std::this_thread::sleep_for(std::chrono::milliseconds(150));
+      }
+    std::cout << "\033[1;32mdone\033[0m" << std::endl;
 
     const std::string filename = folder.string();
     // default to fast:async:1 if overridden
@@ -658,6 +666,13 @@ namespace cryptonote
     block_sync_size = command_line::get_arg(vm, arg_block_sync_size);
 
     MGINFO("Loading checkpoints");
+    std::cout << "\033[1;34m\033[1A\033[2KLoading checkpoints";
+    std::string s1 = "..............";
+      for (const auto msg1 : s1) {
+      std::cout << msg1 << std::flush;
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+      }
+    std::cout << "\033[1;32mdone\033[0m" << std::endl;
 
     // load json & DNS checkpoints, and verify them
     // with respect to what blocks we already have
@@ -1598,15 +1613,16 @@ namespace cryptonote
         main_message = "The daemon is running offline and will not attempt to sync to the Sumokoin network.";
       else
         main_message = "The daemon will start synchronizing with the network. This may take a long time to complete.";
-      MGINFO_YELLOW(ENDL << "**********************************************************************" << ENDL
-        << main_message << ENDL
-        << ENDL
-        << "You can set the level of process detailization through \"set_log <level|categories>\" command," << ENDL
-        << "where <level> is between 0 (no details) and 4 (very verbose), or custom category based levels (eg, *:WARNING)." << ENDL
-        << ENDL
-        << "Use the \"help\" command to see the list of available commands." << ENDL
-        << "Use \"help <command>\" to see a command's documentation." << ENDL
-        << "**********************************************************************" << ENDL);
+      MGINFO_YELLOW(main_message << ENDL);
+      std::cout << "\033[1;93m\033[1A\033[2K" << std::endl << "___________________________________________________________________________" << std::endl
+        << std::endl << main_message << std::endl
+        << std::endl
+        << "You can set the level of process detailization through \"set_log <level|categories>\" command," << std::endl
+        << "where <level> is between 0 (no details) and 4 (very verbose), or custom category based levels (eg, *:WARNING)." << std::endl
+        << std::endl
+        << "Use the \"help\" command to see the list of available commands." << std::endl
+        << "Use \"help <command>\" to see a command's documentation." << std::endl
+        << "___________________________________________________________________________" << "\033[0m" << std::endl << std::endl;
       m_starter_message_showed = true;
     }
 

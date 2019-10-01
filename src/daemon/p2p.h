@@ -60,22 +60,35 @@ public:
     : m_server{protocol.get()}
   {
     //initialize objects
-    MGINFO("Initializing p2p server...");
     if (!m_server.init(vm))
     {
       throw std::runtime_error("Failed to initialize p2p server.");
     }
     MGINFO("p2p server initialized OK");
+    std::cout << "\033[1;34m\033[1A\033[KInitializing p2p server";
+    std::string s = "..............";
+      for (const auto msg : s) {
+      std::cout << msg << std::flush;
+      std::this_thread::sleep_for(std::chrono::milliseconds(150));
+      }
+    std::cout << "\033[1;32mdone\033[0m" << std::endl;
   }
 
   t_node_server & get()
-  {
+  { 
     return m_server;
   }
 
   void run()
   {
     MGINFO("Starting p2p net loop...");
+    std::cout << "\033[1;34m\033[1A\033[KStarting p2p net loop";
+    std::string s = "..............";
+      for (const auto msg : s) {
+      std::cout << msg << std::flush;
+      std::this_thread::sleep_for(std::chrono::milliseconds(150));
+      }
+    std::cout << "\033[1;32mdone\033[0m" << std::endl;
     m_server.run();
     MGINFO("p2p net loop stopped");
   }

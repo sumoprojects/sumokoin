@@ -122,6 +122,7 @@ namespace net_utils
 bool create_rsa_ssl_certificate(EVP_PKEY *&pkey, X509 *&cert)
 {
   MGINFO("Generating SSL certificate");
+  std::cout << "\033[1;34m\033[1A\033[KGenerating SSL certificate\033[0m"<< std::endl;
   pkey = EVP_PKEY_new();
   if (!pkey)
   {
@@ -192,6 +193,7 @@ bool create_rsa_ssl_certificate(EVP_PKEY *&pkey, X509 *&cert)
 bool create_ec_ssl_certificate(EVP_PKEY *&pkey, X509 *&cert, int type)
 {
   MGINFO("Generating SSL certificate");
+  std::cout << "\033[1;34m\033[1A\033[KGenerating SSL certificate\033[0m"<< std::endl;
   pkey = EVP_PKEY_new();
   if (!pkey)
   {

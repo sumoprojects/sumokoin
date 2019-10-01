@@ -268,8 +268,20 @@ int main(int argc, char const * argv[])
       tools::set_max_concurrency(command_line::get_arg(vm, daemon_args::arg_max_concurrency));
 
     // logging is now set up
+    for (int i = 0; i < 50; ++i)
+    std::cout << "\n";
+    std::cout <<  
+    "\033[1;36m	  ___                        _         _               \033[0m" << std::endl <<
+    "\033[1;36m	/ ___| _   _ _ __ ___   ___ | | _____ (_)_ __          \033[0m" << std::endl <<
+    "\033[1;36m	\\___ \\| | | | '_ ` _ \\ / _ \\| |/ / _ \\| | '_ \\   \033[0m" << std::endl <<
+    "\033[1;36m	 ___) | |_| | | | | | | (_) |   < (_) | | | | |        \033[0m" << std::endl <<
+    "\033[1;36m	|____/ \\__,_|_| |_| |_|\\___/|_|\\_\\___/|_|_| |_|    \033[0m" << std::endl <<
+    std::endl <<
+    "\033[1;36m                 PRIVACY WITHOUT COMPROMISE             \033[0m" << std::endl <<
+    std::endl;    
     MGINFO("Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL << ")");
-
+    std::cout << "\033[1;36m\033[1A\033[K          Sumokoin '" << SUMOKOIN_RELEASE_NAME << "' (v" << SUMOKOIN_VERSION_FULL << ")\033[0m"<< std::endl << std::endl << std::endl;
+    std::cout << "\033[1;32mDaemon Initiliazation Procedure" << std::endl << "\033[0m";
     // If there are positional options, we're running a daemon command
     {
       auto command = command_line::get_arg(vm, daemon_args::arg_command);

@@ -646,7 +646,7 @@ void BlockchainLMDB::check_and_resize_for_batch(uint64_t batch_num_blocks, uint6
   // size-based check
   if (need_resize(threshold_size))
   {
-    MGINFO("[batch] DB resize needed");
+    MGINFO("\033[K[batch] DB resize needed\033[0m");
     do_resize(increase_size);
   }
 }
@@ -1315,7 +1315,8 @@ void BlockchainLMDB::open(const std::string& filename, const int db_flags)
   if (is_hdd_result)
   {
     if (is_hdd_result.value())
-        MCLOG_RED(el::Level::Warning, "global", "The blockchain is on a rotating drive: this will be very slow, use an SSD if possible");
+        MCLOG_RED(el::Level::Warning, "global", "The blockchain is on a rotating drive: this will be very slow, use an SSD if possible");   
+        std::cout << "\033[1A\033[1;31mThe blockchain is on a rotating drive database access will be very slow, use an SSD if possible\033[0m" << "                      " << std::endl;        
   }
 
   m_folder = filename;

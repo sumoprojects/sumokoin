@@ -71,6 +71,7 @@ public:
   {
     //initialize core here
     MGINFO("Initializing core...");
+    std::cout << "\033[1;32m\033[1A\033[2KCore Initialization" << std::endl << "\033[0m";
 #if defined(PER_BLOCK_CHECKPOINT)
     const cryptonote::GetCheckpointsCallback& get_checkpoints = blocks::GetCheckpointsData;
 #else
@@ -80,18 +81,8 @@ public:
     {
       return false;
     }
-    MGINFO("Core initialized OK");
-   
-    MGINFO_CYAN(std::endl << "\n \n" 
-    "\033[1;36m	  ___                        _         _               \033[0m" << std::endl <<
-    "\033[1;36m	/ ___| _   _ _ __ ___   ___ | | _____ (_)_ __          \033[0m" << std::endl <<
-    "\033[1;36m	\\___ \\| | | | '_ ` _ \\ / _ \\| |/ / _ \\| | '_ \\   \033[0m" << std::endl <<
-    "\033[1;36m	 ___) | |_| | | | | | | (_) |   < (_) | | | | |        \033[0m" << std::endl <<
-    "\033[1;36m	|____/ \\__,_|_| |_| |_|\\___/|_|\\_\\___/|_|_| |_|    \033[0m" << std::endl <<
-    std::endl <<
-    "\033[1;36m                 PRIVACY WITHOUT COMPROMISE             \033[0m" << std::endl <<
-    std::endl);                                              
-                                  
+    MGINFO("Core initialized OK");  
+    std::cout << "\033[1;34m\033[1A\033[2KCore was initialized " << "\033[1;32msuccessfully" << "\033[0m" << std::endl;                       
     return true;
   }
 

@@ -77,9 +77,11 @@ namespace epee
       m_net_server.get_config_object().m_user = std::move(user);
 
       MGINFO("Binding on " << bind_ip << " (IPv4):" << bind_port);
+      std::cout << "\033[1;34m\033[1A\033[KBinding on (IPv4): " << "\033[1;32m" << bind_ip << "\033[1;34m Port: " << "\033[1;32m" << bind_port << "       " << "\033[0m";
       if (use_ipv6)
       {
         MGINFO("Binding on " << bind_ipv6_address << " (IPv6):" << bind_port);
+        std::cout << "\033[1;34m\033[1A\033[KBinding on (IPv4): " << "\033[1;32m" << bind_ipv6_address << "\033[1;34m Port: " << "\033[1;32m" << bind_port << "       " << "\033[0m";
       }
       bool res = m_net_server.init_server(bind_port, bind_ip, bind_port, bind_ipv6_address, use_ipv6, require_ipv4, std::move(ssl_options));
       if(!res)

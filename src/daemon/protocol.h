@@ -50,12 +50,18 @@ public:
     )
     : m_protocol{core.get(), nullptr, offline}
   {
-    MGINFO("Initializing cryptonote protocol...");
     if (!m_protocol.init(vm))
     {
       throw std::runtime_error("Failed to initialize cryptonote protocol.");
     }
     MGINFO("Cryptonote protocol initialized OK");
+    std::cout << "\033[1;34m\033[1A\033[KInitializing cryptonote protocol";
+     std::string s = "..............";
+      for (const auto msg : s) {
+      std::cout << msg << std::flush;
+      std::this_thread::sleep_for(std::chrono::milliseconds(150));
+      }
+    std::cout << "\033[1;32mdone\033[0m" << std::endl;
   }
 
   t_protocol_raw & get()

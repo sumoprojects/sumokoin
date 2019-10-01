@@ -60,22 +60,31 @@ public:
     : m_server{core.get(), p2p.get()}, m_description{description}
   {
     MGINFO("Initializing " << m_description << " RPC server...");
+    std::cout << "\033[1;32m\033[1A\033[KInitializing " << m_description << " RPC server" << std::endl << "\033[0m";
 
     if (!m_server.init(vm, restricted, port))
     {
       throw std::runtime_error("Failed to initialize " + m_description + " RPC server.");
     }
     MGINFO(m_description << " RPC server initialized OK on port: " << m_server.get_binded_port());
+    std::cout << "\033[1;34m\033[1A\033[K" << m_description << " RPC server initialized" << "\033[1;32m successfully " << "\033[1;34mon port: " << "\033[1;32m" << m_server.get_binded_port() << "\033[0m" << std::endl;
   }
 
   void run()
   {
-    MGINFO("Starting " << m_description << " RPC server...");
     if (!m_server.run(2, false))
     {
       throw std::runtime_error("Failed to start " + m_description + " RPC server.");
     }
     MGINFO(m_description << " RPC server started ok");
+    std::cout << "\033[1;34m\033[1A\033[K" << "Starting " << m_description << " RPC server";
+    std::string s = "..............";
+     for (const auto msg : s) {
+     std::cout << msg << std::flush;
+     std::this_thread::sleep_for(std::chrono::milliseconds(150));
+     }
+    std::cout << "\033[1;32mdone\033[0m" << std::endl;
+
   }
 
   void stop()
