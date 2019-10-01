@@ -308,7 +308,19 @@ application.
     ```bash
     git clone --recursive https://github.com/sumoprojects/sumokoin.git
     ```
-
+ There is a bug with MingGW (all versions) throwing a 
+    ```bash
+    ': not a valid identifierline 88: export: `sha1
+    ': not a valid identifierline 88: export: `displaypath
+    ```
+  warning/error on downloading submodules, even though they are being updated (https://github.com/msys2/MSYS2-packages/issues/735).
+  It's an old and permanent bug with envsubst.exe
+  A workaround for this is to type at MinGW console
+  ```bash
+  alias git="PATH=/usr/bin git"
+  ```
+  which excludes the MINGW32/64 paths (and everything not in MSYS2 main path) when running git, and so it doesn't end up running a non-   MSYS envsubst
+  
 **Building**
 
 * Change to the cloned directory, run:
