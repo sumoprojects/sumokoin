@@ -8579,14 +8579,13 @@ bool simple_wallet::check_mms()
 std::string simple_wallet::get_prompt() const
 {
   if (m_locked)
-    return std::string("[") + tr("locked due to inactivity") + "]";
+    return std::string("[ locked due to inactivity ]");
   std::string addr_start = m_wallet->get_subaddress_as_str({m_current_subaddress_account, 0}).substr(0, 6);
-  std::string prompt = std::string("[") + tr("wallet") + " " + addr_start;
+  std::string prompt = std::string ("[wallet " + addr_start + "]: ");
   if (!m_wallet->check_connection(NULL))
-    prompt += tr(" (no daemon)");
-  else if (!m_wallet->is_synced())
-    prompt += tr(" (out of sync)");
-  prompt += "]: ";
+    prompt = std::string ("No Connection to Daemon-") + prompt;
+  if (!m_wallet->is_synced())
+    prompt = std::string ("Wallet is out of sync-") + prompt;
   return prompt;
 }
 //----------------------------------------------------------------------------------------------------
