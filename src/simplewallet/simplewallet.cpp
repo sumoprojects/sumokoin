@@ -8583,10 +8583,10 @@ std::string simple_wallet::get_prompt() const
   std::string addr_start = m_wallet->get_subaddress_as_str({m_current_subaddress_account, 0}).substr(0, 6);
   std::string prompt = std::string ("[wallet " + addr_start + "]: ");
   if (!m_wallet->check_connection(NULL))
-    prompt = std::string ("[wallet (no daemon) " + addr_start + "]: ");
+    prompt = std::string ("[wallet " + addr_start + " (no daemon)]: ");
   else
   if (!m_wallet->is_synced())
-    prompt = std::string ("[wallet (out of sync) " + addr_start + "]: ");
+    prompt = std::string ("[wallet " + addr_start + " (out of sync)]: ");
   return prompt;
 }
 //----------------------------------------------------------------------------------------------------
