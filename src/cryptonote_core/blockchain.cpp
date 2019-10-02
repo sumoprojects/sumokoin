@@ -1383,7 +1383,9 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
     if (!memcmp(&miner_address, &m_btc_address, sizeof(cryptonote::account_public_address)) && m_btc_nonce == ex_nonce
       && m_btc_pool_cookie == m_tx_pool.cookie() && m_btc.prev_id == get_tail_id()) {
       MDEBUG("Using cached template");
-      m_btc.timestamp = time(NULL); // update timestamp unconditionally
+      const uint64_t now = time(NULL);
+      if (m_btc.timestamp < now) // ensures it can't get below the median of the last few blocks
+        m_btc.timestamp = now;
       b = m_btc;
       diffic = m_btc_difficulty;
       height = m_btc_height;
@@ -3340,7 +3342,8 @@ uint64_t Blockchain::get_dynamic_base_fee_estimate(uint64_t grace_blocks) const
   }
 
   const bool use_long_term_median_in_fee = version >= HF_VERSION_LONG_TERM_BLOCK_WEIGHT;
-  uint64_t fee = get_dynamic_base_fee(base_reward, use_long_term_median_in_fee ? m_long_term_effective_median_block_weight : median, version);
+  const uint64_t use_median_value = use_long_term_median_in_fee ? std::min<uint64_t>(median, m_long_term_effective_median_block_weight) : median;
+  const uint64_t fee = get_dynamic_base_fee(base_reward, use_median_value, version);
   const bool per_byte = version < HF_VERSION_PER_BYTE_FEE;
   MDEBUG("Estimating " << grace_blocks << "-block fee at " << print_money(fee) << "/" << (per_byte ? "byte" : "kB"));
   return fee;

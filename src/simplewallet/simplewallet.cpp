@@ -2969,7 +2969,6 @@ simple_wallet::simple_wallet()
                                   "  Set this if you are not sure whether you will spend on a key reusing Sumokoin fork later.\n"
                                   "subaddress-lookahead <major>:<minor>\n "
                                   "  Set the lookahead sizes for the subaddress hash table.\n "
-                                  "  Set this if you are not sure whether you will spend on a key reusing Sumokoin fork later.\n "
                                   "segregation-height <n>\n "
                                   "  Set to the height of a key reusing fork you want to use, 0 to use default.\n "
                                   "ignore-fractional-outputs <1|0>\n "
@@ -5820,7 +5819,7 @@ void simple_wallet::check_for_inactivity_lock(bool user)
     m_in_command = true;
 
     if (!user){
-      message_writer(console_color_cyan, false) << "" << std::endl <<
+      message_writer(console_color_cyan, true) << "" << std::endl <<
                              "        _________________________________________________    " << std::endl <<
                              "	                                                     " << std::endl <<
                              "	     SUMO wallet was automatically locked for        " << std::endl <<
@@ -5829,12 +5828,12 @@ void simple_wallet::check_for_inactivity_lock(bool user)
                              std::endl;
     }
     else{
-      message_writer() << "" << std::endl <<
-                             "          Your wallet was locked!" << std::endl <<
-                             "          -----------------------" << std::endl;
+      message_writer(console_color_cyan, true) << "" << std::endl <<
+                             "                   Your wallet was locked!" << std::endl <<
+                             "                   -----------------------" << std::endl;
     }
 
-      message_writer(console_color_cyan, false) << "" << std::endl <<
+      message_writer(console_color_cyan, true) << "" << std::endl <<
                              "	  ___                        _         _              " << std::endl <<
                              "	/ ___| _   _ _ __ ___   ___ | | _____ (_)_ __         " << std::endl <<
                              "	\\___ \\| | | | '_ ` _ \\ / _ \\| |/ / _ \\| | '_ \\  " << std::endl <<
@@ -8579,14 +8578,13 @@ bool simple_wallet::check_mms()
 std::string simple_wallet::get_prompt() const
 {
   if (m_locked)
-    return std::string("[") + tr("locked due to inactivity") + "]";
+    return std::string("[ locked due to inactivity ]");
   std::string addr_start = m_wallet->get_subaddress_as_str({m_current_subaddress_account, 0}).substr(0, 6);
-  std::string prompt = std::string("[") + tr("wallet") + " " + addr_start;
+  std::string prompt = std::string ("[wallet " + addr_start + "]: ");
   if (!m_wallet->check_connection(NULL))
-    prompt += tr(" (no daemon)");
-  else if (!m_wallet->is_synced())
-    prompt += tr(" (out of sync)");
-  prompt += "]: ";
+    prompt = std::string ("No Connection to Daemon-") + prompt;
+  if (!m_wallet->is_synced())
+    prompt = std::string ("Wallet is out of sync-") + prompt;
   return prompt;
 }
 //----------------------------------------------------------------------------------------------------
