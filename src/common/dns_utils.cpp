@@ -44,11 +44,18 @@ using namespace epee;
 
 static const char *DEFAULT_DNS_PUBLIC_ADDR[] =
 {
-  "194.150.168.168",    // CCC (Germany)
-  "80.67.169.40",       // FDN (France)
-  "89.233.43.71",       // http://censurfridns.dk (Denmark)
-  "109.69.8.51",        // punCAT (Spain)
-  "193.58.251.251",     // SkyDNS (Russia)
+// OpenNIC DNS Servers for more privacy https://www.opennic.org
+// As recently added as possible and with no logs kept declaration, added many cause they are sponsored
+  "89.40.116.230",       // Germany
+  "151.80.222.79",       // France (+DNScrypt)
+  "185.240.251.139",     // Portugal
+  "176.126.70.119",      // Sweden
+  "128.31.0.72",         // US
+  "51.89.22.36",         // Germany (+DNScrypt)
+  "91.217.137.37",       // Russia
+  "207.148.83.241",      // Australia
+  "66.187.76.168",       // US
+  "80.67.169.12"         // FDN (France - This is not OpenNIC but its still an independent anticensorship group https://www.fdn.fr/)
 };
 
 static boost::mutex instance_lock;
