@@ -185,7 +185,7 @@
 #define HF_VERSION_ENFORCE_MIN_AGE              9
 
 #define PER_KB_FEE_QUANTIZATION_DECIMALS        6
-#define HASH_OF_HASHES_STEP                     256
+#define HASH_OF_HASHES_STEP                     512
 #define BULLETPROOF_MAX_OUTPUTS                 16
 #define DEFAULT_TXPOOL_MAX_WEIGHT               259200000ull // 3 days at 240000, in bytes
 
