@@ -2858,7 +2858,7 @@ namespace tools
           }
           if (addresses.empty())
           {
-            er.message = std::string("No Monero address found at ") + url;
+            er.message = std::string("No Sumokoin address found at ") + url;
             return {};
           }
           return addresses[0];
