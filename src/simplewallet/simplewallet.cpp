@@ -5847,14 +5847,28 @@ void simple_wallet::check_for_inactivity_lock(bool user)
       std::this_thread::sleep_for(std::chrono::milliseconds(130));
     }
 
+    tools::msg_writer() << "" << std::endl;
+    message_writer(console_color_white, true) << "The wallet password is required to unlock the console.";
+    message_writer(console_color_white, true) << "You have 3 attempts after which your wallet will be shut down." << std::endl;
+    int attempt = 0;
     while (1)
     {
-      tools::msg_writer() << "" << std::endl;
-      message_writer(console_color_white, true) << "The wallet password is required to unlock the console." << std::endl;
       try
       {
         if (get_and_verify_password())
           break;
+        else 
+        {
+          ++attempt;
+          int left = 3 - attempt;
+          message_writer(console_color_cyan, true) << "You have " << left << " attempt(s) left" << std::endl;
+        }
+        if (attempt > 2)
+        {
+          close_wallet(); 
+          message_writer(console_color_red, true) << "Your wallet is now closed, press Ctrl^C to exit to terminal" << std::endl;
+          break;
+        }
       }
       catch (...) { /* do nothing, just let the loop loop */ }
     }
