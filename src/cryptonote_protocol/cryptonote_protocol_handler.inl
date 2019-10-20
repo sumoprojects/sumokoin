@@ -1466,7 +1466,7 @@ namespace cryptonote
               }
               return true;
             });
-            MGINFO_YELLOW("Synced " << current_blockchain_height << "/" << target_blockchain_height << "\033[1;32m"
+            MGINFO_YELLOW("\033[0K" << "Synced " << current_blockchain_height << "/" << target_blockchain_height << "\033[1;32m"
               << " [" << std::string(comp_perc / 2, '=') << (comp_perc < 100 ? ">" : "") << std::string(100 / 2 - comp_perc / 2, ' ') << "]" << "\033[1;33m"
               << progress_message << timing_message << " syncing with " << "\033[1;32m" << n_syncing << "\033[1;33m"
               << " remote nodes" << "\033[0m" << std::flush << "\033[F");
@@ -2177,7 +2177,7 @@ skip:
       {
         if (m_core.get_current_blockchain_height() >= m_core.get_target_blockchain_height())
         {
-          MGINFO_GREEN("\nSYNCHRONIZED OK");
+          MGINFO_GREEN(ENDL << "SYNCHRONIZED OK");
           on_connection_synchronized();
         }
       }
@@ -2490,4 +2490,3 @@ skip:
     m_core.stop();
   }
 } // namespace
-

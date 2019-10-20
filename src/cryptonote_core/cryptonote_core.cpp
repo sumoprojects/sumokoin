@@ -1643,12 +1643,11 @@ namespace cryptonote
     m_block_rate_interval.do_call(boost::bind(&core::check_block_rate, this));
     m_blockchain_pruning_interval.do_call(boost::bind(&core::update_blockchain_pruning, this));
     m_ok_status.do_call(boost::bind(&core::check_sync_status, this));
-
     m_miner.on_idle();
     m_mempool.on_idle();
     return true;
   }
-  //------------------------------------------------------------------------------------------------------------------------
+  //-----------------------------------------------------------------------------------------------
   bool core::check_sync_status()
   {
     time_t uptime = time(NULL) - start_time;
@@ -1689,7 +1688,7 @@ namespace cryptonote
     }
     return true;
   }
-  //-----------------------------------------------------------------------------------------------  
+  //-----------------------------------------------------------------------------------------------
   uint8_t core::get_ideal_hard_fork_version() const
   {
     return get_blockchain_storage().get_ideal_hard_fork_version();
