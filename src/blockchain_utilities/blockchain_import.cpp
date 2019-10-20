@@ -58,9 +58,7 @@ bool opt_stagenet = true;
 
 uint64_t db_batch_size = 100;
 
-// when verifying, use a smaller default batch size so progress is more
-// frequently saved
-uint64_t db_batch_size_verify = 5000;
+uint64_t db_batch_size_verify = 100;
 
 std::string refresh_string = "\r                                    \r";
 }
