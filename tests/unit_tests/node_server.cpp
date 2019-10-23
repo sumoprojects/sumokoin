@@ -260,5 +260,42 @@ TEST(ban, ignores_port)
   ASSERT_FALSE(is_blocked(server,MAKE_IPV4_ADDRESS_PORT(1,2,3,4,6)));
 }
 
+TEST(node_server, bind_same_p2p_port)
+{
+  const auto new_node = []() -> std::unique_ptr<Server> {
+    test_core pr_core;
+    cryptonote::t_cryptonote_protocol_handler<test_core> cprotocol(pr_core, NULL);
+    std::unique_ptr<Server> server(new Server(cprotocol));
+    cprotocol.set_p2p_endpoint(server.get());
+
+    return server;
+  };
+
+  const auto init = [](const std::unique_ptr<Server>& server, const char* port) -> bool {
+    boost::program_options::options_description desc_options("Command line options");
+    cryptonote::core::init_options(desc_options);
+    Server::init_options(desc_options);
+
+    const char *argv[2] = {nullptr, nullptr};
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line(1, argv, desc_options), vm);
+
+    vm.find(nodetool::arg_p2p_bind_port.name)->second = boost::program_options::variable_value(std::string(port), false);
+
+    boost::program_options::notify(vm);
+
+    return server->init(vm);
+  };
+
+  constexpr char port[] = "48080";
+  constexpr char port_another[] = "58080";
+
+  const auto node = new_node();
+  EXPECT_TRUE(init(node, port));
+
+  EXPECT_FALSE(init(new_node(), port));
+  EXPECT_TRUE(init(new_node(), port_another));
+}
+
 namespace nodetool { template class node_server<cryptonote::t_cryptonote_protocol_handler<test_core>>; }
 namespace cryptonote { template class t_cryptonote_protocol_handler<test_core>; }
