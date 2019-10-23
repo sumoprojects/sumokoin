@@ -5875,6 +5875,7 @@ void simple_wallet::check_for_inactivity_lock(bool user)
     m_last_activity_time = time(NULL);
     m_in_command = false;
     m_locked = false;
+    refresh_main(0, ResetNone, true);
   }
 }
 //----------------------------------------------------------------------------------------------------
