@@ -1797,13 +1797,28 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     for (const crypto::hash &txid: b.tx_hashes)
     {
       cryptonote::tx_memory_pool::tx_details td;
-      if (!m_tx_pool.get_transaction_info(txid, td))
+      cryptonote::blobdata blob;
+      if (m_tx_pool.get_transaction_info(txid, td))
       {
-        MERROR_VER("Block with id: " << epee::string_tools::pod_to_hex(id) << " (as alternative) has unknown transaction hash " << txid << ".");
-        bvc.m_verifivation_failed = true;
-        return false;
+        bei.block_cumulative_weight += td.weight;
       }
-      bei.block_cumulative_weight += td.weight;
+      else if (m_db->get_pruned_tx_blob(txid, blob))
+      {
+        cryptonote::transaction tx;
+        if (!cryptonote::parse_and_validate_tx_base_from_blob(blob, tx))
+        {
+          MERROR_VER("Block with id: " << epee::string_tools::pod_to_hex(id) << " (as alternative) refers to unparsable transaction hash " << txid << ".");
+          bvc.m_verifivation_failed = true;
+          return false;
+        }
+        bei.block_cumulative_weight += cryptonote::get_pruned_transaction_weight(tx);
+      }
+      else
+      {
+        // we can't determine the block weight, set it to 0 and break out of the loop
+        bei.block_cumulative_weight = 0;
+        break;
+      }
     }
 
     // add block to alternate blocks storage,
