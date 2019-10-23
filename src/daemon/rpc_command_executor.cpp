@@ -498,37 +498,54 @@ bool t_rpc_command_executor::show_status() {
       bootstrap_msg += " was used before";
     }
   }
-
+  std::string os_version = tools::get_os_version_string();
+  std::string network_type = (ires.testnet ? "testnet" : ires.stagenet ? "stagenet" : "mainnet");
+  double perc = round(get_sync_percentage(ires));
   std::stringstream str;
-  str << boost::format("Height: %llu/%llu (%.1f%%) on %s%s, %s, net hash %s, Release: %s%s/HFv%u%s, %s, %u(out)+%u(in) connections")
-    % (unsigned long long)ires.height
-    % (unsigned long long)net_height
-    % get_sync_percentage(ires)
-    % (ires.testnet ? "testnet" : ires.stagenet ? "stagenet" : "mainnet")
-    % bootstrap_msg
-    % (!has_mining_info ? "mining info unavailable" : mining_busy ? "syncing" : mres.active ? ( ( mres.is_background_mining_enabled ? "smart " : "" ) + std::string("mining at ") + get_mining_speed(mres.speed)) : "not mining")
-    % get_mining_speed(cryptonote::difficulty_type(ires.wide_difficulty) / ires.target)
-    % SUMOKOIN_RELEASE_NAME
-    % SUMOKOIN_VERSION
-    % (unsigned)hfres.version
-    % get_fork_extra_info(hfres.earliest_height, net_height, ires.target)
-    % (hfres.state == cryptonote::HardFork::Ready ? "up to date" : hfres.state == cryptonote::HardFork::UpdateNeeded ? "update needed" : "out of date, likely forked")
-    % (unsigned)ires.outgoing_connections_count
-    % (unsigned)ires.incoming_connections_count
-  ;
-
   // restricted RPC does not disclose start time
   if (ires.start_time)
   {
-    str << boost::format(", uptime %ud %uh %um %us")
+    str << boost::format("%ud %uh %um %us")
       % (unsigned int)floor(uptime / 60.0 / 60.0 / 24.0)
       % (unsigned int)floor(fmod((uptime / 60.0 / 60.0), 24.0))
       % (unsigned int)floor(fmod((uptime / 60.0), 60.0))
       % (unsigned int)fmod(uptime, 60.0)
     ;
   }
-
-  tools::success_msg_writer() << str.str();
+  std::string hf_status = (hfres.state == cryptonote::HardFork::Ready ? "up to date" : hfres.state == cryptonote::HardFork::UpdateNeeded ? "update needed" : "out of date, likely forked");
+  
+  std::cout << "\033[1m-------------" << std::endl;
+  std::cout << "SUMOKOIN INFO" << std::endl;
+  std::cout << "-------------" << std::endl;
+  std::cout << "Network: \033[0m" << "\033[32;1m" << network_type << "\033[0m" << " " <<
+   	         "\033[1mVersion: \033[0m" << "\033[32;1m" << SUMOKOIN_RELEASE_NAME << " " << SUMOKOIN_VERSION << "\033[0m" << "  " <<
+  	         "\033[1mHardfork Version: \033[0m" << "\033[32;1m" << (unsigned)hfres.version << " " << hf_status << "\033[0m"  << "  " <<
+  	         "\033[1mNext hardfork: \033[0m" << "\033[32;1m" << get_fork_extra_info(hfres.earliest_height, net_height, ires.target) << "\033[0m" << std::endl;
+  std::cout << "\033[1m---------------" << std::endl;
+  std::cout << "BLOCKCHAIN INFO" << std::endl;
+  std::cout << "---------------\033[0m" << std::endl;
+  std::cout << "\033[1mCurrent Height: \033[0m" << "\033[32;1m" << (unsigned long long)ires.height << "\033[0m" << "  " <<
+   	         "\033[1mNetwork Height: \033[0m" << "\033[32;1m" << (unsigned long long)net_height << "\033[0m" << "  " <<
+   	         "\033[1mSync percentage: \033[0m" << "\033[32;1m" << perc << "%" << "\033[0m" << "  " << 
+	         "\033[1mBootstrap: \033[0m" << "\033[32;1m" << bootstrap_msg << "\033[0m" << std::endl;
+  std::cout << "\033[1m------------" << std::endl;
+  std::cout << "NETWORK INFO" << std::endl;
+  std::cout << "------------\033[0m" << std::endl;
+  std::cout << "\033[1mOutgoing connections: \033[0m" << "\033[32;1m" << ires.outgoing_connections_count << "\033[0m" << "  " <<
+  	         "\033[1mIncoming connections: \033[0m" << "\033[32;1m" << ires.incoming_connections_count << "\033[0m" << "  " <<
+   	         "\033[1mDifficulty: \033[0m" << "\033[32;1m" << cryptonote::difficulty_type(ires.wide_difficulty) << "\033[0m" << "  " <<
+               "\033[1mNetwork hashrate: \033[0m" << "\033[32;1m" << get_mining_speed(cryptonote::difficulty_type(ires.wide_difficulty) / ires.target) << "\033[0m" << "  " << std::endl;
+  std::cout << "\033[1m-----------" << std::endl;
+  std::cout << "MINING INFO" << std::endl;
+  std::cout << "-----------\033[0m" << std::endl;
+  std::cout << "\033[1mMining status: \033[0m" << "\033[32;1m" << (!has_mining_info ? "mining info unavailable" : mining_busy ? "syncing" : mres.active ? ( ( mres.is_background_mining_enabled ? "smart " : "" ) + std::string("mining at ") + get_mining_speed(mres.speed)) : "not mining") << "\033[0m" << "  " <<
+               "\033[1mMining Threads: \033[0m" << "\033[32;1m" << mres.threads_count << "\033[0m" << "  " <<
+               "\033[1mPoW algorithm: \033[0m" << "\033[32;1m" << mres.pow_algorithm << "\033[0m" << std::endl;
+  std::cout << "\033[1m-----------" << std::endl;
+  std::cout << "SYSTEM INFO" << std::endl;
+  std::cout << "-----------\033[0m" << std::endl;
+  std::cout << "\033[1mUptime: \033[0m" << "\033[32;1m" << str.str() << "\033[0m"  << "  " <<
+               "\033[1mServer info: \033[0m" << "\033[32;1m" << tools::get_os_version_string() << "\033[0m" << std::endl;
 
   return true;
 }

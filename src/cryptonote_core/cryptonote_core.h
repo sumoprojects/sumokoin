@@ -878,15 +878,6 @@ namespace cryptonote
      bool add_new_block(const block& b, block_verification_context& bvc);
 
      /**
-      * @brief load any core state stored on disk
-      *
-      * currently does nothing, but may have state to load in the future.
-      *
-      * @return true
-      */
-     bool load_state_data();
-
-     /**
       * @copydoc parse_tx_from_blob(transaction&, crypto::hash&, crypto::hash&, const blobdata&) const
       *
       * @note see parse_tx_from_blob(transaction&, crypto::hash&, crypto::hash&, const blobdata&) const
@@ -1014,6 +1005,13 @@ namespace cryptonote
       * @return true on success, false otherwise
       */
      bool check_block_rate();
+     
+     /**
+      * @brief checks sync status 
+      *
+      * @return true on synchronized, false otherwise
+      */
+     bool check_sync_status();
 
      bool m_test_drop_download = true; //!< whether or not to drop incoming blocks (for testing)
 
@@ -1040,6 +1038,7 @@ namespace cryptonote
      epee::math_helper::once_a_time_seconds<60*10, true> m_check_disk_space_interval; //!< interval for checking for disk space
      epee::math_helper::once_a_time_seconds<90, false> m_block_rate_interval; //!< interval for checking block rate
      epee::math_helper::once_a_time_seconds<60*60*5, true> m_blockchain_pruning_interval; //!< interval for incremental blockchain pruning
+     epee::math_helper::once_a_time_seconds<60*30, true> m_ok_status; //!< interval for checking daemon status
 
      std::atomic<bool> m_starter_message_showed; //!< has the "daemon will sync now" message been shown?
 

@@ -702,7 +702,7 @@ namespace cryptonote
       }
     }
 
-    return load_state_data();
+    return true;
   }
   //-----------------------------------------------------------------------------------------------
   bool core::set_genesis_block(const block& b)
@@ -710,13 +710,7 @@ namespace cryptonote
     return m_blockchain_storage.reset_and_set_genesis_block(b);
   }
   //-----------------------------------------------------------------------------------------------
-  bool core::load_state_data()
-  {
-    // may be some code later
-    return true;
-  }
-  //-----------------------------------------------------------------------------------------------
-    bool core::deinit()
+  bool core::deinit()
   {
     m_miner.stop();
     m_mempool.deinit();
@@ -1025,11 +1019,7 @@ namespace cryptonote
       if (already_have[i])
         continue;
 
-      // if it's a pruned tx from an incoming block, we'll get a weight that's technically
-      // different from the actual transaction weight, but it's OK for our use. Those txes
-      // will be ignored when mining, and using that "pruned" weight seems appropriate for
-      // keeping the txpool size constrained
-      const uint64_t weight = results[i].tx.pruned ? 0 : get_transaction_weight(results[i].tx, it->blob.size());
+      const uint64_t weight = results[i].tx.pruned ? get_pruned_transaction_weight(results[i].tx) : get_transaction_weight(results[i].tx, it->blob.size());
       ok &= add_new_tx(results[i].tx, results[i].hash, tx_blobs[i].blob, weight, tvc[i], keeped_by_block, relayed, do_not_relay);
       if(tvc[i].m_verifivation_failed)
       {MERROR_VER("Transaction verification failed: " << results[i].hash);}
@@ -1648,11 +1638,28 @@ namespace cryptonote
     m_check_disk_space_interval.do_call(boost::bind(&core::check_disk_space, this));
     m_block_rate_interval.do_call(boost::bind(&core::check_block_rate, this));
     m_blockchain_pruning_interval.do_call(boost::bind(&core::update_blockchain_pruning, this));
+    m_ok_status.do_call(boost::bind(&core::check_sync_status, this));
     m_miner.on_idle();
     m_mempool.on_idle();
     return true;
   }
   //-----------------------------------------------------------------------------------------------
+  bool core::check_sync_status()
+  {
+    time_t uptime = time(NULL) - start_time;
+    int seconds, hours, minutes;
+    seconds = uptime;
+    minutes = seconds / 60;
+    hours = minutes / 60;
+    if((get_blockchain_storage().get_current_blockchain_height() >= m_target_blockchain_height) && (m_target_blockchain_height > 0))
+    {
+     MGINFO_GREEN(ENDL << "Sumokoin node is on idle and fully synchronized | Height: " << get_blockchain_storage().get_current_blockchain_height() 
+       << " | Uptime: " << int(hours) << " hours " << int(minutes%60) << " minutes " 
+       << int(seconds%60) << " seconds" << ENDL);
+    }
+   return true;
+  }
+  //----------------------------------------------------------------------------------------------- 
   bool core::check_fork_time()
   {
     if (m_nettype == FAKECHAIN)

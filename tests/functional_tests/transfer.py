@@ -114,6 +114,12 @@ class TransferTest():
         except: ok = True
         assert ok
 
+        print ('Checking long payment IDs are rejected')
+        ok = False
+        try: self.wallet[0].transfer([dst], ring_size = 11, payment_id = payment_id, get_tx_key = False, get_tx_hex = True)
+        except: ok = True
+        assert ok
+
         print ('Checking empty destination is rejected')
         ok = False
         try: self.wallet[0].transfer([], ring_size = 11, get_tx_key = False)
@@ -121,6 +127,7 @@ class TransferTest():
         assert ok
 
         res = self.wallet[0].transfer([dst], ring_size = 11, payment_id = payment_id, get_tx_key = False, get_tx_hex = True)
+
         assert len(res.tx_hash) == 32*2
         txid = res.tx_hash
         assert len(res.tx_key) == 0
@@ -156,7 +163,7 @@ class TransferTest():
           assert e.type == 'block'
         e = res.pending[0]
         assert e.txid == txid
-        assert e.payment_id == payment_id
+        assert e.payment_id in ['', '0000000000000000']
         assert e.type == 'pending'
         assert e.unlock_time == 0
         assert e.subaddr_index.major == 0
@@ -189,7 +196,7 @@ class TransferTest():
           assert e.type == 'block'
         e = res.out[0]
         assert e.txid == txid
-        assert e.payment_id == payment_id
+        assert e.payment_id in ['', '0000000000000000']
         assert e.type == 'out'
         assert e.unlock_time == 0
         assert e.subaddr_index.major == 0
@@ -205,7 +212,7 @@ class TransferTest():
         assert res.transfers[0] == res.transfer
         t = res.transfer
         assert t.txid == txid
-        assert t.payment_id == payment_id
+        assert t.payment_id in ['', '0000000000000000']
         assert t.height == wallet_height - 1
         assert t.timestamp > 0
         assert t.amount == 0 # to self, so it's just "pay a fee" really
@@ -227,7 +234,7 @@ class TransferTest():
         print("Creating transfer to another, manual relay")
 
         dst = {'address': '44Kbx4sJ7JDRDV5aAhLJzQCjDz2ViLRduE3ijDZu3osWKBjMGkV1XPk4pfDUMqt1Aiezvephdqm6YD19GKFD9ZcXVUTp6BW', 'amount': 1000000000000}
-        res = self.wallet[0].transfer([dst], ring_size = 11, payment_id = payment_id, get_tx_key = True, do_not_relay = True, get_tx_hex = True)
+        res = self.wallet[0].transfer([dst], ring_size = 11, get_tx_key = True, do_not_relay = True, get_tx_hex = True)
         assert len(res.tx_hash) == 32*2
         txid = res.tx_hash
         assert len(res.tx_key) == 32*2
@@ -269,7 +276,7 @@ class TransferTest():
         assert not 'failed' in res or len(res.failed) == 0
         e = res.pool[0]
         assert e.txid == txid
-        assert e.payment_id == payment_id
+        assert e.payment_id in ["", "0000000000000000"] # long payment IDs are now ignored
         assert e.type == 'pool'
         assert e.unlock_time == 0
         assert e.subaddr_index.major == 0
@@ -295,7 +302,7 @@ class TransferTest():
         assert not 'failed' in res or len(res.failed) == 0
         e = res['in'][0]
         assert e.txid == txid
-        assert e.payment_id == payment_id
+        assert e.payment_id in ["", "0000000000000000"] # long payment IDs are now ignored
         assert e.type == 'in'
         assert e.unlock_time == 0
         assert e.subaddr_index.major == 0
@@ -318,7 +325,7 @@ class TransferTest():
         dst0 = {'address': '42ey1afDFnn4886T7196doS9GPMzexD9gXpsZJDwVjeRVdFCSoHnv7KPbBeGpzJBzHRCAs9UxqeoyFQMYbqSWYTfJJQAWDm', 'amount': 1000000000000}
         dst1 = {'address': '44Kbx4sJ7JDRDV5aAhLJzQCjDz2ViLRduE3ijDZu3osWKBjMGkV1XPk4pfDUMqt1Aiezvephdqm6YD19GKFD9ZcXVUTp6BW', 'amount': 1100000000000}
         dst2 = {'address': '46r4nYSevkfBUMhuykdK3gQ98XDqDTYW1hNLaXNvjpsJaSbNtdXh1sKMsdVgqkaihChAzEy29zEDPMR3NHQvGoZCLGwTerK', 'amount': 1200000000000}
-        res = self.wallet[0].transfer([dst0, dst1, dst2], ring_size = 11, payment_id = payment_id, get_tx_key = True)
+        res = self.wallet[0].transfer([dst0, dst1, dst2], ring_size = 11, get_tx_key = True)
         assert len(res.tx_hash) == 32*2
         txid = res.tx_hash
         assert len(res.tx_key) == 32*2
@@ -357,7 +364,7 @@ class TransferTest():
         assert len(e) == 1
         e = e[0]
         assert e.txid == txid
-        assert e.payment_id == payment_id
+        assert e.payment_id in ["", "0000000000000000"] # long payment IDs are now ignored
         assert e.type == 'out'
         assert e.unlock_time == 0
         assert e.subaddr_index.major == 0
@@ -385,7 +392,7 @@ class TransferTest():
         assert len(e) == 1
         e = e[0]
         assert e.txid == txid
-        assert e.payment_id == payment_id
+        assert e.payment_id in ["", "0000000000000000"] # long payment IDs are now ignored
         assert e.type == 'in'
         assert e.unlock_time == 0
         assert e.subaddr_index.major == 0
@@ -412,7 +419,7 @@ class TransferTest():
         assert len(e) == 1
         e = e[0]
         assert e.txid == txid
-        assert e.payment_id == payment_id
+        assert e.payment_id in ["", "0000000000000000"] # long payment IDs are now ignored
         assert e.type == 'in'
         assert e.unlock_time == 0
         assert e.subaddr_index.major == 0
@@ -521,7 +528,7 @@ class TransferTest():
         res = self.wallet[1].get_bulk_payments()
         assert len(res.payments) >= 3 # two txes to standard address were sent, plus one to integrated address
         res = self.wallet[1].get_bulk_payments(payment_ids = ['1234500000012345abcde00000abcdeff1234500000012345abcde00000abcde'])
-        assert len(res.payments) >= 2 # two txes were sent with that payment id
+        assert not 'payments' in res or len(res.payments) == 0 # long payment IDs are now ignored on receipt
         res = self.wallet[1].get_bulk_payments(payment_ids = ['ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'])
         assert 'payments' not in res or len(res.payments) == 0 # none with that payment id
         res = self.wallet[1].get_bulk_payments(payment_ids = ['1111111122222222' + '0'*48])
@@ -531,7 +538,7 @@ class TransferTest():
         res = self.wallet[2].get_bulk_payments()
         assert len(res.payments) >= 1 # one tx was sent
         res = self.wallet[2].get_bulk_payments(payment_ids = ['1'*64, '1234500000012345abcde00000abcdeff1234500000012345abcde00000abcde', '2'*64])
-        assert len(res.payments) >= 1 # one tx was sent
+        assert not 'payments' in res or len(res.payments) == 0 # long payment IDs are now ignored
 
         res = self.wallet[1].get_bulk_payments(["1111111122222222"])
         assert len(res.payments) >= 1 # we have one of these
