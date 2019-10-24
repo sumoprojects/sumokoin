@@ -135,6 +135,38 @@ set(blockchain_stats_private_headers)
 monero_private_headers(blockchain_stats
 	  ${blockchain_stats_private_headers})
 
+set(utilities_menu
+  utilities_menu.cpp
+  )
+set(utilities_menu_private_headers)
+
+set(utilities_menu_sources
+  utilities_menu.cpp
+  )
+
+set(utilities_menu_private_headers)
+
+monero_private_headers(utilities_menu
+	  ${utilities_menu_private_headers})
+
+monero_add_executable(utilities_menu
+  ${utilities_menu_sources}
+  ${utilities_menu_private_headers})
+
+target_link_libraries(utilities_menu
+  PRIVATE
+    epee
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${EXTRA_LIBRARIES})
+
+set_property(TARGET utilities_menu
+	PROPERTY
+	OUTPUT_NAME "sumo-utilities-menu")
+
+install(TARGETS utilities_menu DESTINATION bin)
 
 monero_add_executable(blockchain_import
   ${blockchain_import_sources}
