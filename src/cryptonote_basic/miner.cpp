@@ -60,7 +60,9 @@
   #include <devstat.h>
   #include <errno.h>
   #include <fcntl.h>
+#if defined(__amd64__) || defined(__i386__) || defined(__x86_64__)
   #include <machine/apm_bios.h>
+#endif
   #include <stdio.h>
   #include <sys/resource.h>
   #include <sys/sysctl.h>
@@ -1081,6 +1083,7 @@ namespace cryptonote
           return boost::logic::tribool(boost::logic::indeterminate);
         }
 
+#if defined(__amd64__) || defined(__i386__) || defined(__x86_64__)
         apm_info info;
         if( ioctl(fd, APMIO_GETINFO, &info) == -1 ) {
           close(fd);
@@ -1121,6 +1124,7 @@ namespace cryptonote
         LOG_ERROR("sysctlbyname(\"hw.acpi.acline\") output is unexpectedly "
           << n << " bytes instead of the expected " << sizeof(ac) << " bytes.");
         return boost::logic::tribool(boost::logic::indeterminate);
+#endif
       }
       return boost::logic::tribool(ac == 0);
     #endif
