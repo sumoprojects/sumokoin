@@ -342,7 +342,7 @@ namespace nodetool
     virtual void request_callback(const epee::net_utils::connection_context_base& context);
     virtual void for_each_connection(std::function<bool(typename t_payload_net_handler::connection_context&, peerid_type, uint32_t)> f);
     virtual bool for_connection(const boost::uuids::uuid&, std::function<bool(typename t_payload_net_handler::connection_context&, peerid_type, uint32_t)> f);
-    virtual bool add_host_fail(const epee::net_utils::network_address &address);
+    virtual bool add_host_fail(const epee::net_utils::network_address &address, unsigned int score = 1);
     //----------------- i_connection_filter  --------------------------------------------------------
     virtual bool is_remote_host_allowed(const epee::net_utils::network_address &address, time_t *t = NULL);
     //-----------------------------------------------------------------------------------------------
@@ -510,7 +510,7 @@ namespace nodetool
     extern const command_line::arg_descriptor<std::string, false, true, 2> arg_p2p_bind_port;
     extern const command_line::arg_descriptor<std::string, false, true, 2> arg_p2p_bind_port_ipv6;
     extern const command_line::arg_descriptor<bool>        arg_p2p_use_ipv6;
-    extern const command_line::arg_descriptor<bool>        arg_p2p_require_ipv4;
+    extern const command_line::arg_descriptor<bool>        arg_p2p_ignore_ipv4;
     extern const command_line::arg_descriptor<uint32_t>    arg_p2p_external_port;
     extern const command_line::arg_descriptor<bool>        arg_p2p_allow_local_ip;
     extern const command_line::arg_descriptor<std::vector<std::string> > arg_p2p_add_peer;

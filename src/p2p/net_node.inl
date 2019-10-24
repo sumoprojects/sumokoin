@@ -97,7 +97,7 @@ namespace nodetool
     command_line::add_arg(desc, arg_p2p_bind_port, false);
     command_line::add_arg(desc, arg_p2p_bind_port_ipv6, false);
     command_line::add_arg(desc, arg_p2p_use_ipv6);
-    command_line::add_arg(desc, arg_p2p_require_ipv4);
+    command_line::add_arg(desc, arg_p2p_ignore_ipv4);
     command_line::add_arg(desc, arg_p2p_external_port);
     command_line::add_arg(desc, arg_p2p_allow_local_ip);
     command_line::add_arg(desc, arg_p2p_add_peer);
@@ -315,13 +315,13 @@ namespace nodetool
   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
-  bool node_server<t_payload_net_handler>::add_host_fail(const epee::net_utils::network_address &address)
+  bool node_server<t_payload_net_handler>::add_host_fail(const epee::net_utils::network_address &address, unsigned int score)
   {
     if(!address.is_blockable())
       return false;
 
     CRITICAL_REGION_LOCAL(m_host_fails_score_lock);
-    uint64_t fails = ++m_host_fails_score[address.host_str()];
+    uint64_t fails = m_host_fails_score[address.host_str()] += score;
     MDEBUG("Host " << address.host_str() << " fail score=" << fails);
     if(fails > P2P_IP_FAILS_BEFORE_BLOCK)
     {
@@ -382,7 +382,7 @@ namespace nodetool
     }
     m_offline = command_line::get_arg(vm, cryptonote::arg_offline);
     m_use_ipv6 = command_line::get_arg(vm, arg_p2p_use_ipv6);
-    m_require_ipv4 = command_line::get_arg(vm, arg_p2p_require_ipv4);
+    m_require_ipv4 = !command_line::get_arg(vm, arg_p2p_ignore_ipv4);
     public_zone.m_notifier = cryptonote::levin::notify{
       public_zone.m_net_server.get_io_service(), public_zone.m_net_server.get_config_shared(), nullptr, true
     };
@@ -1878,7 +1878,11 @@ namespace nodetool
         const epee::net_utils::ipv4_network_address &ipv4 = na.as<const epee::net_utils::ipv4_network_address>();
         if (ipv4.ip() == 0)
           ignore = true;
+        else if (ipv4.port() == be.rpc_port)
+          ignore = true;
       }
+      if (be.pruning_seed && (be.pruning_seed < tools::make_pruning_seed(1, CRYPTONOTE_PRUNING_LOG_STRIPES) || be.pruning_seed > tools::make_pruning_seed(1ul << CRYPTONOTE_PRUNING_LOG_STRIPES, CRYPTONOTE_PRUNING_LOG_STRIPES)))
+        ignore = true;
       if (ignore)
       {
         MDEBUG("Ignoring " << be.adr.str());
