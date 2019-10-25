@@ -1253,9 +1253,18 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
   }
   partial_block_reward = false;
 
-  std::vector<uint64_t> last_blocks_weights;
-  get_last_n_blocks_weights(last_blocks_weights, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
-  if (!get_block_reward(epee::misc_utils::median(last_blocks_weights), cumulative_block_weight, already_generated_coins, base_reward, m_db->height()))
+  uint64_t median_weight;
+  if (version >= HF_VERSION_EFFECTIVE_SHORT_TERM_MEDIAN_IN_PENALTY)
+  {
+    median_weight = m_current_block_cumul_weight_median;
+  }
+  else
+  {
+    std::vector<uint64_t> last_blocks_weights;
+    get_last_n_blocks_weights(last_blocks_weights, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
+    median_weight = epee::misc_utils::median(last_blocks_weights);
+  }
+  if (!get_block_reward(median_weight, cumulative_block_weight, already_generated_coins, base_reward, m_db->height()))
   {
     MERROR_VER("block weight " << cumulative_block_weight << " is bigger than allowed for this blockchain");
     return false;
@@ -1266,9 +1275,6 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
     return false;
   }
 
-  // from hard fork 2, since a miner can claim less than the full block reward, we update the base_reward
-  // to show the amount of coins that were actually generated, the remainder will be pushed back for later
-  // emission. This modifies the emission curve very slightly.
   CHECK_AND_ASSERT_MES(money_in_use - fee <= base_reward, false, "base reward calculation bug");
   if (base_reward + fee != money_in_use)
     partial_block_reward = true;
