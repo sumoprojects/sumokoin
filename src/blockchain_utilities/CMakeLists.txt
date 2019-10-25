@@ -26,6 +26,9 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/blockchain_utilities)
+set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR}/bin/blockchain_utilities)
+
 set(blockchain_import_sources
   blockchain_import.cpp
   bootstrap_file.cpp
