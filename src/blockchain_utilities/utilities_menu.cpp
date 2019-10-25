@@ -33,31 +33,31 @@
 #include <sstream>
 
 using namespace std;  
-   
-std::string flagmsg = "(Type --help for list of options / press ENTER for none)";
+
+const std::string flagmsg = "(Type --help for list of options / press ENTER for none)";
 
   void show_menu()
   {     
     cout << endl << endl <<
-    "\033[1;36m -----------------------------------------------------  \033[0m" << std::endl <<
-    "\033[1;36m        SUMOKOIN BLOCKCHAIN UTILITIES LAUNCHER          \033[0m" << std::endl <<
-    "\033[1;36m -----------------------------------------------------  \033[0m" << std::endl 
-     << "\033[1;32m 1. Import blockchain from file \033[0m" << endl
-     << "\033[1;32m 2. Export blockchain to file \033[0m" << endl
-     << "\033[1;32m 3. Print blockchain statistics \033[0m" << endl
-     << "\033[1;32m 4. Print blockchain usage \033[0m" << endl
-     << "\033[1;32m 5. Check blockchain ancestry \033[0m" << endl
-     << "\033[1;32m 6. Check blockchain depth \033[0m" << endl
-     << "\033[1;32m 7. Mark spent outputs \033[0m" << endl
-     << "\033[1;32m 8. Prune blockchain \033[0m" << endl
-     << "\033[1;32m 9. Prune blockchain known spent data \033[0m" << endl
-     << "\033[1;33m Press Ctrl^C at anytime to EXIT \033[0m" << endl;
+    "-----------------------------------------------------" << std::endl <<
+    "       SUMOKOIN BLOCKCHAIN UTILITIES LAUNCHER        " << std::endl <<
+    "-----------------------------------------------------" << std::endl 
+     << "1. Import blockchain from file " << endl
+     << "2. Export blockchain to file " << endl
+     << "3. Print blockchain statistics " << endl
+     << "4. Print blockchain usage " << endl
+     << "5. Check blockchain ancestry " << endl
+     << "6. Check blockchain depth " << endl
+     << "7. Mark spent outputs " << endl
+     << "8. Prune blockchain " << endl
+     << "9. Prune blockchain known spent data " << endl
+     << "Press Ctrl^C at anytime to EXIT " << endl;
   }
   //---------------------------------------------------------------
   int import_chain()
   {
 #ifdef _WIN32
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flagsw[250];
    cin.ignore();
    std::cin.getline(flagsw, 250);
@@ -68,7 +68,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
    return std::system(resultw);
 #endif
 
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flags[250];
    cin.ignore();
    std::cin.getline(flags, 250);
@@ -82,7 +82,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
   int export_chain()
   {
 #ifdef _WIN32
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flagsw[250];
    cin.ignore();
    std::cin.getline(flagsw, 250);
@@ -93,7 +93,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
    return std::system(resultw);
 #endif
 
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flags[250];
    cin.ignore();
    std::cin.getline(flags, 250);
@@ -107,7 +107,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
   int stats()
   {
 #ifdef _WIN32
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flagsw[250];
    cin.ignore();
    std::cin.getline(flagsw, 250);
@@ -118,7 +118,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
    return std::system(resultw);
 #endif
 
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flags[250];
    cin.ignore();
    std::cin.getline(flags, 250);
@@ -132,7 +132,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
   int usage()
   {
 #ifdef _WIN32
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flagsw[250];
    cin.ignore();
    std::cin.getline(flagsw, 250);
@@ -143,7 +143,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
    return std::system(resultw);
 #endif
 
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flags[250];
    cin.ignore();
    std::cin.getline(flags, 250);
@@ -157,7 +157,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
   int ancestry()
   {
 #ifdef _WIN32
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flagsw[250];
    cin.ignore();
    std::cin.getline(flagsw, 250);
@@ -168,7 +168,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
    return std::system(resultw);
 #endif
 
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flags[250];
    cin.ignore();
    std::cin.getline(flags, 250);
@@ -182,7 +182,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
   int depth()
   {
 #ifdef _WIN32
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flagsw[250];
    cin.ignore();
    std::cin.getline(flagsw, 250);
@@ -193,7 +193,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
    return std::system(resultw);
 #endif
 
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flags[250];
    cin.ignore();
    std::cin.getline(flags, 250);
@@ -207,7 +207,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
   int mark()
   {
 #ifdef _WIN32
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flagsw[250];
    cin.ignore();
    std::cin.getline(flagsw, 250);
@@ -218,7 +218,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
    return std::system(resultw);
 #endif
 
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flags[250];
    cin.ignore();
    std::cin.getline(flags, 250);
@@ -232,7 +232,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
   int prune()
   {
 #ifdef _WIN32
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flagsw[250];
    cin.ignore();
    std::cin.getline(flagsw, 250);
@@ -243,7 +243,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
    return std::system(resultw);
 #endif
 
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flags[250];
    cin.ignore();
    std::cin.getline(flags, 250);
@@ -257,7 +257,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
   int prune_spent()
   {
 #ifdef _WIN32
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flagsw[250];
    cin.ignore();
    std::cin.getline(flagsw, 250);
@@ -268,7 +268,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
    return std::system(resultw);
 #endif
 
-   cout << "\033[1;33mInput flags: \033[0m" << endl << flagmsg << endl;
+   cout << "Input flags: " << endl << flagmsg << endl;
    char flags[250];
    cin.ignore();
    std::cin.getline(flags, 250);
@@ -280,7 +280,7 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
   }
   //---------------------------------------------------------------
   int main()
-  {
+  {    
    int choice;
     do
     {
@@ -288,14 +288,14 @@ std::string flagmsg = "(Type --help for list of options / press ENTER for none)"
      cin>>choice;
      switch(choice)
       {
-	 case 1: import_chain();
-	 break;
+       case 1: import_chain();
+       break;
        case 2: export_chain();
-	 break;
+       break;
        case 3: stats();
-	 break;
-	 case 4: usage();
-	 break;
+       break;
+       case 4: usage();
+       break;
        case 5: ancestry();
        break;
        case 6: depth();
