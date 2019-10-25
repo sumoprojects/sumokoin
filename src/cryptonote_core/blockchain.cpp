@@ -1253,9 +1253,18 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
   }
   partial_block_reward = false;
 
-  std::vector<uint64_t> last_blocks_weights;
-  get_last_n_blocks_weights(last_blocks_weights, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
-  if (!get_block_reward(epee::misc_utils::median(last_blocks_weights), cumulative_block_weight, already_generated_coins, base_reward, m_db->height()))
+  uint64_t median_weight;
+  if (version >= HF_VERSION_EFFECTIVE_SHORT_TERM_MEDIAN_IN_PENALTY)
+  {
+    median_weight = m_current_block_cumul_weight_median;
+  }
+  else
+  {
+    std::vector<uint64_t> last_blocks_weights;
+    get_last_n_blocks_weights(last_blocks_weights, CRYPTONOTE_REWARD_BLOCKS_WINDOW);
+    median_weight = epee::misc_utils::median(last_blocks_weights);
+  }
+  if (!get_block_reward(median_weight, cumulative_block_weight, already_generated_coins, base_reward, m_db->height()))
   {
     MERROR_VER("block weight " << cumulative_block_weight << " is bigger than allowed for this blockchain");
     return false;
@@ -1266,9 +1275,6 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
     return false;
   }
 
-  // from hard fork 2, since a miner can claim less than the full block reward, we update the base_reward
-  // to show the amount of coins that were actually generated, the remainder will be pushed back for later
-  // emission. This modifies the emission curve very slightly.
   CHECK_AND_ASSERT_MES(money_in_use - fee <= base_reward, false, "base reward calculation bug");
   if (base_reward + fee != money_in_use)
     partial_block_reward = true;
@@ -1761,7 +1767,8 @@ bool Blockchain::handle_alternative_block(const block& b, const crypto::hash& id
     // Check the block's hash against the difficulty target for its alt chain
     difficulty_type current_diff = get_next_difficulty_for_alternative_chain(alt_chain, bei);
     CHECK_AND_ASSERT_MES(current_diff, false, "!!!!!!! DIFFICULTY OVERHEAD !!!!!!!");
-    crypto::hash proof_of_work = null_hash;
+    crypto::hash proof_of_work;
+    memset(proof_of_work.data, 0xff, sizeof(proof_of_work.data));
     get_block_longhash(bei.bl, proof_of_work, bei.height);
     if(!check_hash(proof_of_work, current_diff))
     {
@@ -3351,8 +3358,8 @@ uint64_t Blockchain::get_dynamic_base_fee(uint64_t block_reward, size_t median_b
   if (version >= HF_VERSION_PER_BYTE_FEE)
   {
     lo = mul128(block_reward, DYNAMIC_FEE_REFERENCE_TRANSACTION_WEIGHT, &hi);
-    div128_32(hi, lo, min_block_weight, &hi, &lo);
-    div128_32(hi, lo, median_block_weight, &hi, &lo);
+    div128_64(hi, lo, min_block_weight, &hi, &lo, NULL, NULL);
+    div128_64(hi, lo, median_block_weight, &hi, &lo, NULL, NULL);
     assert(hi == 0);
     lo /= 5;
     return lo;
@@ -3367,12 +3374,7 @@ uint64_t Blockchain::get_dynamic_base_fee(uint64_t block_reward, size_t median_b
 
   uint64_t unscaled_fee_per_kb = (DYNAMIC_FEE_PER_KB_BASE_FEE * BLOCK_SIZE_GROWTH_FAVORED_ZONE / median_block_weight);
   lo = mul128(unscaled_fee_per_kb, block_reward, &hi);
-  static_assert(DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD % 1000000 == 0, "DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD must be divisible by 1000000");
-  static_assert(DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD / 1000000 <= std::numeric_limits<uint32_t>::max(), "DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD is too large");
-
-  // divide in two steps, since the divisor must be 32 bits, but DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD isn't
-  div128_32(hi, lo, DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD / 1000000, &hi, &lo);
-  div128_32(hi, lo, 1000000, &hi, &lo);
+  div128_64(hi, lo, DYNAMIC_FEE_PER_KB_BASE_BLOCK_REWARD, &hi, &lo, NULL, NULL);
   assert(hi == 0);
 
   // quantize fee up to 8 decimals
@@ -3758,7 +3760,8 @@ leave:
 
   TIME_MEASURE_START(longhash_calculating_time);
 
-  crypto::hash proof_of_work = null_hash;
+  crypto::hash proof_of_work;
+  memset(proof_of_work.data, 0xff, sizeof(proof_of_work.data));
 
   // Formerly the code below contained an if loop with the following condition
   // !m_checkpoints.is_in_checkpoint_zone(get_current_blockchain_height())

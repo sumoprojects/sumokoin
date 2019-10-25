@@ -261,7 +261,7 @@ namespace cryptonote
           if (!insert_key_images(tx, id, kept_by_block))
             return false;
           // Rounding tx fee/blob_size ratio so that txs with the same priority would be sorted by receive_time
-          uint32_t fee_per_size_ratio = (uint32_t)(fee / (double)tx_weight);
+          uint32_t fee_per_size_ratio = (uint32_t)(fee / (double)(tx_weight ? tx_weight : 1));
           m_txs_by_fee_and_receive_time.emplace(std::pair<uint32_t, std::time_t>(fee_per_size_ratio, receive_time), id);
           lock.commit();
         }
@@ -309,7 +309,7 @@ namespace cryptonote
         if (!insert_key_images(tx, id, kept_by_block))
           return false;
         // Rounding tx fee/blob_size ratio so that txs with the same priority would be sorted by receive_time
-        uint32_t fee_per_size_ratio = (uint32_t)(fee / (double)tx_weight);
+        uint32_t fee_per_size_ratio = (uint32_t)(fee / (double)(tx_weight ? tx_weight : 1));
         m_txs_by_fee_and_receive_time.emplace(std::pair<uint32_t, std::time_t>(fee_per_size_ratio, receive_time), id);
         lock.commit();
       }
@@ -1445,7 +1445,7 @@ namespace cryptonote
           return false;
         }
         // Rounding tx fee/blob_size ratio so that txs with the same priority would be sorted by receive_time
-        uint32_t fee_per_size_ratio = (uint32_t)(meta.fee / (double)meta.weight);
+        uint32_t fee_per_size_ratio = (uint32_t)(meta.fee / (double)(meta.weight ? meta.weight : 1));
         m_txs_by_fee_and_receive_time.emplace(std::pair<uint32_t, std::time_t>(fee_per_size_ratio, meta.receive_time), txid);
         m_txpool_weight += meta.weight;
         return true;
