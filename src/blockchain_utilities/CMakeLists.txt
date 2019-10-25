@@ -27,7 +27,6 @@
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/blockchain_utilities)
-set(CMAKE_BINARY_DIR ${CMAKE_BINARY_DIR}/bin/blockchain_utilities)
 
 set(blockchain_import_sources
   blockchain_import.cpp
@@ -195,6 +194,9 @@ set_property(TARGET blockchain_import
 	OUTPUT_NAME "sumo-blockchain-import")
 install(TARGETS blockchain_import DESTINATION bin)
 
+add_custom_command(TARGET blockchain_import POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-import ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-import)
+
 monero_add_executable(blockchain_export
   ${blockchain_export_sources}
   ${blockchain_export_private_headers})
@@ -215,6 +217,9 @@ set_property(TARGET blockchain_export
 	PROPERTY
 	OUTPUT_NAME "sumo-blockchain-export")
 install(TARGETS blockchain_export DESTINATION bin)
+
+add_custom_command(TARGET blockchain_export POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-export ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-export)
 
 monero_add_executable(blockchain_blackball
   ${blockchain_blackball_sources}
@@ -238,6 +243,8 @@ set_property(TARGET blockchain_blackball
 	OUTPUT_NAME "sumo-blockchain-mark-spent-outputs")
 install(TARGETS blockchain_blackball DESTINATION bin)
 
+add_custom_command(TARGET blockchain_blackball POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-mark-spent-outputs ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-mark-spent-outputs)
 
 monero_add_executable(blockchain_usage
   ${blockchain_usage_sources}
@@ -260,6 +267,9 @@ set_property(TARGET blockchain_usage
 	OUTPUT_NAME "sumo-blockchain-usage")
 install(TARGETS blockchain_usage DESTINATION bin)
 
+add_custom_command(TARGET blockchain_usage POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-usage ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-usage)
+
 monero_add_executable(blockchain_ancestry
   ${blockchain_ancestry_sources}
   ${blockchain_ancestry_private_headers})
@@ -280,6 +290,9 @@ set_property(TARGET blockchain_ancestry
 	PROPERTY
 	OUTPUT_NAME "sumo-blockchain-ancestry")
 install(TARGETS blockchain_ancestry DESTINATION bin)
+
+add_custom_command(TARGET blockchain_ancestry POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-ancestry ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-ancestry)
 
 monero_add_executable(blockchain_depth
   ${blockchain_depth_sources}
@@ -302,6 +315,9 @@ set_property(TARGET blockchain_depth
 	OUTPUT_NAME "sumo-blockchain-depth")
 install(TARGETS blockchain_depth DESTINATION bin)
 
+add_custom_command(TARGET blockchain_depth POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-depth ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-depth)
+
 monero_add_executable(blockchain_stats
   ${blockchain_stats_sources}
   ${blockchain_stats_private_headers})
@@ -322,6 +338,9 @@ set_property(TARGET blockchain_stats
 	PROPERTY
 	OUTPUT_NAME "sumo-blockchain-stats")
 install(TARGETS blockchain_stats DESTINATION bin)
+
+add_custom_command(TARGET blockchain_stats POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-stats ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-stats)
 
 monero_add_executable(blockchain_prune_known_spent_data
   ${blockchain_prune_known_spent_data_sources}
@@ -345,6 +364,9 @@ set_property(TARGET blockchain_prune_known_spent_data
 	OUTPUT_NAME "sumo-blockchain-prune-known-spent-data")
 install(TARGETS blockchain_prune_known_spent_data DESTINATION bin)
 
+add_custom_command(TARGET blockchain_prune_known_spent_data POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-prune-known-spent-data ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-prune-known-spent-data)
+
 monero_add_executable(blockchain_prune
   ${blockchain_prune_sources}
   ${blockchain_prune_private_headers})
@@ -353,6 +375,9 @@ set_property(TARGET blockchain_prune
 	PROPERTY
 	OUTPUT_NAME "sumo-blockchain-prune")
 install(TARGETS blockchain_prune DESTINATION bin)
+
+add_custom_command(TARGET blockchain_prune POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-prune ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-prune)
 
 target_link_libraries(blockchain_prune
   PRIVATE
