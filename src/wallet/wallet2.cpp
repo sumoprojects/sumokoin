@@ -13057,10 +13057,13 @@ uint64_t wallet2::get_segregation_fork_height() const
   {
     // All four SumoPulse domains have DNSSEC on and valid
     static const std::vector<std::string> dns_urls = {
+	//Disabling till we update the DNS records of these domains
+	/*
         "segheights.sumopulse.stream",
         "segheights.sumopulse.download",
         "segheights.sumopulse.win",
         "segheights.sumopulse.bid"
+	*/
     };
 
     const uint64_t current_height = get_blockchain_current_height();

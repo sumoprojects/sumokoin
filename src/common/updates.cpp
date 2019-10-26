@@ -46,10 +46,13 @@ namespace tools
 
     // All four MoneroPulse domains have DNSSEC on and valid
     static const std::vector<std::string> dns_urls = {
+        // Disabling them till we set up the TXT records of the below sumo pulse nodes
+        /*
         "updates.sumopulse.stream",
         "updates.sumopulse.download",
         "updates.sumopulse.win",
         "updates.sumopulse.bid"
+        */
     };
 
     if (!tools::dns_utils::load_txt_records_from_dns(records, dns_urls))
