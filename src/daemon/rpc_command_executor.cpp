@@ -92,14 +92,15 @@ namespace {
       << "height: " << boost::lexical_cast<std::string>(header.height) << std::endl
       << "depth: " << boost::lexical_cast<std::string>(header.depth) << std::endl
       << "hash: " << header.hash << std::endl
-      << "difficulty: " << header.wide_difficulty << std::endl
-      << "cumulative difficulty: " << header.wide_cumulative_difficulty << std::endl
+      << "difficulty: " << cryptonote::difficulty_type(header.wide_difficulty) << std::endl
+      << "cumulative difficulty: " << cryptonote::difficulty_type(header.wide_cumulative_difficulty) << std::endl
       << "POW hash: " << header.pow_hash << std::endl
       << "block size: " << header.block_size << std::endl
       << "block weight: " << header.block_weight << std::endl
       << "long term weight: " << header.long_term_weight << std::endl
       << "num txes: " << header.num_txes << std::endl
-      << "reward: " << cryptonote::print_money(header.reward);
+      << "reward: " << cryptonote::print_money(header.reward) << std::endl
+      << "miner tx hash: " << header.miner_tx_hash;
   }
 
   std::string get_human_time_ago(time_t t, time_t now)
@@ -786,7 +787,7 @@ bool t_rpc_command_executor::print_blockchain_info(uint64_t start_block_index, u
       << ", size: " << header.block_size << ", weight: " << header.block_weight << " (long term " << header.long_term_weight << "), transactions: " << header.num_txes << std::endl
       << "major version: " << (unsigned)header.major_version << ", minor version: " << (unsigned)header.minor_version << std::endl
       << "block id: " << header.hash << ", previous block id: " << header.prev_hash << std::endl
-      << "difficulty: " << header.wide_difficulty << ", nonce " << header.nonce << ", reward " << cryptonote::print_money(header.reward) << std::endl;
+      << "difficulty: " << cryptonote::difficulty_type(header.wide_difficulty) << ", nonce " << header.nonce << ", reward " << cryptonote::print_money(header.reward) << std::endl;
     first = false;
   }
 
@@ -977,10 +978,11 @@ bool t_rpc_command_executor::print_transaction(crypto::hash transaction_hash,
     if (1 == res.txs.size())
     {
       // only available for new style answers
+      bool pruned = res.txs.front().prunable_as_hex.empty() && res.txs.front().prunable_hash != epee::string_tools::pod_to_hex(crypto::null_hash);
       if (res.txs.front().in_pool)
         tools::success_msg_writer() << "Found in pool";
       else
-        tools::success_msg_writer() << "Found in blockchain at height " << res.txs.front().block_height << (res.txs.front().prunable_as_hex.empty() ? " (pruned)" : "");
+        tools::success_msg_writer() << "Found in blockchain at height " << res.txs.front().block_height << (pruned ? " (pruned)" : "");
     }
 
     const std::string &as_hex = (1 == res.txs.size()) ? res.txs.front().as_hex : res.txs_as_hex.front();
@@ -1918,7 +1920,7 @@ bool t_rpc_command_executor::alt_chain_info(const std::string &tip, size_t above
       const auto &chain = chains[idx];
       const uint64_t start_height = (chain.height - chain.length + 1);
       tools::msg_writer() << chain.length << " blocks long, from height " << start_height << " (" << (ires.height - start_height - 1)
-          << " deep), diff " << chain.wide_difficulty << ": " << chain.block_hash;
+          << " deep), diff " << cryptonote::difficulty_type(chain.wide_difficulty) << ": " << chain.block_hash;
     }
   }
   else
@@ -1931,7 +1933,7 @@ bool t_rpc_command_executor::alt_chain_info(const std::string &tip, size_t above
       tools::success_msg_writer() << "Found alternate chain with tip " << tip;
       uint64_t start_height = (chain.height - chain.length + 1);
       tools::msg_writer() << chain.length << " blocks long, from height " << start_height << " (" << (ires.height - start_height - 1)
-          << " deep), diff " << chain.wide_difficulty << ":";
+          << " deep), diff " << cryptonote::difficulty_type(chain.wide_difficulty) << ":";
       for (const std::string &block_id: chain.block_hashes)
         tools::msg_writer() << "  " << block_id;
       tools::msg_writer() << "Chain parent on main chain: " << chain.main_chain_parent_block;
@@ -2035,7 +2037,7 @@ bool t_rpc_command_executor::print_blockchain_dynamic_stats(uint64_t nblocks)
     }
   }
 
-  tools::msg_writer() << "Height: " << ires.height << ", diff " << ires.wide_difficulty << ", cum. diff " << ires.wide_cumulative_difficulty
+  tools::msg_writer() << "Height: " << ires.height << ", diff " << cryptonote::difficulty_type(ires.wide_difficulty) << ", cum. diff " << cryptonote::difficulty_type(ires.wide_cumulative_difficulty)
       << ", target " << ires.target << " sec" << ", dyn fee " << cryptonote::print_money(feres.fee) << "/" << (hfres.enabled ? "byte" : "kB");
 
   if (nblocks > 0)
