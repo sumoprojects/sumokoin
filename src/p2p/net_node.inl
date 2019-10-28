@@ -1068,7 +1068,8 @@ namespace nodetool
 
         pi = context.peer_id = rsp.node_data.peer_id;
         context.m_rpc_port = rsp.node_data.rpc_port;
-        m_network_zones.at(context.m_remote_address.get_zone()).m_peerlist.set_peer_just_seen(rsp.node_data.peer_id, context.m_remote_address, context.m_pruning_seed, context.m_rpc_port);
+        context.m_rpc_credits_per_hash = rsp.node_data.rpc_credits_per_hash;
+        m_network_zones.at(context.m_remote_address.get_zone()).m_peerlist.set_peer_just_seen(rsp.node_data.peer_id, context.m_remote_address, context.m_pruning_seed, context.m_rpc_port, context.m_rpc_credits_per_hash);
 
         // move
         for (auto const& zone : m_network_zones)
@@ -1134,7 +1135,7 @@ namespace nodetool
         add_host_fail(context.m_remote_address);
       }
       if(!context.m_is_income)
-        m_network_zones.at(context.m_remote_address.get_zone()).m_peerlist.set_peer_just_seen(context.peer_id, context.m_remote_address, context.m_pruning_seed, context.m_rpc_port);
+        m_network_zones.at(context.m_remote_address.get_zone()).m_peerlist.set_peer_just_seen(context.peer_id, context.m_remote_address, context.m_pruning_seed, context.m_rpc_port, context.m_rpc_credits_per_hash);
       if (!m_payload_handler.process_payload_sync_data(rsp.payload_data, context, false))
       {
         m_network_zones.at(context.m_remote_address.get_zone()).m_net_server.get_config_object().close(context.m_connection_id );
@@ -1303,6 +1304,7 @@ namespace nodetool
     pe_local.last_seen = static_cast<int64_t>(last_seen);
     pe_local.pruning_seed = con->m_pruning_seed;
     pe_local.rpc_port = con->m_rpc_port;
+    pe_local.rpc_credits_per_hash = con->m_rpc_credits_per_hash;
     zone.m_peerlist.append_with_peer_white(pe_local);
     //update last seen and push it to peerlist manager
 
@@ -1934,6 +1936,7 @@ namespace nodetool
     else
       node_data.my_port = 0;
     node_data.rpc_port = zone.m_can_pingback ? m_rpc_port : 0;
+    node_data.rpc_credits_per_hash = zone.m_can_pingback ? m_rpc_credits_per_hash : 0;
     node_data.network_id = m_network_id;
     return true;
   }
@@ -2388,6 +2391,7 @@ namespace nodetool
     context.peer_id = arg.node_data.peer_id;
     context.m_in_timedsync = false;
     context.m_rpc_port = arg.node_data.rpc_port;
+    context.m_rpc_credits_per_hash = arg.node_data.rpc_credits_per_hash;
 
     if(arg.node_data.my_port && zone.m_can_pingback)
     {
@@ -2415,6 +2419,7 @@ namespace nodetool
         pe.id = peer_id_l;
         pe.pruning_seed = context.m_pruning_seed;
         pe.rpc_port = context.m_rpc_port;
+        pe.rpc_credits_per_hash = context.m_rpc_credits_per_hash;
         this->m_network_zones.at(context.m_remote_address.get_zone()).m_peerlist.append_with_peer_white(pe);
         LOG_DEBUG_CC(context, "PING SUCCESS " << context.m_remote_address.host_str() << ":" << port_l);
       });
@@ -2736,7 +2741,7 @@ namespace nodetool
       }
       else
       {
-        zone.second.m_peerlist.set_peer_just_seen(pe.id, pe.adr, pe.pruning_seed, pe.rpc_port);
+        zone.second.m_peerlist.set_peer_just_seen(pe.id, pe.adr, pe.pruning_seed, pe.rpc_port, pe.rpc_credits_per_hash);
         LOG_PRINT_L2("PEER PROMOTED TO WHITE PEER LIST IP address: " << pe.adr.host_str() << " Peer ID: " << peerid_type(pe.id));
       }
     }
