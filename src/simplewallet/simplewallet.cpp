@@ -34,8 +34,7 @@
  *
  * \brief Source file that defines simple_wallet class.
  */
-#define __STDC_FORMAT_MACROS 1
-#include <inttypes.h>
+#include <cinttypes>
 #include <locale.h>
 #include <thread>
 #include <iostream>
