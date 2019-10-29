@@ -385,6 +385,11 @@ std::unique_ptr<tools::wallet2> make_basic(const boost::program_options::variabl
   {
     auto parsed = tools::login::parse(
       command_line::get_arg(vm, opts.daemon_login), false, [password_prompter](bool verify) {
+        if (!password_prompter)
+        {
+          MERROR("Password needed without prompt function");
+          return boost::optional<tools::password_container>();
+        }
         return password_prompter("Daemon client password", verify);
       }
     );
@@ -3480,6 +3485,7 @@ void wallet2::detach_blockchain(uint64_t height, std::map<std::pair<uint64_t, ui
     THROW_WALLET_EXCEPTION_IF(it_pk == m_pub_keys.end(), error::wallet_internal_error, "public key not found");
     m_pub_keys.erase(it_pk);
   }
+  transfers_detached = std::distance(it, m_transfers.end());
   m_transfers.erase(it, m_transfers.end());
 
   size_t blocks_detached = m_blockchain.size() - height;
