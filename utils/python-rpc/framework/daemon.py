@@ -263,7 +263,33 @@ class Daemon(object):
         }
         return self.rpc.send_json_rpc_request(set_bans)
 
-    def get_transactions(self, txs_hashes = [], decode_as_json = False, prune = False, split = False):
+    def banned(self, address = ''):
+        banned = {
+            'method': 'banned',
+            'params': {
+                'address': address
+            },
+            'jsonrpc': '2.0',
+            'id': '0'
+        }
+        return self.rpc.send_json_rpc_request(banned)
+
+    def set_bootstrap_daemon(self, address, username = '', password = ''):
+        set_bootstrap_daemon = {
+            'address': address,
+            'username': username,
+            'password': password,
+        }
+        return self.rpc.send_request('/set_bootstrap_daemon', set_bootstrap_daemon)
+
+    def get_public_nodes(self, gray = False, white = True):
+        get_public_nodes = {
+            'gray': gray,
+            'white': white,
+        }
+        return self.rpc.send_request('/get_public_nodes', get_public_nodes)
+
+    def def get_transactions(self, txs_hashes = [], decode_as_json = False, prune = False, split = False):
         get_transactions = {
             'txs_hashes': txs_hashes,
             'decode_as_json': decode_as_json,
