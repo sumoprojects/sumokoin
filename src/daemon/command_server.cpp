@@ -296,6 +296,11 @@ t_command_server::t_command_server(
     , "Remove blocks from end of blockchain"
     );
     m_command_lookup.set_handler(
+      "rpc_payments"
+    , std::bind(&t_command_parser_executor::rpc_payments, &m_parser, p::_1)
+    , "Print information about RPC payments."
+    );
+    m_command_lookup.set_handler(
       "version"
     , std::bind(&t_command_parser_executor::version, &m_parser, p::_1)
     , "Print version information."
@@ -316,6 +321,12 @@ t_command_server::t_command_server(
     , "set_bootstrap_daemon (auto | none | host[:port] [username] [password])"
     , "URL of a 'bootstrap' remote daemon that the connected wallets can use while this daemon is still not fully synced.\n"
       "Use 'auto' to enable automatic public nodes discovering and bootstrap daemon switching"
+    );
+    m_command_lookup.set_handler(
+      "flush_cache"
+    , std::bind(&t_command_parser_executor::flush_cache, &m_parser, p::_1)
+    , "flush_cache bad-txs"
+    , "Flush the specified cache(s)."
     );
 }
 
