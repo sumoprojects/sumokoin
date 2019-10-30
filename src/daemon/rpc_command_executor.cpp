@@ -660,16 +660,18 @@ bool t_rpc_command_executor::print_connections() {
     }
   }
 
-  tools::msg_writer() << std::setw(30) << std::left << "Remote Host" 
-      << std::setw(6) << "Type" 
-      << std::setw(4) << "SSL"
-      << std::setw(18) << "Peer id" 
-      << std::setw(6) << "Flags"      
-      << std::setw(30) << "Recv/Sent (inactive,sec)" 
-      << std::setw(18) << "State" 
-      << std::setw(9) << "Alive(s)" 
-      << std::setw(18) << "Down(kB/s)/(now)" 
-      << std::setw(18) << "Up(kB/s)/(now)"
+  tools::msg_writer() << std::setw(30) << std::left << "Remote Host"
+      << std::setw(8) << "Type"
+      << std::setw(6) << "SSL"
+      << std::setw(20) << "Peer id"
+      << std::setw(20) << "Support Flags"      
+      << std::setw(30) << "Recv/Sent (inactive,sec)"
+      << std::setw(25) << "State"
+      << std::setw(20) << "Livetime(sec)"
+      << std::setw(12) << "Down (kB/s)"
+      << std::setw(14) << "Down(now)"
+      << std::setw(10) << "Up (kB/s)" 
+      << std::setw(13) << "Up(now)"
       << std::endl;
 
   for (auto & info : res.connections)
@@ -680,17 +682,18 @@ bool t_rpc_command_executor::print_connections() {
     tools::msg_writer() 
      //<< std::setw(30) << std::left << in_out
      << std::setw(30) << std::left << address
-     << std::setw(6) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
-     << std::setw(4) << (info.ssl ? "yes" : "no")
+     << std::setw(8) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
+     << std::setw(6) << (info.ssl ? "yes" : "no")
      << std::setw(20) << info.peer_id
-     << std::setw(18) << epee::string_tools::pad_string(info.peer_id, 16, '0', true)
-     << std::setw(6) << info.support_flags
+     << std::setw(20) << info.support_flags
      << std::setw(30) << std::to_string(info.recv_count) + "("  + std::to_string(info.recv_idle_time) + ")/" + std::to_string(info.send_count) + "(" + std::to_string(info.send_idle_time) + ")"
-     << std::setw(18) << info.state
-     << std::setw(9) << info.live_time
-     << std::setw(18) << std::to_string(info.avg_download) + "/" + std::to_string(info.current_download)
-     << std::setw(18) << std::to_string(info.avg_upload) + "/" + std::to_string(info.current_upload)
-    
+     << std::setw(25) << info.state
+     << std::setw(20) << info.live_time
+     << std::setw(12) << info.avg_download
+     << std::setw(14) << info.current_download
+     << std::setw(10) << info.avg_upload
+     << std::setw(13) << info.current_upload
+     
      << std::left << (info.localhost ? "[LOCALHOST]" : "")
      << std::left << (info.local_ip ? "[LAN]" : "");
     //tools::msg_writer() << boost::format("%-25s peer_id: %-25s %s") % address % info.peer_id % in_out;
