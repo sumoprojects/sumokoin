@@ -224,7 +224,9 @@ namespace cryptonote
   core::core(i_cryptonote_protocol* pprotocol):
               m_mempool(m_blockchain_storage),
               m_blockchain_storage(m_mempool),
-              m_miner(this),
+              m_miner(this, [this](const cryptonote::block &b, uint64_t height, crypto::hash &hash) {
+                return cryptonote::get_block_longhash(b, hash, height);
+              }),
               m_starter_message_showed(false),
               m_target_blockchain_height(0),
               m_checkpoints_path(""),

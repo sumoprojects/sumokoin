@@ -641,7 +641,9 @@ namespace cryptonote
     bl.minor_version = 1;
     bl.timestamp = 0;
     bl.nonce = nonce;
-    miner::find_nonce_for_given_block(bl, 1, 0);
+    miner::find_nonce_for_given_block([](const cryptonote::block &b, uint64_t height, crypto::hash &hash){
+      return cryptonote::get_block_longhash(b, hash, height);
+    }, bl, 1, 0);
     bl.invalidate_hashes();
     return true;
   }
