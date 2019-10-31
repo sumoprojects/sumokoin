@@ -1594,18 +1594,6 @@ namespace cryptonote
       return false;
     }
 
-    // TODO: comment out when RandomX merged
-    //if (b.major_version >= RX_BLOCK_VERSION)
-    //{
-    //  uint64_t next_height;
-    //  crypto::rx_seedheights(height, &seed_height, &next_height);
-    //  seed_hash = m_core.get_block_id_by_height(seed_height);
-    //  if (next_height != seed_height)
-    //    next_seed_hash = m_core.get_block_id_by_height(next_height);
-    //  else
-    //    next_seed_hash = seed_hash;
-    //}
-
     if (extra_nonce.empty())
     {
       reserved_offset = 0;
@@ -1710,13 +1698,6 @@ namespace cryptonote
     crypto::hash seed_hash, next_seed_hash;
     if (!get_block_template(info.address, req.prev_block.empty() ? NULL : &prev_block, blob_reserve, reserved_offset, wdiff, res.height, res.expected_reward, b, res.seed_height, seed_hash, next_seed_hash, error_resp))
       return false;
-    // TODO: comment out when RandomX merged
-    //if (b.major_version >= RX_BLOCK_VERSION)
-    //{
-    //  res.seed_hash = string_tools::pod_to_hex(seed_hash);
-    //  if (seed_hash != next_seed_hash)
-    //    res.next_seed_hash = string_tools::pod_to_hex(next_seed_hash);
-    //}
 
     res.reserved_offset = reserved_offset;
     store_difficulty(wdiff, res.difficulty, res.wide_difficulty, res.difficulty_top64);
@@ -1834,7 +1815,9 @@ namespace cryptonote
         return false;
       }
       b.nonce = req.starting_nonce;
-      miner::find_nonce_for_given_block(b, template_res.difficulty, template_res.height);
+      miner::find_nonce_for_given_block([this](const cryptonote::block &b, uint64_t height, crypto::hash &hash) {
+        return cryptonote::get_block_longhash(b, hash, height);
+      }, b, template_res.difficulty, template_res.height);
 
       submit_req.front() = string_tools::buff_to_hex_nodelimer(block_to_blob(b));
       r = on_submitblock(submit_req, submit_res, error_resp, ctx);
@@ -2985,13 +2968,6 @@ namespace cryptonote
     }
     res.hashing_blob = epee::string_tools::buff_to_hex_nodelimer(hashing_blob);
     res.top_hash = epee::string_tools::pod_to_hex(top_hash);
-    // TODO: comment out when RandomX merged
-    //if (hashing_blob[0] >= RX_BLOCK_VERSION)
-    //{
-    //  res.seed_hash = string_tools::pod_to_hex(seed_hash);
-    //  if (seed_hash != next_seed_hash)
-    //    res.next_seed_hash = string_tools::pod_to_hex(next_seed_hash);
-    //}
 
     res.status = CORE_RPC_STATUS_OK;
     return true;
