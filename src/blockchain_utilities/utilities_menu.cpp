@@ -31,6 +31,7 @@
 #include <string>
 #include <unistd.h>
 #include <sstream>
+#include "common/scoped_message_writer.h"
 
 using namespace std;  
 
@@ -38,8 +39,8 @@ const std::string flagmsg = "(Type --help for list of options / press ENTER for 
 
   void show_menu()
   {     
-    cout << endl << endl <<
-    "-----------------------------------------------------" << std::endl <<
+    cout << endl << endl;
+    tools::msg_writer(epee::console_color_cyan) << "-----------------------------------------------------" << std::endl <<
     "       SUMOKOIN BLOCKCHAIN UTILITIES LAUNCHER        " << std::endl <<
     "-----------------------------------------------------" << std::endl 
      << "1. Import blockchain from file " << endl
@@ -50,8 +51,8 @@ const std::string flagmsg = "(Type --help for list of options / press ENTER for 
      << "6. Check blockchain depth " << endl
      << "7. Mark spent outputs " << endl
      << "8. Prune blockchain " << endl
-     << "9. Prune blockchain known spent data " << endl
-     << "Press Ctrl^C at anytime to EXIT " << endl;
+     << "9. Prune blockchain known spent data " << endl;
+     tools::msg_writer(epee::console_color_yellow) << "Press Ctrl^C at anytime to EXIT " << endl;
   }
   //---------------------------------------------------------------
   int import_chain()
