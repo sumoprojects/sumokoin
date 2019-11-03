@@ -160,8 +160,6 @@ target_link_libraries(utilities_menu
     ${Boost_THREAD_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
     ${EXTRA_LIBRARIES})
-    
-set(CMAKE_EXE_LINKER_FLAGS "${COMMON_CXX_FLAGS}")
 
 set_property(TARGET utilities_menu
 	PROPERTY
