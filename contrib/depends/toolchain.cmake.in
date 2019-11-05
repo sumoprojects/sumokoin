@@ -141,5 +141,9 @@ if(ARCHITECTURE STREQUAL "x86_64")
   SET(ARCH_ID "x86_64")
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  SET(THREADS_PTHREAD_ARG "0" CACHE STRING "Result from TRY_RUN" FORCE)
+endif()
+
 #Create a new global cmake flag that indicates building with depends
 set (DEPENDS true)
