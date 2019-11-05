@@ -2,7 +2,7 @@
 
 Copyright (c) 2017-2019, Sumokoin Project
 
-Copyright (c) 2014-2017, The Monero Project
+Portions Copyright (c) 2014-2019, The Monero Project
 
 Portions Copyright (c) 2012-2013, The Cryptonote developers
 
@@ -207,7 +207,7 @@ Tested on a Raspberry Pi Zero with a clean install of minimal Raspbian Stretch (
 ```
         git clone https://github.com/sumoprojects/sumokoin.git
 	cd sumokoin
-	git checkout tags/v0.5.1.1
+	git checkout tags/v0.6.0.0
 ```
 * Build:
 
