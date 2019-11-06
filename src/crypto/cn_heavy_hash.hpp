@@ -49,6 +49,9 @@
 #if defined(__x86_64__) || defined(__i386__) || defined(_M_X86) || defined(_M_X64)
 #ifdef __GNUC__
 #include <x86intrin.h>
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#endif
 #pragma GCC target ("aes")
 #if !defined(HAS_WIN_INTRIN_API)
 #include <cpuid.h>
