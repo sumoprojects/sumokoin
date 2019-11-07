@@ -39,7 +39,7 @@
 namespace cryptonote
 {
 
-bool tx_sanity_check(Blockchain &blockchain, const cryptonote::blobdata &tx_blob)
+bool tx_sanity_check(Blockchain &blockchain, const cryptonote::blobdata &tx_blob, const network_type nettype)
 {
   cryptonote::transaction tx;
 
@@ -88,7 +88,7 @@ bool tx_sanity_check(Blockchain &blockchain, const cryptonote::blobdata &tx_blob
 
   std::vector<uint64_t> offsets(rct_indices.begin(), rct_indices.end());
   uint64_t median = epee::misc_utils::median(offsets);
-  if (median < n_available * 4 / 10)
+  if (nettype == MAINNET && median < n_available * 4 / 10) // this sanity check valid for mainnet only
   {
     MERROR("median offset index is too low (median is " << median << " out of total " << n_available << "offsets). Transactions should contain a higher fraction of recent outputs.");
     return false;
