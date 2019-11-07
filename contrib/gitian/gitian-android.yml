@@ -1,5 +1,5 @@
 ---
-name: "monero-android-0.15"
+name: "sumokoin-android-0.6"
 enable_cache: true
 suites:
 - "bionic"
@@ -32,8 +32,8 @@ packages:
 - "python3-zmq"
 - "unzip"
 remotes:
-- "url": "https://github.com/monero-project/monero.git"
-  "dir": "monero"
+- "url": "https://github.com/sumoprojects/sumokoin.git"
+  "dir": "sumokoin"
 files: []
 script: |
 
@@ -76,7 +76,7 @@ script: |
     then
       ABI=$i"eabi"
     fi
-    NDKDIR="${BUILD_DIR}/monero/contrib/depends/$i/native/bin"
+    NDKDIR="${BUILD_DIR}/sumokoin/contrib/depends/$i/native/bin"
     for prog in ${FAKETIME_HOST_PROGS}; do
         WRAPPER=${WRAP_DIR}/${ABI}-${prog}
         echo '#!/usr/bin/env bash' > ${WRAPPER}
@@ -99,7 +99,7 @@ script: |
   export SOURCE_DATE_EPOCH=`date -d "$DUMMYTIME" +%s`
 
   git config --global core.abbrev 9
-  cd monero
+  cd sumokoin
   # Set the version string that gets added to the tar archive name
   version="`git describe`"
   if [[ $version == *"-"*"-"* ]]; then
@@ -126,9 +126,12 @@ script: |
     mkdir build && cd build
     cmake .. -DCMAKE_TOOLCHAIN_FILE=${BASEPREFIX}/${i}/share/toolchain.cmake -DCMAKE_BUILD_TYPE=Release
     make ${MAKEOPTS}
-    DISTNAME=monero-${i}-${version}
+    chmod 755 bin/*
+    cp ../LICENSE bin
+    chmod 644 bin/LICENSE
+    DISTNAME=sumokoin-${i}-${version}
     mv bin ${DISTNAME}
-    find ${DISTNAME}/ | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | bzip2 -9 > ${OUTDIR}/${DISTNAME}.tar.bz2
+    find ${DISTNAME}/ | sort | tar --no-recursion --owner=0 --group=0 -c -T - | bzip2 -9 > ${OUTDIR}/${DISTNAME}.tar.bz2
     cd ..
     rm -rf build
   done
