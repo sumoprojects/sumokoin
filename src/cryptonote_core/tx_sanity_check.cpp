@@ -80,7 +80,7 @@ bool tx_sanity_check(Blockchain &blockchain, const cryptonote::blobdata &tx_blob
   if (n_available < 10000)
     return true;
 
-  if (rct_indices.size() < n_indices * 8 / 10)
+  if (nettype == MAINNET && rct_indices.size() < n_indices * 6 / 10)
   {
     MERROR("amount of unique indices is too low (amount of rct indices is " << rct_indices.size() << ", out of total " << n_indices << "indices.");
     return false;
