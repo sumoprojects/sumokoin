@@ -68,7 +68,7 @@ namespace cryptonote {
   /* Cryptonote helper functions                                          */
   /************************************************************************/
   //-----------------------------------------------------------------------------------------------
-  size_t get_min_block_weight(uint8_t version)
+  size_t get_min_block_weight()
   {
     return CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE;
   }

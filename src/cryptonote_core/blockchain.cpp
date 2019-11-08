@@ -3359,7 +3359,7 @@ uint64_t Blockchain::get_fee_quantization_mask()
 //------------------------------------------------------------------
 uint64_t Blockchain::get_dynamic_base_fee(uint64_t block_reward, size_t median_block_weight, uint8_t version)
 {
-  const uint64_t min_block_weight = get_min_block_weight(version);
+  const uint64_t min_block_weight = get_min_block_weight();
   if (median_block_weight < min_block_weight)
     median_block_weight = min_block_weight;
   uint64_t hi, lo;

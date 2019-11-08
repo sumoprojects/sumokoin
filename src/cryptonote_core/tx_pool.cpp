@@ -81,13 +81,10 @@ namespace cryptonote
       return amount * ACCEPT_THRESHOLD;
     }
 
-    uint64_t get_transaction_weight_limit(uint8_t version)
+    uint64_t get_transaction_weight_limit()
     {
       // from v7, limit a tx to 50% of the minimum block weight
-      if (version >= 7)
-        return get_min_block_weight(version) / 2 - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
-      else
-        return get_min_block_weight(version) - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
+        return get_min_block_weight() / 2 - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
     }
 
     // This class is meant to create a batch when none currently exists.
@@ -160,7 +157,7 @@ namespace cryptonote
       return false;
     }
 
-    size_t tx_weight_limit = get_transaction_weight_limit(version);
+    size_t tx_weight_limit = get_transaction_weight_limit();
     if (!kept_by_block && tx_weight > tx_weight_limit)
     {
       LOG_PRINT_L1("transaction is too heavy: " << tx_weight << " bytes, maximum weight: " << tx_weight_limit);
@@ -1353,7 +1350,7 @@ namespace cryptonote
   {
     CRITICAL_REGION_LOCAL(m_transactions_lock);
     CRITICAL_REGION_LOCAL1(m_blockchain);
-    size_t tx_weight_limit = get_transaction_weight_limit(version);
+    size_t tx_weight_limit = get_transaction_weight_limit();
     std::unordered_set<crypto::hash> remove;
 
     m_txpool_weight = 0;
