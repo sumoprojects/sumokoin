@@ -8896,7 +8896,7 @@ bool simple_wallet::check_inactivity()
     if (!m_locked && !m_in_command)
     {
       const uint32_t seconds = m_wallet->inactivity_lock_timeout();
-      if (seconds > 0 && time(NULL) - m_last_activity_time > seconds)
+      if (seconds > 0 && (uint32_t)(time(NULL) - m_last_activity_time) > seconds)
       {
         m_locked = true;
         m_cmd_binder.cancel_input();
