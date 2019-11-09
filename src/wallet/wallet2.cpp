@@ -141,7 +141,7 @@ using namespace cryptonote;
 #define DEFAULT_MIN_OUTPUT_COUNT 5
 #define DEFAULT_MIN_OUTPUT_VALUE (2*COIN)
 
-#define DEFAULT_INACTIVITY_LOCK_TIMEOUT 90 // a minute and a half
+#define DEFAULT_INACTIVITY_LOCK_TIMEOUT 180 // three minutes
 #define IGNORE_LONG_PAYMENT_ID_FROM_BLOCK_VERSION 9
 
 static const std::string MULTISIG_SIGNATURE_MAGIC = "SigMultisigPkV1";
