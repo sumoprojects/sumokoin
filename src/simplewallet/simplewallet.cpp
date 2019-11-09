@@ -278,7 +278,7 @@ namespace
     PAUSE_READLINE();
     std::cout << prompt;
     if (yesno)
-      std::cout << "  (Y/Yes/N/No)";
+      std::cout << "(Y/Yes/N/No)";
     std::cout << ": " << std::flush;
 
     std::string buf;
@@ -3805,7 +3805,7 @@ bool simple_wallet::ask_wallet_create_if_needed()
           if (!m_restoring)
           {
             message_writer(console_color_yellow, true) << tr("No wallet found with that name. Confirm creation of new wallet named: ");
-            message_writer(console_color_green, true) << wallet_path << tr("\n");
+            message_writer(console_color_green, true) << wallet_path;
             confirm_creation = input_line("", true);
             if(std::cin.eof())
             {
