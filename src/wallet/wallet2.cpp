@@ -10362,7 +10362,13 @@ uint64_t wallet2::get_upper_transaction_weight_limit()
 {
   if (m_upper_transaction_weight_limit > 0)
     return m_upper_transaction_weight_limit;
-  return TRANSACTION_WEIGHT_LIMIT;
+  uint64_t full_reward_zone = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE;
+  if (use_fork_rules(7, 0)) // after BP
+    return full_reward_zone / 2 - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
+  else if (use_fork_rules(6, 0)) // after rebased
+    return full_reward_zone - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
+  else // sumokoin limit
+    return TRANSACTION_WEIGHT_LIMIT;
 }
 //----------------------------------------------------------------------------------------------------
 std::vector<size_t> wallet2::select_available_outputs(const std::function<bool(const transfer_details &td)> &f) const
