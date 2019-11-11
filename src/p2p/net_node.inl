@@ -616,8 +616,8 @@ namespace nodetool
     else
     {
       full_addrs.insert("157.230.187.169:19733"); // NY - explorer
-      full_addrs.insert("157.245.14.220:19733"); // NY - Morioka 1.1
-      full_addrs.insert("134.209.109.190:19733"); // SINGAPORE - Morioka 1.1
+      full_addrs.insert("157.245.14.220:19733"); // NY
+      full_addrs.insert("134.209.109.190:19733"); // SINGAPORE
       full_addrs.insert("192.99.32.219:19733");
       full_addrs.insert("144.217.164.165:19733");
       full_addrs.insert("133.18.53.223:19733");
