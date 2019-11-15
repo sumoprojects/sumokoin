@@ -927,7 +927,7 @@ namespace tools
     {
       uint64_t mixin = m_wallet->adjust_mixin(req.ring_size ? req.ring_size - 1 : 0);
       uint32_t priority = m_wallet->adjust_priority(req.priority);
-      std::vector<wallet2::pending_tx> ptx_vector = m_wallet->create_transactions_2(dsts, mixin, req.unlock_time, priority, extra, req.account_index, req.subaddr_indices);
+      std::vector<wallet2::pending_tx> ptx_vector = m_wallet->create_transactions_2(dsts, mixin, req.unlock_time, priority, extra, req.account_index, req.subaddr_indices, 0.97f);
 
       if (ptx_vector.empty())
       {
@@ -946,6 +946,12 @@ namespace tools
 
       return fill_response(ptx_vector, req.get_tx_key, res.tx_key, res.amount, res.fee, res.multisig_txset, res.unsigned_txset, req.do_not_relay,
           res.tx_hash, req.get_tx_hex, res.tx_blob, req.get_tx_metadata, res.tx_metadata, er);
+    }
+    catch (const tools::error::tx_too_big& e)
+    {
+      er.code = WALLET_RPC_ERROR_CODE_TX_TOO_LARGE;
+      er.message = "Transaction would be too large.  try /transfer_split.";
+      return false;
     }
     catch (const std::exception& e)
     {
@@ -975,12 +981,15 @@ namespace tools
       return false;
     }
 
+    bool retry = false;
+    float tx_weight_factor = 0.97f;
+    do{
     try
     {
       uint64_t mixin = m_wallet->adjust_mixin(req.ring_size ? req.ring_size - 1 : 0);
       uint32_t priority = m_wallet->adjust_priority(req.priority);
       LOG_PRINT_L2("on_transfer_split calling create_transactions_2");
-      std::vector<wallet2::pending_tx> ptx_vector = m_wallet->create_transactions_2(dsts, mixin, req.unlock_time, priority, extra, req.account_index, req.subaddr_indices);
+      std::vector<wallet2::pending_tx> ptx_vector = m_wallet->create_transactions_2(dsts, mixin, req.unlock_time, priority, extra, req.account_index, req.subaddr_indices, tx_weight_factor);
       LOG_PRINT_L2("on_transfer_split called create_transactions_2");
 
       if (ptx_vector.empty())
@@ -993,11 +1002,23 @@ namespace tools
       return fill_response(ptx_vector, req.get_tx_keys, res.tx_key_list, res.amount_list, res.fee_list, res.multisig_txset, res.unsigned_txset, req.do_not_relay,
           res.tx_hash_list, req.get_tx_hex, res.tx_blob_list, req.get_tx_metadata, res.tx_metadata_list, er);
     }
+    catch (const tools::error::tx_too_big& e)
+    {
+      tx_weight_factor -= 0.2f;
+      LOG_ERROR(boost::format(tr("Constructed tx too big: tx size/limit=%s/%s bytes; retrying to build tx with tx_weight_factor=%s")) % get_object_blobsize(e.tx()) % e.tx_weight_limit() % tx_weight_factor);
+      retry = tx_weight_factor > 0.2 ? true : false;
+      if (!retry){
+        handle_rpc_exception(std::current_exception(), er, WALLET_RPC_ERROR_CODE_GENERIC_TRANSFER_ERROR);
+        return false;
+      }
+    }
     catch (const std::exception& e)
     {
       handle_rpc_exception(std::current_exception(), er, WALLET_RPC_ERROR_CODE_GENERIC_TRANSFER_ERROR);
       return false;
     }
+    } while (retry);
+
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
@@ -1395,20 +1416,35 @@ namespace tools
       return  false;
     }
 
+    bool retry = false;
+    float tx_weight_factor = 0.97f;
+    do{
     try
     {
       uint64_t mixin = m_wallet->adjust_mixin(req.ring_size ? req.ring_size - 1 : 0);
       uint32_t priority = m_wallet->adjust_priority(req.priority);
-      std::vector<wallet2::pending_tx> ptx_vector = m_wallet->create_transactions_all(req.below_amount, dsts[0].addr, dsts[0].is_subaddress, req.outputs, mixin, req.unlock_time, priority, extra, req.account_index, req.subaddr_indices);
+      std::vector<wallet2::pending_tx> ptx_vector = m_wallet->create_transactions_all(req.below_amount, dsts[0].addr, dsts[0].is_subaddress, req.outputs, mixin, req.unlock_time, priority, extra, req.account_index, req.subaddr_indices, tx_weight_factor);
 
       return fill_response(ptx_vector, req.get_tx_keys, res.tx_key_list, res.amount_list, res.fee_list, res.multisig_txset, res.unsigned_txset, req.do_not_relay,
           res.tx_hash_list, req.get_tx_hex, res.tx_blob_list, req.get_tx_metadata, res.tx_metadata_list, er);
+    }
+    catch (const tools::error::tx_too_big& e)
+    {
+      tx_weight_factor -= 0.2f;
+      LOG_ERROR(boost::format(tr("Constructed tx too big: tx size/limit=%s/%s bytes; retrying to build tx with tx_weight_factor=%s")) % get_object_blobsize(e.tx()) % e.tx_weight_limit() % tx_weight_factor);
+      retry = tx_weight_factor > 0.2 ? true : false;
+      if (!retry){
+        handle_rpc_exception(std::current_exception(), er, WALLET_RPC_ERROR_CODE_GENERIC_TRANSFER_ERROR);
+        return false;
+      }
     }
     catch (const std::exception& e)
     {
       handle_rpc_exception(std::current_exception(), er, WALLET_RPC_ERROR_CODE_GENERIC_TRANSFER_ERROR);
       return false;
     }
+    } while (retry);
+
     return true;
   }
 //------------------------------------------------------------------------------------------------------------------------------

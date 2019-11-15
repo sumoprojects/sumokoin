@@ -6469,6 +6469,9 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
 
   SCOPED_WALLET_UNLOCK_ON_BAD_PASSWORD(return false;);
 
+  bool retry = false;
+  float tx_weight_factor = 0.97f;
+  do{
   try
   {
     // figure out what tx will be necessary
@@ -6485,14 +6488,14 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
           return false;
         }
         unlock_block = bc_height + locked_blocks;
-        ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, unlock_block /* unlock_time */, priority, extra, m_current_subaddress_account, subaddr_indices);
-      break;
+        ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, unlock_block /* unlock_time */, priority, extra, m_current_subaddress_account, subaddr_indices, tx_weight_factor);
+        break;
       default:
         LOG_ERROR("Unknown transfer method, using default");
         /* FALLTHRU */
       case Transfer:
-        ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, 0 /* unlock_time */, priority, extra, m_current_subaddress_account, subaddr_indices);
-      break;
+        ptx_vector = m_wallet->create_transactions_2(dsts, fake_outs_count, 0 /* unlock_time */, priority, extra, m_current_subaddress_account, subaddr_indices, tx_weight_factor);
+        break;
     }
 
     if (ptx_vector.empty())
@@ -6517,7 +6520,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
       }
       try
       {
-        std::vector<std::pair<uint64_t, uint64_t>> nblocks = m_wallet->estimate_backlog({std::make_pair(worst_fee_per_byte, worst_fee_per_byte)});
+        std::vector<std::pair<uint64_t, uint64_t>> nblocks = m_wallet->estimate_backlog({ std::make_pair(worst_fee_per_byte, worst_fee_per_byte)});
         if (nblocks.size() != 1)
         {
           prompt << "Internal error checking for backlog. " << tr("Is this okay anyway?");
@@ -6708,6 +6711,17 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
       commit_or_save(ptx_vector, m_do_not_relay);
     }
   }
+  catch (const tools::error::tx_too_big& e)
+  {
+    tx_weight_factor -= 0.2f;
+    message_writer(console_color_magenta) << boost::format(tr("...constructed tx too big: tx size/limit=%s/%s bytes; retrying to build tx with tx_weight_factor=%s...")) % get_object_blobsize(e.tx()) % e.tx_weight_limit() % tx_weight_factor;
+
+    retry = tx_weight_factor > 0.2 ? true : false;
+    if (!retry){
+      fail_msg_writer() << sw::tr("failed to find a suitable way to split transactions");
+      return false;
+    }
+  }
   catch (const std::exception &e)
   {
     handle_transfer_exception(std::current_exception(), m_wallet->is_trusted_daemon());
@@ -6719,6 +6733,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
     fail_msg_writer() << tr("unknown error");
     return false;
   }
+  }while (retry);
 
   return true;
 }
@@ -7033,10 +7048,13 @@ bool simple_wallet::sweep_main(uint64_t below, bool locked, const std::vector<st
 
   SCOPED_WALLET_UNLOCK();
 
+  bool retry = false;
+  float tx_weight_factor = 0.97f;
+  do{
   try
   {
     // figure out what tx will be necessary
-    auto ptx_vector = m_wallet->create_transactions_all(below, info.address, info.is_subaddress, outputs, fake_outs_count, unlock_block /* unlock_time */, priority, extra, m_current_subaddress_account, subaddr_indices);
+    auto ptx_vector = m_wallet->create_transactions_all(below, info.address, info.is_subaddress, outputs, fake_outs_count, unlock_block /* unlock_time */, priority, extra, m_current_subaddress_account, subaddr_indices, tx_weight_factor);
 
     if (ptx_vector.empty())
     {
@@ -7149,6 +7167,17 @@ bool simple_wallet::sweep_main(uint64_t below, bool locked, const std::vector<st
       commit_or_save(ptx_vector, m_do_not_relay);
     }
   }
+  catch (const tools::error::tx_too_big& e)
+  {
+    tx_weight_factor -= 0.2f;
+    message_writer(console_color_magenta) << boost::format(tr("...constructed tx too big: tx size/limit=%s/%s bytes; retrying to build tx with tx_weight_factor=%s...")) % get_object_blobsize(e.tx()) % e.tx_weight_limit() % tx_weight_factor;
+
+    retry = tx_weight_factor > 0.2 ? true : false;
+    if (!retry){
+      fail_msg_writer() << sw::tr("failed to find a suitable way to split transactions");
+      return false;
+    }
+  }
   catch (const std::exception& e)
   {
     handle_transfer_exception(std::current_exception(), m_wallet->is_trusted_daemon());
@@ -7158,6 +7187,7 @@ bool simple_wallet::sweep_main(uint64_t below, bool locked, const std::vector<st
     LOG_ERROR("unknown error");
     fail_msg_writer() << tr("unknown error");
   }
+  }while (retry);
 
   return true;
 }
