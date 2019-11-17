@@ -499,7 +499,7 @@ bool t_rpc_command_executor::show_status() {
   std::string bootstrap_msg;
   if (ires.was_bootstrap_ever_used)
   {
-    bootstrap_msg = ", bootstrapping from " + ires.bootstrap_daemon_address;
+    bootstrap_msg = "bootstrapping from " + ires.bootstrap_daemon_address;
     if (ires.untrusted)
     {
       bootstrap_msg += (boost::format(", local height: %llu (%.1f%%)") % ires.height_without_bootstrap % get_sync_percentage(ires.height_without_bootstrap, net_height)).str();
