@@ -418,6 +418,8 @@ You can also cross-compile static binaries on Linux for Windows and macOS with t
   * Requires: `g++-aarch64-linux-gnu`
 * ```make depends target=riscv64-linux-gnu``` for RISC V 64 bit binaries.
   * Requires: `g++-riscv64-linux-gnu`
+* ```make depends target=x86_64-unknown-freebsd``` for FreeBSD 64-bit binaries.
+  * Requires: `clang-8`
 
 The required packages are the names for each toolchain on apt. Depending on your distro, they may have different names.
 
