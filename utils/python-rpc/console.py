@@ -53,7 +53,7 @@ for n in range(1, len(sys.argv)):
     raise Exception('Failed to call version RPC: ' + str(e))
 
   if 'version' not in res:
-    raise Exception('Server is not a Monero process')
+    raise Exception('Server is not a Sumokoin process')
 
   if 'status' in res:
     daemons.append(framework.daemon.Daemon(port=port))
