@@ -176,6 +176,7 @@ add_custom_command(TARGET utilities_menu POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-utilities-menu.exe ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-utilities-menu.exe)
 endif()
 
+set(CMAKE_EXE_LINKER_FLAGS "${LD_BACKCOMPAT_FLAGS}")
 
 monero_add_executable(blockchain_import
   ${blockchain_import_sources}
