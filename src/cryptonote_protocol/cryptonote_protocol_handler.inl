@@ -1186,7 +1186,7 @@ namespace cryptonote
           m_add_timer.pause();
           m_core.resume_mine();
           if (!starting)
-            m_last_add_end_time = tools::get_tick_count();
+            m_last_add_end_time = epee::misc_utils::get_ns_count();
         });
 
         while (1)
@@ -1283,8 +1283,7 @@ namespace cryptonote
             starting = false;
             if (m_last_add_end_time)
             {
-              const uint64_t tnow = tools::get_tick_count();
-              const uint64_t ns = tools::ticks_to_ns(tnow - m_last_add_end_time);
+              const uint64_t ns = epee::misc_utils::get_ns_count() - m_last_add_end_time;
               MINFO("Restarting adding block after idle for " << ns/1e9 << " seconds");
             }
           }
@@ -1916,11 +1915,9 @@ skip:
             // if this has gone on for too long, drop incoming connection to guard against some wedge state
             if (!context.m_is_income)
             {
-              const uint64_t now = tools::get_tick_count();
-              const uint64_t dt = now - m_last_add_end_time;
-              if (m_last_add_end_time && tools::ticks_to_ns(dt) >= DROP_ON_SYNC_WEDGE_THRESHOLD)
+              const uint64_t ns = epee::misc_utils::get_ns_count() - m_last_add_end_time;
+              if (ns >= DROP_ON_SYNC_WEDGE_THRESHOLD)
               {
-                MDEBUG(context << "ns " << tools::ticks_to_ns(dt) << " from " << m_last_add_end_time << " and " << now);
                 MDEBUG(context << "Block addition seems to have wedged, dropping connection");
                 return false;
               }
