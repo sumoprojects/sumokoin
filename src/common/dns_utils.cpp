@@ -44,18 +44,37 @@ using namespace epee;
 
 static const char *DEFAULT_DNS_PUBLIC_ADDR[] =
 {
-// OpenNIC DNS Servers for more privacy https://www.opennic.org
-// As recently added as possible and with no logs kept declaration, added many cause they are sponsored
-  "89.40.116.230",       // Germany
-  "151.80.222.79",       // France (+DNScrypt)
-  "185.240.251.139",     // Portugal
-  "176.126.70.119",      // Sweden
-  "128.31.0.72",         // US
-  "51.89.22.36",         // Germany (+DNScrypt)
-  "91.217.137.37",       // Russia
-  "207.148.83.241",      // Australia
-  "66.187.76.168",       // US
-  "80.67.169.12"         // FDN (France - This is not OpenNIC but its still an independent anticensorship group https://www.fdn.fr/)
+// OpenNIC DNS Servers for more privacy https://www.opennic.org + https://dns.watch/index
+// As recently added as possible and with no logs kept declaration + DNScrypt, added many cause they are sponsored
+  "89.40.116.230",       // Germany opennic
+  "104.238.186.189",     // UK opennic	
+  "192.71.245.208",      // Italy opennic
+  "5.132.191.104",       // Austria opennic
+  "162.248.241.94",      // US opennic
+  "151.80.222.79",       // France (+DNScrypt) opennic
+  "185.240.251.139",     // Portugal opennic
+  "176.126.70.119",      // Sweden opennic
+  "128.31.0.72",         // US opennic
+  "51.89.22.36",         // Germany opennic
+  "91.217.137.37",       // Russia opennic
+  "188.213.49.35",       // Romania opennic
+  "207.148.83.241",      // Australia opennic
+  "66.187.76.168",       // US opennic
+  "80.67.169.12",        // FDN (France - This is not OpenNIC but its still an independent anticensorship group https://www.fdn.fr/)
+  "142.4.204.111",       // Canada opennic
+  "5.189.170.196",       // Germany opennic
+  "146.185.176.36",      // Netherlands opennic
+  "51.15.98.97",         // Netherlands opennic	
+  "142.4.205.47",         // Canada opennic
+  "2a00:f826:8:2::195",   // Germany opennic
+  "2a03:a140:10:10e6::1", // Germany opennic
+  "2607:5300:203:439c::102", // Canada opennic
+  "2a02:248:2:41c0:5054:ff:fe80:88", // Germany opennic
+  "84.200.69.80",         // Germany dns.watch
+  "84.200.70.40",         // Germany dns.watch
+  "2001:1608:10:25::1c04:b12f", // Germany dns.watch
+  "2001:1608:10:25::9249:d69b"  // Germany dns.watch
+
 };
 
 static boost::mutex instance_lock;
