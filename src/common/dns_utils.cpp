@@ -65,16 +65,15 @@ static const char *DEFAULT_DNS_PUBLIC_ADDR[] =
   "5.189.170.196",       // Germany opennic
   "146.185.176.36",      // Netherlands opennic
   "51.15.98.97",         // Netherlands opennic	
-  "142.4.205.47",         // Canada opennic
-  "2a00:f826:8:2::195",   // Germany opennic
+  "142.4.205.47",        // Canada opennic
+  "2a00:f826:8:2::195",  // Germany opennic
   "2a03:a140:10:10e6::1", // Germany opennic
   "2607:5300:203:439c::102", // Canada opennic
   "2a02:248:2:41c0:5054:ff:fe80:88", // Germany opennic
-  "84.200.69.80",         // Germany dns.watch
-  "84.200.70.40",         // Germany dns.watch
-  "2001:1608:10:25::1c04:b12f", // Germany dns.watch
-  "2001:1608:10:25::9249:d69b"  // Germany dns.watch
-
+  "66.70.228.164",       // Canada opennic
+  "50.116.17.96",        // US opennic
+  "185.84.81.194",       // Germany opennic
+  "172.104.136.243"      // Germany opennic
 };
 
 static boost::mutex instance_lock;
@@ -269,7 +268,7 @@ static void add_anchors(ub_ctx *ctx)
 
 DNSResolver::DNSResolver() : m_data(new DNSResolverData())
 {
-  int use_dns_public = 0;
+  int use_dns_public = 1; // force to use opennic dns servers
   std::vector<std::string> dns_public_addr;
   const char *DNS_PUBLIC = getenv("DNS_PUBLIC");
   if (DNS_PUBLIC)
