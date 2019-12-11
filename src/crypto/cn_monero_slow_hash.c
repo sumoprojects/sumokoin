@@ -74,9 +74,9 @@ static inline int use_v4_jit(void)
   if (use_v4_jit_flag != -1)
     return use_v4_jit_flag;
 
-  const char *env = getenv("MONERO_USE_CNV4_JIT");
+  const char *env = getenv("SUMOKOIN_USE_CNV4_JIT");
   if (!env) {
-    use_v4_jit_flag = 0;
+    use_v4_jit_flag = 1;
   }
   else if (!strcmp(env, "0") || !strcmp(env, "no")) {
     use_v4_jit_flag = 0;
@@ -274,12 +274,11 @@ static inline int use_v4_jit(void)
 #define VARIANT2_2() \
   do if (variant == 2 || variant == 3) \
   { \
-    *U64(hp_state + (j ^ 0x10)) ^= SWAP64LE(hi); \
-    *(U64(hp_state + (j ^ 0x10)) + 1) ^= SWAP64LE(lo); \
-    hi ^= SWAP64LE(*U64(hp_state + (j ^ 0x20))); \
-    lo ^= SWAP64LE(*(U64(hp_state + (j ^ 0x20)) + 1)); \
+*U64(local_hp_state + (j ^ 0x10)) ^= SWAP64LE(hi); \
+    *(U64(local_hp_state + (j ^ 0x10)) + 1) ^= SWAP64LE(lo); \
+    hi ^= SWAP64LE(*U64(local_hp_state + (j ^ 0x20))); \
+    lo ^= SWAP64LE(*(U64(local_hp_state + (j ^ 0x20)) + 1)); \
   } while (0)
-
 #define V4_REG_LOAD(dst, src) \
   do { \
     memcpy((dst), (src), sizeof(v4_reg)); \
@@ -405,7 +404,7 @@ static inline int use_v4_jit(void)
 
 #define pre_aes() \
   j = state_index(a); \
-  _c = _mm_load_si128(R128(&hp_state[j])); \
+  _c = _mm_load_si128(R128(&local_hp_state[j])); \
   _a = _mm_load_si128(R128(a)); \
 
 /*
@@ -418,20 +417,20 @@ static inline int use_v4_jit(void)
  * This code is based upon an optimized implementation by dga.
  */
 #define post_aes() \
-  VARIANT2_SHUFFLE_ADD_SSE2(hp_state, j); \
+  VARIANT2_SHUFFLE_ADD_SSE2(local_hp_state, j); \
   _mm_store_si128(R128(c), _c); \
-  _mm_store_si128(R128(&hp_state[j]), _mm_xor_si128(_b, _c)); \
-  VARIANT1_1(&hp_state[j]); \
+  _mm_store_si128(R128(&local_hp_state[j]), _mm_xor_si128(_b, _c)); \
+  VARIANT1_1(&local_hp_state[j]); \
   j = state_index(c); \
-  p = U64(&hp_state[j]); \
+  p = U64(&local_hp_state[j]); \
   b[0] = p[0]; b[1] = p[1]; \
   VARIANT2_INTEGER_MATH_SSE2(b, c); \
   VARIANT4_RANDOM_MATH(a, b, r, &_b, &_b1); \
   __mul(); \
   VARIANT2_2(); \
-  VARIANT2_SHUFFLE_ADD_SSE2(hp_state, j); \
+  VARIANT2_SHUFFLE_ADD_SSE2(local_hp_state, j); \
   a[0] += hi; a[1] += lo; \
-  p = U64(&hp_state[j]); \
+  p = U64(&local_hp_state[j]); \
   p[0] = a[0];  p[1] = a[1]; \
   a[0] ^= b[0]; a[1] ^= b[1]; \
   VARIANT1_2(p + 1); \
@@ -506,9 +505,9 @@ STATIC INLINE int force_software_aes(void)
   if (use != -1)
     return use;
 
-  const char *env = getenv("MONERO_USE_SOFTWARE_AES");
+  const char *env = getenv("SUMOKOIN_USE_SOFTWARE_AES");
   if (!env) {
-    use = 0;
+    use = 0;  
   }
   else if (!strcmp(env, "0") || !strcmp(env, "no")) {
     use = 0;
@@ -756,10 +755,10 @@ void slow_hash_allocate_state(void)
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || \
   defined(__DragonFly__) || defined(__NetBSD__)
     hp_state = mmap(0, MEMORY, PROT_READ | PROT_WRITE,
-                    MAP_PRIVATE | MAP_ANON, 0, 0);
+                    MAP_PRIVATE | MAP_ANON, -1, 0);
 #else
     hp_state = mmap(0, MEMORY, PROT_READ | PROT_WRITE,
-                    MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, 0, 0);
+                    MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
 #endif
     if(hp_state == MAP_FAILED)
         hp_state = NULL;
@@ -778,11 +777,17 @@ void slow_hash_allocate_state(void)
 #else
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__) || \
   defined(__DragonFly__) || defined(__NetBSD__)
-    hp_jitfunc_memory = mmap(0, 4096 + 4095, PROT_READ | PROT_WRITE | PROT_EXEC,
-                    MAP_PRIVATE | MAP_ANON, 0, 0);
+#ifdef __NetBSD__
+
+#define RESERVED_FLAGS PROT_MPROTECT(PROT_EXEC)
 #else
-    hp_jitfunc_memory = mmap(0, 4096 + 4095, PROT_READ | PROT_WRITE | PROT_EXEC,
-                    MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+#define RESERVED_FLAGS 0
+#endif
+    hp_jitfunc_memory = mmap(0, 4096 + 4096, PROT_READ | PROT_WRITE | RESERVED_FLAGS,
+                    MAP_PRIVATE | MAP_ANON, -1, 0);
+#else
+    hp_jitfunc_memory = mmap(0, 4096 + 4096, PROT_READ | PROT_WRITE | PROT_EXEC,
+                    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 #endif
     if(hp_jitfunc_memory == MAP_FAILED)
         hp_jitfunc_memory = NULL;
@@ -794,9 +799,6 @@ void slow_hash_allocate_state(void)
         hp_jitfunc_memory = malloc(4096 + 4095);
     }
     hp_jitfunc = (v4_random_math_JIT_func)((size_t)(hp_jitfunc_memory + 4095) & ~4095);
-#if !(defined(_MSC_VER) || defined(__MINGW32__))
-    mprotect(hp_jitfunc, 4096, PROT_READ | PROT_WRITE | PROT_EXEC);
-#endif
 }
 
 /**
@@ -893,6 +895,9 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     if(hp_state == NULL)
         slow_hash_allocate_state();
 
+    // locals to avoid constant TLS dereferencing
+    uint8_t *local_hp_state = hp_state;
+
     /* CryptoNight Step 1:  Use Keccak1600 to initialize the 'state' (and 'text') buffers from the data. */
     if (prehashed) {
         memcpy(&state.hs, data, length);
@@ -915,7 +920,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
         for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
         {
             aes_pseudo_round(text, text, expandedKey, INIT_SIZE_BLK);
-            memcpy(&hp_state[i * INIT_SIZE_BYTE], text, INIT_SIZE_BYTE);
+            memcpy(&local_hp_state[i * INIT_SIZE_BYTE], text, INIT_SIZE_BYTE);
         }
     }
     else
@@ -927,7 +932,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
             for(j = 0; j < INIT_SIZE_BLK; j++)
                 aesb_pseudo_round(&text[AES_BLOCK_SIZE * j], &text[AES_BLOCK_SIZE * j], aes_ctx->key->exp_data);
 
-            memcpy(&hp_state[i * INIT_SIZE_BYTE], text, INIT_SIZE_BYTE);
+            memcpy(&local_hp_state[i * INIT_SIZE_BYTE], text, INIT_SIZE_BYTE);
         }
     }
 
@@ -975,7 +980,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
         for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
         {
             // add the xor to the pseudo round
-            aes_pseudo_round_xor(text, text, expandedKey, &hp_state[i * INIT_SIZE_BYTE], INIT_SIZE_BLK);
+            aes_pseudo_round_xor(text, text, expandedKey, &local_hp_state[i * INIT_SIZE_BYTE], INIT_SIZE_BLK);
         }
     }
     else
@@ -985,7 +990,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
         {
             for(j = 0; j < INIT_SIZE_BLK; j++)
             {
-                xor_blocks(&text[j * AES_BLOCK_SIZE], &hp_state[i * INIT_SIZE_BYTE + j * AES_BLOCK_SIZE]);
+                xor_blocks(&text[j * AES_BLOCK_SIZE], &local_hp_state[i * INIT_SIZE_BYTE + j * AES_BLOCK_SIZE]);
                 aesb_pseudo_round(&text[AES_BLOCK_SIZE * j], &text[AES_BLOCK_SIZE * j], aes_ctx->key->exp_data);
             }
         }
@@ -1065,24 +1070,24 @@ union cn_slow_hash_state
 
 #define pre_aes() \
   j = state_index(a); \
-  _c = vld1q_u8(&hp_state[j]); \
+  _c = vld1q_u8(&local_hp_state[j]); \
   _a = vld1q_u8((const uint8_t *)a); \
 
 #define post_aes() \
-  VARIANT2_SHUFFLE_ADD_NEON(hp_state, j); \
+  VARIANT2_SHUFFLE_ADD_NEON(local_hp_state, j); \
   vst1q_u8((uint8_t *)c, _c); \
-  vst1q_u8(&hp_state[j], veorq_u8(_b, _c)); \
-  VARIANT1_1(&hp_state[j]); \
+  vst1q_u8(&local_hp_state[j], veorq_u8(_b, _c)); \
+  VARIANT1_1(&local_hp_state[j]); \
   j = state_index(c); \
-  p = U64(&hp_state[j]); \
+  p = U64(&local_hp_state[j]); \
   b[0] = p[0]; b[1] = p[1]; \
   VARIANT2_PORTABLE_INTEGER_MATH(b, c); \
   VARIANT4_RANDOM_MATH(a, b, r, &_b, &_b1); \
   __mul(); \
   VARIANT2_2(); \
-  VARIANT2_SHUFFLE_ADD_NEON(hp_state, j); \
+  VARIANT2_SHUFFLE_ADD_NEON(local_hp_state, j); \
   a[0] += hi; a[1] += lo; \
-  p = U64(&hp_state[j]); \
+  p = U64(&local_hp_state[j]); \
   p[0] = a[0];  p[1] = a[1]; \
   a[0] ^= b[0]; a[1] ^= b[1]; \
   VARIANT1_2(p + 1); \
@@ -1245,9 +1250,9 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     RDATA_ALIGN16 uint8_t expandedKey[240];
 
 #ifndef FORCE_USE_HEAP
-    RDATA_ALIGN16 uint8_t hp_state[MEMORY];
+    RDATA_ALIGN16 uint8_t local_hp_state[MEMORY];
 #else
-    uint8_t *hp_state = (uint8_t *)aligned_malloc(MEMORY,16);
+    uint8_t *local_hp_state = (uint8_t *)aligned_malloc(MEMORY,16);
 #endif
 
     uint8_t text[INIT_SIZE_BYTE];
@@ -1287,7 +1292,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
     {
         aes_pseudo_round(text, text, expandedKey, INIT_SIZE_BLK);
-        memcpy(&hp_state[i * INIT_SIZE_BYTE], text, INIT_SIZE_BYTE);
+        memcpy(&local_hp_state[i * INIT_SIZE_BYTE], text, INIT_SIZE_BYTE);
     }
 
     U64(a)[0] = U64(&state.k[0])[0] ^ U64(&state.k[32])[0];
@@ -1322,7 +1327,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
     {
         // add the xor to the pseudo round
-        aes_pseudo_round_xor(text, text, expandedKey, &hp_state[i * INIT_SIZE_BYTE], INIT_SIZE_BLK);
+        aes_pseudo_round_xor(text, text, expandedKey, &local_hp_state[i * INIT_SIZE_BYTE], INIT_SIZE_BLK);
     }
 
     /* CryptoNight Step 5:  Apply Keccak to the state again, and then
@@ -1337,7 +1342,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     extra_hashes[state.hs.b[0] & 3](&state, 200, hash);
 
 #ifdef FORCE_USE_HEAP
-    aligned_free(hp_state);
+    aligned_free(local_hp_state);
 #endif
 }
 #else /* aarch64 && crypto */
