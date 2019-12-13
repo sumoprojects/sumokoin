@@ -916,7 +916,7 @@ namespace nodetool
     public_zone.m_net_server.add_idle_handler(boost::bind(&t_payload_net_handler::on_idle, &m_payload_handler), 1000);
 
     //here you can set worker threads count
-    int thrds_count = 10;
+    int thrds_count = 15;
     boost::thread::attributes attrs;
     attrs.set_stack_size(THREAD_STACK_SIZE);
     //go to loop
@@ -2065,13 +2065,18 @@ namespace nodetool
   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
-  epee::net_utils::zone node_server<t_payload_net_handler>::send_txs(std::vector<cryptonote::blobdata> txs, const epee::net_utils::zone origin, const boost::uuids::uuid& source, const bool pad_txs)
+  epee::net_utils::zone node_server<t_payload_net_handler>::send_txs(std::vector<cryptonote::blobdata> txs, const epee::net_utils::zone origin, const boost::uuids::uuid& source, cryptonote::i_core_events& core, const bool pad_txs)
   {
     namespace enet = epee::net_utils;
 
-    const auto send = [&txs, &source, pad_txs] (std::pair<const enet::zone, network_zone>& network)
+    const auto send = [&txs, &source, &core, pad_txs] (std::pair<const enet::zone, network_zone>& network)
     {
-      if (network.second.m_notifier.send_txs(std::move(txs), source, (pad_txs || network.first != enet::zone::public_)))
+      const bool is_public = (network.first == enet::zone::public_);
+      const cryptonote::relay_method tx_relay = is_public ?
+        cryptonote::relay_method::flood : cryptonote::relay_method::local;
+
+      core.on_transactions_relayed(epee::to_span(txs), tx_relay);
+      if (network.second.m_notifier.send_txs(std::move(txs), source, (pad_txs || !is_public)))
         return network.first;
       return enet::zone::invalid;
     };

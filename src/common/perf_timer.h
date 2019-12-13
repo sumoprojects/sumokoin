@@ -40,15 +40,10 @@ class PerformanceTimer;
 
 extern el::Level performance_timer_log_level;
 
-uint64_t get_tick_count();
-uint64_t get_ticks_per_ns();
-uint64_t ticks_to_ns(uint64_t ticks);
-
 class PerformanceTimer
 {
 public:
   PerformanceTimer(bool paused = false);
-  ~PerformanceTimer();
   void pause();
   void resume();
   void reset();

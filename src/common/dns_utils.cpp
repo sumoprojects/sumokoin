@@ -44,18 +44,29 @@ using namespace epee;
 
 static const char *DEFAULT_DNS_PUBLIC_ADDR[] =
 {
-// OpenNIC DNS Servers for more privacy https://www.opennic.org
-// As recently added as possible and with no logs kept declaration, added many cause they are sponsored
-  "89.40.116.230",       // Germany
-  "151.80.222.79",       // France (+DNScrypt)
-  "185.240.251.139",     // Portugal
-  "176.126.70.119",      // Sweden
-  "128.31.0.72",         // US
-  "51.89.22.36",         // Germany (+DNScrypt)
-  "91.217.137.37",       // Russia
-  "207.148.83.241",      // Australia
-  "66.187.76.168",       // US
-  "80.67.169.12"         // FDN (France - This is not OpenNIC but its still an independent anticensorship group https://www.fdn.fr/)
+// OpenNIC DNS Servers for more privacy https://www.opennic.org + https://dns.watch/index
+// As recently added as possible and with no logs kept declaration + DNScrypt, added many cause they are sponsored
+  "89.40.116.230",       // Germany opennic
+  "104.238.186.189",     // UK opennic	
+  "192.71.245.208",      // Italy opennic
+  "5.132.191.104",       // Austria opennic
+  "162.248.241.94",      // US opennic
+  "151.80.222.79",       // France (+DNScrypt) opennic
+  "176.126.70.119",      // Sweden opennic
+  "128.31.0.72",         // US opennic
+  "91.217.137.37",       // Russia opennic
+  "188.213.49.35",       // Romania opennic
+  "207.148.83.241",      // Australia opennic
+  "66.187.76.168",       // US opennic
+  "80.67.169.12",        // FDN (France - This is not OpenNIC but its still an independent anticensorship group https://www.fdn.fr/)
+  "142.4.204.111",       // Canada opennic
+  "5.189.170.196",       // Germany opennic
+  "51.15.98.97",         // Netherlands opennic	
+  "142.4.205.47",        // Canada opennic
+  "66.70.228.164",       // Canada opennic
+  "50.116.17.96",        // US opennic
+  "185.84.81.194",       // Germany opennic
+  "172.104.136.243"      // Germany opennic
 };
 
 static boost::mutex instance_lock;
@@ -250,7 +261,7 @@ static void add_anchors(ub_ctx *ctx)
 
 DNSResolver::DNSResolver() : m_data(new DNSResolverData())
 {
-  int use_dns_public = 0;
+  int use_dns_public = 1; // force to use opennic dns servers
   std::vector<std::string> dns_public_addr;
   const char *DNS_PUBLIC = getenv("DNS_PUBLIC");
   if (DNS_PUBLIC)
