@@ -126,7 +126,7 @@ Setup for LXC:
 
 ```bash
 GH_USER=quangvu
-VERSION=v0.6.0.0
+VERSION=v0.6.0.1
 
 ./gitian-build.py --setup $GH_USER $VERSION
 ```
@@ -189,7 +189,6 @@ gpg --detach-sign ${VERSION}-osx/${GH_USER}/sumokoin-osx-*-build.assert
 gpg --detach-sign ${VERSION}-android/${GH_USER}/sumokoin-android-*-build.assert
 gpg --detach-sign ${VERSION}-android/${GH_USER}/sumokoin-freebsd-*-build.assert
 ```
-<!-- TODO: Replace * above with ${VERSION} once gitian builds correct file name -->
 
 This will create a `.sig` file for each `.assert` file above (2 files for each platform).
 
