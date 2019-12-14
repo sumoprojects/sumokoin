@@ -229,7 +229,7 @@ private:
 
 	inline bool check_override()
 	{
-		const char *env = getenv("SUMO_USE_SOFTWARE_AES");
+		const char *env = getenv("SUMOKOIN_USE_SOFTWARE_AES");
 		if (!env) {
 			return false;
 		}
