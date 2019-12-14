@@ -133,8 +133,10 @@ invokes cmake commands as needed.
     
 * Change to the root of the source code directory and build:
 
+        ```bash
         cd sumokoin
         make
+        ```
 
     *Optional*: If your machine has several cores and enough memory, enable
     parallel build by running `make -j<number of threads>` instead of `make`. For
@@ -207,7 +209,7 @@ Tested on a Raspberry Pi Zero with a clean install of minimal Raspbian Stretch (
 ```
         git clone https://github.com/sumoprojects/sumokoin.git
 	cd sumokoin
-	git checkout tags/v0.6.0.0
+	git checkout tags/v0.6.0.1
 ```
 * Build:
 
@@ -319,7 +321,13 @@ application.
 * Change to the cloned directory, run:
 
     ```bash
-    cd sumokoin
+    cd monero
+    ```
+
+* If you would like a specific [version/tag](https://github.com/sumoprojects/sumokoin/tags), do a git checkout for that version. eg. 'v0.15.0.0'. If you don't care about the version and just want binaries from master, skip this step:
+	
+    ```bash
+    git checkout v0.6.0.1
     ```
 
 * If you are on a 64-bit system, run:
@@ -491,7 +499,9 @@ setting the following configuration parameters and environment variables:
 
 Example command line to start sumokoind through Tor:
 
-    DNS_PUBLIC=tcp torsocks sumokoind --p2p-bind-ip 127.0.0.1 --no-igd
+```bash
+DNS_PUBLIC=tcp torsocks sumokoind --p2p-bind-ip 127.0.0.1 --no-igd
+```
 
 ### Using Tor on Tails
 
@@ -500,14 +510,14 @@ to add a rule to allow this connection too, in addition to telling torsocks to
 allow inbound connections. Full example:
 
 ```bash
-    sudo iptables -I OUTPUT 2 -p tcp -d 127.0.0.1 -m tcp --dport 19733 -j ACCEPT
+    sudo iptables -I OUTPUT 2 -p tcp -d 127.0.0.1 -m tcp --dport 19734 -j ACCEPT
     DNS_PUBLIC=tcp torsocks ./sumokoind --p2p-bind-ip 127.0.0.1 --no-igd --rpc-bind-ip 127.0.0.1 \
         --data-dir /home/amnesia/Persistent/your/directory/to/the/blockchain
 ```
 
 # Debugging
 
-This section contains general instructions for debugging failed installs or problems encountered with Sumokoin. First ensure you are running the latest version built from the Github repo.
+This section contains general instructions for debugging failed installs or problems encountered with Sumokoin. First, ensure you are running the latest version built from the Github repo.
 
 ### Obtaining stack traces and core dumps on Unix systems
 

@@ -304,7 +304,7 @@ class Daemon(object):
             'gray': gray,
             'white': white,
         }
-        return self.rpc.send_request('/get_public_nodes', get_public_nodes
+        return self.rpc.send_request('/get_public_nodes', get_public_nodes)
 
     def get_transactions(self, txs_hashes = [], decode_as_json = False, prune = False, split = False, client = ""):
         get_transactions = {
