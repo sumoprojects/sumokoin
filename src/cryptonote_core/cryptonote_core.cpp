@@ -56,8 +56,8 @@ using namespace epee;
 #include "hardforks/hardforks.h"
 #include "version.h"
 
-#undef MONERO_DEFAULT_LOG_CATEGORY
-#define MONERO_DEFAULT_LOG_CATEGORY "cn"
+#undef SUMOKOIN_DEFAULT_LOG_CATEGORY
+#define SUMOKOIN_DEFAULT_LOG_CATEGORY "cn"
 
 DISABLE_VS_WARNINGS(4355)
 

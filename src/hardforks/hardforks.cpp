@@ -29,8 +29,8 @@
 
 #include "hardforks.h"
 
-#undef MONERO_DEFAULT_LOG_CATEGORY
-#define MONERO_DEFAULT_LOG_CATEGORY "blockchain.hardforks"
+#undef SUMOKOIN_DEFAULT_LOG_CATEGORY
+#define SUMOKOIN_DEFAULT_LOG_CATEGORY "blockchain.hardforks"
 
 const hardfork_t mainnet_hard_forks[] = {
   { 1, 1, 0, 1482806500 },

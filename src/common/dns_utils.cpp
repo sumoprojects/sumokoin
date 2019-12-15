@@ -39,8 +39,8 @@
 #include <boost/optional.hpp>
 using namespace epee;
 
-#undef MONERO_DEFAULT_LOG_CATEGORY
-#define MONERO_DEFAULT_LOG_CATEGORY "net.dns"
+#undef SUMOKOIN_DEFAULT_LOG_CATEGORY
+#define SUMOKOIN_DEFAULT_LOG_CATEGORY "net.dns"
 
 static const char *DEFAULT_DNS_PUBLIC_ADDR[] =
 {

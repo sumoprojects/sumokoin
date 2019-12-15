@@ -32,8 +32,8 @@
 #include <atlutil.h>
 #pragma comment(lib, "Wininet.lib")
 
-#undef MONERO_DEFAULT_LOG_CATEGORY
-#define MONERO_DEFAULT_LOG_CATEGORY "net.http"
+#undef SUMOKOIN_DEFAULT_LOG_CATEGORY
+#define SUMOKOIN_DEFAULT_LOG_CATEGORY "net.http"
 
 namespace epee
 {

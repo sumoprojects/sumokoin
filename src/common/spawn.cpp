@@ -42,8 +42,8 @@
 #include "util.h"
 #include "spawn.h"
 
-#undef MONERO_DEFAULT_LOG_CATEGORY
-#define MONERO_DEFAULT_LOG_CATEGORY "spawn"
+#undef SUMOKOIN_DEFAULT_LOG_CATEGORY
+#define SUMOKOIN_DEFAULT_LOG_CATEGORY "spawn"
 
 namespace tools
 {
