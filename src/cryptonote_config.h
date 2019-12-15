@@ -39,7 +39,7 @@
 
 #define CRYPTONOTE_MAX_BLOCK_NUMBER                     500000000
 #define CRYPTONOTE_MAX_BLOCK_WEIGHT                     500000000  // block header blob limit, never used!
-#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE	    196608 //size of block (bytes) that is the maximum that miners will produce
+#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE      196608    //size of block (bytes) that is the maximum that miners will produce
 #define CRYPTONOTE_MAX_TX_SIZE                          1000000000
 #define CRYPTONOTE_MAX_TX_PER_BLOCK                     0x10000000
 #define CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER          0
@@ -49,7 +49,7 @@
 #define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
 
 #define CURRENT_TRANSACTION_VERSION                     2
-#define MIN_TRANSACTION_VERSION							            2
+#define MIN_TRANSACTION_VERSION                         2
 #define CRYPTONOTE_HEAVY_BLOCK_VERSION                  3
 #define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT              60*60*2
 #define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
@@ -91,7 +91,7 @@
 #define DIFFICULTY_CUT                                  60   // timestamps to cut after sorting
 #define DIFFICULTY_BLOCKS_COUNT                         DIFFICULTY_WINDOW + DIFFICULTY_LAG
 
-#define DIFFICULTY_WINDOW_V2							              17
+#define DIFFICULTY_WINDOW_V2                            17
 #define DIFFICULTY_CUT_V2                               6
 #define DIFFICULTY_BLOCKS_COUNT_V2                      DIFFICULTY_WINDOW_V2 + DIFFICULTY_CUT_V2*2
 
@@ -106,7 +106,7 @@
 #define BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT          10000  //by default, blocks ids count in synchronizing
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_PRE_V4       100    //by default, blocks count in blocks downloading
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              50     //by default, blocks count in blocks downloading
-#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4            1      //by default, blocks count in blocks downloading at the end of the chain
+#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4           1      //by default, blocks count in blocks downloading at the end of the chain
 
 #define CRYPTONOTE_MEMPOOL_TX_LIVETIME                    (86400*3) //seconds, three days
 #define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME     604800 //seconds, one week
