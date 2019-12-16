@@ -1280,21 +1280,34 @@ namespace cryptonote
     return p;
   }
   //---------------------------------------------------------------
+  // This was restructured. With major block versions we went from  1 corresponding to cn classic, then 3 corresponding to cn-heavy and then back to 1 now corresponding to cn-r what we did is a bit confusing
+  // solve this with using heights to activate slow hash types instead of block major versions. Its still not proper
+
   bool get_block_longhash(const block& b, crypto::hash& res, uint64_t height)
   {
     block b_local = b; //workaround to avoid const errors with do_serialize
     blobdata bd = get_block_hashing_blob(b);
     crypto::cn_slow_hash_type cn_type = cn_slow_hash_type::cn_original;
-    if (b_local.major_version == CRYPTONOTE_HEAVY_BLOCK_VERSION)
+    if ( height < 116520 )
+    {
+      cn_type = cn_slow_hash_type::cn_original;
+    }
+    else if (b_local.major_version == CRYPTONOTE_HEAVY_BLOCK_VERSION) // this is correct it corresponds to block major version 3
     {
       cn_type = cn_slow_hash_type::cn_heavy;
     }
-    else if (b_local.major_version >= HF_VERSION_BP){
+    else if ( height >= 137500 && height < 274000) 
+    {
+      cn_type = cn_slow_hash_type::cn_original;
+    }
+    else if (height >= 274000)
+    {
       cn_type = cn_slow_hash_type::cn_r;
     }
-    
-    const int cn_variant = b_local.major_version >= HF_VERSION_BP ? b_local.major_version - 3 : 0;
+
+    const int cn_variant = height >= 274000 ? height - 3 : 0;
     crypto::cn_slow_hash(bd.data(), bd.size(), res, cn_variant, height, cn_type);
+
     return true;
   }
   //---------------------------------------------------------------

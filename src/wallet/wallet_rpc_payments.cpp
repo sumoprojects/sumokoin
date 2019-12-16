@@ -143,18 +143,14 @@ bool wallet2::search_for_rpc_payment(uint64_t credits_target, const std::functio
     crypto::hash hash;
     const uint32_t local_nonce = nonce++; // wrapping's OK
     *(uint32_t*)(hashing_blob.data() + 39) = SWAP32LE(local_nonce);
-    
+
+// This should have been better restructured but dont bother since it is picking latest slow_hash_type::cn_r and previous types doesnt affect it
+// Next hard fork we should rearrange the block major versions or we change this if we ever change POW
+     
     const uint8_t major_version = hashing_blob[0];
-    crypto::cn_slow_hash_type cn_type = crypto::cn_slow_hash_type::cn_original;
-    if (major_version == CRYPTONOTE_HEAVY_BLOCK_VERSION)
-    {
-      cn_type = crypto::cn_slow_hash_type::cn_heavy;
-    }
-    else if (major_version >= HF_VERSION_BP){
-      cn_type = crypto::cn_slow_hash_type::cn_r;
-    }
-    int cn_variant = major_version >= HF_VERSION_BP ? major_version - 3 : 0;
-    crypto::cn_slow_hash(hashing_blob.data(), hashing_blob.size(), hash, cn_variant, height, cn_type);
+    crypto::cn_slow_hash_type cn_type = crypto::cn_slow_hash_type::cn_r;
+    const int cn_variant = 3; //cnr
+    crypto::cn_slow_hash(hashing_blob.data(), hashing_blob.size(), hash, cn_variant, height);
 
     ++n_hashes;
     if (cryptonote::check_hash(hash, diff))
