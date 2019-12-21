@@ -45,3 +45,5 @@ sudo apt install -y libusb-dev
 sudo apt install -y libprotobuf-dev 
 
 sudo apt install -y protobuf-compiler
+
+sudo apt install -y libusb-1.0-0-dev
