@@ -10214,7 +10214,7 @@ int main(int argc, char* argv[])
   std::tie(vm, should_terminate) = wallet_args::main(
    argc, argv,
    "sumo-wallet-cli [--wallet-file=<filename>|--generate-new-wallet=<filename>] [<COMMAND>]",
-    sw::tr("Sumokoin wallet needs to connect to a sumokoin fully synchronized daemon to work correctly.\n" "WARNING: Do not reuse your Sumokoin keys on an another fork, UNLESS this fork has key reuse mitigations built in. Doing so will harm your privacy."),
+    sw::tr("Sumokoin wallet needs to connect to a sumokoin fully synchronized daemon to work correctly.\n" "WARNING: Do not reuse your Sumokoin keys on another fork, UNLESS this fork has key reuse mitigations built in. Doing so will harm your privacy."),
     desc_params,
     positional_options,
     [](const std::string &s, bool emphasis){ tools::scoped_message_writer(emphasis ? epee::console_color_white : epee::console_color_default, true) << s; },
