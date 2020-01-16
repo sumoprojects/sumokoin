@@ -30,6 +30,7 @@
 
 #include <algorithm>
 #include <boost/utility/string_ref.hpp>
+#include "misc_log_ex.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "serialization"

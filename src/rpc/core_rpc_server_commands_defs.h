@@ -400,6 +400,71 @@ namespace cryptonote
   };
 
   //-----------------------------------------------
+  // Portions Copyright (c) 2018, The Masari Project
+  struct COMMAND_RPC_GET_TRANSACTIONS_BY_HEIGHTS
+  {
+    struct request_t : public rpc_access_request_base
+    {
+      std::vector<uint64_t> heights;
+      bool decode_as_json;
+      bool prune;
+      bool include_miner_txs;
+      bool range;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(heights)
+        KV_SERIALIZE_OPT(decode_as_json, false)
+        KV_SERIALIZE_OPT(prune, false)
+        KV_SERIALIZE_OPT(include_miner_txs, false)
+        KV_SERIALIZE_OPT(range, false)
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<request_t> request;
+
+    struct entry
+    {
+      std::string tx_hash;
+      std::string as_hex;
+      std::string as_json;
+      bool in_pool;
+      bool double_spend_seen;
+      uint64_t block_height;
+      uint64_t block_timestamp;
+      std::vector<uint64_t> output_indices;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(tx_hash)
+        KV_SERIALIZE(as_hex)
+        KV_SERIALIZE(as_json)
+        KV_SERIALIZE(in_pool)
+        KV_SERIALIZE(double_spend_seen)
+        KV_SERIALIZE(block_height)
+        KV_SERIALIZE(block_timestamp)
+        KV_SERIALIZE(output_indices)
+      END_KV_SERIALIZE_MAP()
+    };
+
+    struct response_t : public rpc_access_response_base
+    {
+      // in both old and new
+      std::list<std::string> missed_tx;   //not found transactions
+
+      // new style
+      std::vector<entry> txs;
+      std::string status;
+      bool untrusted;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(txs)
+        KV_SERIALIZE(missed_tx)
+        KV_SERIALIZE(status)
+        KV_SERIALIZE(untrusted)
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<response_t> response;
+  };
+
+  //-----------------------------------------------
   struct COMMAND_RPC_IS_KEY_IMAGE_SPENT
   {
     enum STATUS {
