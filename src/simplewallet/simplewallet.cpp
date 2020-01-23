@@ -7050,12 +7050,16 @@ bool simple_wallet::sweep_main(uint64_t below, bool locked, const std::vector<st
     if (m_wallet->print_ring_members() && !print_ring_members(ptx_vector, prompt))
       return true;
     if (ptx_vector.size() > 1) {
+      message_writer(console_color_red, true) << "You are about to transfer ALL your funds so please recheck the receiving address.\n";
+      message_writer(console_color_white, true) << "Receiving address: "<<  local_args[0] << "\n";   
       prompt << boost::format(tr("Sweeping %s in %llu transactions for a total fee of %s.  Is this okay?")) %
         print_money(total_sent) %
         ((unsigned long long)ptx_vector.size()) %
         print_money(total_fee);
     }
     else {
+      message_writer(console_color_red, true) << "You are about to transfer ALL your funds so please recheck the receiving address.\n";
+      message_writer(console_color_white, true) << "Receiving address: "<<  local_args[0] << "\n";
       prompt << boost::format(tr("Sweeping %s for a total fee of %s.  Is this okay?")) %
         print_money(total_sent) %
         print_money(total_fee);
