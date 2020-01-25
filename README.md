@@ -32,11 +32,11 @@ About 10% (~8.8 million) was premined to reserve for future development, i.e. **
 - **Emission scheme**: Sumokoin's block reward changes _every 6-months_ as the following "Camel" distribution* (inspired by _real-world mining production_ like of crude oil, coal etc. that is often slow at first, 
 accelerated in the next few years before declined and depleted). However, the emission path of Sumokoin is generally not far apart from what of Bitcoin (view charts below).
 
-![](http://images.sumokoin.org/block_reward_by_calendar_year.png)
+![](https://i.imgur.com/muvKFKg.jpg)
 
-![](http://images.sumokoin.org/block_reward_by_calendar_month.png)
+![](https://i.imgur.com/219P7WW.png)
 
-![](http://images.sumokoin.org/emission_speed_sumo_vs_btc.png)
+![](https://i.imgur.com/UV36DfE.png)
 
 \* The emulated algorithm of Sumokoin block-reward emission can be found in Python and C++ scripts at [scripts](scripts) directory.
 
