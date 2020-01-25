@@ -122,7 +122,8 @@ Bringing the files we need into sumokoin android wallet
 cd /opt/android
 git clone --recursive https://github.com/sumoprojects/sumo-android-wallet
 cd /opt/android/sumo-android-wallet/external-libs
-find . -name "*.a" -or -name "*.h" -type f -delete
+find . -type f -name "*.a" -exec rm -f {} \;
+find . -type f -name "*.h" -exec rm -f {} \;
 chmod u+x collect.sh
 ./collect.sh
 ```
