@@ -3,9 +3,9 @@
 (updated with master at all times)
 Instructions on how to build on ANDROID-BUILD.md
 
-Copyright (c) 2017-2019, Sumokoin Project
+Copyright (c) 2017-2020, Sumokoin Project
 
-Portions Copyright (c) 2014-2019, The Monero Project
+Portions Copyright (c) 2014-2020, The Monero Project
 
 Portions Copyright (c) 2012-2013, The Cryptonote developers
 
@@ -18,7 +18,7 @@ Please note that code is developed on the [dev branch](https://github.com/sumopr
 
 ## Introduction
 
-Sumokoin (スモコイン in Japanese) is a fork from Monero, one of the most respectable cryptocurrency well-known for **security, privacy, untraceability** and **active development**. Starting as an educational project, we found that it would be great to create a new coin with high level of privacy by (1) moving forward right away to **Ring Confidential Transactions (RingCT)**, (2) setting **minimum transaction _mixin_ to 12** that would greatly reduce chance of being attacked, traced or identified by (blockchain) statistical analysis.
+Sumokoin (スモコイン in Japanese) is a fork from Monero, one of the most respectable cryptocurrency well-known for **security, privacy, untraceability** and **active development**. Starting as an educational project, we found that it would be great to create a new coin with high level of privacy by (1) moving forward right away to **Ring Confidential Transactions (RingCT)**, (2) setting **minimum transaction _mixin_ to 12 (current minimum mixin set at 48)** that would greatly reduce chance of being attacked, traced or identified by (blockchain) statistical analysis.
 
 Sumokoin, therefore, is a new Monero without its legacy, a _truely fungible_ cryptocurrency among just a few ones in the market.
 
@@ -31,7 +31,7 @@ About 10% (~8.8 million) was premined to reserve for future development, i.e. **
   + 1 Sumoshi &nbsp;= 0.000000001 **SUMO** (10<sup>-9</sup> - _the smallest coin unit_)
   + 1 Sumokun = 0.000001 **SUMO** (10<sup>-6</sup>)
   + 1 Sumosan = 0.001 **SUMO** (10<sup>-3</sup>)
-- **Hash algorithm**: CryptoNight (Proof-Of-Work)
+- **Hash algorithm**: CryptoNight R (cnR, CNv4) (Proof-Of-Work)
 - **Emission scheme**: Sumokoin's block reward changes _every 6-months_ as the following "Camel" distribution* (inspired by _real-world mining production_ like of crude oil, coal etc. that is often slow at first, 
 accelerated in the next few years before declined and depleted). However, the emission path of Sumokoin is generally not far apart from what of Bitcoin (view charts below).
 
