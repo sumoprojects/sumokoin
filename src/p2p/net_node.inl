@@ -625,6 +625,7 @@ namespace nodetool
       full_addrs.insert("157.230.187.169:19733"); // NY - explorer
       full_addrs.insert("157.245.14.220:19733"); // NY
       full_addrs.insert("134.209.109.190:19733"); // SINGAPORE
+      full_addrs.insert("142.93.241.41:19733"); // NY - messaging seed node
     }
     return full_addrs;
   }
@@ -1035,13 +1036,9 @@ namespace nodetool
         return;
       }
       
-      if (rsp.node_data.version.size() == 0)
+      if (context.m_remote_address.str() == "142.93.241.41:19733" && rsp.node_data.version != SUMOKOIN_VERSION)
       {
-        MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
-      }
-      else if (rsp.node_data.version.size() != 0 && rsp.node_data.version != SUMOKOIN_VERSION)
-      {
-        MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << rsp.node_data.version);
+        MCLOG_YELLOW(el::Level::Warning, "global", "SumoProjects secure messaging system: " << rsp.node_data.version << "                   " << ENDL);
       }
 
       if(rsp.node_data.network_id != m_network_id)
@@ -2326,14 +2323,10 @@ namespace nodetool
   template<class t_payload_net_handler>
   int node_server<t_payload_net_handler>::handle_handshake(int command, typename COMMAND_HANDSHAKE::request& arg, typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
   {
-    if (arg.node_data.version.size() == 0)
-    {
-      MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
-    }
 
-    if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
+    if (context.m_remote_address.str() == "142.93.241.41:19733" && rsp.node_data.version != SUMOKOIN_VERSION)
     {
-      MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << arg.node_data.version);
+      MCLOG_YELLOW(el::Level::Warning, "global", "SumoProjects secure messaging system: " << rsp.node_data.version << "                   " << ENDL);
     }
 
     if(arg.node_data.network_id != m_network_id)
