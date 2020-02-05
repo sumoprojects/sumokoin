@@ -174,6 +174,7 @@ endif()
 if (WIN32)
 add_custom_command(TARGET utilities_menu POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-utilities-menu.exe ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-utilities-menu.exe)
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 set(CMAKE_EXE_LINKER_FLAGS "${LD_BACKCOMPAT_FLAGS}")
@@ -181,7 +182,6 @@ set(CMAKE_EXE_LINKER_FLAGS "${LD_BACKCOMPAT_FLAGS}")
 monero_add_executable(blockchain_import
   ${blockchain_import_sources}
   ${blockchain_import_private_headers})
-
 target_link_libraries(blockchain_import
   PRIVATE
     cryptonote_core
@@ -199,7 +199,6 @@ if(ARCH_WIDTH)
   target_compile_definitions(blockchain_import
     PUBLIC -DARCH_WIDTH=${ARCH_WIDTH})
 endif()
-
 set_property(TARGET blockchain_import
 	PROPERTY
 	OUTPUT_NAME "sumo-blockchain-import")
@@ -211,6 +210,7 @@ endif()
 if (WIN32)
 add_custom_command(TARGET blockchain_import POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-import.exe ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-import.exe)
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 monero_add_executable(blockchain_export
@@ -240,6 +240,7 @@ endif()
 if (WIN32)
 add_custom_command(TARGET blockchain_export POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-export.exe ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-export.exe)
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 monero_add_executable(blockchain_blackball
@@ -270,6 +271,7 @@ endif()
 if (WIN32)
 add_custom_command(TARGET blockchain_blackball POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-mark-spent-outputs.exe ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-mark-spent-outputs.exe)
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 monero_add_executable(blockchain_usage
@@ -299,6 +301,7 @@ endif()
 if (WIN32)
 add_custom_command(TARGET blockchain_usage POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-usage.exe ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-usage.exe)
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 monero_add_executable(blockchain_ancestry
@@ -328,6 +331,7 @@ endif()
 if (WIN32)
 add_custom_command(TARGET blockchain_ancestry POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-ancestry.exe ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-ancestry.exe)
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 monero_add_executable(blockchain_depth
@@ -357,6 +361,7 @@ endif()
 if (WIN32)
 add_custom_command(TARGET blockchain_depth POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-depth.exe ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-depth.exe)
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 monero_add_executable(blockchain_stats
@@ -386,6 +391,7 @@ endif()
 if (WIN32)
 add_custom_command(TARGET blockchain_stats POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-stats.exe ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-stats.exe)
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 monero_add_executable(blockchain_prune_known_spent_data
@@ -416,6 +422,7 @@ endif()
 if (WIN32)
 add_custom_command(TARGET blockchain_prune_known_spent_data POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-prune-known-spent-data.exe ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-prune-known-spent-data.exe)
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 monero_add_executable(blockchain_prune
@@ -433,6 +440,7 @@ endif()
 if (WIN32)
 add_custom_command(TARGET blockchain_prune POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-blockchain-prune.exe ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-blockchain-prune.exe)
+set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -Wl,-Bstatic -lstdc++ -lpthread -Wl,-Bdynamic ${CMAKE_CXX_STANDARD_LIBRARIES}")
 endif()
 
 target_link_libraries(blockchain_prune
