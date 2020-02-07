@@ -542,6 +542,7 @@ bool t_rpc_command_executor::show_status() {
       bootstrap_msg += " was used before";
     }
   }
+  size_t chainsize = (ires.database_size)/1000000;
   std::string os_version = tools::get_os_version_string();
   std::string network_type = (ires.testnet ? "testnet" : ires.stagenet ? "stagenet" : "mainnet");
   double perc = round(get_sync_percentage(ires));
@@ -571,7 +572,8 @@ bool t_rpc_command_executor::show_status() {
   std::cout << "\033[1mCurrent Height: \033[0m" << "\033[32;1m" << (unsigned long long)ires.height << "\033[0m" << "  " <<
    	         "\033[1mNetwork Height: \033[0m" << "\033[32;1m" << (unsigned long long)net_height << "\033[0m" << "  " <<
    	         "\033[1mSync percentage: \033[0m" << "\033[32;1m" << perc << "%" << "\033[0m" << "  " << 
-	         "\033[1mBootstrap: \033[0m" << "\033[32;1m" << bootstrap_msg << "\033[0m" << std::endl;
+	         "\033[1mBootstrap: \033[0m" << "\033[32;1m" << bootstrap_msg << "\033[0m" << std::endl <<
+	         "\033[1mBlockchain db current size on disk: \033[0m" << "\033[32;1m" << chainsize << " MB" << "\033[0m"  << "  " << std::endl;
   std::cout << "\033[1m------------" << std::endl;
   std::cout << "NETWORK INFO" << std::endl;
   std::cout << "------------\033[0m" << std::endl;
