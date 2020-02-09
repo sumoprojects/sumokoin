@@ -55,6 +55,9 @@ version/
 *.out
 *.app
 
+### Python ###
+# Trezor compiled python files
+*.pyc
 
 ### CMake ###
 CMakeCache.txt
