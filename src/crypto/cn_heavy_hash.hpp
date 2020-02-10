@@ -61,7 +61,9 @@
 #endif
 
 #if defined(__aarch64__)
+#ifndef __clang__
 #pragma GCC target ("+crypto")
+#endif
 #include <sys/auxv.h>
 #include <asm/hwcap.h>
 #include <arm_neon.h>
