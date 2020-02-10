@@ -512,7 +512,7 @@ public:
     , m_events(events)
     , m_validator(validator)
     , m_ev_index(0)
-    , m_tx_relay(cryptonote::relay_method::flood)
+    , m_tx_relay(cryptonote::relay_method::fluff)
   {
   }
 
@@ -545,7 +545,7 @@ public:
     }
     else
     {
-      m_tx_relay = cryptonote::relay_method::flood;
+      m_tx_relay = cryptonote::relay_method::fluff;
     }
 
     return true;
