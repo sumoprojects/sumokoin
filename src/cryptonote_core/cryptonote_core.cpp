@@ -1154,7 +1154,7 @@ namespace cryptonote
   {
     if (block_sync_size > 0)
       return block_sync_size;
-    if (get_current_blockchain_height() <= ((90 * m_target_blockchain_height) / 100))
+    if (get_current_blockchain_height() <= LAST_CHECKPOINT)
     return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
     else 
     return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4;    
