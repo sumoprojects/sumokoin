@@ -1033,14 +1033,14 @@ namespace nodetool
         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
         return;
       }
-      
+      std::string remote_version = rsp.node_data.version.substr(0,12);
       if (rsp.node_data.version.size() == 0)
       {
         MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
       }
       else if (rsp.node_data.version.size() != 0 && rsp.node_data.version != SUMOKOIN_VERSION)
       {
-        MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << rsp.node_data.version);
+        MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << remote_version);
       }
 
       if(rsp.node_data.network_id != m_network_id)
@@ -2326,6 +2326,7 @@ namespace nodetool
   template<class t_payload_net_handler>
   int node_server<t_payload_net_handler>::handle_handshake(int command, typename COMMAND_HANDSHAKE::request& arg, typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
   {
+    std::string r_version = arg.node_data.version.substr(0,12);
     if (arg.node_data.version.size() == 0)
     {
       MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
@@ -2333,7 +2334,7 @@ namespace nodetool
 
     if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
     {
-      MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << arg.node_data.version);
+      MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << r_version);
     }
 
     if(arg.node_data.network_id != m_network_id)
