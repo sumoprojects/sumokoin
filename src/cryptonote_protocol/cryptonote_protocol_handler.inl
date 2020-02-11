@@ -190,7 +190,7 @@ namespace cryptonote
       auto connection_time = time(NULL) - cntxt.m_started;
       ss << std::setw(30) << std::left << std::string(cntxt.m_is_income ? " [INC]":"[OUT]") +
         cntxt.m_remote_address.str()
-        << std::setw(20) << std::hex << peer_id
+        << std::setw(20) << nodetool::peerid_to_string(peer_id)
         << std::setw(20) << std::hex << support_flags
         << std::setw(30) << std::to_string(cntxt.m_recv_cnt)+ "(" + std::to_string(time(NULL) - cntxt.m_last_recv) + ")" + "/" + std::to_string(cntxt.m_send_cnt) + "(" + std::to_string(time(NULL) - cntxt.m_last_send) + ")"
         << std::setw(25) << get_protocol_state_string(cntxt.m_state)
@@ -250,10 +250,8 @@ namespace cryptonote
       cnx.rpc_port = cntxt.m_rpc_port;
       cnx.rpc_credits_per_hash = cntxt.m_rpc_credits_per_hash;
 
-      std::stringstream peer_id_str;
-      peer_id_str << std::hex << std::setw(16) << peer_id;
-      peer_id_str >> cnx.peer_id;
-      
+      cnx.peer_id = nodetool::peerid_to_string(peer_id);
+
       cnx.support_flags = support_flags;
 
       cnx.recv_count = cntxt.m_recv_cnt;
@@ -910,7 +908,7 @@ namespace cryptonote
     for (size_t i = 0; i < arg.txs.size(); ++i)
     {
       cryptonote::tx_verification_context tvc{};
-      m_core.handle_incoming_tx({arg.txs[i], crypto::null_hash}, tvc, relay_method::flood, true);
+      m_core.handle_incoming_tx({arg.txs[i], crypto::null_hash}, tvc, relay_method::fluff, true);
       if(tvc.m_verifivation_failed)
       {
         LOG_PRINT_CCONTEXT_L1("Tx verification failed, dropping connection");
@@ -2196,7 +2194,8 @@ skip:
       MGINFO_YELLOW(ENDL << "**********************************************************************" << ENDL
         << "You are now synchronized with the network. You may now start sumo-wallet-cli." << ENDL
         << ENDL
-        << "Use the \"help\" command to see the list of available commands." << ENDL
+        << "Use the \"help\" command to see a simplified list of available commands." << ENDL
+        << "Use the \"help_advanced\" command to see an advanced list of available commands." << ENDL
         << "**********************************************************************");
       m_sync_timer.pause();
       if (ELPP->vRegistry()->allowed(el::Level::Info, "sync-info"))
@@ -2366,7 +2365,7 @@ skip:
        local mempool before doing the relay. The code was already updating the
        DB twice on received transactions - it is difficult to workaround this
        due to the internal design. */
-    return m_p2p->send_txs(std::move(arg.txs), zone, source, m_core, m_core.pad_transactions()) != epee::net_utils::zone::invalid;
+    return m_p2p->send_txs(std::move(arg.txs), zone, source, m_core) != epee::net_utils::zone::invalid;
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>

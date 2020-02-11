@@ -108,7 +108,7 @@ extern const command_line::arg_descriptor<bool, false> arg_db_salvage;
 
 enum class relay_category : uint8_t
 {
-  broadcasted = 0,//!< Public txes received via block/flooding/fluff
+  broadcasted = 0,//!< Public txes received via block/fluff
   relayable,      //!< Every tx not marked `relay_method::none`
   legacy,         //!< `relay_category::broadcasted` + `relay_method::none` for rpc relay requests or historical reasons
   all             //!< Everything in the db
@@ -1273,6 +1273,22 @@ public:
    * @return true iff the transaction was found
    */
   virtual bool get_pruned_tx_blob(const crypto::hash& h, cryptonote::blobdata &tx) const = 0;
+
+  /**
+   * @brief fetches a number of pruned transaction blob from the given hash, in canonical blockchain order
+   *
+   * The subclass should return the pruned transactions stored from the one with the given
+   * hash.
+   *
+   * If the first transaction does not exist, the subclass should return false.
+   * If the first transaction exists, but there are fewer transactions starting with it
+   * than requested, the subclass should return false.
+   *
+   * @param h the hash to look for
+   *
+   * @return true iff the transactions were found
+   */
+  virtual bool get_pruned_tx_blobs_from(const crypto::hash& h, size_t count, std::vector<cryptonote::blobdata> &bd) const = 0;
 
   /**
    * @brief fetches the prunable transaction blob with the given hash

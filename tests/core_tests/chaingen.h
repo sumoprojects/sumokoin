@@ -47,6 +47,7 @@
 #include "include_base_utils.h"
 #include "common/boost_serialization_helper.h"
 #include "common/command_line.h"
+#include "common/threadpool.h"
 
 #include "cryptonote_basic/account_boost_serialization.h"
 #include "cryptonote_basic/cryptonote_basic.h"
@@ -511,7 +512,7 @@ public:
     , m_events(events)
     , m_validator(validator)
     , m_ev_index(0)
-    , m_tx_relay(cryptonote::relay_method::flood)
+    , m_tx_relay(cryptonote::relay_method::fluff)
   {
   }
 
@@ -544,7 +545,7 @@ public:
     }
     else
     {
-      m_tx_relay = cryptonote::relay_method::flood;
+      m_tx_relay = cryptonote::relay_method::fluff;
     }
 
     return true;
@@ -770,6 +771,7 @@ inline bool do_replay_events_get_core(std::vector<test_event_entry>& events, cry
 
   t_test_class validator;
   bool ret = replay_events_through_core<t_test_class>(c, events, validator);
+  tools::threadpool::getInstance().recycle();
 //  c.deinit();
   return ret;
 }

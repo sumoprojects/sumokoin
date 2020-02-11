@@ -81,11 +81,13 @@ public:
 
   bool show_difficulty();
 
+  bool show_disk();
+
   bool show_status();
 
   bool print_connections();
 
-  bool print_blockchain_info(uint64_t start_block_index, uint64_t end_block_index);
+  bool print_blockchain_info(int64_t start_block_index, uint64_t end_block_index);
 
   bool set_log_level(int8_t level);
 
@@ -97,7 +99,7 @@ public:
 
   bool print_block_by_height(uint64_t height, bool include_hex);
 
-  bool print_transaction(crypto::hash transaction_hash, bool include_hex, bool include_json);
+  bool print_transaction(crypto::hash transaction_hash, bool include_metadata, bool include_hex, bool include_json);
 
   bool is_key_image_spent(const crypto::key_image &ki);
 

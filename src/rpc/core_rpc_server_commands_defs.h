@@ -88,7 +88,7 @@ namespace cryptonote
 // advance which version they will stop working with
 // Don't go over 32767 for any of these
 #define CORE_RPC_VERSION_MAJOR 3
-#define CORE_RPC_VERSION_MINOR 0
+#define CORE_RPC_VERSION_MINOR 1
 #define MAKE_CORE_RPC_VERSION(major,minor) (((major)<<16)|(minor))
 #define CORE_RPC_VERSION MAKE_CORE_RPC_VERSION(CORE_RPC_VERSION_MAJOR, CORE_RPC_VERSION_MINOR)
 
@@ -351,6 +351,7 @@ namespace cryptonote
       bool double_spend_seen;
       uint64_t block_height;
       uint64_t block_timestamp;
+      uint64_t received_timestamp;
       std::vector<uint64_t> output_indices;
       bool relayed;
 
@@ -372,6 +373,7 @@ namespace cryptonote
         else
         {
           KV_SERIALIZE(relayed)
+          KV_SERIALIZE(received_timestamp)
         }
       END_KV_SERIALIZE_MAP()
     };
@@ -2621,22 +2623,21 @@ namespace cryptonote
 
   struct COMMAND_RPC_FLUSH_CACHE
   {
-    struct request_t
+    struct request_t: public rpc_request_base
     {
       bool bad_txs;
 
       BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE_PARENT(rpc_request_base)
         KV_SERIALIZE_OPT(bad_txs, false)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<request_t> request;
 
-    struct response_t
+    struct response_t: public rpc_response_base
     {
-      std::string status;
-
       BEGIN_KV_SERIALIZE_MAP()
-        KV_SERIALIZE(status)
+        KV_SERIALIZE_PARENT(rpc_response_base)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;

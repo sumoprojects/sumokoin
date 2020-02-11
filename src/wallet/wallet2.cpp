@@ -3151,11 +3151,12 @@ void wallet2::fast_refresh(uint64_t stop_height, uint64_t &blocks_start_height, 
 }
 
 
-bool wallet2::add_address_book_row(const cryptonote::account_public_address &address, const crypto::hash &payment_id, const std::string &description, bool is_subaddress)
+bool wallet2::add_address_book_row(const cryptonote::account_public_address &address, const crypto::hash8 *payment_id, const std::string &description, bool is_subaddress)
 {
   wallet2::address_book_row a;
   a.m_address = address;
-  a.m_payment_id = payment_id;
+  a.m_has_payment_id = !!payment_id;
+  a.m_payment_id = payment_id ? *payment_id : crypto::null_hash8;
   a.m_description = description;
   a.m_is_subaddress = is_subaddress;
   
@@ -3166,11 +3167,12 @@ bool wallet2::add_address_book_row(const cryptonote::account_public_address &add
   return false;
 }
 
-bool wallet2::set_address_book_row(size_t row_id, const cryptonote::account_public_address &address, const crypto::hash &payment_id, const std::string &description, bool is_subaddress)
+bool wallet2::set_address_book_row(size_t row_id, const cryptonote::account_public_address &address, const crypto::hash8 *payment_id, const std::string &description, bool is_subaddress)
 {
   wallet2::address_book_row a;
   a.m_address = address;
-  a.m_payment_id = payment_id;
+  a.m_has_payment_id = !!payment_id;
+  a.m_payment_id = payment_id ? *payment_id : crypto::null_hash8;
   a.m_description = description;
   a.m_is_subaddress = is_subaddress;
 
@@ -5409,6 +5411,7 @@ bool wallet2::check_connection(uint32_t *version, bool *ssl, uint32_t timeout)
 void wallet2::set_offline(bool offline)
 {
   m_offline = offline;
+  m_node_rpc_proxy.set_offline(offline);
   m_http_client.set_auto_connect(!offline);
   if (offline)
   {
@@ -7530,6 +7533,8 @@ bool wallet2::is_output_blackballed(const std::pair<uint64_t, uint64_t> &output)
 
 bool wallet2::lock_keys_file()
 {
+  if (m_wallet_file.empty())
+    return true;
   if (m_keys_file_locker)
   {
     MDEBUG(m_keys_file << " is already locked.");
@@ -7541,6 +7546,8 @@ bool wallet2::lock_keys_file()
 
 bool wallet2::unlock_keys_file()
 {
+  if (m_wallet_file.empty())
+    return true;
   if (!m_keys_file_locker)
   {
     MDEBUG(m_keys_file << " is already unlocked.");
@@ -7552,6 +7559,8 @@ bool wallet2::unlock_keys_file()
 
 bool wallet2::is_keys_file_locked() const
 {
+  if (m_wallet_file.empty())
+    return false;
   return m_keys_file_locker->locked();
 }
 
@@ -11781,13 +11790,27 @@ void wallet2::set_account_tag_description(const std::string& tag, const std::str
   m_account_tags.first[tag] = description;
 }
 
-std::string wallet2::sign(const std::string &data) const
+std::string wallet2::sign(const std::string &data, cryptonote::subaddress_index index) const
 {
   crypto::hash hash;
   crypto::cn_fast_hash(data.data(), data.size(), hash);
   const cryptonote::account_keys &keys = m_account.get_keys();
   crypto::signature signature;
-  crypto::generate_signature(hash, keys.m_account_address.m_spend_public_key, keys.m_spend_secret_key, signature);
+  crypto::secret_key skey;
+  crypto::public_key pkey;
+  if (index.is_zero())
+  {
+    skey = keys.m_spend_secret_key;
+    pkey = keys.m_account_address.m_spend_public_key;
+  }
+  else
+  {
+    skey = keys.m_spend_secret_key;
+    crypto::secret_key m = m_account.get_device().get_subaddress_secret_key(keys.m_view_secret_key, index);
+    sc_add((unsigned char*)&skey, (unsigned char*)&m, (unsigned char*)&skey);
+    secret_key_to_public_key(skey, pkey);
+  }
+  crypto::generate_signature(hash, pkey, skey, signature);
   return std::string("SigV1") + tools::base58::encode(std::string((const char *)&signature, sizeof(signature)));
 }
 

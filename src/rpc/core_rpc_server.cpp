@@ -87,10 +87,14 @@ namespace
     RPCTracker(const char *rpc, tools::LoggingPerformanceTimer &timer): rpc(rpc), timer(timer) {
     }
     ~RPCTracker() {
-      boost::unique_lock<boost::mutex> lock(mutex);
-      auto &e = tracker[rpc];
-      ++e.count;
-      e.time += timer.value();
+      try
+      {
+        boost::unique_lock<boost::mutex> lock(mutex);
+        auto &e = tracker[rpc];
+        ++e.count;
+        e.time += timer.value();
+      }
+      catch (...) { /* ignore */ }
     }
     void pay(uint64_t amount) {
       boost::unique_lock<boost::mutex> lock(mutex);
@@ -954,18 +958,21 @@ namespace cryptonote
         {
           e.double_spend_seen = it->second.double_spend_seen;
           e.relayed = it->second.relayed;
+          e.received_timestamp = it->second.receive_time;
         }
         else
         {
           MERROR("Failed to determine pool info for " << tx_hash);
           e.double_spend_seen = false;
           e.relayed = false;
+          e.received_timestamp = 0;
         }
       }
       else
       {
         e.block_height = m_core.get_blockchain_storage().get_db().get_tx_block_height(tx_hash);
         e.block_timestamp = m_core.get_blockchain_storage().get_db().get_block_timestamp(e.block_height);
+        e.received_timestamp = 0;
         e.double_spend_seen = false;
         e.relayed = false;
       }
@@ -2123,7 +2130,11 @@ namespace cryptonote
       m_was_bootstrap_ever_used = true;
     }
 
-    r = r && res.status == CORE_RPC_STATUS_OK;
+    if (r && res.status != CORE_RPC_STATUS_PAYMENT_REQUIRED && res.status != CORE_RPC_STATUS_OK)
+    {
+      MINFO("Failing RPC " << command_name << " due to peer return status " << res.status);
+      r = false;
+    }
     res.untrusted = true;
     return true;
   }
@@ -2387,8 +2398,7 @@ namespace cryptonote
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::on_get_info_json(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RPC_GET_INFO::response& res, epee::json_rpc::error& error_resp, const connection_context *ctx)
   {
-    on_get_info(req, res, ctx);
-    if (res.status != CORE_RPC_STATUS_OK)
+    if (!on_get_info(req, res, ctx) || res.status != CORE_RPC_STATUS_OK)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
       error_resp.message = res.status;
@@ -2782,6 +2792,7 @@ namespace cryptonote
   {
     RPC_TRACKER(update);
 
+    res.update = false;
     if (m_core.offline())
     {
       res.status = "Daemon is running offline";
@@ -3103,7 +3114,7 @@ namespace cryptonote
     RPC_TRACKER(rpc_access_info);
 
     bool r;
-    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_INFO>(invoke_http_mode::JON, "rpc_access_info", req, res, r))
+    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_INFO>(invoke_http_mode::JON_RPC, "rpc_access_info", req, res, r))
       return r;
 
     // if RPC payment is not enabled
@@ -3159,9 +3170,8 @@ namespace cryptonote
   bool core_rpc_server::on_rpc_access_submit_nonce(const COMMAND_RPC_ACCESS_SUBMIT_NONCE::request& req, COMMAND_RPC_ACCESS_SUBMIT_NONCE::response& res, epee::json_rpc::error& error_resp, const connection_context *ctx)
   {
     RPC_TRACKER(rpc_access_submit_nonce);
-
     bool r;
-    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_SUBMIT_NONCE>(invoke_http_mode::JON, "rpc_access_submit_nonce", req, res, r))
+    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_SUBMIT_NONCE>(invoke_http_mode::JON_RPC, "rpc_access_submit_nonce", req, res, r))
       return r;
 
     // if RPC payment is not enabled
@@ -3220,7 +3230,7 @@ namespace cryptonote
     RPC_TRACKER(rpc_access_pay);
 
     bool r;
-    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_PAY>(invoke_http_mode::JON, "rpc_access_pay", req, res, r))
+    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_PAY>(invoke_http_mode::JON_RPC, "rpc_access_pay", req, res, r))
       return r;
 
     // if RPC payment is not enabled
@@ -3279,7 +3289,7 @@ namespace cryptonote
     RPC_TRACKER(rpc_access_data);
 
     bool r;
-    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_DATA>(invoke_http_mode::JON, "rpc_access_data", req, res, r))
+    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_DATA>(invoke_http_mode::JON_RPC, "rpc_access_data", req, res, r))
       return r;
 
     if (!m_rpc_payment)
@@ -3307,7 +3317,7 @@ namespace cryptonote
     RPC_TRACKER(rpc_access_account);
 
     bool r;
-    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_ACCOUNT>(invoke_http_mode::JON, "rpc_access_account", req, res, r))
+    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_ACCOUNT>(invoke_http_mode::JON_RPC, "rpc_access_account", req, res, r))
       return r;
 
     if (!m_rpc_payment)

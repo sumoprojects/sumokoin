@@ -439,6 +439,38 @@ static float get_sync_percentage(const cryptonote::COMMAND_RPC_GET_INFO::respons
   return get_sync_percentage(ires.height, ires.target_height);
 }
 
+bool t_rpc_command_executor::show_disk() {
+  cryptonote::COMMAND_RPC_GET_INFO::request ireq;
+  cryptonote::COMMAND_RPC_GET_INFO::response ires;
+  epee::json_rpc::error error_resp;
+
+  std::string fail_message = "Problem fetching info";
+
+  if (m_is_rpc)
+  {
+    if (!m_rpc_client->rpc_request(ireq, ires, "/getinfo", fail_message.c_str()))
+    {
+      return true;
+    }
+  }
+  else
+  {
+    if (!m_rpc_server->on_get_info(ireq, ires) || ires.status != CORE_RPC_STATUS_OK)
+    {
+      tools::fail_msg_writer() << make_error(fail_message, ires.status);
+      return true;
+    }
+  }
+
+  size_t chainsize = (ires.database_size)/1000000;
+  uint64_t freespace = (ires.free_space)/1000000;
+
+  std::cout << std:: endl << "\033[1mBlockchain db current size on disk: \033[0m" << "\033[32;1m" << chainsize << " MB" << "\033[0m"  << "  " << std::endl;
+  std::cout << "\033[1mRemaining disk space: \033[0m" << "\033[32;1m" << freespace << " MB" << "\033[0m" << std::endl;
+
+  return true;
+}
+
 bool t_rpc_command_executor::show_status() {
   cryptonote::COMMAND_RPC_GET_INFO::request ireq;
   cryptonote::COMMAND_RPC_GET_INFO::response ires;
@@ -510,6 +542,7 @@ bool t_rpc_command_executor::show_status() {
       bootstrap_msg += " was used before";
     }
   }
+  size_t chainsize = (ires.database_size)/1000000;
   std::string os_version = tools::get_os_version_string();
   std::string network_type = (ires.testnet ? "testnet" : ires.stagenet ? "stagenet" : "mainnet");
   double perc = round(get_sync_percentage(ires));
@@ -539,7 +572,8 @@ bool t_rpc_command_executor::show_status() {
   std::cout << "\033[1mCurrent Height: \033[0m" << "\033[32;1m" << (unsigned long long)ires.height << "\033[0m" << "  " <<
    	         "\033[1mNetwork Height: \033[0m" << "\033[32;1m" << (unsigned long long)net_height << "\033[0m" << "  " <<
    	         "\033[1mSync percentage: \033[0m" << "\033[32;1m" << perc << "%" << "\033[0m" << "  " << 
-	         "\033[1mBootstrap: \033[0m" << "\033[32;1m" << bootstrap_msg << "\033[0m" << std::endl;
+	         "\033[1mBootstrap: \033[0m" << "\033[32;1m" << bootstrap_msg << "\033[0m" << std::endl <<
+	         "\033[1mBlockchain db current size on disk: \033[0m" << "\033[32;1m" << chainsize << " MB" << "\033[0m"  << "  " << std::endl;
   std::cout << "\033[1m------------" << std::endl;
   std::cout << "NETWORK INFO" << std::endl;
   std::cout << "------------\033[0m" << std::endl;
@@ -683,7 +717,7 @@ bool t_rpc_command_executor::print_connections() {
      << std::setw(30) << std::left << address
      << std::setw(6) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
      << std::setw(4) << (info.ssl ? "yes" : "no")
-     << std::setw(18) << epee::string_tools::pad_string(info.peer_id, 16, '0', true)
+     << std::setw(18) << info.peer_id
      << std::setw(6) << info.support_flags
      << std::setw(30) << std::to_string(info.recv_count) + "("  + std::to_string(info.recv_idle_time) + ")/" + std::to_string(info.send_count) + "(" + std::to_string(info.send_idle_time) + ")"
      << std::setw(18) << info.state
@@ -760,17 +794,46 @@ bool t_rpc_command_executor::print_net_stats()
   return true;
 }
 
-bool t_rpc_command_executor::print_blockchain_info(uint64_t start_block_index, uint64_t end_block_index) {
+bool t_rpc_command_executor::print_blockchain_info(int64_t start_block_index, uint64_t end_block_index) {
   cryptonote::COMMAND_RPC_GET_BLOCK_HEADERS_RANGE::request req;
   cryptonote::COMMAND_RPC_GET_BLOCK_HEADERS_RANGE::response res;
   epee::json_rpc::error error_resp;
+  std::string fail_message = "Problem fetching info";
+
+  // negative: relative to the end
+  if (start_block_index < 0)
+  {
+    cryptonote::COMMAND_RPC_GET_INFO::request ireq;
+    cryptonote::COMMAND_RPC_GET_INFO::response ires;
+    if (m_is_rpc)
+    {
+      if (!m_rpc_client->rpc_request(ireq, ires, "/getinfo", fail_message.c_str()))
+      {
+        return true;
+      }
+    }
+    else
+    {
+      if (!m_rpc_server->on_get_info(ireq, ires) || ires.status != CORE_RPC_STATUS_OK)
+      {
+        tools::fail_msg_writer() << make_error(fail_message, ires.status);
+        return true;
+      }
+    }
+    if (start_block_index < 0 && (uint64_t)-start_block_index >= ires.height)
+    {
+      tools::fail_msg_writer() << "start offset is larger than blockchain height";
+      return true;
+    }
+    start_block_index = ires.height + start_block_index;
+    end_block_index = start_block_index + end_block_index - 1;
+  }
 
   req.start_height = start_block_index;
   req.end_height = end_block_index;
   req.fill_pow_hash = false;
 
-  std::string fail_message = "Unsuccessful";
-
+  fail_message = "Failed calling getblockheadersrange";
   if (m_is_rpc)
   {
     if (!m_rpc_client->json_rpc_request(req, res, "getblockheadersrange", fail_message.c_str()))
@@ -956,6 +1019,7 @@ bool t_rpc_command_executor::print_block_by_height(uint64_t height, bool include
 }
 
 bool t_rpc_command_executor::print_transaction(crypto::hash transaction_hash,
+  bool include_metadata,
   bool include_hex,
   bool include_json) {
   cryptonote::COMMAND_RPC_GET_TRANSACTIONS::request req;
@@ -998,6 +1062,29 @@ bool t_rpc_command_executor::print_transaction(crypto::hash transaction_hash,
     const std::string &as_hex = (1 == res.txs.size()) ? res.txs.front().as_hex : res.txs_as_hex.front();
     const std::string &pruned_as_hex = (1 == res.txs.size()) ? res.txs.front().pruned_as_hex : "";
     const std::string &prunable_as_hex = (1 == res.txs.size()) ? res.txs.front().prunable_as_hex : "";
+    // Print metadata if requested
+    if (include_metadata)
+    {
+      if (!res.txs.front().in_pool)
+      {
+        tools::msg_writer() << "Block timestamp: " << res.txs.front().block_timestamp << " (" << tools::get_human_readable_timestamp(res.txs.front().block_timestamp) << ")";
+      }
+      cryptonote::blobdata blob;
+      if (epee::string_tools::parse_hexstr_to_binbuff(pruned_as_hex + prunable_as_hex, blob))
+      {
+        cryptonote::transaction tx;
+        if (cryptonote::parse_and_validate_tx_from_blob(blob, tx))
+        {
+          tools::msg_writer() << "Size: " << blob.size();
+          tools::msg_writer() << "Weight: " << cryptonote::get_transaction_weight(tx);
+        }
+        else
+          tools::fail_msg_writer() << "Error parsing transaction blob";
+      }
+      else
+        tools::fail_msg_writer() << "Error parsing transaction from hex";
+    }
+
     // Print raw hex if requested
     if (include_hex)
     {
@@ -2234,7 +2321,7 @@ bool t_rpc_command_executor::sync_info()
       for (const auto &s: res.spans)
         if (s.connection_id == p.info.connection_id)
           nblocks += s.nblocks, size += s.size;
-      tools::success_msg_writer() << address << "  " << epee::string_tools::pad_string(p.info.peer_id, 16, '0', true) << "  " <<
+      tools::success_msg_writer() << address << "  " << p.info.peer_id << "  " <<
           epee::string_tools::pad_string(p.info.state, 16) << "  " <<
           epee::string_tools::pad_string(epee::string_tools::to_string_hex(p.info.pruning_seed), 8) << "  " << p.info.height << "  "  <<
           p.info.current_download << " kB/s, " << nblocks << " blocks / " << size/1e6 << " MB queued";

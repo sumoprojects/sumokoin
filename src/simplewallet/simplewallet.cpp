@@ -124,7 +124,7 @@ typedef cryptonote::simple_wallet sw;
 
 #define SCOPED_WALLET_UNLOCK() SCOPED_WALLET_UNLOCK_ON_BAD_PASSWORD(return true;)
 
-#define PRINT_USAGE(usage_help) fail_msg_writer() << boost::format(tr("usage: %s")) % usage_help;
+#define PRINT_USAGE(usage_help_advanced) fail_msg_writer() << boost::format(tr("usage: %s")) % usage_help_advanced;
 
 #define LONG_PAYMENT_ID_SUPPORT_CHECK() \
   do { \
@@ -199,7 +199,7 @@ namespace
                             "  account tag_description <tag_name> <description>");
   const char* USAGE_ADDRESS("address [ new <label text with white spaces allowed> | all | <index_min> [<index_max>] | label <index> <label text with white spaces allowed> | device [<index>]]");
   const char* USAGE_INTEGRATED_ADDRESS("integrated_address [device] [<payment_id> | <address>]");
-  const char* USAGE_ADDRESS_BOOK("address_book [(add ((<address> [pid <id>])|<integrated address>) [<description possibly with whitespaces>])|(delete <index>)]");
+  const char* USAGE_ADDRESS_BOOK("address_book [(add (<address>|<integrated address>) [<description possibly with whitespaces>])|(delete <index>)]");
   const char* USAGE_SET_VARIABLE("set <option> [<value>]");
   const char* USAGE_GET_TX_KEY("get_tx_key <txid>");
   const char* USAGE_SET_TX_KEY("set_tx_key <txid> <tx_key>");
@@ -217,7 +217,7 @@ namespace
   const char* USAGE_GET_TX_NOTE("get_tx_note <txid>");
   const char* USAGE_GET_DESCRIPTION("get_description");
   const char* USAGE_SET_DESCRIPTION("set_description [free text note]");
-  const char* USAGE_SIGN("sign <filename>");
+  const char* USAGE_SIGN("sign [<account_index>,<address_index>] <filename>");
   const char* USAGE_VERIFY("verify <filename> <address> <signature>");
   const char* USAGE_EXPORT_KEY_IMAGES("export_key_images [all] <filename>");
   const char* USAGE_IMPORT_KEY_IMAGES("import_key_images <filename>");
@@ -271,14 +271,15 @@ namespace
   const char* USAGE_START_MINING_FOR_RPC("start_mining_for_rpc");
   const char* USAGE_STOP_MINING_FOR_RPC("stop_mining_for_rpc");
   const char* USAGE_VERSION("version");
-  const char* USAGE_HELP("help [<command>]");
+  const char* USAGE_HELP_ADVANCED("help_advanced [<command>]");
+  const char* USAGE_HELP("help");
 
   std::string input_line(const std::string& prompt, bool yesno = false)
   {
     PAUSE_READLINE();
     std::cout << prompt;
     if (yesno)
-      std::cout << "(Y/Yes/N/No)";
+      std::cout << "  (Y/Yes/N/No)";
     std::cout << ": " << std::flush;
 
     std::string buf;
@@ -2308,7 +2309,7 @@ bool simple_wallet::on_unknown_command(const std::vector<std::string> &args)
 {
   if (args[0] == "exit" || args[0] == "q") // backward compat
     return false;
-  fail_msg_writer() << boost::format(tr("Unknown command '%s', try 'help'")) % args.front();
+  fail_msg_writer() << boost::format(tr("Unknown command '%s', try 'help_advanced'")) % args.front();
   return true;
 }
 
@@ -3015,13 +3016,37 @@ bool simple_wallet::set_export_format(const std::vector<std::string> &args/* = s
 
 bool simple_wallet::help(const std::vector<std::string> &args/* = std::vector<std::string>()*/)
 {
+  message_writer() << "";
+  message_writer() << tr("Commands:");
+  message_writer() << "";
+  message_writer() << tr("\"welcome\" - Read welcome message.");
+  message_writer() << tr("\"donate <amount>\" - Donate SUMO to the development team.");
+  message_writer() << tr("\"balance\" - Show balance.");
+  message_writer() << tr("\"address new\" - Create new subaddress.");
+  message_writer() << tr("\"address all\" - Show all addresses.");
+  message_writer() << tr("\"transfer <address> <amount>\" - Send SUMO to an address.");
+  message_writer() << tr("\"show_transfers [in|out|pending|failed|pool]\" - Show transactions.");
+  message_writer() << tr("\"sweep_all <address>\" - Send whole balance to another wallet.");
+  message_writer() << tr("\"seed\" - Show secret 26 words that can be used to recover this wallet.");
+  message_writer() << tr("\"refresh\" - Synchronize wallet with the Sumokoin network.");
+  message_writer() << tr("\"status\" - Check current status of wallet.");
+  message_writer() << tr("\"version\" - Check software version.");
+  message_writer() << tr("\"help_advanced\" - Show list with more available commands.");
+  message_writer() << tr("\"save\" - Save wallet.");
+  message_writer() << tr("\"exit\" - Exit wallet.");
+  message_writer() << "";
+  return true;
+}
+
+bool simple_wallet::help_advanced(const std::vector<std::string> &args/* = std::vector<std::string>()*/)
+{
   if(args.empty())
   {
     success_msg_writer() << get_commands_str();
   }
   else if ((args.size() == 2) && (args.front() == "mms"))
   {
-    // Little hack to be able to do "help mms <subcommand>"
+    // Little hack to be able to do "help_advanced mms <subcommand>"
     std::vector<std::string> mms_args(1, args.front() + " " + args.back());
     success_msg_writer() << get_command_usage(mms_args);
   }
@@ -3327,7 +3352,7 @@ simple_wallet::simple_wallet()
   m_cmd_binder.set_handler("sign",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::sign, _1),
                            tr(USAGE_SIGN),
-                           tr("Sign the contents of a file."));
+                           tr("Sign the contents of a file with the given subaddress (or the main address if not specified)"));
   m_cmd_binder.set_handler("verify",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::verify, _1),
                            tr(USAGE_VERIFY),
@@ -3410,7 +3435,7 @@ simple_wallet::simple_wallet()
                               "<subcommand> is one of:\n"
                               "  init, info, signer, list, next, sync, transfer, delete, send, receive, export, note, show, set, help\n"
                               "  send_signer_config, start_auto_config, stop_auto_config, auto_config\n"
-                              "Get help about a subcommand with: help mms <subcommand>, or mms help <subcommand>"));
+                              "Get help about a subcommand with: help_advanced mms <subcommand>"));
   m_cmd_binder.set_handler("mms init",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::mms, _1),
                            tr(USAGE_MMS_INIT),
@@ -3560,10 +3585,14 @@ simple_wallet::simple_wallet()
                            boost::bind(&simple_wallet::stop_mining_for_rpc, this, _1),
                            tr(USAGE_STOP_MINING_FOR_RPC),
                            tr("Stop mining to pay for RPC access"));
+  m_cmd_binder.set_handler("help_advanced",
+                           boost::bind(&simple_wallet::on_command, this, &simple_wallet::help_advanced, _1),
+                           tr(USAGE_HELP_ADVANCED),
+                           tr("Show the help section or the documentation about a <command>."));
   m_cmd_binder.set_handler("help",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::help, _1),
                            tr(USAGE_HELP),
-                           tr("Show the help section or the documentation about a <command>."));
+                           tr("Show simplified list of available commands."));
   m_cmd_binder.set_unknown_command_handler(boost::bind(&simple_wallet::on_command, this, &simple_wallet::on_unknown_command, _1));
   m_cmd_binder.set_empty_command_handler(boost::bind(&simple_wallet::on_empty_command, this));
   m_cmd_binder.set_cancel_handler(boost::bind(&simple_wallet::on_cancelled_command, this));
@@ -4364,7 +4393,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
         if (std::cin.eof() || !command_line::is_yes(confirm))
           CHECK_AND_ASSERT_MES(false, false, tr("account creation aborted"));
 
-        m_wallet->set_refresh_from_block_height(m_wallet->estimate_blockchain_height());
+        m_wallet->set_refresh_from_block_height(m_wallet->estimate_blockchain_height() > 0 ? m_wallet->estimate_blockchain_height() - 1 : 0);
         m_wallet->explicit_refresh_from_block_height(true);
         m_restore_height = m_wallet->get_refresh_from_block_height();
       }
@@ -5013,8 +5042,9 @@ boost::optional<epee::wipeable_string> simple_wallet::open_wallet(const boost::p
   }
   success_msg_writer() <<
     "**********************************************************************\n" <<
-    tr("Use the \"help\" command to see the list of available commands.\n") <<
-    tr("Use \"help <command>\" to see a command's documentation.\n") <<
+    tr("Use the \"help\" command to see a simplified list of available commands.\n") <<
+    tr("Use the \"help_advanced\" command to see an advanced list of available commands.\n") <<
+    tr("Use \"help_advanced <command>\" to see a command's documentation.\n") <<
     "**********************************************************************";
   return password;
 }
@@ -9430,29 +9460,7 @@ bool simple_wallet::address_book(const std::vector<std::string> &args/* = std::v
       fail_msg_writer() << tr("failed to parse address");
       return true;
     }
-    crypto::hash payment_id = crypto::null_hash;
     size_t description_start = 2;
-    if (info.has_payment_id)
-    {
-      memcpy(payment_id.data, info.payment_id.data, 8);
-    }
-    else if (!info.has_payment_id && args.size() >= 4 && args[2] == "pid")
-    {
-      if (tools::wallet2::parse_long_payment_id(args[3], payment_id))
-      {
-        LONG_PAYMENT_ID_SUPPORT_CHECK();
-      }
-      else if (tools::wallet2::parse_short_payment_id(args[3], info.payment_id))
-      {
-        fail_msg_writer() << tr("Short payment IDs are to be used within an integrated address only");
-        return true;
-      }
-      else
-      {
-        fail_msg_writer() << tr("failed to parse payment ID");
-        return true;
-      }
-    }
     std::string description;
     for (size_t i = description_start; i < args.size(); ++i)
     {
@@ -9460,7 +9468,7 @@ bool simple_wallet::address_book(const std::vector<std::string> &args/* = std::v
         description += " ";
       description += args[i];
     }
-    m_wallet->add_address_book_row(info.address, payment_id, description, info.is_subaddress);
+    m_wallet->add_address_book_row(info.address, info.has_payment_id ? &info.payment_id : NULL, description, info.is_subaddress);
   }
   else
   {
@@ -9482,8 +9490,12 @@ bool simple_wallet::address_book(const std::vector<std::string> &args/* = std::v
     for (size_t i = 0; i < address_book.size(); ++i) {
       auto& row = address_book[i];
       success_msg_writer() << tr("Index: ") << i;
-      success_msg_writer() << tr("Address: ") << get_account_address_as_str(m_wallet->nettype(), row.m_is_subaddress, row.m_address);
-      success_msg_writer() << tr("Payment ID: ") << row.m_payment_id << " (OBSOLETE)";
+      std::string address;
+      if (row.m_has_payment_id)
+        address = cryptonote::get_account_integrated_address_as_str(m_wallet->nettype(), row.m_address, row.m_payment_id);
+      else
+        address = get_account_address_as_str(m_wallet->nettype(), row.m_is_subaddress, row.m_address);
+      success_msg_writer() << tr("Address: ") << address;
       success_msg_writer() << tr("Description: ") << row.m_description << "\n";
     }
   }
@@ -9635,7 +9647,7 @@ bool simple_wallet::sign(const std::vector<std::string> &args)
     fail_msg_writer() << tr("command not supported by HW wallet");
     return true;
   }
-  if (args.size() != 1)
+  if (args.size() != 1 && args.size() != 2)
   {
     PRINT_USAGE(USAGE_SIGN);
     return true;
@@ -9651,7 +9663,20 @@ bool simple_wallet::sign(const std::vector<std::string> &args)
     return true;
   }
 
-  std::string filename = args[0];
+  subaddress_index index{0, 0};
+  if (args.size() == 2)
+  {
+    unsigned int a, b;
+    if (sscanf(args[0].c_str(), "%u,%u", &a, &b) != 2)
+    {
+      fail_msg_writer() << tr("Invalid subaddress index format");
+      return true;
+    }
+    index.major = a;
+    index.minor = b;
+  }
+
+  const std::string &filename = args.back();
   std::string data;
   bool r = m_wallet->load_from_file(filename, data);
   if (!r)
@@ -9662,7 +9687,7 @@ bool simple_wallet::sign(const std::vector<std::string> &args)
 
   SCOPED_WALLET_UNLOCK();
 
-  std::string signature = m_wallet->sign(data);
+  std::string signature = m_wallet->sign(data, index);
   success_msg_writer() << signature;
   return true;
 }
@@ -11052,7 +11077,7 @@ void simple_wallet::mms_help(const std::vector<std::string> &args)
 {
   if (args.size() > 1)
   {
-    fail_msg_writer() << tr("Usage: mms help [<subcommand>]");
+    fail_msg_writer() << tr("Usage: help_advanced mms [<subcommand>]");
     return;
   }
   std::vector<std::string> help_args;

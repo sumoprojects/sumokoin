@@ -55,6 +55,9 @@ version/
 *.out
 *.app
 
+### Python ###
+# Trezor compiled python files
+*.pyc
 
 ### CMake ###
 CMakeCache.txt
@@ -96,6 +99,9 @@ local.properties
 # PDT-specific
 .buildpath
 
+# Netbeans-specific
+nbproject
+
 # sbteclipse plugin
 .target
 
@@ -104,4 +110,5 @@ local.properties
 .idea/
 
 /testnet
-/ide
+
+__pycache__/
