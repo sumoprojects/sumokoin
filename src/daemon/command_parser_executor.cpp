@@ -123,6 +123,13 @@ bool t_command_parser_executor::show_difficulty(const std::vector<std::string>& 
   return m_executor.show_difficulty();
 }
 
+bool t_command_parser_executor::show_emission(const std::vector<std::string>& args)
+{
+  if (!args.empty()) return false;
+
+  return m_executor.show_emission();
+}
+
 bool t_command_parser_executor::show_disk(const std::vector<std::string>& args)
 {
   if (!args.empty()) return false;

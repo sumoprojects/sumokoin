@@ -439,6 +439,110 @@ static float get_sync_percentage(const cryptonote::COMMAND_RPC_GET_INFO::respons
   return get_sync_percentage(ires.height, ires.target_height);
 }
 
+bool t_rpc_command_executor::show_emission() {
+  cryptonote::COMMAND_RPC_GET_INFO::request ireq;
+  cryptonote::COMMAND_RPC_GET_INFO::response ires;
+  epee::json_rpc::error error_resp;
+
+  std::string fail_message = "Problem fetching info";
+
+  if (m_is_rpc)
+  {
+    if (!m_rpc_client->rpc_request(ireq, ires, "/getinfo", fail_message.c_str()))
+    {
+      return true;
+    }
+  }
+  else
+  {
+    if (!m_rpc_server->on_get_info(ireq, ires) || ires.status != CORE_RPC_STATUS_OK)
+    {
+      tools::fail_msg_writer() << make_error(fail_message, ires.status);
+      return true;
+    }
+  }
+
+  uint64_t coins_already_generated = 0;
+  uint64_t height = 0;
+  uint64_t total_time = 0;
+  uint64_t block_reward = 0;
+  uint64_t cal_block_reward = 0;
+  double money_supply_percentage;
+  uint64_t round_factor = 10000000;
+  uint64_t icount = 0;
+  bool print_by_year = false;
+ 
+  tools::msg_writer() << "\nCurrent height: " << ires.height;
+  tools::msg_writer() << "---------------------------------------------------------";
+  tools::msg_writer() << "Height" << "\t" << "Reward" << "\t" << "Coins Gen" << "\t" << "(%)" << "\t" << "Day" << "\t" << "Year";
+  tools::msg_writer() << "---------------------------------------------------------";
+
+  while (coins_already_generated < (MONEY_SUPPLY - FINAL_SUBSIDY)){
+    bool emission_speed_change_happened = false;
+    if (height % COIN_EMISSION_HEIGHT_INTERVAL == 0){
+      if (height < (PEAK_COIN_EMISSION_HEIGHT + COIN_EMISSION_HEIGHT_INTERVAL)){
+        uint64_t interval_num = height / COIN_EMISSION_HEIGHT_INTERVAL;
+        money_supply_percentage = 0.1888 + interval_num*(0.023 + interval_num*0.0032);
+        cal_block_reward = ((uint64_t)(MONEY_SUPPLY * money_supply_percentage)) >> EMISSION_SPEED_FACTOR;
+      }
+      else{
+        cal_block_reward = (MONEY_SUPPLY - coins_already_generated) >> EMISSION_SPEED_FACTOR;
+      }
+      emission_speed_change_happened = true;
+      icount++;
+    }
+
+    if (height == 0){
+      block_reward = GENESIS_BLOCK_REWARD;
+    }
+    else{
+      block_reward = cal_block_reward / round_factor * round_factor;
+    }
+
+    if (block_reward < FINAL_SUBSIDY){
+      if (MONEY_SUPPLY > coins_already_generated){
+        block_reward = FINAL_SUBSIDY;
+      }
+      else{
+        block_reward = FINAL_SUBSIDY / 2;
+      }
+    }
+
+    coins_already_generated += block_reward;
+    total_time += DIFFICULTY_TARGET;
+
+    if (emission_speed_change_happened && (print_by_year ? icount % 2 : true)){
+      if (height == 0){
+        tools::msg_writer() << "0" << "\t"
+          << std::fixed << std::setprecision(0) << block_reward / 1000000000.0 << "\t"
+          << std::setprecision(0) << coins_already_generated / 1000000000.0 << "	" << "\t"
+          << std::fixed << std::setprecision(2) << coins_already_generated*100.0 / MONEY_SUPPLY << "\t"
+          << std::fixed << std::setprecision(0) << 0 << "\t"
+          << std::setprecision(2) << 0.0;
+      }
+      else{
+        tools::msg_writer() << height << "\t"
+          << std::fixed << std::setprecision(2) << block_reward / 1000000000.0 << "\t"
+          << std::setprecision(2) << coins_already_generated / 1000000000.0 << "\t"
+          << std::fixed << std::setprecision(2) << coins_already_generated*100.0 / MONEY_SUPPLY << "\t"
+          << std::fixed << std::setprecision(0) << total_time / (60 * 60 * 24.0) << "\t"
+          << std::setprecision(2) << total_time / (60 * 60 * 24.0) / 365.25;
+      }
+    }
+
+    height += 1;
+  }
+
+  tools::msg_writer() << height << "\t"
+    << std::fixed << std::setprecision(2) << block_reward / 1000000000.0 << "\t"
+    << std::setprecision(2) << coins_already_generated / 1000000000.0 << "\t"
+    << std::fixed << std::setprecision(2) << coins_already_generated*100.0 / MONEY_SUPPLY << "\t"
+    << std::fixed << std::setprecision(0) << total_time / (60 * 60 * 24.0) << "\t"
+    << std::setprecision(2) << total_time / (60 * 60 * 24.0) / 365.25;
+
+  return true;
+}
+
 bool t_rpc_command_executor::show_disk() {
   cryptonote::COMMAND_RPC_GET_INFO::request ireq;
   cryptonote::COMMAND_RPC_GET_INFO::response ires;
