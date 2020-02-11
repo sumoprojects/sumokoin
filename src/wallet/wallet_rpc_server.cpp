@@ -551,9 +551,29 @@ namespace tools
     if (!m_wallet) return not_open(er);
     try
     {
-      m_wallet->add_subaddress(req.account_index, req.label);
-      res.address_index = m_wallet->get_num_subaddresses(req.account_index) - 1;
-      res.address = m_wallet->get_subaddress_as_str({req.account_index, res.address_index});
+      if (req.count < 1 || req.count > 64) {
+        er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
+        er.message = "Count must be between 1 and 64.";
+        return false;
+      }
+
+      std::vector<std::string> addresses;
+      std::vector<uint32_t>    address_indices;
+
+      addresses.reserve(req.count);
+      address_indices.reserve(req.count);
+
+      for (uint32_t i = 0; i < req.count; i++) {
+        m_wallet->add_subaddress(req.account_index, req.label);
+        uint32_t new_address_index = m_wallet->get_num_subaddresses(req.account_index) - 1;
+        address_indices.push_back(new_address_index);
+        addresses.push_back(m_wallet->get_subaddress_as_str({req.account_index, new_address_index}));
+      }
+
+      res.address = addresses[0];
+      res.address_index = address_indices[0];
+      res.addresses = addresses;
+      res.address_indices = address_indices;
     }
     catch (const std::exception& e)
     {
@@ -2438,7 +2458,10 @@ namespace tools
 
     if (req.pool)
     {
-      m_wallet->update_pool_state();
+      std::vector<std::pair<cryptonote::transaction, bool>> process_txs;
+      m_wallet->update_pool_state(process_txs);
+      if (!process_txs.empty())
+        m_wallet->process_pool_state(process_txs);
 
       std::list<std::pair<crypto::hash, tools::wallet2::pool_payment_details>> payments;
       m_wallet->get_unconfirmed_payments(payments, account_index, subaddr_indices);
@@ -2518,7 +2541,10 @@ namespace tools
       }
     }
 
-    m_wallet->update_pool_state();
+    std::vector<std::pair<cryptonote::transaction, bool>> process_txs;
+    m_wallet->update_pool_state(process_txs);
+    if (!process_txs.empty())
+      m_wallet->process_pool_state(process_txs);
 
     std::list<std::pair<crypto::hash, tools::wallet2::pool_payment_details>> pool_payments;
     m_wallet->get_unconfirmed_payments(pool_payments, req.account_index);
@@ -2719,7 +2745,14 @@ namespace tools
     {
       uint64_t idx = 0;
       for (const auto &entry: ab)
-        res.entries.push_back(wallet_rpc::COMMAND_RPC_GET_ADDRESS_BOOK_ENTRY::entry{idx++, get_account_address_as_str(m_wallet->nettype(), entry.m_is_subaddress, entry.m_address), epee::string_tools::pod_to_hex(entry.m_payment_id), entry.m_description});
+      {
+        std::string address;
+        if (entry.m_has_payment_id)
+          address = cryptonote::get_account_integrated_address_as_str(m_wallet->nettype(), entry.m_address, entry.m_payment_id);
+        else
+          address = get_account_address_as_str(m_wallet->nettype(), entry.m_is_subaddress, entry.m_address);
+        res.entries.push_back(wallet_rpc::COMMAND_RPC_GET_ADDRESS_BOOK_ENTRY::entry{idx++, address, entry.m_description});
+      }
     }
     else
     {
@@ -2732,7 +2765,12 @@ namespace tools
           return false;
         }
         const auto &entry = ab[idx];
-        res.entries.push_back(wallet_rpc::COMMAND_RPC_GET_ADDRESS_BOOK_ENTRY::entry{idx, get_account_address_as_str(m_wallet->nettype(), entry.m_is_subaddress, entry.m_address), epee::string_tools::pod_to_hex(entry.m_payment_id), entry.m_description});
+        std::string address;
+        if (entry.m_has_payment_id)
+          address = cryptonote::get_account_integrated_address_as_str(m_wallet->nettype(), entry.m_address, entry.m_payment_id);
+        else
+          address = get_account_address_as_str(m_wallet->nettype(), entry.m_is_subaddress, entry.m_address);
+        res.entries.push_back(wallet_rpc::COMMAND_RPC_GET_ADDRESS_BOOK_ENTRY::entry{idx, address, entry.m_description});
       }
     }
     return true;
@@ -2749,7 +2787,6 @@ namespace tools
     }
 
     cryptonote::address_parse_info info;
-    crypto::hash payment_id = crypto::null_hash;
     er.message = "";
     if(!get_account_address_from_str_or_url(info, m_wallet->nettype(), req.address,
       [&er](const std::string &url, const std::vector<std::string> &addresses, bool dnssec_valid)->std::string {
@@ -2771,39 +2808,7 @@ namespace tools
         er.message = std::string("WALLET_RPC_ERROR_CODE_WRONG_ADDRESS: ") + req.address;
       return false;
     }
-    if (info.has_payment_id)
-    {
-      memcpy(payment_id.data, info.payment_id.data, 8);
-      memset(payment_id.data + 8, 0, 24);
-    }
-    if (!req.payment_id.empty())
-    {
-      if (info.has_payment_id)
-      {
-        er.code = WALLET_RPC_ERROR_CODE_WRONG_PAYMENT_ID;
-        er.message = "Separate payment ID given with integrated address";
-        return false;
-      }
-
-      crypto::hash long_payment_id;
-
-      if (!wallet2::parse_long_payment_id(req.payment_id, payment_id))
-      {
-        if (!wallet2::parse_short_payment_id(req.payment_id, info.payment_id))
-        {
-          er.code = WALLET_RPC_ERROR_CODE_WRONG_PAYMENT_ID;
-          er.message = "Payment id has invalid format: \"" + req.payment_id + "\", expected 64 character string";
-          return false;
-        }
-        else
-        {
-          er.code = WALLET_RPC_ERROR_CODE_WRONG_PAYMENT_ID;
-          er.message = "Payment id has invalid format: standalone short payment IDs are forbidden, they must be part of an integrated address";
-          return false;
-        }
-      }
-    }
-    if (!m_wallet->add_address_book_row(info.address, payment_id, req.description, info.is_subaddress))
+    if (!m_wallet->add_address_book_row(info.address, info.has_payment_id ? &info.payment_id : NULL, req.description, info.is_subaddress))
     {
       er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
       er.message = "Failed to add address book entry";
@@ -2834,7 +2839,6 @@ namespace tools
     tools::wallet2::address_book_row entry = ab[req.index];
 
     cryptonote::address_parse_info info;
-    crypto::hash payment_id = crypto::null_hash;
     if (req.set_address)
     {
       er.message = "";
@@ -2861,52 +2865,13 @@ namespace tools
       entry.m_address = info.address;
       entry.m_is_subaddress = info.is_subaddress;
       if (info.has_payment_id)
-      {
-        memcpy(entry.m_payment_id.data, info.payment_id.data, 8);
-        memset(entry.m_payment_id.data + 8, 0, 24);
-      }
-    }
-
-    if (req.set_payment_id)
-    {
-      if (req.payment_id.empty())
-      {
-        payment_id = crypto::null_hash;
-      }
-      else
-      {
-        if (req.set_address && info.has_payment_id)
-        {
-          er.code = WALLET_RPC_ERROR_CODE_WRONG_PAYMENT_ID;
-          er.message = "Separate payment ID given with integrated address";
-          return false;
-        }
-
-        if (!wallet2::parse_long_payment_id(req.payment_id, payment_id))
-        {
-          crypto::hash8 spid;
-          if (!wallet2::parse_short_payment_id(req.payment_id, spid))
-          {
-            er.code = WALLET_RPC_ERROR_CODE_WRONG_PAYMENT_ID;
-            er.message = "Payment id has invalid format: \"" + req.payment_id + "\", expected 64 character string";
-            return false;
-          }
-          else
-          {
-            er.code = WALLET_RPC_ERROR_CODE_WRONG_PAYMENT_ID;
-            er.message = "Payment id has invalid format: standalone short payment IDs are forbidden, they must be part of an integrated address";
-            return false;
-          }
-        }
-      }
-
-      entry.m_payment_id = payment_id;
+        entry.m_payment_id = info.payment_id;
     }
 
     if (req.set_description)
       entry.m_description = req.description;
 
-    if (!m_wallet->set_address_book_row(req.index, entry.m_address, entry.m_payment_id, entry.m_description, entry.m_is_subaddress))
+    if (!m_wallet->set_address_book_row(req.index, entry.m_address, req.set_address && entry.m_has_payment_id ? &entry.m_payment_id : NULL, entry.m_description, entry.m_is_subaddress))
     {
       er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
       er.message = "Failed to edit address book entry";
@@ -4316,6 +4281,25 @@ namespace tools
 
     mlog_set_log(req.categories.c_str());
     res.categories = mlog_get_categories();
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  bool wallet_rpc_server::on_estimate_tx_size_and_weight(const wallet_rpc::COMMAND_RPC_ESTIMATE_TX_SIZE_AND_WEIGHT::request& req, wallet_rpc::COMMAND_RPC_ESTIMATE_TX_SIZE_AND_WEIGHT::response& res, epee::json_rpc::error& er, const connection_context *ctx)
+  {
+    if (!m_wallet) return not_open(er);
+    try
+    {
+      size_t extra_size = 34 /* pubkey */ + 10 /* encrypted payment id */; // typical makeup
+      const std::pair<size_t, uint64_t> sw = m_wallet->estimate_tx_size_and_weight(req.rct, req.n_inputs, req.ring_size, req.n_outputs, extra_size);
+      res.size = sw.first;
+      res.weight = sw.second;
+    }
+    catch (const std::exception &e)
+    {
+      er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
+      er.message = "Failed to determine size and weight";
+      return false;
+    }
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------

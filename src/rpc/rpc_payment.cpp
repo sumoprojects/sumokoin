@@ -60,6 +60,10 @@
 namespace cryptonote
 {
   rpc_payment::client_info::client_info():
+    previous_seed_height(0),
+    seed_height(0),
+    previous_seed_hash(crypto::null_hash),
+    seed_hash(crypto::null_hash),
     cookie(0),
     top(crypto::null_hash),
     previous_top(crypto::null_hash),
@@ -230,27 +234,19 @@ namespace cryptonote
 
     block = is_current ? info.block : info.previous_block;
     *(uint32_t*)(hashing_blob.data() + 39) = SWAP32LE(nonce);
-    // TODO: comment out when RandomX merged
-    //if (block.major_version >= RX_BLOCK_VERSION)
-    //{
-    //  const uint64_t seed_height = is_current ? info.seed_height : info.previous_seed_height;
-    //  const crypto::hash &seed_hash = is_current ? info.seed_hash : info.previous_seed_hash;
-    //  const uint64_t height = cryptonote::get_block_height(block);
-    //  crypto::rx_slow_hash(height, seed_height, seed_hash.data, hashing_blob.data(), hashing_blob.size(), hash.data, 0, 0);
-    //}
-    //else
-    //{
+    
     crypto::cn_slow_hash_type cn_type = crypto::cn_slow_hash_type::cn_original;
-      if (hashing_blob[0] == CRYPTONOTE_HEAVY_BLOCK_VERSION)
-      {
-        cn_type = crypto::cn_slow_hash_type::cn_heavy;
-      }
-      else if (hashing_blob[0] >= HF_VERSION_BP){
-        cn_type = crypto::cn_slow_hash_type::cn_r;
-      }
-      const int cn_variant = hashing_blob[0] >= HF_VERSION_BP ? hashing_blob[0] - 3 : 0;
-      crypto::cn_slow_hash(hashing_blob.data(), hashing_blob.size(), hash, cn_variant, cryptonote::get_block_height(block), cn_type);
-    //}
+    const uint8_t major_version = hashing_blob[0];
+    if (major_version == CRYPTONOTE_HEAVY_BLOCK_VERSION)
+    {
+      cn_type = crypto::cn_slow_hash_type::cn_heavy;
+    }
+    else if (major_version >= HF_VERSION_BP){
+      cn_type = crypto::cn_slow_hash_type::cn_r;
+    }
+    const int cn_variant = major_version >= HF_VERSION_BP ? major_version - 3 : 0;
+    crypto::cn_slow_hash(hashing_blob.data(), hashing_blob.size(), hash, cn_variant, cryptonote::get_block_height(block), cn_type);
+   
     if (!check_hash(hash, m_diff))
     {
       MWARNING("Payment too low");

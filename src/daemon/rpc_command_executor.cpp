@@ -39,6 +39,7 @@
 #include "cryptonote_basic/hardfork.h"
 #include "version.h"
 #include "rpc/rpc_payment_signature.h"
+#include "rpc/rpc_version_str.h"
 #include <boost/format.hpp>
 #include <ctime>
 #include <string>
@@ -381,7 +382,7 @@ static void get_metric_prefix(cryptonote::difficulty_type hr, double& hr_d, char
     prefix = 0;
     return;
   }
-  static const char metric_prefixes[4] = { 'k', 'M', 'G', 'T' };
+  static const char metric_prefixes[] = { 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y' };
   for (size_t i = 0; i < sizeof(metric_prefixes); ++i)
   {
     if (hr < 1000000)
@@ -499,7 +500,7 @@ bool t_rpc_command_executor::show_status() {
   std::string bootstrap_msg;
   if (ires.was_bootstrap_ever_used)
   {
-    bootstrap_msg = ", bootstrapping from " + ires.bootstrap_daemon_address;
+    bootstrap_msg = "bootstrapping from " + ires.bootstrap_daemon_address;
     if (ires.untrusted)
     {
       bootstrap_msg += (boost::format(", local height: %llu (%.1f%%)") % ires.height_without_bootstrap % get_sync_percentage(ires.height_without_bootstrap, net_height)).str();
@@ -682,7 +683,7 @@ bool t_rpc_command_executor::print_connections() {
      << std::setw(30) << std::left << address
      << std::setw(6) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
      << std::setw(4) << (info.ssl ? "yes" : "no")
-     << std::setw(18) << epee::string_tools::pad_string(info.peer_id, 16, '0', true)
+     << std::setw(18) << info.peer_id
      << std::setw(6) << info.support_flags
      << std::setw(30) << std::to_string(info.recv_count) + "("  + std::to_string(info.recv_idle_time) + ")/" + std::to_string(info.send_count) + "(" + std::to_string(info.send_idle_time) + ")"
      << std::setw(18) << info.state
@@ -1866,7 +1867,7 @@ bool t_rpc_command_executor::print_coinbase_tx_sum(uint64_t height, uint64_t cou
   }
 
   tools::msg_writer() << "Sum of coinbase transactions between block heights ["
-    << height << ", " << (height + count) << ") is "
+    << height << ", " << (height + count) << "] is "
     << cryptonote::print_money(res.emission_amount + res.fee_amount) << " "
     << "consisting of " << cryptonote::print_money(res.emission_amount) 
     << " in emissions, and " << cryptonote::print_money(res.fee_amount) << " in fees";
@@ -2233,7 +2234,7 @@ bool t_rpc_command_executor::sync_info()
       for (const auto &s: res.spans)
         if (s.connection_id == p.info.connection_id)
           nblocks += s.nblocks, size += s.size;
-      tools::success_msg_writer() << address << "  " << epee::string_tools::pad_string(p.info.peer_id, 16, '0', true) << "  " <<
+      tools::success_msg_writer() << address << "  " << p.info.peer_id << "  " <<
           epee::string_tools::pad_string(p.info.state, 16) << "  " <<
           epee::string_tools::pad_string(epee::string_tools::to_string_hex(p.info.pruning_seed), 8) << "  " << p.info.height << "  "  <<
           p.info.current_download << " kB/s, " << nblocks << " blocks / " << size/1e6 << " MB queued";

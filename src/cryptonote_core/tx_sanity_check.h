@@ -32,5 +32,5 @@ namespace cryptonote
 {
   class Blockchain;
 
-  bool tx_sanity_check(Blockchain &blockchain, const cryptonote::blobdata &tx_blob);
+  bool tx_sanity_check(Blockchain &blockchain, const cryptonote::blobdata &tx_blob, const network_type nettype);
 }

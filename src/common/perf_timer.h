@@ -40,15 +40,10 @@ class PerformanceTimer;
 
 extern el::Level performance_timer_log_level;
 
-uint64_t get_tick_count();
-uint64_t get_ticks_per_ns();
-uint64_t ticks_to_ns(uint64_t ticks);
-
 class PerformanceTimer
 {
 public:
   PerformanceTimer(bool paused = false);
-  ~PerformanceTimer();
   void pause();
   void resume();
   void reset();
@@ -84,7 +79,7 @@ void set_performance_timer_log_level(el::Level level);
 #define PERF_TIMER_START_UNIT(name, unit) std::unique_ptr<tools::LoggingPerformanceTimer> PERF_TIMER_NAME(name)(new tools::LoggingPerformanceTimer(#name, "perf." MONERO_DEFAULT_LOG_CATEGORY, unit, el::Level::Info))
 #define PERF_TIMER_START(name) PERF_TIMER_START_UNIT(name, 1000000)
 #define PERF_TIMER_STOP(name) do { PERF_TIMER_NAME(name).reset(NULL); } while(0)
-#define PERF_TIMER_PAUSE(name) PERF_TIMER_NAME(name)->pause()
-#define PERF_TIMER_RESUME(name) PERF_TIMER_NAME(name)->resume()
+#define PERF_TIMER_PAUSE(name) PERF_TIMER_NAME(name).pause()
+#define PERF_TIMER_RESUME(name) PERF_TIMER_NAME(name).resume()
 
 }

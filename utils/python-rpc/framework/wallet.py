@@ -237,12 +237,13 @@ class Wallet(object):
         }
         return self.rpc.send_json_rpc_request(create_account)
 
-    def create_address(self, account_index = 0, label = ""):
+    def create_address(self, account_index = 0, label = "", count = 1):
         create_address = {
             'method': 'create_address',
             'params' : {
                 'account_index': account_index,
-                'label': label
+                'label': label,
+                'count': count
             },
             'jsonrpc': '2.0', 
             'id': '0'
@@ -838,11 +839,12 @@ class Wallet(object):
         }
         return self.rpc.send_json_rpc_request(validate_address)
 
-    def get_accounts(self, tag):
+    def get_accounts(self, tag, strict_balances = False):
         get_accounts = {
             'method': 'get_accounts',
             'params': {
                 'tag': tag,
+                'strict_balances': strict_balances,
             },
             'jsonrpc': '2.0',
             'id': '0'
@@ -1061,6 +1063,20 @@ class Wallet(object):
             'id': '0'
         }
         return self.rpc.send_json_rpc_request(stop_mining)
+
+    def estimate_tx_size_and_weight(self, n_inputs, n_outputs, ring_size = 0, rct = True):
+        estimate_tx_size_and_weight = {
+            'method': 'estimate_tx_size_and_weight',
+            'jsonrpc': '2.0',
+            'params': {
+                'n_inputs': n_inputs,
+                'n_outputs': n_outputs,
+                'ring_size': ring_size,
+                'rct': rct,
+            },
+            'id': '0'
+        }
+        return self.rpc.send_json_rpc_request(estimate_tx_size_and_weight)
 
     def get_version(self):
         get_version = {

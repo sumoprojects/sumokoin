@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2018, Sumokoin Project
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2017-2019, Sumokoin Project
+// Copyright (c) 2014-2019, The Monero Project
 //
 // All rights reserved.
 //
@@ -188,8 +188,10 @@ namespace cryptonote
     ADD_CHECKPOINT(274000, "49d2579161c277b9d9fe6baba5aabcef1534e9abef93eaa7f17cc8fe229454b0"); // v7 fork
     ADD_CHECKPOINT(274360, "66c129116187f36980a97333f1c7cf99c21629cc52bc6d591126d3a8fe36b90a"); // v8 fork
     ADD_CHECKPOINT(300000, "b09b147b23148d2995ff860d9ede9d8d38757c934b6de7945d397fc4e1ab2501");
-    ADD_CHECKPOINT(320000, "3305f11f07669f156bbe9f9b07523d7b5a6f4c430475ae61c379c1e31984c1fb");  
-
+    ADD_CHECKPOINT(320000, "3305f11f07669f156bbe9f9b07523d7b5a6f4c430475ae61c379c1e31984c1fb");
+    ADD_CHECKPOINT(345000, "d67de29cf089207413686ceb385dbafcc9f7c12690e4a5d4ee9b42c274d2d4b3");
+    ADD_CHECKPOINT(350000, "d3675de05fed5f6633288adb07ac4982b4c891be6347d9f6edfac9b21dbbd721"); // v9 fork
+	  
     return true;
   }
 

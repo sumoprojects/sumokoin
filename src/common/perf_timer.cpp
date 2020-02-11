@@ -42,51 +42,6 @@
 
 namespace tools
 {
-  uint64_t get_tick_count()
-  {
-#if defined(__x86_64__)
-    uint32_t hi, lo;
-    __asm__ volatile("rdtsc" : "=a"(lo), "=d"(hi));
-    return (((uint64_t)hi) << 32) | (uint64_t)lo;
-#else
-    return epee::misc_utils::get_ns_count();
-#endif
-  }
-
-#ifdef __x86_64__
-  uint64_t get_ticks_per_ns()
-  {
-    uint64_t t0 = epee::misc_utils::get_ns_count(), t1;
-    uint64_t r0 = get_tick_count();
-
-    while (1)
-    {
-      t1 = epee::misc_utils::get_ns_count();
-      if (t1 - t0 > 1*1000000000) break; // work one second
-    }
-
-    uint64_t r1 = get_tick_count();
-    uint64_t tpns256 = 256 * (r1 - r0) / (t1 - t0);
-    return tpns256 ? tpns256 : 1;
-  }
-#endif
-
-#ifdef __x86_64__
-  uint64_t ticks_per_ns = get_ticks_per_ns();
-#endif
-
-  uint64_t ticks_to_ns(uint64_t ticks)
-  {
-#if defined(__x86_64__)
-    return 256 * ticks / ticks_per_ns;
-#else
-    return ticks;
-#endif
-  }
-}
-
-namespace tools
-{
 
 el::Level performance_timer_log_level = el::Level::Info;
 
@@ -108,7 +63,7 @@ PerformanceTimer::PerformanceTimer(bool paused): started(true), paused(paused)
   if (paused)
     ticks = 0;
   else
-    ticks = get_tick_count();
+    ticks = epee::misc_utils::get_ns_count();
 }
 
 LoggingPerformanceTimer::LoggingPerformanceTimer(const std::string &s, const std::string &cat, uint64_t unit, el::Level l): PerformanceTimer(), name(s), cat(cat), unit(unit), level(l)
@@ -137,12 +92,6 @@ LoggingPerformanceTimer::LoggingPerformanceTimer(const std::string &s, const std
   performance_timers->push_back(this);
 }
 
-PerformanceTimer::~PerformanceTimer()
-{
-  if (!paused)
-    ticks = get_tick_count() - ticks;
-}
-
 LoggingPerformanceTimer::~LoggingPerformanceTimer()
 {
   pause();
@@ -151,7 +100,7 @@ LoggingPerformanceTimer::~LoggingPerformanceTimer()
   if (log)
   {
     char s[12];
-    snprintf(s, sizeof(s), "%8llu  ", (unsigned long long)(ticks_to_ns(ticks) / (1000000000 / unit)));
+    snprintf(s, sizeof(s), "%8llu  ", (unsigned long long)(ticks / (1000000000 / unit)));
     size_t size = 0; for (const auto *tmp: *performance_timers) if (!tmp->paused || tmp==this) ++size;
     PERF_LOG_ALWAYS(level, cat.c_str(), "PERF " << s << std::string(size * 2, ' ') << "  " << name);
   }
@@ -166,7 +115,7 @@ void PerformanceTimer::pause()
 {
   if (paused)
     return;
-  ticks = get_tick_count() - ticks;
+  ticks = epee::misc_utils::get_ns_count() - ticks;
   paused = true;
 }
 
@@ -174,7 +123,7 @@ void PerformanceTimer::resume()
 {
   if (!paused)
     return;
-  ticks = get_tick_count() - ticks;
+  ticks = epee::misc_utils::get_ns_count() - ticks;
   paused = false;
 }
 
@@ -183,15 +132,15 @@ void PerformanceTimer::reset()
   if (paused)
     ticks = 0;
   else
-    ticks = get_tick_count();
+    ticks = epee::misc_utils::get_ns_count();
 }
 
 uint64_t PerformanceTimer::value() const
 {
   uint64_t v = ticks;
   if (!paused)
-    v = get_tick_count() - v;
-  return ticks_to_ns(v);
+    v = epee::misc_utils::get_ns_count() - v;
+  return v;
 }
 
 }

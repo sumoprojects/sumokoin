@@ -29,6 +29,7 @@
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include <boost/preprocessor/stringize.hpp>
+#include <boost/uuid/nil_generator.hpp>
 #include "include_base_utils.h"
 #include "string_tools.h"
 using namespace epee;
@@ -86,10 +87,14 @@ namespace
     RPCTracker(const char *rpc, tools::LoggingPerformanceTimer &timer): rpc(rpc), timer(timer) {
     }
     ~RPCTracker() {
-      boost::unique_lock<boost::mutex> lock(mutex);
-      auto &e = tracker[rpc];
-      ++e.count;
-      e.time += timer.value();
+      try
+      {
+        boost::unique_lock<boost::mutex> lock(mutex);
+        auto &e = tracker[rpc];
+        ++e.count;
+        e.time += timer.value();
+      }
+      catch (...) { /* ignore */ }
     }
     void pay(uint64_t amount) {
       boost::unique_lock<boost::mutex> lock(mutex);
@@ -458,7 +463,7 @@ namespace cryptonote
     if (restricted)
       res.database_size = round_up(res.database_size, 5ull* 1024 * 1024 * 1024);
     res.update_available = restricted ? false : m_core.is_update_available();
-    res.version = restricted ? "" : SUMOKOIN_VERSION;
+    res.version = restricted ? "" : SUMOKOIN_VERSION_FULL;
 
     res.status = CORE_RPC_STATUS_OK;
     return true;
@@ -953,18 +958,21 @@ namespace cryptonote
         {
           e.double_spend_seen = it->second.double_spend_seen;
           e.relayed = it->second.relayed;
+          e.received_timestamp = it->second.receive_time;
         }
         else
         {
           MERROR("Failed to determine pool info for " << tx_hash);
           e.double_spend_seen = false;
           e.relayed = false;
+          e.received_timestamp = 0;
         }
       }
       else
       {
         e.block_height = m_core.get_blockchain_storage().get_db().get_tx_block_height(tx_hash);
         e.block_timestamp = m_core.get_blockchain_storage().get_db().get_block_timestamp(e.block_height);
+        e.received_timestamp = 0;
         e.double_spend_seen = false;
         e.relayed = false;
       }
@@ -987,6 +995,189 @@ namespace cryptonote
     }
 
     for(const auto& miss_tx: missed_txs)
+    {
+      res.missed_tx.push_back(string_tools::pod_to_hex(miss_tx));
+    }
+
+    LOG_PRINT_L2(res.txs.size() << " transactions found, " << res.missed_tx.size() << " not found");
+    res.status = CORE_RPC_STATUS_OK;
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  // Portions Copyright (c) 2018, The Masari Project
+  bool core_rpc_server::on_get_transactions_by_heights(const COMMAND_RPC_GET_TRANSACTIONS_BY_HEIGHTS::request& req, COMMAND_RPC_GET_TRANSACTIONS_BY_HEIGHTS::response& res, const connection_context *ctx)
+  {
+    RPC_TRACKER(on_get_transactions_by_heights);
+    bool ok;
+    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_GET_TRANSACTIONS_BY_HEIGHTS>(invoke_http_mode::JON, "/gettransactions_by_heights", req, res, ok))
+      return ok;
+
+    std::vector<crypto::hash> vh;
+
+    if (req.range)
+    {
+      if (req.heights.size() != 2)
+      {
+        res.status = "Range set true but heights size != 2";
+        return true;
+      }
+
+      for (size_t i = 0; i < (req.heights[1] - req.heights[0]) + 1; i++)
+      {
+        block blk;
+        bool orphan = false;
+        crypto::hash block_hash = m_core.get_block_id_by_height(req.heights[0] + i);
+        bool have_block = m_core.get_block_by_hash(block_hash, blk, &orphan);
+
+        for (auto& btxs : blk.tx_hashes)
+          vh.push_back(btxs);
+
+        if (req.include_miner_txs)
+          vh.push_back(get_transaction_hash(blk.miner_tx));
+      }
+    }
+    else
+    {
+      for (size_t i = 0; i < req.heights.size(); i++)
+      {
+        block blk;
+        bool orphan = false;
+        crypto::hash block_hash = m_core.get_block_id_by_height(req.heights[i]);
+        bool have_block = m_core.get_block_by_hash(block_hash, blk, &orphan);
+
+        for (auto& btxs : blk.tx_hashes)
+          vh.push_back(btxs);
+
+        if (req.include_miner_txs)
+          vh.push_back(get_transaction_hash(blk.miner_tx));
+      }
+    }
+
+    std::vector<crypto::hash> missed_txs;
+    std::vector<transaction> txs;
+    bool r = m_core.get_transactions(vh, txs, missed_txs);
+
+    std::list<std::string> tx_hashes;
+    for (auto& tx : txs)
+      tx_hashes.push_back(string_tools::pod_to_hex(get_transaction_hash(tx)));
+
+    if (!r)
+    {
+      res.status = "Failed";
+      return true;
+    }
+    LOG_PRINT_L2("Found " << txs.size() << "/" << vh.size() << " transactions on the blockchain");
+
+    // try the pool for any missing txes
+    size_t found_in_pool = 0;
+    std::unordered_set<crypto::hash> pool_tx_hashes;
+    std::unordered_map<crypto::hash, bool> double_spend_seen;
+    if (!missed_txs.empty())
+    {
+      std::vector<tx_info> pool_tx_info;
+      std::vector<spent_key_image_info> pool_key_image_info;
+      bool r = m_core.get_pool_transactions_and_spent_keys_info(pool_tx_info, pool_key_image_info);
+      if (r)
+      {
+        // sort to match original request
+        std::vector<transaction> sorted_txs;
+        std::vector<tx_info>::const_iterator i;
+        for (const crypto::hash &h : vh)
+        {
+          if (std::find(missed_txs.begin(), missed_txs.end(), h) == missed_txs.end())
+          {
+            if (txs.empty())
+            {
+              res.status = "Failed: internal error - txs is empty";
+              return true;
+            }
+            // core returns the ones it finds in the right order
+            if (get_transaction_hash(txs.front()) != h)
+            {
+              res.status = "Failed: tx hash mismatch";
+              return true;
+            }
+            sorted_txs.push_back(std::move(txs.front()));
+            txs.erase(txs.begin());
+          }
+          else if ((i = std::find_if(pool_tx_info.begin(), pool_tx_info.end(), [h](const tx_info &txi) { return epee::string_tools::pod_to_hex(h) == txi.id_hash; })) != pool_tx_info.end())
+          {
+            cryptonote::transaction tx;
+            if (!cryptonote::parse_and_validate_tx_from_blob(i->tx_blob, tx))
+            {
+              res.status = "Failed to parse and validate tx from blob";
+              return true;
+            }
+            sorted_txs.push_back(tx);
+            missed_txs.erase(std::remove(missed_txs.begin(), missed_txs.end(), h), missed_txs.end());
+            pool_tx_hashes.insert(h);
+            const std::string hash_string = epee::string_tools::pod_to_hex(h);
+            for (const auto &ti : pool_tx_info)
+            {
+              if (ti.id_hash == hash_string)
+              {
+                double_spend_seen.insert(std::make_pair(h, ti.double_spend_seen));
+                break;
+              }
+            }
+            ++found_in_pool;
+          }
+        }
+        txs = sorted_txs;
+      }
+      LOG_PRINT_L2("Found " << found_in_pool << "/" << vh.size() << " transactions in the pool");
+    }
+
+    std::list<std::string>::const_iterator txhi = tx_hashes.begin();
+    std::vector<crypto::hash>::const_iterator vhi = vh.begin();
+    for (auto& tx : txs)
+    {
+      res.txs.push_back(COMMAND_RPC_GET_TRANSACTIONS_BY_HEIGHTS::entry());
+      COMMAND_RPC_GET_TRANSACTIONS_BY_HEIGHTS::entry &e = res.txs.back();
+
+      pruned_transaction pruned_tx{ tx };
+      crypto::hash tx_hash = *vhi++;
+      e.tx_hash = *txhi++;
+      blobdata blob = req.prune ? t_serializable_object_to_blob(pruned_tx) : t_serializable_object_to_blob(tx);
+      e.as_hex = string_tools::buff_to_hex_nodelimer(blob);
+      if (req.decode_as_json)
+        e.as_json = req.prune ? obj_to_json_str(pruned_tx) : obj_to_json_str(tx);
+
+      bool in_pool = pool_tx_hashes.find(tx_hash) != pool_tx_hashes.end();
+      e.in_pool = in_pool;
+      if (e.in_pool)
+      {
+        e.block_height = e.block_timestamp = std::numeric_limits<uint64_t>::max();
+        if (double_spend_seen.find(tx_hash) != double_spend_seen.end())
+        {
+          e.double_spend_seen = double_spend_seen[tx_hash];
+        }
+        else
+        {
+          MERROR("Failed to determine double spend status for " << tx_hash);
+          e.double_spend_seen = false;
+        }
+      }
+      else
+      {
+        e.block_height = m_core.get_blockchain_storage().get_db().get_tx_block_height(tx_hash);
+        e.block_timestamp = m_core.get_blockchain_storage().get_db().get_block_timestamp(e.block_height);
+        e.double_spend_seen = false;
+      }
+
+      // output indices too if not in pool
+      if (!in_pool)
+      {
+        bool r = m_core.get_tx_outputs_gindexs(tx_hash, e.output_indices);
+        if (!r)
+        {
+          res.status = "Failed";
+          return false;
+        }
+      }
+    }
+
+    for (const auto& miss_tx : missed_txs)
     {
       res.missed_tx.push_back(string_tools::pod_to_hex(miss_tx));
     }
@@ -1086,7 +1277,7 @@ namespace cryptonote
       return true;
     }
 
-    if (req.do_sanity_checks && !cryptonote::tx_sanity_check(m_core.get_blockchain_storage(), tx_blob))
+    if (req.do_sanity_checks && !cryptonote::tx_sanity_check(m_core.get_blockchain_storage(), tx_blob, nettype()))
     {
       res.status = "Failed";
       res.reason = "Sanity check failed";
@@ -1095,9 +1286,8 @@ namespace cryptonote
     }
     res.sanity_check_failed = false;
 
-    cryptonote_connection_context fake_context = AUTO_VAL_INIT(fake_context);
-    tx_verification_context tvc = AUTO_VAL_INIT(tvc);
-    if(!m_core.handle_incoming_tx({tx_blob, crypto::null_hash}, tvc, false, false, req.do_not_relay) || tvc.m_verifivation_failed)
+    tx_verification_context tvc{};
+    if(!m_core.handle_incoming_tx({tx_blob, crypto::null_hash}, tvc, (req.do_not_relay ? relay_method::none : relay_method::local), false) || tvc.m_verifivation_failed)
     {
       res.status = "Failed";
       std::string reason = "";
@@ -1142,7 +1332,7 @@ namespace cryptonote
 
     NOTIFY_NEW_TRANSACTIONS::request r;
     r.txs.push_back(tx_blob);
-    m_core.get_protocol()->relay_transactions(r, fake_context);
+    m_core.get_protocol()->relay_transactions(r, boost::uuids::nil_uuid(), epee::net_utils::zone::invalid);
     //TODO: make sure that tx has reached other nodes here, probably wait to receive reflections from other nodes
     res.status = CORE_RPC_STATUS_OK;
     return true;
@@ -1244,7 +1434,7 @@ namespace cryptonote
       case 0: res.pow_algorithm = "Cryptonight"; break;
       case 1: res.pow_algorithm = "CNv1 (Cryptonight variant 1)"; break;
       case 2: case 3: res.pow_algorithm = "CNv2 (Cryptonight variant 2)"; break;
-      case 4: case 5: res.pow_algorithm = "CNv4 (Cryptonight variant 4)"; break;
+      case 4: case 5: case 6: res.pow_algorithm = "CNv4 (Cryptonight variant 4)"; break;
       default: res.pow_algorithm = "I'm not sure actually"; break;
     }
     if (res.is_background_mining_enabled)
@@ -1594,18 +1784,6 @@ namespace cryptonote
       return false;
     }
 
-    // TODO: comment out when RandomX merged
-    //if (b.major_version >= RX_BLOCK_VERSION)
-    //{
-    //  uint64_t next_height;
-    //  crypto::rx_seedheights(height, &seed_height, &next_height);
-    //  seed_hash = m_core.get_block_id_by_height(seed_height);
-    //  if (next_height != seed_height)
-    //    next_seed_hash = m_core.get_block_id_by_height(next_height);
-    //  else
-    //    next_seed_hash = seed_hash;
-    //}
-
     if (extra_nonce.empty())
     {
       reserved_offset = 0;
@@ -1710,13 +1888,6 @@ namespace cryptonote
     crypto::hash seed_hash, next_seed_hash;
     if (!get_block_template(info.address, req.prev_block.empty() ? NULL : &prev_block, blob_reserve, reserved_offset, wdiff, res.height, res.expected_reward, b, res.seed_height, seed_hash, next_seed_hash, error_resp))
       return false;
-    // TODO: comment out when RandomX merged
-    //if (b.major_version >= RX_BLOCK_VERSION)
-    //{
-    //  res.seed_hash = string_tools::pod_to_hex(seed_hash);
-    //  if (seed_hash != next_seed_hash)
-    //    res.next_seed_hash = string_tools::pod_to_hex(next_seed_hash);
-    //}
 
     res.reserved_offset = reserved_offset;
     store_difficulty(wdiff, res.difficulty, res.wide_difficulty, res.difficulty_top64);
@@ -1834,7 +2005,9 @@ namespace cryptonote
         return false;
       }
       b.nonce = req.starting_nonce;
-      miner::find_nonce_for_given_block(b, template_res.difficulty, template_res.height);
+      miner::find_nonce_for_given_block([this](const cryptonote::block &b, uint64_t height, crypto::hash &hash) {
+        return cryptonote::get_block_longhash(b, hash, height);
+      }, b, template_res.difficulty, template_res.height);
 
       submit_req.front() = string_tools::buff_to_hex_nodelimer(block_to_blob(b));
       r = on_submitblock(submit_req, submit_res, error_resp, ctx);
@@ -1904,7 +2077,8 @@ namespace cryptonote
     }
 
     auto current_time = std::chrono::system_clock::now();
-    if (current_time - m_bootstrap_height_check_time > std::chrono::seconds(30))  // update every 30s
+    if (!m_p2p.get_payload_object().no_sync() &&
+        current_time - m_bootstrap_height_check_time > std::chrono::seconds(30))  // update every 30s
     {
       {
         boost::upgrade_to_unique_lock<boost::shared_mutex> lock(upgrade_lock);
@@ -1928,9 +2102,10 @@ namespace cryptonote
       uint64_t top_height = m_core.get_current_blockchain_height();
       m_should_use_bootstrap_daemon = top_height + 10 < *bootstrap_daemon_height;
       MINFO((m_should_use_bootstrap_daemon ? "Using" : "Not using") << " the bootstrap daemon (our height: " << top_height << ", bootstrap daemon's height: " << *bootstrap_daemon_height << ")");
+
+      if (!m_should_use_bootstrap_daemon)
+        return false;
     }
-    if (!m_should_use_bootstrap_daemon)
-      return false;
 
     if (mode == invoke_http_mode::JON)
     {
@@ -1955,7 +2130,11 @@ namespace cryptonote
       m_was_bootstrap_ever_used = true;
     }
 
-    r = r && res.status == CORE_RPC_STATUS_OK;
+    if (r && res.status != CORE_RPC_STATUS_PAYMENT_REQUIRED && res.status != CORE_RPC_STATUS_OK)
+    {
+      MINFO("Failing RPC " << command_name << " due to peer return status " << res.status);
+      r = false;
+    }
     res.untrusted = true;
     return true;
   }
@@ -2219,8 +2398,7 @@ namespace cryptonote
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::on_get_info_json(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RPC_GET_INFO::response& res, epee::json_rpc::error& error_resp, const connection_context *ctx)
   {
-    on_get_info(req, res, ctx);
-    if (res.status != CORE_RPC_STATUS_OK)
+    if (!on_get_info(req, res, ctx) || res.status != CORE_RPC_STATUS_OK)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
       error_resp.message = res.status;
@@ -2367,7 +2545,7 @@ namespace cryptonote
     if (req.txids.empty())
     {
       std::vector<transaction> pool_txs;
-      bool r = m_core.get_pool_transactions(pool_txs);
+      bool r = m_core.get_pool_transactions(pool_txs, true);
       if (!r)
       {
         res.status = "Failed to get txpool contents";
@@ -2614,6 +2792,7 @@ namespace cryptonote
   {
     RPC_TRACKER(update);
 
+    res.update = false;
     if (m_core.offline())
     {
       res.status = "Daemon is running offline";
@@ -2744,13 +2923,11 @@ namespace cryptonote
       crypto::hash txid = *reinterpret_cast<const crypto::hash*>(txid_data.data());
 
       cryptonote::blobdata txblob;
-      bool r = m_core.get_pool_transaction(txid, txblob);
-      if (r)
+      if (!m_core.get_pool_transaction(txid, txblob, relay_category::legacy))
       {
-        cryptonote_connection_context fake_context = AUTO_VAL_INIT(fake_context);
         NOTIFY_NEW_TRANSACTIONS::request r;
         r.txs.push_back(txblob);
-        m_core.get_protocol()->relay_transactions(r, fake_context);
+        m_core.get_protocol()->relay_transactions(r, boost::uuids::nil_uuid(), epee::net_utils::zone::invalid);
         //TODO: make sure that tx has reached other nodes here, probably wait to receive reflections from other nodes
       }
       else
@@ -2937,7 +3114,7 @@ namespace cryptonote
     RPC_TRACKER(rpc_access_info);
 
     bool r;
-    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_INFO>(invoke_http_mode::JON, "rpc_access_info", req, res, r))
+    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_INFO>(invoke_http_mode::JON_RPC, "rpc_access_info", req, res, r))
       return r;
 
     // if RPC payment is not enabled
@@ -2985,13 +3162,6 @@ namespace cryptonote
     }
     res.hashing_blob = epee::string_tools::buff_to_hex_nodelimer(hashing_blob);
     res.top_hash = epee::string_tools::pod_to_hex(top_hash);
-    // TODO: comment out when RandomX merged
-    //if (hashing_blob[0] >= RX_BLOCK_VERSION)
-    //{
-    //  res.seed_hash = string_tools::pod_to_hex(seed_hash);
-    //  if (seed_hash != next_seed_hash)
-    //    res.next_seed_hash = string_tools::pod_to_hex(next_seed_hash);
-    //}
 
     res.status = CORE_RPC_STATUS_OK;
     return true;
@@ -3000,9 +3170,8 @@ namespace cryptonote
   bool core_rpc_server::on_rpc_access_submit_nonce(const COMMAND_RPC_ACCESS_SUBMIT_NONCE::request& req, COMMAND_RPC_ACCESS_SUBMIT_NONCE::response& res, epee::json_rpc::error& error_resp, const connection_context *ctx)
   {
     RPC_TRACKER(rpc_access_submit_nonce);
-
     bool r;
-    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_SUBMIT_NONCE>(invoke_http_mode::JON, "rpc_access_submit_nonce", req, res, r))
+    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_SUBMIT_NONCE>(invoke_http_mode::JON_RPC, "rpc_access_submit_nonce", req, res, r))
       return r;
 
     // if RPC payment is not enabled
@@ -3061,7 +3230,7 @@ namespace cryptonote
     RPC_TRACKER(rpc_access_pay);
 
     bool r;
-    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_PAY>(invoke_http_mode::JON, "rpc_access_pay", req, res, r))
+    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_PAY>(invoke_http_mode::JON_RPC, "rpc_access_pay", req, res, r))
       return r;
 
     // if RPC payment is not enabled
@@ -3120,7 +3289,7 @@ namespace cryptonote
     RPC_TRACKER(rpc_access_data);
 
     bool r;
-    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_DATA>(invoke_http_mode::JON, "rpc_access_data", req, res, r))
+    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_DATA>(invoke_http_mode::JON_RPC, "rpc_access_data", req, res, r))
       return r;
 
     if (!m_rpc_payment)
@@ -3148,7 +3317,7 @@ namespace cryptonote
     RPC_TRACKER(rpc_access_account);
 
     bool r;
-    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_ACCOUNT>(invoke_http_mode::JON, "rpc_access_account", req, res, r))
+    if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_ACCESS_ACCOUNT>(invoke_http_mode::JON_RPC, "rpc_access_account", req, res, r))
       return r;
 
     if (!m_rpc_payment)

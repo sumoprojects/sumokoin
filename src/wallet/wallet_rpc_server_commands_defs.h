@@ -47,7 +47,7 @@
 // advance which version they will stop working with
 // Don't go over 32767 for any of these
 #define WALLET_RPC_VERSION_MAJOR 1
-#define WALLET_RPC_VERSION_MINOR 16
+#define WALLET_RPC_VERSION_MINOR 17
 #define MAKE_WALLET_RPC_VERSION(major,minor) (((major)<<16)|(minor))
 #define WALLET_RPC_VERSION MAKE_WALLET_RPC_VERSION(WALLET_RPC_VERSION_MAJOR, WALLET_RPC_VERSION_MINOR)
 namespace tools
@@ -182,11 +182,13 @@ namespace wallet_rpc
   {
     struct request_t
     {
-      uint32_t account_index;
+      uint32_t    account_index;
+      uint32_t    count;
       std::string label;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(account_index)
+        KV_SERIALIZE_OPT(count, 1U)
         KV_SERIALIZE(label)
       END_KV_SERIALIZE_MAP()
     };
@@ -194,12 +196,16 @@ namespace wallet_rpc
 
     struct response_t
     {
-      std::string   address;
-      uint32_t      address_index;
+      std::string              address;
+      uint32_t                 address_index;
+      std::vector<std::string> addresses;
+      std::vector<uint32_t>    address_indices;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(address)
         KV_SERIALIZE(address_index)
+        KV_SERIALIZE(addresses)
+        KV_SERIALIZE(address_indices)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;
@@ -1825,12 +1831,10 @@ namespace wallet_rpc
     struct request_t
     {
       std::string address;
-      std::string payment_id;
       std::string description;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(address)
-        KV_SERIALIZE(payment_id)
         KV_SERIALIZE(description)
       END_KV_SERIALIZE_MAP()
     };
@@ -1854,8 +1858,6 @@ namespace wallet_rpc
       uint64_t index;
       bool set_address;
       std::string address;
-      bool set_payment_id;
-      std::string payment_id;
       bool set_description;
       std::string description;
 
@@ -1863,8 +1865,6 @@ namespace wallet_rpc
         KV_SERIALIZE(index)
         KV_SERIALIZE(set_address)
         KV_SERIALIZE(address)
-        KV_SERIALIZE(set_payment_id)
-        KV_SERIALIZE(payment_id)
         KV_SERIALIZE(set_description)
         KV_SERIALIZE(description)
       END_KV_SERIALIZE_MAP()
@@ -1895,13 +1895,11 @@ namespace wallet_rpc
     {
       uint64_t index;
       std::string address;
-      std::string payment_id;
       std::string description;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(index)
         KV_SERIALIZE(address)
-        KV_SERIALIZE(payment_id)
         KV_SERIALIZE(description)
       END_KV_SERIALIZE_MAP()
     };
@@ -2597,6 +2595,37 @@ namespace wallet_rpc
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(categories)
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<response_t> response;
+  };
+
+  struct COMMAND_RPC_ESTIMATE_TX_SIZE_AND_WEIGHT
+  {
+    struct request_t
+    {
+      uint32_t n_inputs;
+      uint32_t n_outputs;
+      uint32_t ring_size;
+      bool rct;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(n_inputs)
+        KV_SERIALIZE(n_outputs)
+        KV_SERIALIZE_OPT(ring_size, 0u)
+        KV_SERIALIZE_OPT(rct, true)
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<request_t> request;
+
+    struct response_t
+    {
+      uint64_t size;
+      uint64_t weight;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(size)
+        KV_SERIALIZE(weight)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;

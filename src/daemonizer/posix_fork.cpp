@@ -120,20 +120,25 @@ void fork(const std::string & pidfile)
   if (!tmpdir)
     tmpdir = TMPDIR;
   std::string output = tmpdir;
-  output += "/bitmonero.daemon.stdout.stderr";
+  output += "/sumokoin.daemon.stdout.stderr";
   const int flags = O_WRONLY | O_CREAT | O_APPEND;
   const mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
   if (open(output.c_str(), flags, mode) < 0)
   {
     quit("Unable to open output file: " + output);
   }
+#else
+  if (open("/dev/null", O_WRONLY) < 0)
+  {
+    quit("Unable to open /dev/null");
+  }
+#endif
 
   // Also send standard error to the same log file.
   if (dup(1) < 0)
   {
     quit("Unable to dup output descriptor");
   }
-#endif
 }
 
 } // namespace posix
