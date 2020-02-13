@@ -182,7 +182,7 @@ inline uint32_t rotr(uint32_t value, uint32_t amount)
 #else
 inline uint32_t rotr(uint32_t value, uint32_t amount)
 {
-	return _rotr(value, amount);
+	return rotr(value, amount);
 }
 #endif
 
