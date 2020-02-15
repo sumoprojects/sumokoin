@@ -8528,20 +8528,40 @@ bool simple_wallet::show_transfers(const std::vector<std::string> &args_)
       }
     }
 
-    auto formatter = boost::format("%8.8llu %6.6s %8.8s %25.25s %20.20s %s %s %14.14s %s %s - %s");
+    std::string fee = "-";
+    if (transfer.direction == "out")
+     {
+       fee = print_money(transfer.fee);
+     }
+    std::string lock_status = " ";
+    if (transfer.unlocked == "locked")
+     {
+       lock_status = "lock";
+     }
+
+    std::string payment_id;
+  
+    auto formatter = boost::format("%7.7llu %6.6s %20.20s %10.10s %s %-9.9s %s %s - %s %4.4s");
 
     message_writer(color, false) << formatter
       % transfer.block
       % transfer.direction
-      % transfer.unlocked
       % tools::get_human_readable_timestamp(transfer.timestamp)
       % print_money(transfer.amount)
       % string_tools::pod_to_hex(transfer.hash)
-      % transfer.payment_id
-      % print_money(transfer.fee)
+      % fee
       % destinations
       % boost::algorithm::join(transfer.index | boost::adaptors::transformed([](uint32_t i) { return std::to_string(i); }), ", ")
-      % transfer.note;
+      % transfer.note
+      % lock_status;
+    
+   if (!transfer.payment_id.empty() && transfer.payment_id != "0000000000000000")
+    {
+     payment_id = "payment id: "+transfer.payment_id;
+     auto formatter = boost::format("%s");
+     message_writer(color, false) << "                " << formatter
+       % payment_id;
+    }
   }
 
   return true;
