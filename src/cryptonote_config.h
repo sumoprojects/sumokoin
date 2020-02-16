@@ -46,10 +46,9 @@
 #define CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW            60
 #define CURRENT_BLOCK_MAJOR_VERSION                     1
 #define CURRENT_BLOCK_MINOR_VERSION                     0
-#define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
 
 #define CURRENT_TRANSACTION_VERSION                     2
-#define MIN_TRANSACTION_VERSION							            2
+#define MIN_TRANSACTION_VERSION			  2
 #define CRYPTONOTE_HEAVY_BLOCK_VERSION                  3
 #define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT              60*60*2
 #define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
