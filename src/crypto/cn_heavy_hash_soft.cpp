@@ -174,15 +174,16 @@ inline uint32_t sub_word(uint32_t key)
 		(saes_sbox[(key >> 8)  & 0xff] << 8  ) | saes_sbox[key & 0xff];
 }
 
-#if defined(__clang__) || defined(__arm__) || defined(__aarch64__)
+#if defined(_MSC_VER)
+#include <stdlib.h>
 inline uint32_t rotr(uint32_t value, uint32_t amount)
 {
-	return (value >> amount) | (value << ((32 - amount) & 31));
+  return _rotr(value, amount);
 }
 #else
 inline uint32_t rotr(uint32_t value, uint32_t amount)
 {
-	return _rotr(value, amount);
+  return (value >> amount) | (value << ((32 - amount) & 31));
 }
 #endif
 
