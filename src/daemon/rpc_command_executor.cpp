@@ -802,18 +802,19 @@ bool t_rpc_command_executor::print_connections() {
   tools::msg_writer() << std::setw(30) << std::left << "Remote Host" 
       << std::setw(6) << "Type" 
       << std::setw(4) << "SSL"
+      << std::setw(8) << "RPC"
+      << std::setw(8) << "Height" 
       << std::setw(18) << "Peer id" 
       << std::setw(6) << "Flags"      
-      << std::setw(25) << "Recv/Sent (inactive,sec)" 
-      << std::setw(12) << "State" 
-      << std::setw(12) << "Height" 
-      << std::setw(9) << "Alive(s)" 
-      << std::setw(18) << "Down(kB/s)/(now)" 
-      << std::setw(18) << "Up(kB/s)/(now)"
+      << std::setw(26) << "Recv/Sent (inactive,s)" 
+      << std::setw(18) << "State" 
+      << std::setw(22) << "Down |  Up (kB/s/now)"   
+      << std::setw(8) << "Alive(s)" 
       << std::endl;
 
   for (auto & info : res.connections)
   {
+    std::string rpc_port = info.rpc_port ? std::to_string(info.rpc_port) : "no";
     std::string address = info.incoming ? "INC " : "OUT ";
     address += info.ip + ":" + info.port;
     //std::string in_out = info.incoming ? "INC " : "OUT ";
@@ -822,14 +823,14 @@ bool t_rpc_command_executor::print_connections() {
      << std::setw(30) << std::left << address
      << std::setw(6) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
      << std::setw(4) << (info.ssl ? "yes" : "no")
+     << std::setw(8) << rpc_port
+     << std::setw(8) << info.height
      << std::setw(18) << info.peer_id
      << std::setw(6) << info.support_flags
-     << std::setw(25) << std::to_string(info.recv_count) + "("  + std::to_string(info.recv_idle_time) + ")/" + std::to_string(info.send_count) + "(" + std::to_string(info.send_idle_time) + ")"
-     << std::setw(12) << info.state
-     << std::setw(12) << info.height
-     << std::setw(9) << info.live_time
-     << std::setw(18) << std::to_string(info.avg_download) + "/" + std::to_string(info.current_download)
-     << std::setw(18) << std::to_string(info.avg_upload) + "/" + std::to_string(info.current_upload)
+     << std::setw(26) << std::to_string(info.recv_count) + "("  + std::to_string(info.recv_idle_time) + ")/" + std::to_string(info.send_count) + "(" + std::to_string(info.send_idle_time) + ")"
+     << std::setw(18) << info.state
+     << std::setw(22) << std::to_string(info.avg_download) + "/" + std::to_string(info.current_download) + "  |  "+ std::to_string(info.avg_upload) + "/" + std::to_string(info.current_upload)
+     << std::setw(8) << info.live_time
     
      << std::left << (info.localhost ? "[LOCALHOST]" : "")
      << std::left << (info.local_ip ? "[LAN]" : "");
