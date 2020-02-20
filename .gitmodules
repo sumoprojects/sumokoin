@@ -8,6 +8,3 @@
 [submodule "external/trezor-common"]
 	path = external/trezor-common
 	url = https://github.com/trezor/trezor-common.git
-[submodule "external/miniupnp"]
-	path = external/miniupnp
-	url = https://github.com/miniupnp/miniupnp
