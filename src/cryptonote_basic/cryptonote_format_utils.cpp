@@ -1282,19 +1282,6 @@ namespace cryptonote
   //---------------------------------------------------------------
   bool get_block_longhash(const block& b, crypto::hash& res, uint64_t height)
   {
-    block b_local = b; //workaround to avoid const errors with do_serialize
-    blobdata bd = get_block_hashing_blob(b);
-    crypto::cn_slow_hash_type cn_type = cn_slow_hash_type::cn_original;
-    if (b_local.major_version == CRYPTONOTE_HEAVY_BLOCK_VERSION)
-    {
-      cn_type = cn_slow_hash_type::cn_heavy;
-    }
-    else if (b_local.major_version >= HF_VERSION_BP){
-      cn_type = cn_slow_hash_type::cn_r;
-    }
-    
-    const int cn_variant = b_local.major_version >= HF_VERSION_BP ? b_local.major_version - 3 : 0;
-    crypto::cn_slow_hash(bd.data(), bd.size(), res, cn_variant, height, cn_type);
     return true;
   }
   //---------------------------------------------------------------
