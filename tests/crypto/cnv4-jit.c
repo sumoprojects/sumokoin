@@ -40,9 +40,9 @@ static int test(const uint8_t *data, size_t len, uint64_t height)
 {
   char hash0[32], hash1[32];
   use_v4_jit_flag = 0;
-  cn_slow_hash(data, len, hash0, 4, 0, height);
+  cn_monero_slow_hash(data, len, hash0, 4, 0, height);
   use_v4_jit_flag = 1;
-  cn_slow_hash(data, len, hash1, 4, 0, height);
+  cn_monero_slow_hash(data, len, hash1, 4, 0, height);
   return memcmp(hash0, hash1, 32);
 }
 

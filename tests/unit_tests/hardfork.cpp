@@ -38,7 +38,7 @@
 
 using namespace cryptonote;
 
-#define BLOCKS_PER_YEAR 525960
+#define BLOCKS_PER_YEAR 262980
 #define SECONDS_PER_YEAR 31557600
 
 namespace
@@ -209,6 +209,9 @@ TEST(get, next_version)
   }
 }
 
+/* 
+// Dont need this we dont apply the six months update fork rule
+
 TEST(states, Success)
 {
   TestDB db;
@@ -219,6 +222,7 @@ TEST(states, Success)
 
   ASSERT_TRUE(hf.get_state(0) == HardFork::Ready);
   ASSERT_TRUE(hf.get_state(SECONDS_PER_YEAR / 2) == HardFork::Ready);
+
   ASSERT_TRUE(hf.get_state(SECONDS_PER_YEAR + HardFork::DEFAULT_UPDATE_TIME / 2) == HardFork::Ready);
   ASSERT_TRUE(hf.get_state(SECONDS_PER_YEAR + (HardFork::DEFAULT_UPDATE_TIME + HardFork::DEFAULT_FORKED_TIME) / 2) == HardFork::UpdateNeeded);
   ASSERT_TRUE(hf.get_state(SECONDS_PER_YEAR + HardFork::DEFAULT_FORKED_TIME * 2) == HardFork::LikelyForked);
@@ -231,6 +235,7 @@ TEST(states, Success)
   ASSERT_TRUE(hf.get_state(SECONDS_PER_YEAR + (HardFork::DEFAULT_UPDATE_TIME + HardFork::DEFAULT_FORKED_TIME) / 2) == HardFork::Ready);
   ASSERT_TRUE(hf.get_state(SECONDS_PER_YEAR + HardFork::DEFAULT_FORKED_TIME * 2) == HardFork::Ready);
 }
+*/ 
 
 TEST(steps_asap, Success)
 {

@@ -12,14 +12,13 @@
 #include "cryptonote_core/cryptonote_tx_utils.h"
 #include "serialization/json_object.h"
 
-
 namespace
 {
     cryptonote::transaction
     make_miner_transaction(cryptonote::account_public_address const& to)
     {
         cryptonote::transaction tx{};
-        if (!cryptonote::construct_miner_tx(0, 0, 5000, 500, 500, to, tx))
+        if (!cryptonote::construct_miner_tx(cryptonote::network_type::MAINNET, 0, 0, 5000, 500, 500, to, tx))
             throw std::runtime_error{"transaction construction error"};
 
         crypto::hash id{0};
