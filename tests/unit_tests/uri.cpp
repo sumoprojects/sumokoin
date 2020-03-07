@@ -212,3 +212,4 @@ TEST(uri, url_encoded_once)
   PARSE_URI("monero:" TEST_ADDRESS"?tx_description=foo%2020", true);
   ASSERT_EQ(description, "foo 20");
 }
+
