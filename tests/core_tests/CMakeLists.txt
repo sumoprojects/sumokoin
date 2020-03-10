@@ -84,7 +84,7 @@ enable_stack_trace(core_tests)
 set_property(TARGET core_tests
   PROPERTY
     FOLDER "tests")
-
-add_test(
-  NAME    core_tests
-  COMMAND core_tests --generate_and_play_test_data)
+# Works for monero only
+# add_test(
+#  NAME    core_tests
+#  COMMAND core_tests --generate_and_play_test_data)

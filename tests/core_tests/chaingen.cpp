@@ -141,7 +141,7 @@ bool test_generator::construct_block(cryptonote::block& blk, uint64_t height, co
   size_t target_block_weight = txs_weight + get_transaction_weight(blk.miner_tx);
   while (true)
   {
-    if (!construct_miner_tx(height, misc_utils::median(block_weights), already_generated_coins, target_block_weight, total_fee, miner_acc.get_keys().m_account_address, blk.miner_tx, blobdata(), 10, hf_ver ? hf_ver.get() : 1))
+    if (!construct_miner_tx(cryptonote::network_type::MAINNET, height, misc_utils::median(block_weights), already_generated_coins, target_block_weight, total_fee, miner_acc.get_keys().m_account_address, blk.miner_tx, blobdata(), 10, hf_ver ? hf_ver.get() : CURRENT_BLOCK_MAJOR_VERSION))
       return false;
 
     size_t actual_block_weight = txs_weight + get_transaction_weight(blk.miner_tx);
@@ -247,7 +247,7 @@ bool test_generator::construct_block_manually(block& blk, const block& prev_bloc
   {
     size_t current_block_weight = txs_weight + get_transaction_weight(blk.miner_tx);
     // TODO: This will work, until size of constructed block is less then CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE
-    if (!construct_miner_tx(height, misc_utils::median(block_weights), already_generated_coins, current_block_weight, 0, miner_acc.get_keys().m_account_address, blk.miner_tx, blobdata(), max_outs, hf_version))
+    if (!construct_miner_tx(cryptonote::network_type::MAINNET, height, misc_utils::median(block_weights), already_generated_coins, current_block_weight, 0, miner_acc.get_keys().m_account_address, blk.miner_tx, blobdata(), max_outs, hf_version))
       return false;
   }
 
@@ -798,9 +798,8 @@ void fill_tx_sources_and_destinations(const std::vector<test_event_entry>& event
 
 void fill_nonce(cryptonote::block& blk, const difficulty_type& diffic, uint64_t height)
 {
-  blk.nonce = 0;
-  while (!miner::find_nonce_for_given_block(blk, diffic, height))
-    blk.timestamp++;
+  while (!miner::find_nonce_for_given_block(NULL, blk, diffic, height))
+  blk.timestamp++;
 }
 
 cryptonote::tx_destination_entry build_dst(const var_addr_t& to, bool is_subaddr, uint64_t amount)

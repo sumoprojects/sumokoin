@@ -37,9 +37,9 @@
 
 TEST(AddressFromTXT, Success)
 {
-  std::string addr = "46BeWrHpwXmHDpDEUmZBWZfoQpdc6HaERCNmx1pEYL2rAcuwufPN9rXHHtyUA4QVy66qeFQkn6sfK8aHYjA3jk3o1Bv16em";
+  std::string addr = "Sumoo64zh7dRFyB8dgDWZMLmzKBgGXYWZCG4NBF2VcvzEuiSQpMjyyiYJ1Ra696pZu56PPFQNBDdB1rZjyeX1RVKeWZgHg7pTxj";
 
-  std::string txtr = "oa1:xmr";
+  std::string txtr = "oa1:sumo";
   txtr += " recipient_address=";
   txtr += addr;
   txtr += ";";
@@ -58,7 +58,7 @@ TEST(AddressFromTXT, Success)
 
   EXPECT_STREQ(addr.c_str(), res.c_str());
 
-  std::string txtr3 = "foobar oa1:xmr tx_description=\"Donation for Monero Development Fund\"; ";
+  std::string txtr3 = "foobar oa1:sumo tx_description=\"Donation for Aumokoin Development Fund\"; ";
   txtr3 += "recipient_address=";
   txtr3 += addr;
   txtr3 += "; foobar";
@@ -82,13 +82,16 @@ TEST(AddressFromTXT, Failure)
   ASSERT_STREQ("", res.c_str());
 }
 
+/*
+// Our donation address doesnt correspond to a url or an email
+
 TEST(AddressFromURL, Success)
 {
-  const std::string addr = MONERO_DONATION_ADDR;
+  const std::string addr = SUMOKOIN_DONATION_ADDR;
   
   bool dnssec_result = false;
 
-  std::vector<std::string> addresses = tools::dns_utils::addresses_from_url("donate.getmonero.org", dnssec_result);
+  std::vector<std::string> addresses = tools::dns_utils::addresses_from_url("donate.sumokoin.org", dnssec_result);
 
   EXPECT_EQ(1, addresses.size());
   if (addresses.size() == 1)
@@ -97,13 +100,14 @@ TEST(AddressFromURL, Success)
   }
 
   // OpenAlias address with an @ instead of first .
-  addresses = tools::dns_utils::addresses_from_url("donate@getmonero.org", dnssec_result);
+  addresses = tools::dns_utils::addresses_from_url("donate@sumokoin.org", dnssec_result);
   EXPECT_EQ(1, addresses.size());
   if (addresses.size() == 1)
   {
     EXPECT_STREQ(addr.c_str(), addresses[0].c_str());
   }
 }
+*/
 
 TEST(AddressFromURL, Failure)
 {

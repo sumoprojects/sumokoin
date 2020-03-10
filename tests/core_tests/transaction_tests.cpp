@@ -59,17 +59,17 @@ bool test_transaction_generation_and_ring_signature()
   account_base rv_acc2;
   rv_acc2.generate();
   transaction tx_mine_1;
-  construct_miner_tx(0, 0, 0, 10, 0, miner_acc1.get_keys().m_account_address, tx_mine_1);
+  construct_miner_tx(MAINNET, 0, 0, 0, 10, 0, miner_acc1.get_keys().m_account_address, tx_mine_1);
   transaction tx_mine_2;
-  construct_miner_tx(0, 0, 0, 0, 0, miner_acc2.get_keys().m_account_address, tx_mine_2);
+  construct_miner_tx(MAINNET, 0, 0, 0, 0, 0, miner_acc2.get_keys().m_account_address, tx_mine_2);
   transaction tx_mine_3;
-  construct_miner_tx(0, 0, 0, 0, 0, miner_acc3.get_keys().m_account_address, tx_mine_3);
+  construct_miner_tx(MAINNET, 0, 0, 0, 0, 0, miner_acc3.get_keys().m_account_address, tx_mine_3);
   transaction tx_mine_4;
-  construct_miner_tx(0, 0, 0, 0, 0, miner_acc4.get_keys().m_account_address, tx_mine_4);
+  construct_miner_tx(MAINNET, 0, 0, 0, 0, 0, miner_acc4.get_keys().m_account_address, tx_mine_4);
   transaction tx_mine_5;
-  construct_miner_tx(0, 0, 0, 0, 0, miner_acc5.get_keys().m_account_address, tx_mine_5);
+  construct_miner_tx(MAINNET, 0, 0, 0, 0, 0, miner_acc5.get_keys().m_account_address, tx_mine_5);
   transaction tx_mine_6;
-  construct_miner_tx(0, 0, 0, 0, 0, miner_acc6.get_keys().m_account_address, tx_mine_6);
+  construct_miner_tx(MAINNET, 0, 0, 0, 0, 0, miner_acc6.get_keys().m_account_address, tx_mine_6);
 
   //fill inputs entry
   typedef tx_source_entry::output_entry tx_output_entry;
@@ -140,7 +140,7 @@ bool test_block_creation()
   bool r = get_account_address_from_str(info, MAINNET, "0099be99c70ef10fd534c43c88e9d13d1c8853213df7e362afbec0e4ee6fec4948d0c190b58f4b356cd7feaf8d9d0a76e7c7e5a9a0a497a6b1faf7a765882dd08ac2");
   CHECK_AND_ASSERT_MES(r, false, "failed to import");
   block b;
-  r = construct_miner_tx(90, epee::misc_utils::median(szs), 3553616528562147, 33094, 10000000, info.address, b.miner_tx, blobdata(), 11);
+  r = construct_miner_tx(MAINNET, 90, epee::misc_utils::median(szs), 3553616528562147, 33094, 10000000, info.address, b.miner_tx, blobdata(), 11);
   return r;
 }
 
