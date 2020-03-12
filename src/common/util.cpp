@@ -152,7 +152,7 @@ namespace tools
     if (!GetTokenInformation(process.get(), TokenOwner, sid.get(), sid_size, std::addressof(sid_size)))
       return {};
 
-    const PSID psid = reinterpret_cast<const PTOKEN_OWNER>(sid.get())->Owner;
+    const PSID psid = reinterpret_cast<PTOKEN_OWNER>(sid.get())->Owner;
     const DWORD daclSize =
       sizeof(ACL) + sizeof(ACCESS_ALLOWED_ACE) + GetLengthSid(psid) - sizeof(DWORD);
 
