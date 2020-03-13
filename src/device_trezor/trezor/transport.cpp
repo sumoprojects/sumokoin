@@ -144,9 +144,15 @@ namespace trezor{
 
 #define PROTO_HEADER_SIZE 6
 
+#if GOOGLE_PROTOBUF_VERSION >= 3010000
+  static size_t message_size(const google::protobuf::Message &req){
+    return static_cast<size_t>(req.ByteSizeLong());
+  }
+#else
   static size_t message_size(const google::protobuf::Message &req){
     return static_cast<size_t>(req.ByteSize());
   }
+#endif
 
   static size_t serialize_message_buffer_size(size_t msg_size) {
     return PROTO_HEADER_SIZE + msg_size;  // tag 2B + len 4B
