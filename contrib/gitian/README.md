@@ -181,7 +181,7 @@ If you chose to do detached signing using `--detach-sign` above (recommended), y
 
 ```bash
 GH_USER=quangvu
-VERSION=v0.6.0.1
+VERSION=v0.6.0.2
 
 gpg --detach-sign ${VERSION}-linux/${GH_USER}/sumokoin-linux-*-build.assert
 gpg --detach-sign ${VERSION}-win/${GH_USER}/sumokoin-win-*-build.assert
