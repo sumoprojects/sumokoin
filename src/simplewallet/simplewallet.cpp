@@ -98,7 +98,7 @@ typedef cryptonote::simple_wallet sw;
 
 #define MIN_RING_SIZE 49 // Used to inform user about min ring size -- does not track actual protocol
 
-#define OLD_AGE_WARN_THRESHOLD (30 * 86400 / DIFFICULTY_TARGET) // 30 days
+#define OLD_AGE_WARN_THRESHOLD (60 * 86400 / DIFFICULTY_TARGET) // number of blocks emitted in 60 days
 
 #define LOCK_IDLE_SCOPE() \
   bool auto_refresh_enabled = m_auto_refresh_enabled.load(std::memory_order_relaxed); \
