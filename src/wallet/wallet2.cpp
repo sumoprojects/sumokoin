@@ -110,10 +110,11 @@ using namespace cryptonote;
 #define SIGNED_TX_PREFIX "Sumokoin signed tx set\004"
 #define MULTISIG_UNSIGNED_TX_PREFIX "Sumokoin multisig unsigned tx set\001"
 
-#define RECENT_OUTPUT_RATIO (0.5) // 50% of outputs are from the recent zone
-#define RECENT_OUTPUT_DAYS (1.8) // last 1.8 day makes up the recent zone (taken from monerolink.pdf, Miller et al)
+#define GENERATE_RECENT_OUTPUT_RATIO (crypto::rand_range(2, 3)) // random percentage between 30% to 20% of outputs are from the recent zone
+#define RECENT_OUTPUT_RATIO (GENERATE_RECENT_OUTPUT_RATIO / 10)
+#define RECENT_OUTPUT_DAYS (crypto::rand_range(60, 100)) // random number beween last 60 to 100 days makes up the recent zone 
 #define RECENT_OUTPUT_ZONE ((time_t)(RECENT_OUTPUT_DAYS * 86400))
-#define RECENT_OUTPUT_BLOCKS (RECENT_OUTPUT_DAYS * 360)
+#define RECENT_OUTPUT_BLOCKS ((uint64_t)RECENT_OUTPUT_DAYS * 360) // unsigned cause its compared with SEGREGATION_FORK_HEIGHT which is also unsigned and throws a warning
 
 #define FEE_ESTIMATE_GRACE_BLOCKS 10 // estimate fee valid for that many blocks
 
