@@ -92,8 +92,7 @@ set(unit_tests_sources
   ringdb.cpp
   wipeable_string.cpp
   is_hdd.cpp
-  aligned.cpp
-  zmq_rpc.cpp)
+  aligned.cpp)
 
 set(unit_tests_headers
   unit_tests_utils.h)

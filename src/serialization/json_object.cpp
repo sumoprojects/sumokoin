@@ -201,7 +201,7 @@ void fromJsonValue(const rapidjson::Value& val, unsigned long long& i)
 
 void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const long long i)
 {
-  static_assert(std::numeric_limits<std::uint64_t>::min() <= std::numeric_limits<long long>::min(), "bad int64 conversion");
+  
   static_assert(std::numeric_limits<long long>::max() <= std::numeric_limits<std::uint64_t>::max(), "bad int64 conversion");
   dest.Int64(i);
 }
