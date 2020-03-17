@@ -3,6 +3,8 @@
 #include <boost/range/adaptor/indexed.hpp>
 #include <gtest/gtest.h>
 #include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 #include <vector>
 
 #include "crypto/hash.h"
@@ -12,13 +14,14 @@
 #include "cryptonote_core/cryptonote_tx_utils.h"
 #include "serialization/json_object.h"
 
+
 namespace
 {
     cryptonote::transaction
     make_miner_transaction(cryptonote::account_public_address const& to)
     {
         cryptonote::transaction tx{};
-        if (!cryptonote::construct_miner_tx(cryptonote::network_type::MAINNET, 0, 0, 5000, 500, 500, to, tx))
+        if (!cryptonote::construct_miner_tx(0, 0, 5000, 500, 500, to, tx))
             throw std::runtime_error{"transaction construction error"};
 
         crypto::hash id{0};
@@ -79,6 +82,27 @@ namespace
 
         return tx;
     }
+
+    template<typename T>
+    T test_json(const T& value)
+    {
+      rapidjson::StringBuffer buffer;
+      {
+        rapidjson::Writer<rapidjson::StringBuffer> dest{buffer};
+        cryptonote::json::toJsonValue(dest, value);
+      }
+
+      rapidjson::Document doc;
+      doc.Parse(buffer.GetString());
+      if (doc.HasParseError() || !doc.IsObject())
+      {
+        throw cryptonote::json::PARSE_FAIL();
+      }
+
+      T out{};
+      cryptonote::json::fromJsonValue(doc, out);
+      return out;
+    }
 } // anonymous
 
 TEST(JsonSerialization, MinerTransaction)
@@ -90,11 +114,7 @@ TEST(JsonSerialization, MinerTransaction)
     crypto::hash tx_hash{};
     ASSERT_TRUE(cryptonote::get_transaction_hash(miner_tx, tx_hash));
 
-    rapidjson::Document doc;
-    cryptonote::json::toJsonValue(doc, miner_tx, doc);
-
-    cryptonote::transaction miner_tx_copy;
-    cryptonote::json::fromJsonValue(doc, miner_tx_copy);
+    cryptonote::transaction miner_tx_copy = test_json(miner_tx);
 
     crypto::hash tx_copy_hash{};
     ASSERT_TRUE(cryptonote::get_transaction_hash(miner_tx_copy, tx_copy_hash));
@@ -125,11 +145,7 @@ TEST(JsonSerialization, RegularTransaction)
     crypto::hash tx_hash{};
     ASSERT_TRUE(cryptonote::get_transaction_hash(tx, tx_hash));
 
-    rapidjson::Document doc;
-    cryptonote::json::toJsonValue(doc, tx, doc);
-
-    cryptonote::transaction tx_copy;
-    cryptonote::json::fromJsonValue(doc, tx_copy);
+    cryptonote::transaction tx_copy = test_json(tx);
 
     crypto::hash tx_copy_hash{};
     ASSERT_TRUE(cryptonote::get_transaction_hash(tx_copy, tx_copy_hash));
@@ -160,11 +176,7 @@ TEST(JsonSerialization, RingctTransaction)
     crypto::hash tx_hash{};
     ASSERT_TRUE(cryptonote::get_transaction_hash(tx, tx_hash));
 
-    rapidjson::Document doc;
-    cryptonote::json::toJsonValue(doc, tx, doc);
-
-    cryptonote::transaction tx_copy;
-    cryptonote::json::fromJsonValue(doc, tx_copy);
+    cryptonote::transaction tx_copy = test_json(tx);
 
     crypto::hash tx_copy_hash{};
     ASSERT_TRUE(cryptonote::get_transaction_hash(tx_copy, tx_copy_hash));
@@ -195,11 +207,7 @@ TEST(JsonSerialization, BulletproofTransaction)
     crypto::hash tx_hash{};
     ASSERT_TRUE(cryptonote::get_transaction_hash(tx, tx_hash));
 
-    rapidjson::Document doc;
-    cryptonote::json::toJsonValue(doc, tx, doc);
-
-    cryptonote::transaction tx_copy;
-    cryptonote::json::fromJsonValue(doc, tx_copy);
+    cryptonote::transaction tx_copy = test_json(tx);
 
     crypto::hash tx_copy_hash{};
     ASSERT_TRUE(cryptonote::get_transaction_hash(tx_copy, tx_copy_hash));
