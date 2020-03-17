@@ -157,6 +157,7 @@ namespace cryptonote
     : m_core(cr)
     , m_p2p(p2p)
     , m_was_bootstrap_ever_used(false)
+    , disable_rpc_ban(false)
   {}
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::set_bootstrap_daemon(const std::string &address, const std::string &username_password)
@@ -236,6 +237,7 @@ namespace cryptonote
       const boost::program_options::variables_map& vm
       , const bool restricted
       , const std::string& port
+      , bool allow_rpc_payment
     )
   {
     m_restricted = restricted;
@@ -246,8 +248,9 @@ namespace cryptonote
     if (!rpc_config)
       return false;
 
+    disable_rpc_ban = rpc_config->disable_rpc_ban;
     std::string address = command_line::get_arg(vm, arg_rpc_payment_address);
-    if (!address.empty())
+    if (!address.empty() && allow_rpc_payment)
     {
       if (!m_restricted && nettype() != FAKECHAIN)
       {
@@ -358,7 +361,7 @@ namespace cryptonote
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::add_host_fail(const connection_context *ctx, unsigned int score)
   {
-    if(!ctx || !ctx->m_remote_address.is_blockable())
+    if(!ctx || !ctx->m_remote_address.is_blockable() || disable_rpc_ban)
       return false;
 
     CRITICAL_REGION_LOCAL(m_host_fails_score_lock);
@@ -543,7 +546,7 @@ namespace cryptonote
 
     CHECK_PAYMENT_SAME_TS(req, res, bs.size() * COST_PER_BLOCK);
 
-    size_t pruned_size = 0, unpruned_size = 0, ntxes = 0;
+    size_t size = 0, ntxes = 0;
     res.blocks.reserve(bs.size());
     res.output_indices.reserve(bs.size());
     for(auto& bd: bs)
@@ -551,8 +554,7 @@ namespace cryptonote
       res.blocks.resize(res.blocks.size()+1);
       res.blocks.back().pruned = req.prune;
       res.blocks.back().block = bd.first.first;
-      pruned_size += bd.first.first.size();
-      unpruned_size += bd.first.first.size();
+      size += bd.first.first.size();
       res.output_indices.push_back(COMMAND_RPC_GET_BLOCKS_FAST::block_output_indices());
       ntxes += bd.second.size();
       res.output_indices.back().indices.reserve(1 + bd.second.size());
@@ -561,11 +563,10 @@ namespace cryptonote
       res.blocks.back().txs.reserve(bd.second.size());
       for (std::vector<std::pair<crypto::hash, cryptonote::blobdata>>::iterator i = bd.second.begin(); i != bd.second.end(); ++i)
       {
-        unpruned_size += i->second.size();
         res.blocks.back().txs.push_back({std::move(i->second), crypto::null_hash});
         i->second.clear();
         i->second.shrink_to_fit();
-        pruned_size += res.blocks.back().txs.back().blob.size();
+        size += res.blocks.back().txs.back().blob.size();
       }
 
       const size_t n_txes_to_lookup = bd.second.size() + (req.no_miner_tx ? 0 : 1);
@@ -588,7 +589,7 @@ namespace cryptonote
       }
     }
 
-    MDEBUG("on_get_blocks: " << bs.size() << " blocks, " << ntxes << " txes, pruned size " << pruned_size << ", unpruned size " << unpruned_size);
+    MDEBUG("on_get_blocks: " << bs.size() << " blocks, " << ntxes << " txes, size " << size);
     res.status = CORE_RPC_STATUS_OK;
     return true;
   }
@@ -2375,6 +2376,7 @@ namespace cryptonote
       error_resp.message = "Internal error: can't produce valid response.";
       return false;
     }
+    res.miner_tx_hash = res.block_header.miner_tx_hash;
     for (size_t n = 0; n < blk.tx_hashes.size(); ++n)
     {
       res.tx_hashes.push_back(epee::string_tools::pod_to_hex(blk.tx_hashes[n]));
@@ -3345,6 +3347,8 @@ namespace cryptonote
     RPC_TRACKER(flush_cache);
     if (req.bad_txs)
       m_core.flush_bad_txs_cache();
+    if (req.bad_blocks)
+      m_core.flush_invalid_blocks();
     res.status = CORE_RPC_STATUS_OK;
     return true;
   }

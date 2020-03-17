@@ -106,7 +106,7 @@ Install all dependencies at once on macOS with the provided Brewfile:
 ``` brew update && brew bundle --file=contrib/brew/Brewfile ```
 
 FreeBSD one liner for required to build dependencies
-```pkg install git gmake cmake pkgconf boost-libs cppzmq libsodium```
+```pkg install git gmake cmake pkgconf boost-libs libzmq libsodium```
 
 ### Cloning the repository
 
@@ -142,9 +142,6 @@ invokes cmake commands as needed.
     parallel build by running `make -j<number of threads>` instead of `make`. For
     this to be worthwhile, the machine should have one core and about 2GB of RAM
     available per thread.
-
-    *Note*: If cmake can not find zmq.hpp file on macOS, installing `zmq.hpp` from
-    https://github.com/zeromq/cppzmq to `/usr/local/include` should fix that error.
 
     *Note*: The instructions above will compile the most stable release of the
     Sumokoin software. If you would like to use and test the most recent software,
@@ -366,7 +363,7 @@ We expect to add Sumokoin into the ports tree in the near future, which will aid
 
 ### On OpenBSD:
 
-You will need to add a few packages to your system. `pkg_add cmake gmake zeromq cppzmq libiconv boost`.
+You will need to add a few packages to your system. `pkg_add cmake gmake zeromq libiconv boost`.
 
 The `doxygen` and `graphviz` packages are optional and require the xbase set.
 Running the test suite also requires `py-requests` package.
@@ -428,6 +425,8 @@ You can also cross-compile static binaries on Linux for Windows and macOS with t
   * Requires: `g++-riscv64-linux-gnu`
 * ```make depends target=x86_64-unknown-freebsd``` for FreeBSD 64-bit binaries.
   * Requires: `clang-8`
+* ```make depends target=arm-linux-android``` for 32bit android binaries
+* ```make depends target=aarch64-linux-android``` for 64bit android binaries
 
 The required packages are the names for each toolchain on apt. Depending on your distro, they may have different names.
 

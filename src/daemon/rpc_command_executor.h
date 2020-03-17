@@ -81,6 +81,8 @@ public:
 
   bool show_difficulty();
 
+  bool show_emission();
+
   bool show_disk();
 
   bool show_status();
@@ -174,7 +176,7 @@ public:
 
   bool rpc_payments();
 
-  bool flush_cache(bool bad_txs);
+  bool flush_cache(bool bad_txs, bool invalid_blocks);
 };
 
 } // namespace daemonize

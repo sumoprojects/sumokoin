@@ -58,7 +58,9 @@ static size_t query_page_size()
   }
   return ret;
 #else
+#if defined __GNUC__ && !defined _WIN32
 #warning Missing query_page_size implementation
+#endif
 #endif
   return 0;
 }
@@ -70,7 +72,9 @@ static void do_lock(void *ptr, size_t len)
   if (ret < 0 && !previously_failed.exchange(true))
     MERROR("Error locking page at " << ptr << ": " << strerror(errno) << ", subsequent mlock errors will be silenced");
 #else
+#if defined __GNUC__ && !defined _WIN32
 #warning Missing do_lock implementation
+#endif
 #endif
 }
 
@@ -84,7 +88,9 @@ static void do_unlock(void *ptr, size_t len)
   if (ret < 0 && !previously_failed.load())
     MERROR("Error unlocking page at " << ptr << ": " << strerror(errno));
 #else
+#if defined __GNUC__ && !defined _WIN32
 #warning Missing implementation of page size detection
+#endif
 #endif
 }
 

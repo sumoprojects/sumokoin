@@ -81,7 +81,7 @@ file(COPY
 add_subdirectory(core_tests)
 add_subdirectory(fuzz)
 add_subdirectory(crypto)
-add_subdirectory(functional_tests)
+# add_subdirectory(functional_tests)
 add_subdirectory(performance_tests)
 add_subdirectory(core_proxy)
 add_subdirectory(unit_tests)

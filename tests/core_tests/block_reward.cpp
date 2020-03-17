@@ -40,7 +40,7 @@ namespace
     const account_public_address& miner_address, std::vector<size_t>& block_weights, size_t target_tx_weight,
     size_t target_block_weight, uint64_t fee = 0)
   {
-    if (!construct_miner_tx(height, misc_utils::median(block_weights), already_generated_coins, target_block_weight, fee, miner_address, miner_tx))
+    if (!construct_miner_tx(MAINNET, height, misc_utils::median(block_weights), already_generated_coins, target_block_weight, fee, miner_address, miner_tx))
       return false;
 
     size_t current_weight = get_transaction_weight(miner_tx);
@@ -78,7 +78,7 @@ namespace
     generator.get_last_n_block_weights(block_weights, get_block_hash(blk_prev), median_block_count);
 
     size_t median = misc_utils::median(block_weights);
-    median = std::max(median, static_cast<size_t>(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1));
+    median = std::max(median, static_cast<size_t>(CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE));
 
     transaction miner_tx;
     bool r = construct_miner_tx_by_weight(miner_tx, get_block_height(blk_prev) + 1, generator.get_already_generated_coins(blk_prev),
@@ -247,11 +247,11 @@ bool gen_block_reward::check_block_rewards(cryptonote::core& /*c*/, size_t /*ev_
   DEFINE_TESTS_ERROR_CONTEXT("gen_block_reward_without_txs::check_block_rewards");
 
   std::array<uint64_t, 7> blk_rewards;
-  blk_rewards[0] = MONEY_SUPPLY >> EMISSION_SPEED_FACTOR_PER_MINUTE;
+  blk_rewards[0] = MONEY_SUPPLY >> EMISSION_SPEED_FACTOR;
   uint64_t cumulative_reward = blk_rewards[0];
   for (size_t i = 1; i < blk_rewards.size(); ++i)
   {
-    blk_rewards[i] = (MONEY_SUPPLY - cumulative_reward) >> EMISSION_SPEED_FACTOR_PER_MINUTE;
+    blk_rewards[i] = (MONEY_SUPPLY - cumulative_reward) >> EMISSION_SPEED_FACTOR;
     cumulative_reward += blk_rewards[i];
   }
 

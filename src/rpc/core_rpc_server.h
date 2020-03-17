@@ -88,7 +88,8 @@ namespace cryptonote
     bool init(
         const boost::program_options::variables_map& vm,
         const bool restricted,
-        const std::string& port
+        const std::string& port,
+        bool allow_rpc_payment
       );
     network_type nettype() const { return m_core.get_nettype(); }
 
@@ -287,6 +288,7 @@ private:
     epee::critical_section m_host_fails_score_lock;
     std::map<std::string, uint64_t> m_host_fails_score;
     std::unique_ptr<rpc_payment> m_rpc_payment;
+    bool disable_rpc_ban;
   };
 }
 

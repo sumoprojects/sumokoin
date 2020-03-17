@@ -53,7 +53,7 @@
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "wallet.simplewallet"
 // Hardcode Sumokoin's donation address
-constexpr const char SUMOKOIN_DONATION_ADDR[] = "Sumoo64zh7dRFyB8dgDWZMLmzKBgGXYWZCG4NBF2VcvzEuiSQpMjyyiYJ1Ra696pZu56PPFQNBDdB1r ZjyeX1RVKeWZgHg7pTxj";
+constexpr const char SUMOKOIN_DONATION_ADDR[] = "Sumoo64zh7dRFyB8dgDWZMLmzKBgGXYWZCG4NBF2VcvzEuiSQpMjyyiYJ1Ra696pZu56PPFQNBDdB1rZjyeX1RVKeWZgHg7pTxj";
 
 /*!
  * \namespace cryptonote
@@ -276,7 +276,7 @@ namespace cryptonote
     bool show_seed(bool encrypted);
     void key_images_sync_intern();
     void on_refresh_finished(uint64_t start_height, uint64_t fetched_blocks, bool is_init, bool received_money);
-    std::pair<std::string, std::string> show_outputs_line(const std::vector<uint64_t> &heights, uint64_t blockchain_height, uint64_t highlight_height = std::numeric_limits<uint64_t>::max()) const;
+    std::pair<std::string, std::string> show_outputs_line(const std::vector<uint64_t> &heights, uint64_t blockchain_height, uint64_t highlight_idx = std::numeric_limits<uint64_t>::max()) const;
     bool freeze_thaw(const std::vector<std::string>& args, bool freeze);
     bool prompt_if_old(const std::vector<tools::wallet2::pending_tx> &ptx_vector);
     bool on_command(bool (simple_wallet::*cmd)(const std::vector<std::string>&), const std::vector<std::string> &args);

@@ -130,14 +130,7 @@ struct aesdata
 		mem.as_uqword(0) = v64x0;
 		mem.as_uqword(1) = v64x1;
 	}
-
-	inline aesdata& operator=(const aesdata& rhs) noexcept
-	{
-		v64x0 = rhs.v64x0;
-		v64x1 = rhs.v64x1;
-		return *this;
-	}
-
+    
 	inline aesdata& operator^=(const aesdata& rhs) noexcept
 	{
 		v64x0 ^= rhs.v64x0;
@@ -174,15 +167,16 @@ inline uint32_t sub_word(uint32_t key)
 		(saes_sbox[(key >> 8)  & 0xff] << 8  ) | saes_sbox[key & 0xff];
 }
 
-#if defined(__clang__) || defined(__arm__) || defined(__aarch64__)
+#if defined(_MSC_VER)
+#include <stdlib.h>
 inline uint32_t rotr(uint32_t value, uint32_t amount)
 {
-	return (value >> amount) | (value << ((32 - amount) & 31));
+  return _rotr(value, amount);
 }
 #else
 inline uint32_t rotr(uint32_t value, uint32_t amount)
 {
-	return _rotr(value, amount);
+  return (value >> amount) | (value << ((32 - amount) & 31));
 }
 #endif
 

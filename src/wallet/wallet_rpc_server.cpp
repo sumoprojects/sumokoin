@@ -327,6 +327,7 @@ namespace tools
     entry.height = pd.m_block_height;
     entry.timestamp = pd.m_timestamp;
     entry.amount = pd.m_amount;
+    entry.amounts = pd.m_amounts;
     entry.unlock_time = pd.m_unlock_time;
     entry.locked = !m_wallet->is_transfer_unlocked(pd.m_unlock_time, pd.m_block_height);
     entry.fee = pd.m_fee;
@@ -409,6 +410,7 @@ namespace tools
     entry.height = 0;
     entry.timestamp = pd.m_timestamp;
     entry.amount = pd.m_amount;
+    entry.amounts = pd.m_amounts;
     entry.unlock_time = pd.m_unlock_time;
     entry.locked = true;
     entry.fee = pd.m_fee;
@@ -1179,7 +1181,6 @@ namespace tools
       }
     }
 
-    std::vector<tools::wallet2::pending_tx> ptx;
     try
     {
       // gather info to ask the user
@@ -1416,11 +1417,22 @@ namespace tools
       return  false;
     }
 
+    std::set<uint32_t> subaddr_indices;
+    if (req.subaddr_indices_all)
+    {
+      for (uint32_t i = 0; i < m_wallet->get_num_subaddresses(req.account_index); ++i)
+        subaddr_indices.insert(i);
+    }
+    else
+    {
+      subaddr_indices= req.subaddr_indices;
+    }
+
     try
     {
       uint64_t mixin = m_wallet->adjust_mixin(req.ring_size ? req.ring_size - 1 : 0);
       uint32_t priority = m_wallet->adjust_priority(req.priority);
-      std::vector<wallet2::pending_tx> ptx_vector = m_wallet->create_transactions_all(req.below_amount, dsts[0].addr, dsts[0].is_subaddress, req.outputs, mixin, req.unlock_time, priority, extra, req.account_index, req.subaddr_indices);
+      std::vector<wallet2::pending_tx> ptx_vector = m_wallet->create_transactions_all(req.below_amount, dsts[0].addr, dsts[0].is_subaddress, req.outputs, mixin, req.unlock_time, priority, extra, req.account_index, subaddr_indices);
 
       return fill_response(ptx_vector, req.get_tx_keys, res.tx_key_list, res.amount_list, res.fee_list, res.weight_list, res.multisig_txset, res.unsigned_txset, req.do_not_relay,
           res.tx_hash_list, req.get_tx_hex, res.tx_blob_list, req.get_tx_metadata, res.tx_metadata_list, er);
@@ -2459,7 +2471,7 @@ namespace tools
 
     if (req.pool)
     {
-      std::vector<std::pair<cryptonote::transaction, bool>> process_txs;
+      std::vector<std::tuple<cryptonote::transaction, crypto::hash, bool>> process_txs;
       m_wallet->update_pool_state(process_txs);
       if (!process_txs.empty())
         m_wallet->process_pool_state(process_txs);
@@ -2542,7 +2554,7 @@ namespace tools
       }
     }
 
-    std::vector<std::pair<cryptonote::transaction, bool>> process_txs;
+    std::vector<std::tuple<cryptonote::transaction, crypto::hash, bool>> process_txs;
     m_wallet->update_pool_state(process_txs);
     if (!process_txs.empty())
       m_wallet->process_pool_state(process_txs);

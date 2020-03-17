@@ -152,7 +152,7 @@ namespace tools
     if (!GetTokenInformation(process.get(), TokenOwner, sid.get(), sid_size, std::addressof(sid_size)))
       return {};
 
-    const PSID psid = reinterpret_cast<const PTOKEN_OWNER>(sid.get())->Owner;
+    const PSID psid = reinterpret_cast<PTOKEN_OWNER>(sid.get())->Owner;
     const DWORD daclSize =
       sizeof(ACL) + sizeof(ACCESS_ALLOWED_ACE) + GetLengthSid(psid) - sizeof(DWORD);
 
@@ -328,9 +328,16 @@ namespace tools
 
     // Call GetNativeSystemInfo if supported or GetSystemInfo otherwise.
 
+#if defined(BOOST_GCC) && BOOST_GCC >= 80000
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
     pGNSI = (PGNSI) GetProcAddress(
       GetModuleHandle(TEXT("kernel32.dll")), 
       "GetNativeSystemInfo");
+#if defined(BOOST_GCC) && BOOST_GCC >= 80000
+#pragma GCC diagnostic pop
+#endif
     if(NULL != pGNSI)
       pGNSI(&si);
     else GetSystemInfo(&si);
@@ -381,9 +388,16 @@ namespace tools
           else StringCchCat(pszOS, BUFSIZE, TEXT("Windows Server 2012 R2 " ));
         }
 
+#if defined(BOOST_GCC) && BOOST_GCC >= 80000
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
         pGPI = (PGPI) GetProcAddress(
           GetModuleHandle(TEXT("kernel32.dll")), 
           "GetProductInfo");
+#if defined(BOOST_GCC) && BOOST_GCC >= 80000
+#pragma GCC diagnostic pop
+#endif
 
         pGPI( osvi.dwMajorVersion, osvi.dwMinorVersion, 0, 0, &dwType);
 
@@ -1239,7 +1253,7 @@ std::string get_nix_version_display_string()
     return get_string_prefix_by_width(s, 999999999).second;
   };
 
-  std::vector<std::pair<std::string, size_t>> split_string_by_width(const std::string &s, size_t columns)
+  std::vector<std::pair<std::string, size_t>> split_line_by_width(const std::string &s, size_t columns)
   {
     std::vector<std::string> words;
     std::vector<std::pair<std::string, size_t>> lines;
@@ -1279,4 +1293,17 @@ std::string get_nix_version_display_string()
     return lines;
   }
 
+  std::vector<std::pair<std::string, size_t>> split_string_by_width(const std::string &s, size_t columns)
+  {
+    std::vector<std::string> lines;
+    std::vector<std::pair<std::string, size_t>> all_lines;
+    boost::split(lines, s, boost::is_any_of("\n"), boost::token_compress_on);
+    for (const auto &e: lines)
+    {
+      std::vector<std::pair<std::string, size_t>> new_lines = split_line_by_width(e, columns);
+      for (auto &l: new_lines)
+        all_lines.push_back(std::move(l));
+    }
+    return all_lines;
+  }
 }

@@ -314,7 +314,7 @@ namespace cryptonote
       if (version >= 6 && version != hshd.top_version)
       {
         if (version < hshd.top_version && version == m_core.get_ideal_hard_fork_version())
-          MCLOG_RED(el::Level::Warning, "global", context << " peer claims higher version that we think (" <<
+          MCLOG_RED(el::Level::Warning, "global", context << " peer claims higher version than we think (" <<
               (unsigned)hshd.top_version << " for " << (hshd.current_height - 1) << " instead of " << (unsigned)version <<
               ") - we may be forked from the network and a software upgrade may be needed");
         return false;
@@ -1688,9 +1688,9 @@ skip:
             const float max_multiplier = 10.f;
             const float min_multiplier = 1.25f;
             float multiplier = max_multiplier;
-            if (dt/1e6 >= REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY)
+            if (dt >= REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY)
             {
-              multiplier = max_multiplier - (dt/1e6-REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY) * (max_multiplier - min_multiplier) / (REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD - REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY);
+              multiplier = max_multiplier - (dt-REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY) * (max_multiplier - min_multiplier) / (REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD - REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY);
               multiplier = std::min(max_multiplier, std::max(min_multiplier, multiplier));
             }
             if (dl_speed * .8f > ctx.m_current_speed_down * multiplier)

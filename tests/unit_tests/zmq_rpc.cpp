@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -25,35 +25,31 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
-// Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#pragma once
+#include <gtest/gtest.h>
 
-#include "cryptonote_basic/account.h"
-#include "cryptonote_basic/cryptonote_basic.h"
-#include "cryptonote_core/cryptonote_tx_utils.h"
+#include "rpc/message.h"
+#include "serialization/json_object.h"
 
-class single_tx_test_base
+TEST(ZmqFullMessage, InvalidRequest)
 {
-public:
-  bool init()
-  {
-    using namespace cryptonote;
+  EXPECT_THROW(
+    (cryptonote::rpc::FullMessage{"{\"jsonrpc\":\"2.0\",\"id\":0,\"params\":[]}", true}),
+    cryptonote::json::MISSING_KEY
+  );
+  EXPECT_THROW(
+    (cryptonote::rpc::FullMessage{"{\"jsonrpc\":\"2.0\",\"id\":0,\"method\":3,\"params\":[]}", true}),
+    cryptonote::json::WRONG_TYPE
+  );
+}
 
-    m_bob.generate();
+TEST(ZmqFullMessage, Request)
+{
+  static constexpr const char request[] = "{\"jsonrpc\":\"2.0\",\"id\":0,\"method\":\"foo\",\"params\":[]}";
+  EXPECT_NO_THROW(
+    (cryptonote::rpc::FullMessage{request, true})
+  );
 
-    if (!construct_miner_tx(MAINNET, 0, 0, 0, 2, 0, m_bob.get_keys().m_account_address, m_tx))
-      return false;
-
-    m_tx_pub_key = get_tx_pub_key_from_extra(m_tx);
-    m_additional_tx_pub_keys = get_additional_tx_pub_keys_from_extra(m_tx);
-    return true;
-  }
-
-protected:
-  cryptonote::account_base m_bob;
-  cryptonote::transaction m_tx;
-  crypto::public_key m_tx_pub_key;
-  std::vector<crypto::public_key> m_additional_tx_pub_keys;
-};
+  cryptonote::rpc::FullMessage parsed{request, true};
+  EXPECT_STREQ("foo", parsed.getRequestType().c_str());
+}

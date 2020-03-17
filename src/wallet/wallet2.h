@@ -360,10 +360,12 @@ private:
       END_SERIALIZE()
     };
 
+    typedef std::vector<uint64_t> amounts_container;
     struct payment_details
     {
       crypto::hash m_tx_hash;
       uint64_t m_amount;
+      amounts_container m_amounts;
       uint64_t m_fee;
       uint64_t m_block_height;
       uint64_t m_unlock_time;
@@ -1222,8 +1224,8 @@ private:
     bool import_key_images(signed_tx_set & signed_tx, size_t offset=0, bool only_selected_transfers=false);
     crypto::public_key get_tx_pub_key_from_received_outs(const tools::wallet2::transfer_details &td) const;
 
-    void update_pool_state(std::vector<std::pair<cryptonote::transaction, bool>> &process_txs, bool refreshed = false);
-    void process_pool_state(const std::vector<std::pair<cryptonote::transaction, bool>> &txs);
+    void update_pool_state(std::vector<std::tuple<cryptonote::transaction, crypto::hash, bool>> &process_txs, bool refreshed = false);
+    void process_pool_state(const std::vector<std::tuple<cryptonote::transaction, crypto::hash, bool>> &txs);
     void remove_obsolete_pool_txs(const std::vector<crypto::hash> &tx_hashes);
 
     std::string encrypt(const char *plaintext, size_t len, const crypto::secret_key &skey, bool authenticated = true) const;
@@ -1616,6 +1618,8 @@ private:
 
     crypto::chacha_key m_cache_key;
     boost::optional<epee::wipeable_string> m_encrypt_keys_after_refresh;
+    boost::mutex m_decrypt_keys_lock;
+    unsigned int m_decrypt_keys_lockers;
 
     bool m_unattended;
     bool m_devices_registered;
@@ -1631,7 +1635,7 @@ BOOST_CLASS_VERSION(tools::wallet2::transfer_details, 12)
 BOOST_CLASS_VERSION(tools::wallet2::multisig_info, 1)
 BOOST_CLASS_VERSION(tools::wallet2::multisig_info::LR, 0)
 BOOST_CLASS_VERSION(tools::wallet2::multisig_tx_set, 1)
-BOOST_CLASS_VERSION(tools::wallet2::payment_details, 4)
+BOOST_CLASS_VERSION(tools::wallet2::payment_details, 5)
 BOOST_CLASS_VERSION(tools::wallet2::pool_payment_details, 1)
 BOOST_CLASS_VERSION(tools::wallet2::unconfirmed_transfer_details, 8)
 BOOST_CLASS_VERSION(tools::wallet2::confirmed_transfer_details, 6)
@@ -1873,6 +1877,9 @@ namespace boost
         return;
       }
       a & x.m_coinbase;
+      if (ver < 5)
+        return;
+      a & x.m_amounts;
     }
 
     template <class Archive>

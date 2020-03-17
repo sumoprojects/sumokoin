@@ -165,6 +165,16 @@ t_command_server::t_command_server(
     , "Show the current difficulty."
     );
   m_command_lookup.set_handler(
+      "print_emission"
+    , std::bind(&t_command_parser_executor::show_emission, &m_parser, p::_1)
+    , "Print Sumokoin emission scheme in relation to time."
+    );
+  m_command_lookup.set_handler(
+      "disk"
+    , std::bind(&t_command_parser_executor::show_disk, &m_parser, p::_1)
+    , "Show db size and remaining disk space."
+    );
+  m_command_lookup.set_handler(
       "disk"
     , std::bind(&t_command_parser_executor::show_disk, &m_parser, p::_1)
     , "Show db size and remaining disk space."
@@ -330,7 +340,7 @@ t_command_server::t_command_server(
     m_command_lookup.set_handler(
       "flush_cache"
     , std::bind(&t_command_parser_executor::flush_cache, &m_parser, p::_1)
-    , "flush_cache bad-txs"
+    , "flush_cache [bad-txs] [bad-blocks]"
     , "Flush the specified cache(s)."
     );
 }
