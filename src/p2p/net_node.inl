@@ -624,6 +624,7 @@ namespace nodetool
       full_addrs.insert("157.230.187.169:19733"); // NY - explorer
       full_addrs.insert("157.245.14.220:19733"); // NY
       full_addrs.insert("134.209.109.190:19733"); // SINGAPORE
+      full_addrs.insert("167.172.44.84:19733"); // Amsterdam
     }
     return full_addrs;
   }
