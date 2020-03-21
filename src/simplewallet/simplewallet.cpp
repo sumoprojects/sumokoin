@@ -3823,9 +3823,9 @@ bool simple_wallet::ask_wallet_create_if_needed()
           bool ok = true;
           if (!m_restoring)
           {
-            message_writer(console_color_yellow, true) << tr("No wallet found with that name. Confirm creation of new wallet named: ");
+            message_writer(console_color_yellow, true) << tr("No wallet found with that name. Creation of new wallet named:");
             message_writer(console_color_green, true) << wallet_path;
-            confirm_creation = input_line("", true);
+            confirm_creation = input_line("Confirm creation?", true);
             if(std::cin.eof())
             {
               LOG_ERROR("Unexpected std::cin.eof() - Exited simple_wallet::ask_wallet_create_if_needed()");
