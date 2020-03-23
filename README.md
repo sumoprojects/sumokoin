@@ -327,7 +327,7 @@ application.
     cd sumokoin
     ```
 
-* If you would like a specific [version/tag](https://github.com/sumoprojects/sumokoin/tags), do a git checkout for that version. eg. 'v0.15.0.0'. If you don't care about the version and just want binaries from master, skip this step:
+* If you would like a specific [version/tag](https://github.com/sumoprojects/sumokoin/tags), do a git checkout for that version. eg. 'v0.6.1.0'. If you don't care about the version and just want binaries from master, skip this step:
 	
     ```bash
     git checkout v0.6.1.0
