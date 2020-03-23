@@ -126,7 +126,7 @@ Setup for LXC:
 
 ```bash
 GH_USER=quangvu
-VERSION=v0.6.0.1
+VERSION=v0.6.1.0
 
 ./gitian-build.py --setup $GH_USER $VERSION
 ```
