@@ -316,7 +316,7 @@ namespace cryptonote
       if (version >= 6 && version != hshd.top_version)
       {
         if (version < hshd.top_version && version == m_core.get_ideal_hard_fork_version())
-          MCLOG_RED(el::Level::Warning, "global", context << " peer claims higher version that we think (" <<
+          MCLOG_RED(el::Level::Warning, "global", context << " peer claims higher version than we think (" <<
               (unsigned)hshd.top_version << " for " << (hshd.current_height - 1) << " instead of " << (unsigned)version <<
               ") - we may be forked from the network and a software upgrade may be needed");
         return false;
@@ -910,7 +910,7 @@ namespace cryptonote
     for (size_t i = 0; i < arg.txs.size(); ++i)
     {
       cryptonote::tx_verification_context tvc{};
-      m_core.handle_incoming_tx({arg.txs[i], crypto::null_hash}, tvc, relay_method::flood, true);
+      m_core.handle_incoming_tx({arg.txs[i], crypto::null_hash}, tvc, relay_method::fluff, true);
       if(tvc.m_verifivation_failed)
       {
         LOG_PRINT_CCONTEXT_L1("Tx verification failed, dropping connection");
@@ -1690,9 +1690,9 @@ skip:
             const float max_multiplier = 10.f;
             const float min_multiplier = 1.25f;
             float multiplier = max_multiplier;
-            if (dt/1e6 >= REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY)
+            if (dt >= REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY)
             {
-              multiplier = max_multiplier - (dt/1e6-REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY) * (max_multiplier - min_multiplier) / (REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD - REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY);
+              multiplier = max_multiplier - (dt-REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY) * (max_multiplier - min_multiplier) / (REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD - REQUEST_NEXT_SCHEDULED_SPAN_THRESHOLD_STANDBY);
               multiplier = std::min(max_multiplier, std::max(min_multiplier, multiplier));
             }
             if (dl_speed * .8f > ctx.m_current_speed_down * multiplier)
@@ -2196,7 +2196,8 @@ skip:
       MGINFO_YELLOW(ENDL << "**********************************************************************" << ENDL
         << "You are now synchronized with the network. You may now start sumo-wallet-cli." << ENDL
         << ENDL
-        << "Use the \"help\" command to see the list of available commands." << ENDL
+        << "Use the \"help\" command to see a simplified list of available commands." << ENDL
+        << "Use the \"help_advanced\" command to see an advanced list of available commands." << ENDL
         << "**********************************************************************");
       m_sync_timer.pause();
       if (ELPP->vRegistry()->allowed(el::Level::Info, "sync-info"))
@@ -2366,7 +2367,7 @@ skip:
        local mempool before doing the relay. The code was already updating the
        DB twice on received transactions - it is difficult to workaround this
        due to the internal design. */
-    return m_p2p->send_txs(std::move(arg.txs), zone, source, m_core, m_core.pad_transactions()) != epee::net_utils::zone::invalid;
+    return m_p2p->send_txs(std::move(arg.txs), zone, source, m_core) != epee::net_utils::zone::invalid;
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>

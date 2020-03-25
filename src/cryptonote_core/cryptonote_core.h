@@ -792,13 +792,6 @@ namespace cryptonote
      bool fluffy_blocks_enabled() const { return m_fluffy_blocks_enabled; }
 
      /**
-      * @brief get whether transaction relay should be padded
-      *
-      * @return whether transaction relay should be padded
-      */
-     bool pad_transactions() const { return m_pad_transactions; }
-
-     /**
       * @brief check a set of hashes against the precompiled hash set
       *
       * @return number of usable blocks
@@ -865,6 +858,11 @@ namespace cryptonote
       * @brief flushes the bad txs cache
       */
      void flush_bad_txs_cache();
+
+     /**
+      * @brief flushes the invalid block cache
+      */
+     void flush_invalid_blocks();
 
    private:
 
@@ -1101,7 +1099,7 @@ namespace cryptonote
 
      bool m_fluffy_blocks_enabled;
      bool m_offline;
-     bool m_pad_transactions;
+
 
      std::shared_ptr<tools::Notify> m_block_rate_notify;
    };

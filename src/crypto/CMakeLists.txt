@@ -26,6 +26,34 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+if (NOT ARM)
+set(crypto_sources
+  aesb.c
+  blake256.c
+  chacha.c
+  crypto-ops-data.c
+  crypto-ops.c
+  crypto.cpp
+  groestl.c
+  hash-extra-blake.c
+  hash-extra-groestl.c
+  hash-extra-jh.c
+  hash-extra-skein.c
+  hash.c
+  hmac-keccak.c
+  jh.c
+  keccak.c
+  oaes_lib.c
+  random.c
+  skein.c
+  tree-hash.c
+  cn_monero_slow_hash.c
+  CryptonightR_JIT.c
+  cn_heavy_hash_soft.cpp
+  cn_heavy_hash_hard_intel.cpp)
+endif()
+
+if (ARM)
 set(crypto_sources
   aesb.c
   blake256.c
@@ -51,11 +79,12 @@ set(crypto_sources
   cn_heavy_hash_soft.cpp
   cn_heavy_hash_hard_intel.cpp
   cn_heavy_hash_hard_arm.cpp)
+endif()
 
 if(ARCH_ID STREQUAL "i386" OR ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "amd64")
 list(APPEND crypto_sources CryptonightR_template.S)
 endif()
-  
+
 set(crypto_headers)
 
 set(crypto_private_headers
@@ -116,5 +145,3 @@ endif()
 
 # cheat because cmake and ccache hate each other
 set_property(SOURCE CryptonightR_template.S PROPERTY LANGUAGE C)
-
-

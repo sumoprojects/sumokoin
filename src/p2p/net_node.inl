@@ -116,6 +116,7 @@ namespace nodetool
     command_line::add_arg(desc, arg_limit_rate_up);
     command_line::add_arg(desc, arg_limit_rate_down);
     command_line::add_arg(desc, arg_limit_rate);
+    command_line::add_arg(desc, arg_pad_transactions);
   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
@@ -340,6 +341,7 @@ namespace nodetool
   {
     bool testnet = command_line::get_arg(vm, cryptonote::arg_testnet_on);
     bool stagenet = command_line::get_arg(vm, cryptonote::arg_stagenet_on);
+    const bool pad_txs = command_line::get_arg(vm, arg_pad_transactions);
     m_nettype = testnet ? cryptonote::TESTNET : stagenet ? cryptonote::STAGENET : cryptonote::MAINNET;
 
     network_zone& public_zone = m_network_zones[epee::net_utils::zone::public_];
@@ -384,7 +386,7 @@ namespace nodetool
     m_use_ipv6 = command_line::get_arg(vm, arg_p2p_use_ipv6);
     m_require_ipv4 = !command_line::get_arg(vm, arg_p2p_ignore_ipv4);
     public_zone.m_notifier = cryptonote::levin::notify{
-      public_zone.m_net_server.get_io_service(), public_zone.m_net_server.get_config_shared(), nullptr, true
+      public_zone.m_net_server.get_io_service(), public_zone.m_net_server.get_config_shared(), nullptr, true, pad_txs
     };
 
     if (command_line::has_arg(vm, arg_p2p_add_peer))
@@ -495,7 +497,7 @@ namespace nodetool
       }
 
       zone.m_notifier = cryptonote::levin::notify{
-        zone.m_net_server.get_io_service(), zone.m_net_server.get_config_shared(), std::move(this_noise), false
+        zone.m_net_server.get_io_service(), zone.m_net_server.get_config_shared(), std::move(this_noise), false, pad_txs
       };
     }
 
@@ -603,8 +605,6 @@ namespace nodetool
       full_addrs.insert("217.182.76.94:29733");
       full_addrs.insert("139.99.40.69:29733");
       full_addrs.insert("46.105.92.108:29733");
-      full_addrs.insert("139.99.40.69:19733");
-
     }
     else if (nettype == cryptonote::STAGENET)
     {
@@ -612,7 +612,6 @@ namespace nodetool
       full_addrs.insert("217.182.76.94:39733");
       full_addrs.insert("139.99.40.69:39733");
       full_addrs.insert("46.105.92.108:39733");
-      full_addrs.insert("139.99.40.69:19733");
     }
     else
     {
@@ -625,6 +624,7 @@ namespace nodetool
       full_addrs.insert("157.230.187.169:19733"); // NY - explorer
       full_addrs.insert("157.245.14.220:19733"); // NY
       full_addrs.insert("134.209.109.190:19733"); // SINGAPORE
+      full_addrs.insert("167.172.44.84:19733"); // Amsterdam
     }
     return full_addrs;
   }
@@ -916,7 +916,7 @@ namespace nodetool
     public_zone.m_net_server.add_idle_handler(boost::bind(&t_payload_net_handler::on_idle, &m_payload_handler), 1000);
 
     //here you can set worker threads count
-    int thrds_count = 15;
+    int thrds_count = 10;
     boost::thread::attributes attrs;
     attrs.set_stack_size(THREAD_STACK_SIZE);
     //go to loop
@@ -1024,7 +1024,7 @@ namespace nodetool
     epee::simple_event ev;
     std::atomic<bool> hsh_result(false);
 
-    bool r = epee::net_utils::async_invoke_remote_command2<typename COMMAND_HANDSHAKE::response>(context_.m_connection_id, COMMAND_HANDSHAKE::ID, arg, zone.m_net_server.get_config_object(),
+    bool r = epee::net_utils::async_invoke_remote_command2<typename COMMAND_HANDSHAKE::response>(context_, COMMAND_HANDSHAKE::ID, arg, zone.m_net_server.get_config_object(),
       [this, &pi, &ev, &hsh_result, &just_take_peerlist, &context_](int code, const typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
     {
       epee::misc_utils::auto_scope_leave_caller scope_exit_handler = epee::misc_utils::create_scope_leave_handler([&](){ev.raise();});
@@ -1034,14 +1034,14 @@ namespace nodetool
         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
         return;
       }
-      
+      std::string remote_version = rsp.node_data.version.substr(0,12);
       if (rsp.node_data.version.size() == 0)
       {
         MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
       }
       else if (rsp.node_data.version.size() != 0 && rsp.node_data.version != SUMOKOIN_VERSION)
       {
-        MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << rsp.node_data.version);
+        MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << remote_version);
       }
 
       if(rsp.node_data.network_id != m_network_id)
@@ -1050,7 +1050,7 @@ namespace nodetool
         return;
       }
 
-      if(!handle_remote_peerlist(rsp.local_peerlist_new, rsp.node_data.local_time, context))
+      if(!handle_remote_peerlist(rsp.local_peerlist_new, context))
       {
         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE: failed to handle_remote_peerlist(...), closing connection.");
         add_host_fail(context.m_remote_address);
@@ -1069,17 +1069,15 @@ namespace nodetool
         pi = context.peer_id = rsp.node_data.peer_id;
         context.m_rpc_port = rsp.node_data.rpc_port;
         context.m_rpc_credits_per_hash = rsp.node_data.rpc_credits_per_hash;
-        m_network_zones.at(context.m_remote_address.get_zone()).m_peerlist.set_peer_just_seen(rsp.node_data.peer_id, context.m_remote_address, context.m_pruning_seed, context.m_rpc_port, context.m_rpc_credits_per_hash);
+        network_zone& zone = m_network_zones.at(context.m_remote_address.get_zone());
+        zone.m_peerlist.set_peer_just_seen(rsp.node_data.peer_id, context.m_remote_address, context.m_pruning_seed, context.m_rpc_port, context.m_rpc_credits_per_hash);
 
         // move
-        for (auto const& zone : m_network_zones)
+        if(rsp.node_data.peer_id == zone.m_config.m_peer_id)
         {
-          if(rsp.node_data.peer_id == zone.second.m_config.m_peer_id)
-          {
-            LOG_DEBUG_CC(context, "Connection to self detected, dropping connection");
-            hsh_result = false;
-            return;
-          }
+          LOG_DEBUG_CC(context, "Connection to self detected, dropping connection");
+          hsh_result = false;
+          return;
         }
         LOG_INFO_CC(context, "New connection handshaked, pruning seed " << epee::string_tools::to_string_hex(context.m_pruning_seed));
         LOG_DEBUG_CC(context, " COMMAND_HANDSHAKE INVOKED OK");
@@ -1100,7 +1098,7 @@ namespace nodetool
       LOG_WARNING_CC(context_, "COMMAND_HANDSHAKE Failed");
       m_network_zones.at(context_.m_remote_address.get_zone()).m_net_server.get_config_object().close(context_.m_connection_id);
     }
-    else
+    else if (!just_take_peerlist)
     {
       try_get_support_flags(context_, [](p2p_connection_context& flags_context, const uint32_t& support_flags) 
       {
@@ -1118,7 +1116,7 @@ namespace nodetool
     m_payload_handler.get_payload_sync_data(arg.payload_data);
 
     network_zone& zone = m_network_zones.at(context_.m_remote_address.get_zone());
-    bool r = epee::net_utils::async_invoke_remote_command2<typename COMMAND_TIMED_SYNC::response>(context_.m_connection_id, COMMAND_TIMED_SYNC::ID, arg, zone.m_net_server.get_config_object(),
+    bool r = epee::net_utils::async_invoke_remote_command2<typename COMMAND_TIMED_SYNC::response>(context_, COMMAND_TIMED_SYNC::ID, arg, zone.m_net_server.get_config_object(),
       [this](int code, const typename COMMAND_TIMED_SYNC::response& rsp, p2p_connection_context& context)
     {
       context.m_in_timedsync = false;
@@ -1128,7 +1126,7 @@ namespace nodetool
         return;
       }
 
-      if(!handle_remote_peerlist(rsp.local_peerlist_new, rsp.local_time, context))
+      if(!handle_remote_peerlist(rsp.local_peerlist_new, context))
       {
         LOG_WARNING_CC(context, "COMMAND_TIMED_SYNC: failed to handle_remote_peerlist(...), closing connection.");
         m_network_zones.at(context.m_remote_address.get_zone()).m_net_server.get_config_object().close(context.m_connection_id );
@@ -1902,7 +1900,7 @@ namespace nodetool
   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
-  bool node_server<t_payload_net_handler>::handle_remote_peerlist(const std::vector<peerlist_entry>& peerlist, time_t local_time, const epee::net_utils::connection_context_base& context)
+  bool node_server<t_payload_net_handler>::handle_remote_peerlist(const std::vector<peerlist_entry>& peerlist, const epee::net_utils::connection_context_base& context)
   {
     std::vector<peerlist_entry> peerlist_ = peerlist;
     if(!sanitize_peerlist(peerlist_))
@@ -1919,16 +1917,13 @@ namespace nodetool
     }
 
     LOG_DEBUG_CC(context, "REMOTE PEERLIST: remote peerlist size=" << peerlist_.size());
-    LOG_DEBUG_CC(context, "REMOTE PEERLIST: " << ENDL << print_peerlist_to_string(peerlist_));
+    LOG_TRACE_CC(context, "REMOTE PEERLIST: " << ENDL << print_peerlist_to_string(peerlist_));
     return m_network_zones.at(context.m_remote_address.get_zone()).m_peerlist.merge_peerlist(peerlist_);
   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
   bool node_server<t_payload_net_handler>::get_local_node_data(basic_node_data& node_data, const network_zone& zone)
   {
-    time_t local_time;
-    time(&local_time);
-    node_data.local_time = local_time; // \TODO This can be an identifying value across zones (public internet to tor/i2p) ...
     node_data.peer_id = zone.m_config.m_peer_id;
     node_data.version = SUMOKOIN_VERSION;
     if(!m_hide_my_port && zone.m_can_pingback)
@@ -2065,18 +2060,18 @@ namespace nodetool
   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
-  epee::net_utils::zone node_server<t_payload_net_handler>::send_txs(std::vector<cryptonote::blobdata> txs, const epee::net_utils::zone origin, const boost::uuids::uuid& source, cryptonote::i_core_events& core, const bool pad_txs)
+  epee::net_utils::zone node_server<t_payload_net_handler>::send_txs(std::vector<cryptonote::blobdata> txs, const epee::net_utils::zone origin, const boost::uuids::uuid& source, cryptonote::i_core_events& core)
   {
     namespace enet = epee::net_utils;
 
-    const auto send = [&txs, &source, &core, pad_txs] (std::pair<const enet::zone, network_zone>& network)
+    const auto send = [&txs, &source, &core] (std::pair<const enet::zone, network_zone>& network)
     {
       const bool is_public = (network.first == enet::zone::public_);
       const cryptonote::relay_method tx_relay = is_public ?
-        cryptonote::relay_method::flood : cryptonote::relay_method::local;
+        cryptonote::relay_method::fluff : cryptonote::relay_method::local;
 
       core.on_transactions_relayed(epee::to_span(txs), tx_relay);
-      if (network.second.m_notifier.send_txs(std::move(txs), source, (pad_txs || !is_public)))
+      if (network.second.m_notifier.send_txs(std::move(txs), source))
         return network.first;
       return enet::zone::invalid;
     };
@@ -2225,7 +2220,7 @@ namespace nodetool
 
       network_zone& zone = m_network_zones.at(address.get_zone());
 
-      bool inv_call_res = epee::net_utils::async_invoke_remote_command2<COMMAND_PING::response>(ping_context.m_connection_id, COMMAND_PING::ID, req, zone.m_net_server.get_config_object(),
+      bool inv_call_res = epee::net_utils::async_invoke_remote_command2<COMMAND_PING::response>(ping_context, COMMAND_PING::ID, req, zone.m_net_server.get_config_object(),
         [=](int code, const COMMAND_PING::response& rsp, p2p_connection_context& context)
       {
         if(code <= 0)
@@ -2269,7 +2264,7 @@ namespace nodetool
     COMMAND_REQUEST_SUPPORT_FLAGS::request support_flags_request;
     bool r = epee::net_utils::async_invoke_remote_command2<typename COMMAND_REQUEST_SUPPORT_FLAGS::response>
     (
-      context.m_connection_id, 
+      context, 
       COMMAND_REQUEST_SUPPORT_FLAGS::ID, 
       support_flags_request, 
       m_network_zones.at(epee::net_utils::zone::public_).m_net_server.get_config_object(),
@@ -2300,12 +2295,20 @@ namespace nodetool
     }
 
     //fill response
-    rsp.local_time = time(NULL);
-
     const epee::net_utils::zone zone_type = context.m_remote_address.get_zone();
     network_zone& zone = m_network_zones.at(zone_type);
 
-    zone.m_peerlist.get_peerlist_head(rsp.local_peerlist_new, true);
+    std::vector<peerlist_entry> local_peerlist_new;
+    zone.m_peerlist.get_peerlist_head(local_peerlist_new, true, P2P_DEFAULT_PEERS_IN_HANDSHAKE);
+
+    //only include out peers we did not already send
+    rsp.local_peerlist_new.reserve(local_peerlist_new.size());
+    for (auto &pe: local_peerlist_new)
+    {
+      if (!context.sent_addresses.insert(pe.adr).second)
+        continue;
+      rsp.local_peerlist_new.push_back(std::move(pe));
+    }
     m_payload_handler.get_payload_sync_data(rsp.payload_data);
 
     /* Tor/I2P nodes receiving connections via forwarding (from tor/i2p daemon)
@@ -2326,6 +2329,7 @@ namespace nodetool
   template<class t_payload_net_handler>
   int node_server<t_payload_net_handler>::handle_handshake(int command, typename COMMAND_HANDSHAKE::request& arg, typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
   {
+    std::string r_version = arg.node_data.version.substr(0,12);
     if (arg.node_data.version.size() == 0)
     {
       MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
@@ -2333,7 +2337,7 @@ namespace nodetool
 
     if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
     {
-      MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << arg.node_data.version);
+      MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << r_version);
     }
 
     if(arg.node_data.network_id != m_network_id)
@@ -2342,6 +2346,7 @@ namespace nodetool
       LOG_INFO_CC(context, "WRONG NETWORK AGENT CONNECTED! id=" << arg.node_data.network_id);
       drop_connection(context);
       add_host_fail(context.m_remote_address);
+      block_host(context.m_remote_address);
       return 1;
     }
 
@@ -2437,6 +2442,8 @@ namespace nodetool
 
     //fill response
     zone.m_peerlist.get_peerlist_head(rsp.local_peerlist_new, true);
+    for (const auto &e: rsp.local_peerlist_new)
+      context.sent_addresses.insert(e.adr);
     get_local_node_data(rsp.node_data, zone);
     m_payload_handler.get_payload_sync_data(rsp.payload_data);
     LOG_DEBUG_CC(context, "COMMAND_HANDSHAKE");

@@ -360,10 +360,12 @@ private:
       END_SERIALIZE()
     };
 
+    typedef std::vector<uint64_t> amounts_container;
     struct payment_details
     {
       crypto::hash m_tx_hash;
       uint64_t m_amount;
+      amounts_container m_amounts;
       uint64_t m_fee;
       uint64_t m_block_height;
       uint64_t m_unlock_time;
@@ -546,9 +548,10 @@ private:
     struct address_book_row
     {
       cryptonote::account_public_address m_address;
-      crypto::hash m_payment_id;
+      crypto::hash8 m_payment_id;
       std::string m_description;   
       bool m_is_subaddress;
+      bool m_has_payment_id;
     };
 
     struct reserve_proof_entry
@@ -1125,8 +1128,8 @@ private:
     * \brief GUI Address book get/store
     */
     std::vector<address_book_row> get_address_book() const { return m_address_book; }
-    bool add_address_book_row(const cryptonote::account_public_address &address, const crypto::hash &payment_id, const std::string &description, bool is_subaddress);
-    bool set_address_book_row(size_t row_id, const cryptonote::account_public_address &address, const crypto::hash &payment_id, const std::string &description, bool is_subaddress);
+    bool add_address_book_row(const cryptonote::account_public_address &address, const crypto::hash8 *payment_id, const std::string &description, bool is_subaddress);
+    bool set_address_book_row(size_t row_id, const cryptonote::account_public_address &address, const crypto::hash8 *payment_id, const std::string &description, bool is_subaddress);
     bool delete_address_book_row(std::size_t row_id);
         
     uint64_t get_num_rct_outputs();
@@ -1184,7 +1187,7 @@ private:
      */
     void set_account_tag_description(const std::string& tag, const std::string& description);
 
-    std::string sign(const std::string &data) const;
+    std::string sign(const std::string &data, cryptonote::subaddress_index index = {0, 0}) const;
     bool verify(const std::string &data, const cryptonote::account_public_address &address, const std::string &signature) const;
 
     /*!
@@ -1221,8 +1224,8 @@ private:
     bool import_key_images(signed_tx_set & signed_tx, size_t offset=0, bool only_selected_transfers=false);
     crypto::public_key get_tx_pub_key_from_received_outs(const tools::wallet2::transfer_details &td) const;
 
-    void update_pool_state(std::vector<std::pair<cryptonote::transaction, bool>> &process_txs, bool refreshed = false);
-    void process_pool_state(const std::vector<std::pair<cryptonote::transaction, bool>> &txs);
+    void update_pool_state(std::vector<std::tuple<cryptonote::transaction, crypto::hash, bool>> &process_txs, bool refreshed = false);
+    void process_pool_state(const std::vector<std::tuple<cryptonote::transaction, crypto::hash, bool>> &txs);
     void remove_obsolete_pool_txs(const std::vector<crypto::hash> &tx_hashes);
 
     std::string encrypt(const char *plaintext, size_t len, const crypto::secret_key &skey, bool authenticated = true) const;
@@ -1615,6 +1618,8 @@ private:
 
     crypto::chacha_key m_cache_key;
     boost::optional<epee::wipeable_string> m_encrypt_keys_after_refresh;
+    boost::mutex m_decrypt_keys_lock;
+    unsigned int m_decrypt_keys_lockers;
 
     bool m_unattended;
     bool m_devices_registered;
@@ -1630,11 +1635,11 @@ BOOST_CLASS_VERSION(tools::wallet2::transfer_details, 12)
 BOOST_CLASS_VERSION(tools::wallet2::multisig_info, 1)
 BOOST_CLASS_VERSION(tools::wallet2::multisig_info::LR, 0)
 BOOST_CLASS_VERSION(tools::wallet2::multisig_tx_set, 1)
-BOOST_CLASS_VERSION(tools::wallet2::payment_details, 4)
+BOOST_CLASS_VERSION(tools::wallet2::payment_details, 5)
 BOOST_CLASS_VERSION(tools::wallet2::pool_payment_details, 1)
 BOOST_CLASS_VERSION(tools::wallet2::unconfirmed_transfer_details, 8)
 BOOST_CLASS_VERSION(tools::wallet2::confirmed_transfer_details, 6)
-BOOST_CLASS_VERSION(tools::wallet2::address_book_row, 17)
+BOOST_CLASS_VERSION(tools::wallet2::address_book_row, 18)
 BOOST_CLASS_VERSION(tools::wallet2::reserve_proof_entry, 0)
 BOOST_CLASS_VERSION(tools::wallet2::unsigned_tx_set, 0)
 BOOST_CLASS_VERSION(tools::wallet2::signed_tx_set, 1)
@@ -1872,6 +1877,9 @@ namespace boost
         return;
       }
       a & x.m_coinbase;
+      if (ver < 5)
+        return;
+      a & x.m_amounts;
     }
 
     template <class Archive>
@@ -1885,7 +1893,26 @@ namespace boost
     inline void serialize(Archive& a, tools::wallet2::address_book_row& x, const boost::serialization::version_type ver)
     {
       a & x.m_address;
-      a & x.m_payment_id;
+      if (ver < 18)
+      {
+        crypto::hash payment_id;
+        a & payment_id;
+        x.m_has_payment_id = !(payment_id == crypto::null_hash);
+        if (x.m_has_payment_id)
+        {
+          bool is_long = false;
+          for (int i = 8; i < 32; ++i)
+            is_long |= payment_id.data[i];
+          if (is_long)
+          {
+            MWARNING("Long payment ID ignored on address book load");
+            x.m_payment_id = crypto::null_hash8;
+            x.m_has_payment_id = false;
+          }
+          else
+            memcpy(x.m_payment_id.data, payment_id.data, 8);
+        }
+      }
       a & x.m_description;
       if (ver < 17)
       {
@@ -1893,6 +1920,11 @@ namespace boost
         return;
       }
       a & x.m_is_subaddress;
+      if (ver < 18)
+        return;
+      a & x.m_has_payment_id;
+      if (x.m_has_payment_id)
+        a & x.m_payment_id;
     }
 
     template <class Archive>

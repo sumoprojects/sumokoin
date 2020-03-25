@@ -1,6 +1,6 @@
 PACKAGE=qt
 $(package)_version=5.7.1
-$(package)_download_path=https://download.qt.io/archive/qt/5.7/5.7.1/submodules
+$(package)_download_path=http://linorg.usp.br/Qt/archive/qt/5.7/5.7.1/submodules
 $(package)_suffix=opensource-src-$($(package)_version).tar.gz
 $(package)_file_name=qtbase-$($(package)_suffix)
 $(package)_sha256_hash=95f83e532d23b3ddbde7973f380ecae1bac13230340557276f75f2e37984e410
@@ -20,7 +20,7 @@ $(package)_extra_sources += $($(package)_qttools_file_name)
 define $(package)_set_vars
 $(package)_config_opts_release = -release
 $(package)_config_opts_debug = -debug
-$(package)_config_opts += -bindir $(build_prefix)/bin
+$(package)_config_opts += -prefix $(host_prefix) -bindir $(build_prefix)/bin
 $(package)_config_opts += -c++std c++11
 $(package)_config_opts += -confirm-license
 $(package)_config_opts += -dbus-runtime

@@ -85,6 +85,11 @@ namespace cryptonote
   , "Run in a regression testing mode."
   , false
   };
+  const command_line::arg_descriptor<bool> arg_keep_fakechain = {
+    "keep-fakechain"
+  , "Don't delete any existing database when in fakechain mode."
+  , false
+  };
   const command_line::arg_descriptor<difficulty_type> arg_fixed_difficulty  = {
     "fixed-difficulty"
   , "Fixed difficulty used for testing."
@@ -175,11 +180,6 @@ namespace cryptonote
   , "Relay blocks as normal blocks"
   , false
   };
-  static const command_line::arg_descriptor<bool> arg_pad_transactions  = {
-    "pad-transactions"
-  , "Pad relayed transactions to help defend against traffic volume analysis"
-  , false
-  };
   static const command_line::arg_descriptor<size_t> arg_max_txpool_weight  = {
     "max-txpool-weight"
   , "Set maximum txpool weight in bytes."
@@ -236,8 +236,7 @@ namespace cryptonote
               m_disable_dns_checkpoints(false),
               m_update_download(0),
               m_nettype(UNDEFINED),
-              m_update_available(false),
-              m_pad_transactions(false)
+              m_update_available(false)
   {
     m_checkpoints_updating.clear();
     set_cryptonote_protocol(pprotocol);
@@ -319,6 +318,7 @@ namespace cryptonote
     command_line::add_arg(desc, arg_testnet_on);
     command_line::add_arg(desc, arg_stagenet_on);
     command_line::add_arg(desc, arg_regtest_on);
+    command_line::add_arg(desc, arg_keep_fakechain);
     command_line::add_arg(desc, arg_fixed_difficulty);
     command_line::add_arg(desc, arg_dns_checkpoints);
     command_line::add_arg(desc, arg_prep_blocks_threads);
@@ -334,7 +334,6 @@ namespace cryptonote
     command_line::add_arg(desc, arg_block_download_max_size);
     command_line::add_arg(desc, arg_sync_pruned_blocks);
     command_line::add_arg(desc, arg_max_txpool_weight);
-    command_line::add_arg(desc, arg_pad_transactions);
     command_line::add_arg(desc, arg_block_notify);
     command_line::add_arg(desc, arg_prune_blockchain);
     command_line::add_arg(desc, arg_reorg_notify);
@@ -377,7 +376,6 @@ namespace cryptonote
     set_enforce_dns_checkpoints(command_line::get_arg(vm, arg_dns_checkpoints));
     test_drop_download_height(command_line::get_arg(vm, arg_test_drop_download_height));
     m_fluffy_blocks_enabled = !get_arg(vm, arg_no_fluffy_blocks);
-    m_pad_transactions = get_arg(vm, arg_pad_transactions);
     m_offline = get_arg(vm, arg_offline);
     m_disable_dns_checkpoints = get_arg(vm, arg_disable_dns_checkpoints);
     if (!command_line::is_arg_defaulted(vm, arg_fluffy_blocks))
@@ -472,6 +470,7 @@ namespace cryptonote
     size_t max_txpool_weight = command_line::get_arg(vm, arg_max_txpool_weight);
     bool prune_blockchain = command_line::get_arg(vm, arg_prune_blockchain);
     bool keep_alt_blocks = command_line::get_arg(vm, arg_keep_alt_blocks);
+    bool keep_fakechain = command_line::get_arg(vm, arg_keep_fakechain);
 
     boost::filesystem::path folder(m_config_folder);
     if (m_nettype == FAKECHAIN)
@@ -513,7 +512,7 @@ namespace cryptonote
     bool sync_on_blocks = true;
     uint64_t sync_threshold = 1;
 
-    if (m_nettype == FAKECHAIN)
+    if (m_nettype == FAKECHAIN && !keep_fakechain)
     {
       // reset the db by removing the database file before opening it
       if (!db->remove_data_file(filename))
@@ -1287,7 +1286,7 @@ namespace cryptonote
             private_req.txs.push_back(std::move(std::get<1>(tx)));
             break;
           case relay_method::block:
-          case relay_method::flood:
+          case relay_method::fluff:
             public_req.txs.push_back(std::move(std::get<1>(tx)));
             break;
         }
@@ -1651,8 +1650,9 @@ namespace cryptonote
         << "You can set the level of process detailization through \"set_log <level|categories>\" command," << ENDL
         << "where <level> is between 0 (no details) and 4 (very verbose), or custom category based levels (eg, *:WARNING)." << ENDL
         << ENDL
-        << "Use the \"help\" command to see the list of available commands." << ENDL
-        << "Use \"help <command>\" to see a command's documentation." << ENDL
+        << "Use the \"help\" command to see a simplified list of available commands." << ENDL
+        << "Use the \"help_advanced\" command to see an advanced list of available commands." << ENDL
+        << "Use \"help_advanced <command>\" to see a command's documentation." << ENDL
         << "**********************************************************************" << ENDL);
       m_starter_message_showed = true;
     }
@@ -1912,9 +1912,10 @@ namespace cryptonote
     }
 
     static constexpr double threshold = 1. / (864000 / DIFFICULTY_TARGET); // one false positive every 10 days
+    static constexpr unsigned int max_blocks_checked = 150;
 
     const time_t now = time(NULL);
-    const std::vector<time_t> timestamps = m_blockchain_storage.get_last_block_timestamps(60);
+    const std::vector<time_t> timestamps = m_blockchain_storage.get_last_block_timestamps(max_blocks_checked);
 
     static const unsigned int seconds[] = { 5400, 3600, 2700, 1800, 900 };
     for (size_t n = 0; n < sizeof(seconds)/sizeof(seconds[0]); ++n)
@@ -1926,7 +1927,7 @@ namespace cryptonote
       MDEBUG("blocks in the last " << seconds[n] / 60 << " minutes: " << b << " (probability " << p << ")");
       if (p < threshold)
       {
-        MWARNING("There were " << b << " blocks in the last " << seconds[n] / 60 << " minutes, there might be large hash rate changes, or we might be partitioned, cut off from the Sumokoin network or under attack. Or it could be just sheer bad luck.");
+        MWARNING("There were " << b << (b == max_blocks_checked ? " or more" : "") << " blocks in the last " << seconds[n] / 60 << " minutes, there might be large hash rate changes, or we might be partitioned, cut off from the Sumokoin network or under attack. Or it could be just sheer bad luck.");
 
         std::shared_ptr<tools::Notify> block_rate_notify = m_block_rate_notify;
         if (block_rate_notify)
@@ -1950,6 +1951,10 @@ namespace cryptonote
     bad_semantics_txes_lock.unlock();
   }
   //-----------------------------------------------------------------------------------------------
+  void core::flush_invalid_blocks()
+  {
+    m_blockchain_storage.flush_invalid_blocks();
+  }
   bool core::update_blockchain_pruning()
   {
     return m_blockchain_storage.update_blockchain_pruning();

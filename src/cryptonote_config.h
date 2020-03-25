@@ -46,10 +46,9 @@
 #define CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW            60
 #define CURRENT_BLOCK_MAJOR_VERSION                     1
 #define CURRENT_BLOCK_MINOR_VERSION                     0
-#define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
 
 #define CURRENT_TRANSACTION_VERSION                     2
-#define MIN_TRANSACTION_VERSION							            2
+#define MIN_TRANSACTION_VERSION			  2
 #define CRYPTONOTE_HEAVY_BLOCK_VERSION                  3
 #define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT              60*60*2
 #define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
@@ -110,6 +109,8 @@
 
 #define CRYPTONOTE_MEMPOOL_TX_LIVETIME                    (86400*3) //seconds, three days
 #define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME     604800 //seconds, one week
+
+#define CRYPTONOTE_DANDELIONPP_FLUSH_AVERAGE 5 // seconds
 
 // see src/cryptonote_protocol/levin_notify.cpp
 #define CRYPTONOTE_NOISE_MIN_EPOCH                      5      // minutes

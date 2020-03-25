@@ -2575,6 +2575,13 @@ bool Blockchain::add_block_as_invalid(const block_extended_info& bei, const cryp
   return true;
 }
 //------------------------------------------------------------------
+void Blockchain::flush_invalid_blocks()
+{
+  LOG_PRINT_L3("Blockchain::" << __func__);
+  CRITICAL_REGION_LOCAL(m_blockchain_lock);
+  m_invalid_blocks.clear();
+}
+//------------------------------------------------------------------
 bool Blockchain::have_block(const crypto::hash& id) const
 {
   LOG_PRINT_L3("Blockchain::" << __func__);
@@ -3687,7 +3694,7 @@ bool Blockchain::flush_txes_from_pool(const std::vector<crypto::hash> &txids)
     uint64_t fee;
     bool relayed, do_not_relay, double_spend_seen, pruned;
     MINFO("Removing txid " << txid << " from the pool");
-    if(!m_tx_pool.have_tx(txid, relay_category::all) && !m_tx_pool.take_tx(txid, tx, txblob, tx_weight, fee, relayed, do_not_relay, double_spend_seen, pruned))
+    if(m_tx_pool.have_tx(txid, relay_category::all) && !m_tx_pool.take_tx(txid, tx, txblob, tx_weight, fee, relayed, do_not_relay, double_spend_seen, pruned))
     {
       MERROR("Failed to remove txid " << txid << " from the pool");
       res = false;
@@ -5061,7 +5068,7 @@ void Blockchain::cancel()
 }
 
 #if defined(PER_BLOCK_CHECKPOINT)
-static const char expected_block_hashes_hash[] = "62592711fef31e0086f661ec223301d15fdd5b1d259c95efceb07cff52b5a194";
+static const char expected_block_hashes_hash[] = "97f3d5f3c1b5a2183234ae83852380cee1443074f7b840c4134bfc948948444f";
 void Blockchain::load_compiled_in_block_hashes(const GetCheckpointsCallback& get_checkpoints)
 {
   if (get_checkpoints == nullptr || !m_fast_sync)
@@ -5106,7 +5113,12 @@ void Blockchain::load_compiled_in_block_hashes(const GetCheckpointsCallback& get
         return;
       }
       const size_t size_needed = 4 + nblocks * (sizeof(crypto::hash) * 2);
-      if(nblocks > 0 && nblocks > (m_db->height() + HASH_OF_HASHES_STEP - 1) / HASH_OF_HASHES_STEP && checkpoints.size() >= size_needed)
+      if(checkpoints.size() != size_needed)
+      {
+        MERROR("Failed to load hashes - unexpected data size");
+        return;
+      }
+      else if(nblocks > 0 && nblocks > (m_db->height() + HASH_OF_HASHES_STEP - 1) / HASH_OF_HASHES_STEP)
       {
         p += sizeof(uint32_t);
         m_blocks_hash_of_hashes.reserve(nblocks);
