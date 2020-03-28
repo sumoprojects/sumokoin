@@ -69,7 +69,7 @@
 
 #define NET_MAKE_IP(b1,b2,b3,b4)  ((LPARAM)(((DWORD)(b1)<<24)+((DWORD)(b2)<<16)+((DWORD)(b3)<<8)+((DWORD)(b4))))
 
-#define MIN_WANTED_SEED_NODES 12
+// #define MIN_WANTED_SEED_NODES 12
 
 #ifdef __APPLE__
 #define THREAD_STACK_SIZE 5 * 1024 * 1024
@@ -670,6 +670,9 @@ namespace nodetool
       memcpy(&m_network_id, &::config::NETWORK_ID, 16);
       if (m_exclusive_peers.empty() && !m_offline)
       {
+/*
+  //Spare us the time and resources checking for seed nodes by DNS resolving hardcoded addresses which are not updated regularly anyhow. 
+  //Use the "fallback" harcoded seed IPs which are plenty, regularly checked and updated
       // for each hostname in the seed nodes list, attempt to DNS resolve and
       // add the result addresses as seed nodes
       // TODO: at some point add IPv6 support, but that won't be relevant
@@ -744,21 +747,21 @@ namespace nodetool
         }
         ++i;
       }
-
-      // append the fallback nodes if we have too few seed nodes to start with
+      // append the fallback nodes if we have too few seed nodes to start with (not anymore)
+      // always append the fall back hardcoded seed nodes
       if (full_addrs.size() < MIN_WANTED_SEED_NODES)
       {
         if (full_addrs.empty())
           MINFO("DNS seed node lookup either timed out or failed, falling back to defaults");
         else
           MINFO("Not enough DNS seed nodes found, using fallback defaults too");
-
-        for (const auto &peer: get_seed_nodes(cryptonote::MAINNET))
-          full_addrs.insert(peer);
-        m_fallback_seed_nodes_added = true;
+*/
+       for (const auto &peer: get_seed_nodes(cryptonote::MAINNET))
+        full_addrs.insert(peer);
+       m_fallback_seed_nodes_added = true;
       }
     }
-    }
+//  }
 
     for (const auto& full_addr : full_addrs)
     {
