@@ -77,6 +77,12 @@
 #define AUTODETECT_WINDOW 10 // seconds
 #define AUTODETECT_GAIN_THRESHOLD 1.02f  // 2%
 
+#ifdef __APPLE__
+#define THREAD_STACK_SIZE 5 * 1024 * 1024
+#else
+#define THREAD_STACK_SIZE 10 * 1024 * 1024
+#endif
+
 using namespace epee;
 
 #include "miner.h"

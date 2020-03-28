@@ -71,6 +71,12 @@
 
 #define MIN_WANTED_SEED_NODES 12
 
+#ifdef __APPLE__
+#define THREAD_STACK_SIZE 5 * 1024 * 1024
+#else
+#define THREAD_STACK_SIZE 10 * 1024 * 1024
+#endif
+
 namespace nodetool
 {
   template<class t_payload_net_handler>

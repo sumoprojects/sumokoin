@@ -165,7 +165,6 @@
 #define RPC_PAYMENTS_DATA_FILENAME              "rpcpayments.bin"
 #define MINER_CONFIG_FILE_NAME                  "miner_conf.json"
 
-#define THREAD_STACK_SIZE                       5 * 1024 * 1024
 
 // coin emission change interval/speed configs
 #define COIN_EMISSION_MONTH_INTERVAL                    6  // months to change emission speed
