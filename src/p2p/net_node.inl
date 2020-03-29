@@ -672,7 +672,7 @@ namespace nodetool
       {
 /*
   //Spare us the time and resources checking for seed nodes by DNS resolving hardcoded addresses which are not updated regularly anyhow. 
-  //Use the "fallback" harcoded seed IPs which are plenty, regularly checked and updated
+  //use the "fallback" harcoded seed IPs which are plenty, regularly checked and updated
       // for each hostname in the seed nodes list, attempt to DNS resolve and
       // add the result addresses as seed nodes
       // TODO: at some point add IPv6 support, but that won't be relevant
@@ -1578,14 +1578,14 @@ namespace nodetool
           if (!m_fallback_seed_nodes_added)
           {
             MWARNING("Failed to connect to any of seed peers, trying fallback seeds");
-            current_index = m_seed_nodes.size();
+            current_index = m_seed_nodes.size() - 1;
             for (const auto &peer: get_seed_nodes(m_nettype))
             {
               MDEBUG("Fallback seed node: " << peer);
               append_net_address(m_seed_nodes, peer, cryptonote::get_config(m_nettype).P2P_DEFAULT_PORT);
             }
             m_fallback_seed_nodes_added = true;
-            if (current_index == m_seed_nodes.size())
+            if (current_index == m_seed_nodes.size() - 1)
             {
               MWARNING("No fallback seeds, continuing without seeds");
               break;
