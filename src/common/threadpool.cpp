@@ -31,6 +31,12 @@
 #include "cryptonote_config.h"
 #include "common/util.h"
 
+#ifdef __APPLE__
+#define THREAD_STACK_SIZE 5 * 1024 * 1024
+#else
+#define THREAD_STACK_SIZE 10 * 1024 * 1024
+#endif
+
 static __thread int depth = 0;
 static __thread bool is_leaf = false;
 
