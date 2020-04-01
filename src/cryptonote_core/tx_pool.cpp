@@ -1276,7 +1276,12 @@ namespace cryptonote
     fee = 0;
     
     //baseline empty block
-    get_block_reward(median_weight, total_weight, already_generated_coins, best_coinbase, height);
+    if (!get_block_reward(median_weight, total_weight, already_generated_coins, best_coinbase, version))
+    {
+      MERROR("Failed to get block reward for empty block");
+      return false;
+    }
+
 
     size_t max_total_weight = (200 * median_weight)/100 - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE;
     std::unordered_set<crypto::key_image> k_images;
