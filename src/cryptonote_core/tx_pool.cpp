@@ -1276,7 +1276,7 @@ namespace cryptonote
     fee = 0;
     
     //baseline empty block
-    if (!get_block_reward(median_weight, total_weight, already_generated_coins, best_coinbase, version))
+    if (!get_block_reward(median_weight, total_weight, already_generated_coins, best_coinbase, height))
     {
       MERROR("Failed to get block reward for empty block");
       return false;
