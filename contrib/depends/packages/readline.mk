@@ -29,4 +29,3 @@ endef
 define $(package)_stage_cmds
   $(MAKE) install DESTDIR=$($(package)_staging_dir) prefix=$(host_prefix) exec-prefix=$(host_prefix)
 endef
-

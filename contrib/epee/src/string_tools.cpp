@@ -70,4 +70,3 @@ namespace string_tools
   }
 }
 }
-

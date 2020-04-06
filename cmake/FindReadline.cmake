@@ -1,4 +1,4 @@
-# - Try to find readline include dirs and libraries 
+# - Try to find readline include dirs and libraries
 #
 # Usage of this module as follows:
 #
@@ -88,4 +88,3 @@ elseif(READLINE_FOUND AND NOT HAVE_COPY_TEXT)
   set(LIBEDIT_FOUND TRUE)
   set(LIBEDIT_LIBRARY ${Readline_LIBRARY})
 endif(HAVE_COMPLETION_FUNCTION AND HAVE_COPY_TEXT)
-

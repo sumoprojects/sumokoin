@@ -178,4 +178,3 @@ bool BlocksdatFile::store_blockchain_raw(Blockchain* _blockchain_storage, tx_mem
 
   return BlocksdatFile::close();
 }
-

@@ -111,7 +111,7 @@ typedef cryptonote::simple_wallet sw;
   epee::misc_utils::auto_scope_leave_caller scope_exit_handler = epee::misc_utils::create_scope_leave_handler([&](){ \
     /* m_idle_mutex is still locked here */ \
     m_auto_refresh_enabled.store(auto_refresh_enabled, std::memory_order_relaxed); \
-    m_suspend_rpc_payment_mining.store(false, std::memory_order_relaxed);; \
+    m_suspend_rpc_payment_mining.store(false, std::memory_order_relaxed); \
     m_rpc_payment_checker.trigger(); \
     m_idle_cond.notify_one(); \
   })
@@ -1966,7 +1966,7 @@ bool simple_wallet::rpc_payment_info(const std::vector<std::string> &args)
       if (expected)
         message_writer() << tr("Credit discrepancy this session: ") << discrepancy << " (" << 100.0f * discrepancy / expected << "%)";
       float cph = credits_per_hash_found / (float)diff;
-      message_writer() << tr("Difficulty: ") << diff << ", " << credits_per_hash_found << " " << tr("credits per hash found, ") << cph << " " << tr("credits/hash");;
+      message_writer() << tr("Difficulty: ") << diff << ", " << credits_per_hash_found << " " << tr("credits per hash found, ") << cph << " " << tr("credits/hash");
       const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
       bool mining = (now - m_last_rpc_payment_mining_time).total_microseconds() < 1000000;
       if (mining)
@@ -3119,7 +3119,7 @@ simple_wallet::simple_wallet()
   m_cmd_binder.set_handler("locked_sweep_all",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::locked_sweep_all,_1),
                            tr(USAGE_LOCKED_SWEEP_ALL),
-                           tr("Send all unlocked balance to an address and lock it for <lockblocks> (max. 500000). If the parameter \"index=<N1>[,<N2>,...]\" or \"index=all\" is specified, the wallet sweeps outputs received by those or all address indices, respectively. If omitted, the wallet randomly chooses an address index to be used. <priority> is the priority of the sweep. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability."));  
+                           tr("Send all unlocked balance to an address and lock it for <lockblocks> (max. 500000). If the parameter \"index=<N1>[,<N2>,...]\" or \"index=all\" is specified, the wallet sweeps outputs received by those or all address indices, respectively. If omitted, the wallet randomly chooses an address index to be used. <priority> is the priority of the sweep. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability."));
   m_cmd_binder.set_handler("sweep_unmixable",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::sweep_unmixable, _1),
                            tr("Send all unmixable outputs to yourself with ring_size 1"));
@@ -6270,7 +6270,7 @@ void simple_wallet::check_for_inactivity_lock(bool user)
       {
         if (get_and_verify_password())
           break;
-        else 
+        else
         {
           ++attempt;
           int left = 3 - attempt;
@@ -6278,7 +6278,7 @@ void simple_wallet::check_for_inactivity_lock(bool user)
         }
         if (attempt > 2)
         {
-          close_wallet(); 
+          close_wallet();
           message_writer(console_color_red, true) << "Your wallet is now closed, press Ctrl^C to exit to terminal" << std::endl;
           break;
         }
@@ -8569,7 +8569,7 @@ bool simple_wallet::show_transfers(const std::vector<std::string> &args_)
      }
 
     std::string payment_id;
-  
+
     auto formatter = boost::format("%7.7llu %6.6s %20.20s %10.10s %s %-9.9s %s %s - %s %4.4s");
 
     message_writer(color, false) << formatter
@@ -8583,7 +8583,7 @@ bool simple_wallet::show_transfers(const std::vector<std::string> &args_)
       % boost::algorithm::join(transfer.index | boost::adaptors::transformed([](uint32_t i) { return std::to_string(i); }), ", ")
       % transfer.note
       % lock_status;
-    
+
    if (!transfer.payment_id.empty() && transfer.payment_id != "0000000000000000")
     {
      payment_id = "payment id: "+transfer.payment_id;

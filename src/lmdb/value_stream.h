@@ -83,7 +83,7 @@ namespace lmdb
     {
         MDB_cursor* cur;
         epee::span<const std::uint8_t> values;
-        
+
         void increment()
         {
             values.remove_prefix(sizeof(T));
@@ -175,7 +175,7 @@ namespace lmdb
         //! \pre `!is_end()` \return The field `F`, at `offset`, within `T`.
         value_type operator*() const noexcept { return get_value<T, F, offset>(); }
     };
- 
+
     /*!
         C++ wrapper for a LMDB read-only cursor on a fixed-sized value `T`.
 
@@ -284,4 +284,3 @@ namespace lmdb
         return !lhs.equal(rhs);
     }
 } // lmdb
-

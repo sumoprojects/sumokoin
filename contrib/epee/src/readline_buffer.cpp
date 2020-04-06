@@ -233,4 +233,3 @@ void rdln::clear_screen()
 {
   rl_clear_screen(0, 0);
 }
-

@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
@@ -37,7 +37,7 @@
 #include <string>
 /*! \file varint.h
  * \brief provides the implementation of varint's
- * 
+ *
  * The representation of varints is rather odd. The first bit of each
  * octet is significant, it represents wheter there is another part
  * waiting to be read. For example 0x8002 would return 0x200, even
@@ -65,11 +65,11 @@ namespace tools {
    */
   template<typename OutputIt, typename T>
   /* Requires T to be both an integral type and unsigned, should be a compile error if it is not */
-  typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, void>::type 
+  typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, void>::type
   write_varint(OutputIt &&dest, T i) {
     /* Make sure that there is one after this */
     while (i >= 0x80) {
-      *dest = (static_cast<char>(i) & 0x7f) | 0x80; 
+      *dest = (static_cast<char>(i) & 0x7f) | 0x80;
       ++dest;
       i >>= 7;			/* I should be in multiples of 7, this should just get the next part */
     }
@@ -88,7 +88,7 @@ namespace tools {
       return ss.str();
     }
   /*! \brief reads in the varint that is pointed to by InputIt into write
-   */ 
+   */
   template<int bits, typename InputIt, typename T>
     typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value && 0 <= bits && bits <= std::numeric_limits<T>::digits, int>::type
     read_varint(InputIt &&first, InputIt &&last, T &write) {
@@ -96,7 +96,7 @@ namespace tools {
     write = 0;
     for (int shift = 0;; shift += 7) {
       if (first == last) {
-	return read; 
+	return read;
       }
       unsigned char byte = *first;
       ++first;

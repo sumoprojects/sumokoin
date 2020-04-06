@@ -41,7 +41,7 @@ time = 1000
 gen = difficulty()
 diff = next(gen)
 for i in range(100000):
-    power = 100 if i < 10000 else 100000000 if i < 500 else 1000000000000 if i < 1000 else 1000000000000000 if i < 2000 else 10000000000000000000 if i < 4000 else 1000000000000000000000000 
+    power = 100 if i < 10000 else 100000000 if i < 500 else 1000000000000 if i < 1000 else 1000000000000000 if i < 2000 else 10000000000000000000 if i < 4000 else 1000000000000000000000000
     time += random.randint(-diff // power - 10, 3 * diff // power + 10)
     print(time, diff)
     diff = gen.send(time)

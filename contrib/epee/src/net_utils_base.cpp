@@ -128,4 +128,3 @@ namespace epee { namespace net_utils
     return zone::invalid;
   }
 }}
-

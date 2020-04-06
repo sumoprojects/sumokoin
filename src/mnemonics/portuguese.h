@@ -51,7 +51,7 @@
 
 /*!
  * \file portuguese.h
- * 
+ *
  * \brief Portuguese word list and map.
  */
 

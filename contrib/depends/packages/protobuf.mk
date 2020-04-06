@@ -28,4 +28,3 @@ define $(package)_postprocess_cmds
   rm lib/libprotoc.a &&\
   rm lib/*.la
 endef
-

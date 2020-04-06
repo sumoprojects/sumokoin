@@ -43,14 +43,14 @@ namespace net_utils
       virtual bool deinit_server_thread()
       { return true; }
     };
-    
+
     template<class t_connection_context>
     struct jsonrpc2_server_config
     {
       i_jsonrpc2_server_handler<t_connection_context>* m_phandler;
       critical_section m_lock;
     };
-    
+
     template<class t_connection_context = net_utils::connection_context_base>
     class jsonrpc2_connection_handler
     {
@@ -81,7 +81,7 @@ namespace net_utils
       {
         return true;
       }
-      void handle_qued_callback()   
+      void handle_qued_callback()
       {}
       bool after_init_connection()
       {

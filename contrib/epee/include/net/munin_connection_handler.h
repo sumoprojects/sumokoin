@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -56,7 +56,7 @@ namespace net_utils
 {
 	namespace munin
 	{
-	
+
 
 		/************************************************************************/
 		/*                                                                      */
@@ -102,8 +102,8 @@ namespace net_utils
 			typedef node_server_config config_type;
       typedef connection_context_base connection_context;
 
-			munin_node_server_connection_handler(i_service_endpoint* psnd_hndlr, config_type& config, const connection_context_base& context):m_psnd_hndlr(psnd_hndlr), 
-												m_machine_state(http_state_retriving_comand_line), 
+			munin_node_server_connection_handler(i_service_endpoint* psnd_hndlr, config_type& config, const connection_context_base& context):m_psnd_hndlr(psnd_hndlr),
+												m_machine_state(http_state_retriving_comand_line),
 												m_config(config)
 			{
 				init();
@@ -142,7 +142,7 @@ namespace net_utils
 
 			virtual bool handle_recv(const void* ptr, size_t cb)
 			{
-				
+
 				const char* pbuff = (const char*)ptr;
 				std::string recvd_buff(pbuff, cb);
 				LOG_PRINT("munin_recv: \n" << recvd_buff, LOG_LEVEL_3);
@@ -156,7 +156,7 @@ namespace net_utils
 					{
 					case http_state_retriving_comand_line:
 						{
-							
+
 							std::string::size_type fpos = m_cache.find('\n');
 							if(std::string::npos != fpos )
 							{
@@ -180,7 +180,7 @@ namespace net_utils
 					}
 
 				}
-				
+
 				return true;
 			}
 
@@ -199,9 +199,9 @@ namespace net_utils
 			{
 				// list, nodes, config, fetch, version or quit
 				STATIC_REGEXP_EXPR_1(rexp_match_command_line, "^((list)|(nodes)|(config)|(fetch)|(version)|(quit))(\\s+(\\S+))?", boost::regex::icase | boost::regex::normal);
-				//											    12      3       4        5       6         7      8    9         
+				//											    12      3       4        5       6         7      8    9
 				size_t match_len = 0;
-				boost::smatch result;	
+				boost::smatch result;
 				if(boost::regex_search(command, result, rexp_match_command_line, boost::match_default) && result[0].matched)
 				{
 					if(result[2].matched)
@@ -237,7 +237,7 @@ namespace net_utils
 						return send_hook("Unknown command. Try list, nodes, config, fetch, version or quit\n");
 				}
 
-				return send_hook("Unknown command. Try list, nodes, config, fetch, version or quit\n");;
+				return send_hook("Unknown command. Try list, nodes, config, fetch, version or quit\n");
 			}
 
 			bool handle_list_command()
@@ -252,7 +252,7 @@ namespace net_utils
 			}
 			bool handle_nodes_command()
 			{
-				//supports only one node - host name 
+				//supports only one node - host name
 				send_hook(m_host_name + "\n.\n");
 				return true;
 			}
@@ -262,7 +262,7 @@ namespace net_utils
 				if(!psrv)
 					return send_hook(std::string() + "Unknown service\n");
 
-				
+
 				return send_hook(psrv->m_service_config_string + ".\n");
 			}
 
@@ -271,7 +271,7 @@ namespace net_utils
 				munin_service* psrv = get_service_by_name(service_name);
 				if(!psrv)
 					return send_hook(std::string() + "Unknown service\n");
-			
+
 				std::string buff;
 				psrv->m_pdata_provider->update_service_data(psrv, buff);
 
@@ -293,7 +293,7 @@ namespace net_utils
 
 				if(m_psnd_hndlr)
 					return m_psnd_hndlr->do_send(buff.data(), buff.size());
-				else 
+				else
 					return false;
 			}
 
@@ -322,7 +322,7 @@ namespace net_utils
 			std::string m_cache;
 			std::string m_host_name;
 		protected:
-			i_service_endpoint* m_psnd_hndlr; 
+			i_service_endpoint* m_psnd_hndlr;
 		};
 
 
@@ -333,8 +333,8 @@ namespace net_utils
 			node_server_config sc;
 			sc.m_services.push_back(munin_service());
 			sc.m_services.back().m_service_name = "test_service";
-			
-			sc.m_services.back().m_service_config_string =     
+
+			sc.m_services.back().m_service_config_string =
 				"graph_args --base 1000 -l 0 --vertical-label N --upper-limit 329342976\n"
 				"graph_title REPORTS STATICTICS\n"
 				"graph_category bind\n"
@@ -359,10 +359,10 @@ namespace net_utils
 			sc.m_services.back().m_service_name = "test_service1";
 			fake_send_handler fh;
 			munin_node_server_connection_handler mh(&fh, sc);
-			
+
 			std::string buff = "list\n";
 			mh.handle_recv(buff.data(), buff.size());
-			
+
 
 			buff = "nodes\n";
 			mh.handle_recv(buff.data(), buff.size());

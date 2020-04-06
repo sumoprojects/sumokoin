@@ -1,9 +1,9 @@
 --- Makefile.org.O	2019-02-26 14:20:20.000000000 +0000
 +++ Makefile.org	2019-11-15 13:05:54.370086856 +0000
 @@ -63,8 +63,8 @@
- PEX_LIBS= 
- EX_LIBS= 
- EXE_EXT= 
+ PEX_LIBS=
+ EX_LIBS=
+ EXE_EXT=
 -ARFLAGS=
 -AR=ar $(ARFLAGS) r
 +ARFLAGS= r
@@ -21,4 +21,3 @@
 +my $arflags = $ENV{'ARFLAGS'} || $fields[$idx_arflags];
  my $windres = $ENV{'RC'} || $ENV{'WINDRES'} || "windres";
  my $multilib = $fields[$idx_multilib];
- 

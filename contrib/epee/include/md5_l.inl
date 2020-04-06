@@ -92,19 +92,19 @@ namespace md5
 	/*
 	static void MD5Transform PROTO_LIST ((UINT4 [4], unsigned char [64]));
 	static void Encode PROTO_LIST
-	((unsigned char *, UINT4 *, unsigned int)); 
+	((unsigned char *, UINT4 *, unsigned int));
 	static void Decode PROTO_LIST
-	((UINT4 *, unsigned char *, unsigned int)); 
+	((UINT4 *, unsigned char *, unsigned int));
 	static void MD5_memcpy PROTO_LIST ((POINTER, POINTER, unsigned int));
 	static void MD5_memset PROTO_LIST ((POINTER, int, unsigned int));
 	*/
 
 	static void MD5_memcpy (POINTER output, POINTER input, unsigned int len)
 	{
-		unsigned int i; 
+		unsigned int i;
 
-		for (i = 0; i < len; i++) 
-			output[i] = input[i]; 
+		for (i = 0; i < len; i++)
+			output[i] = input[i];
 	}
 
 	/* Note: Replace "for loop" with standard memset if possible.
@@ -112,10 +112,10 @@ namespace md5
 
 	static void MD5_memset (POINTER output, int value, unsigned int len)
 	{
-		unsigned int i; 
+		unsigned int i;
 
-		for (i = 0; i < len; i++) 
-			((char *)output)[i] = (char)value; 
+		for (i = 0; i < len; i++)
+			((char *)output)[i] = (char)value;
 	}
 
 	static void MD5Transform (UINT4 state[4], unsigned char block[64]);
@@ -124,7 +124,7 @@ namespace md5
 	{
 		static unsigned char local_PADDING[64] = {
 			0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 		};
 
 		return local_PADDING;
@@ -156,34 +156,34 @@ namespace md5
 	Rotation is separate from addition to prevent recomputation.
 	*/
 
-#define FF(a, b, c, d, x, s, ac) { (a) += MD5_M_F ((b), (c), (d)) + (x) + (UINT4)(ac); (a) = ROTATE_LEFT ((a), (s));        (a) += (b);        } 
-#define GG(a, b, c, d, x, s, ac) {        (a) += MD5_M_G ((b), (c), (d)) + (x) + (UINT4)(ac);        (a) = ROTATE_LEFT ((a), (s));        (a) += (b);         } 
-#define HH(a, b, c, d, x, s, ac) {        (a) += MD5_M_H ((b), (c), (d)) + (x) + (UINT4)(ac);        (a) = ROTATE_LEFT ((a), (s));        (a) += (b);        } 
-#define II(a, b, c, d, x, s, ac) {        (a) += MD5_M_I ((b), (c), (d)) + (x) + (UINT4)(ac);        (a) = ROTATE_LEFT ((a), (s));        (a) += (b);        } 
+#define FF(a, b, c, d, x, s, ac) { (a) += MD5_M_F ((b), (c), (d)) + (x) + (UINT4)(ac); (a) = ROTATE_LEFT ((a), (s));        (a) += (b);        }
+#define GG(a, b, c, d, x, s, ac) {        (a) += MD5_M_G ((b), (c), (d)) + (x) + (UINT4)(ac);        (a) = ROTATE_LEFT ((a), (s));        (a) += (b);         }
+#define HH(a, b, c, d, x, s, ac) {        (a) += MD5_M_H ((b), (c), (d)) + (x) + (UINT4)(ac);        (a) = ROTATE_LEFT ((a), (s));        (a) += (b);        }
+#define II(a, b, c, d, x, s, ac) {        (a) += MD5_M_I ((b), (c), (d)) + (x) + (UINT4)(ac);        (a) = ROTATE_LEFT ((a), (s));        (a) += (b);        }
 
 	/* MD5 initialization. Begins an MD5 operation, writing a new context.
 	*/
 
 	static void MD5Init(MD5_CTX * context)
 	{
-		context->count[0] = context->count[1] = 0; 
+		context->count[0] = context->count[1] = 0;
 
 		/* Load magic initialization constants.
 
 		*/
-		context->state[0] = 0x67452301; 
-		context->state[1] = 0xefcdab89; 
-		context->state[2] = 0x98badcfe; 
-		context->state[3] = 0x10325476; 
+		context->state[0] = 0x67452301;
+		context->state[1] = 0xefcdab89;
+		context->state[2] = 0x98badcfe;
+		context->state[3] = 0x10325476;
 	}
 
 	/* MD5 block update operation. Continues an MD5 message-digest
-	operation, processing another message block, and updating the context. 
+	operation, processing another message block, and updating the context.
 	*/
 
 	static void MD5Update( MD5_CTX *context, const unsigned char *input, unsigned int inputLen )
 	{
-		unsigned int i, index, partLen; 
+		unsigned int i, index, partLen;
 
 		/* Compute number of bytes mod 64 */
 		index = (unsigned int)((context->count[0] >> 3) & 0x3F);
@@ -194,23 +194,23 @@ namespace md5
 			context->count[1]++;
 		context->count[1] += ((UINT4)inputLen >> 29);
 
-		partLen = 64 - index; 
+		partLen = 64 - index;
 
 		/* Transform as many times as possible.
 
 		*/
 		if (inputLen >= partLen)
-		{ 
+		{
 			MD5_memcpy( (POINTER)&context->buffer[index], (POINTER)input, partLen );
-			MD5Transform( context->state, context->buffer ); 
+			MD5Transform( context->state, context->buffer );
 
-			for (i = partLen; i + 63 < inputLen; i += 64) 
-				MD5Transform (context->state, (unsigned char*)&input[i]); 
+			for (i = partLen; i + 63 < inputLen; i += 64)
+				MD5Transform (context->state, (unsigned char*)&input[i]);
 
-			index = 0; 
-		} 
-		else 
-			i = 0; 
+			index = 0;
+		}
+		else
+			i = 0;
 
 		/* Buffer remaining input */
 		MD5_memcpy( (POINTER)&context->buffer[index], (POINTER)&input[i], inputLen-i );
@@ -218,45 +218,45 @@ namespace md5
 	}
 
 	/* Encodes input (UINT4) into output (unsigned char). Assumes len is
-	a multiple of 4. 
+	a multiple of 4.
 
 	*/
 
 	static void Encode (unsigned char *output, UINT4 *input, unsigned int len)
 	{
-		unsigned int i, j; 
+		unsigned int i, j;
 
-		for (i = 0, j = 0; j < len; i++, j += 4) { 
-			output[j] = (unsigned char)(input[i] & 0xff); 
-			output[j+1] = (unsigned char)((input[i] >> 8) & 0xff); 
-			output[j+2] = (unsigned char)((input[i] >> 16) & 0xff); 
-			output[j+3] = (unsigned char)((input[i] >> 24) & 0xff); 
-		} 
+		for (i = 0, j = 0; j < len; i++, j += 4) {
+			output[j] = (unsigned char)(input[i] & 0xff);
+			output[j+1] = (unsigned char)((input[i] >> 8) & 0xff);
+			output[j+2] = (unsigned char)((input[i] >> 16) & 0xff);
+			output[j+3] = (unsigned char)((input[i] >> 24) & 0xff);
+		}
 	}
 
 	/* Decodes input (unsigned char) into output (UINT4). Assumes len is
-	a multiple of 4. 
+	a multiple of 4.
 
 	*/
 
 	static void Decode (UINT4 *output, unsigned char *input, unsigned int len)
 	{
-		unsigned int i, j; 
+		unsigned int i, j;
 
-		for (i = 0, j = 0; j < len; i++, j += 4) 
+		for (i = 0, j = 0; j < len; i++, j += 4)
 			output[i] = ((UINT4)input[j]) | (((UINT4)input[j+1]) << 8) | (((UINT4)input[j+2]) << 16)
-			| (((UINT4)input[j+3]) << 24); 
+			| (((UINT4)input[j+3]) << 24);
 	}
 
 	/* MD5 finalization. Ends an MD5 message-digest operation, writing the
-	the message digest and zeroizing the context. 
+	the message digest and zeroizing the context.
 
 	*/
 
 	static void MD5Final ( unsigned char digest[16], MD5_CTX *context )
 	{
-		unsigned char bits[8]; 
-		unsigned int index, padLen; 
+		unsigned char bits[8];
+		unsigned int index, padLen;
 
 		/* Save number of bits */
 		Encode (bits, context->count, 8);
@@ -264,9 +264,9 @@ namespace md5
 		/* Pad out to 56 mod 64.
 
 		*/
-		index = (unsigned int)((context->count[0] >> 3) & 0x3f); 
-		padLen = (index < 56) ? (56 - index) : (120 - index); 
-		MD5Update (context, PADDING(), padLen); 
+		index = (unsigned int)((context->count[0] >> 3) & 0x3f);
+		padLen = (index < 56) ? (56 - index) : (120 - index);
+		MD5Update (context, PADDING(), padLen);
 
 		/* Append length (before padding) */
 		MD5Update (context, bits, 8);
@@ -277,7 +277,7 @@ namespace md5
 		/* Zeroize sensitive information.
 
 		*/
-		MD5_memset ((POINTER)context, 0, sizeof (*context)); 
+		MD5_memset ((POINTER)context, 0, sizeof (*context));
 	}
 
 	/* MD5 basic transformation. Transforms state based on block.
@@ -286,9 +286,9 @@ namespace md5
 
 	static void MD5Transform (UINT4 state[4], unsigned char block[64])
 	{
-		UINT4 a = state[0], b = state[1], c = state[2], d = state[3], x[16]; 
+		UINT4 a = state[0], b = state[1], c = state[2], d = state[3], x[16];
 
-		Decode (x, block, 64); 
+		Decode (x, block, 64);
 
 		/* Round 1 */
 		FF (a, b, c, d, x[ 0], S11, 0xd76aa478); /* 1 */
@@ -320,11 +320,11 @@ namespace md5
 		GG (a, b, c, d, x[ 9], S21, 0x21e1cde6); /* 25 */
 		GG (d, a, b, c, x[14], S22, 0xc33707d6); /* 26 */
 		GG (c, d, a, b, x[ 3], S23, 0xf4d50d87); /* 27 */
-		GG (b, c, d, a, x[ 8], S24, 0x455a14ed); /* 28 */ 
-		GG (a, b, c, d, x[13], S21, 0xa9e3e905); /* 29 */ 
-		GG (d, a, b, c, x[ 2], S22, 0xfcefa3f8); /* 30 */ 
-		GG (c, d, a, b, x[ 7], S23, 0x676f02d9); /* 31 */ 
-		GG (b, c, d, a, x[12], S24, 0x8d2a4c8a); /* 32 */ 
+		GG (b, c, d, a, x[ 8], S24, 0x455a14ed); /* 28 */
+		GG (a, b, c, d, x[13], S21, 0xa9e3e905); /* 29 */
+		GG (d, a, b, c, x[ 2], S22, 0xfcefa3f8); /* 30 */
+		GG (c, d, a, b, x[ 7], S23, 0x676f02d9); /* 31 */
+		GG (b, c, d, a, x[12], S24, 0x8d2a4c8a); /* 32 */
 
 		/* Round 3 */
 		HH (a, b, c, d, x[ 5], S31, 0xfffa3942); /* 33 */
@@ -362,14 +362,14 @@ namespace md5
 		II (c, d, a, b, x[ 2], S43, 0x2ad7d2bb); /* 63 */
 		II (b, c, d, a, x[ 9], S44, 0xeb86d391); /* 64 */
 
-		state[0] += a; 
-		state[1] += b; 
-		state[2] += c; 
-		state[3] += d; 
+		state[0] += a;
+		state[1] += b;
+		state[2] += c;
+		state[3] += d;
 
 		/* Zeroize sensitive information.
 		*/
-		MD5_memset ((POINTER)x, 0, sizeof (x)); 
+		MD5_memset ((POINTER)x, 0, sizeof (x));
 	}
 
 	/* Note: Replace "for loop" with standard memcpy if possible.
@@ -393,13 +393,13 @@ namespace md5
 
 			MD5_CTX      tctx;
 
-			MD5Init(&tctx); 
-			MD5Update(&tctx, key, key_len); 
-			MD5Final(tk, &tctx); 
+			MD5Init(&tctx);
+			MD5Update(&tctx, key, key_len);
+			MD5Final(tk, &tctx);
 
-			key = tk; 
-			key_len = 16; 
-		} 
+			key = tk;
+			key_len = 16;
+		}
 
 		/*
 		* the HMAC_MD5 transform looks like:
@@ -446,7 +446,7 @@ namespace md5
 	* buffer fields.  So all we have to do is save the state field; we
 	* can zero the others when we reload it.  Which is why the decision
 	* was made to pad the key out to 64 bytes in the first place. */
-	inline 
+	inline
     void hmac_md5_precalc(HMAC_MD5_STATE *state,
 		const unsigned char *key,
 		int key_len)
@@ -491,7 +491,7 @@ namespace md5
 
 	void hmac_md5(const unsigned char* text, int text_len, const unsigned char* key, int key_len, unsigned char *digest)
 	{
-		MD5_CTX context; 
+		MD5_CTX context;
 
 		unsigned char k_ipad[65];    /* inner padding -
 									 * key XORd with ipad
@@ -506,13 +506,13 @@ namespace md5
 
 			MD5_CTX      tctx;
 
-			MD5Init(&tctx); 
-			MD5Update(&tctx, key, key_len); 
-			MD5Final(tk, &tctx); 
+			MD5Init(&tctx);
+			MD5Update(&tctx, key, key_len);
+			MD5Final(tk, &tctx);
 
-			key = tk; 
-			key_len = 16; 
-		} 
+			key = tk;
+			key_len = 16;
+		}
 
 		/*
 		* the HMAC_MD5 transform looks like:

@@ -62,4 +62,3 @@ namespace net_utils
 	zone zone_from_string(boost::string_ref value) noexcept;
 } // net_utils
 } // epee
-

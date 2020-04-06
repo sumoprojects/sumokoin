@@ -19,4 +19,3 @@ try:
   subprocess.check_call(second)
 except:
   sys.exit(1)
-

@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -471,7 +471,7 @@ bool t_rpc_command_executor::show_emission() {
   uint64_t round_factor = 10000000;
   uint64_t icount = 0;
   bool print_by_year = false;
- 
+
   tools::msg_writer() << "\nCurrent height: " << ires.height;
   tools::msg_writer() << "---------------------------------------------------------";
   tools::msg_writer() << "Height" << "\t" << "Reward" << "\t" << "Coins Gen" << "\t" << "(%)" << "\t" << "Day" << "\t" << "Year";
@@ -570,7 +570,7 @@ bool t_rpc_command_executor::show_disk() {
   uint64_t freespace = (ires.free_space)/(1024*1024);
   std::string os_version = tools::get_os_version_string();
   std::string win = "Windows";
-  if (!(os_version.find(win) != std::string::npos)) 
+  if (!(os_version.find(win) != std::string::npos))
   {
     std::cout << std:: endl << "\033[1mBlockchain db current size on disk: \033[0m" << "\033[32;1m" << chainsize << " MB" << "\033[0m"  << "  " << std::endl;
   }
@@ -667,7 +667,7 @@ bool t_rpc_command_executor::show_status() {
     ;
   }
   std::string hf_status = (hfres.state == cryptonote::HardFork::Ready ? "up to date" : hfres.state == cryptonote::HardFork::UpdateNeeded ? "update needed" : "out of date, likely forked");
-  
+
   std::cout << "\033[1m-------------" << std::endl;
   std::cout << "SUMOKOIN INFO" << std::endl;
   std::cout << "-------------" << std::endl;
@@ -680,9 +680,9 @@ bool t_rpc_command_executor::show_status() {
   std::cout << "---------------\033[0m" << std::endl;
   std::cout << "\033[1mCurrent Height: \033[0m" << "\033[32;1m" << (unsigned long long)ires.height << "\033[0m" << "  " <<
    	         "\033[1mNetwork Height: \033[0m" << "\033[32;1m" << (unsigned long long)net_height << "\033[0m" << "  " <<
-   	         "\033[1mSync percentage: \033[0m" << "\033[32;1m" << perc << "%" << "\033[0m" << "  " << 
+   	         "\033[1mSync percentage: \033[0m" << "\033[32;1m" << perc << "%" << "\033[0m" << "  " <<
 	         "\033[1mBootstrap: \033[0m" << "\033[32;1m" << bootstrap_msg << "\033[0m" << std::endl;
-  if (!(os_version.find(win) != std::string::npos)) 
+  if (!(os_version.find(win) != std::string::npos))
   {
     std::cout <<   "\033[1mBlockchain db current size on disk: \033[0m" << "\033[32;1m" << chainsize << " MB" << "\033[0m"  << "  " << std::endl;
   }
@@ -807,17 +807,17 @@ bool t_rpc_command_executor::print_connections() {
     }
   }
 
-  tools::msg_writer() << std::setw(30) << std::left << "Remote Host" 
-      << std::setw(6) << "Type" 
+  tools::msg_writer() << std::setw(30) << std::left << "Remote Host"
+      << std::setw(6) << "Type"
       << std::setw(4) << "SSL"
       << std::setw(8) << "RPC"
-      << std::setw(8) << "Height" 
-      << std::setw(18) << "Peer id" 
-      << std::setw(6) << "Flags"      
-      << std::setw(26) << "Recv/Sent (inactive,s)" 
-      << std::setw(18) << "State" 
-      << std::setw(22) << "Down |  Up (kB/s/now)"   
-      << std::setw(8) << "Alive(s)" 
+      << std::setw(8) << "Height"
+      << std::setw(18) << "Peer id"
+      << std::setw(6) << "Flags"
+      << std::setw(26) << "Recv/Sent (inactive,s)"
+      << std::setw(18) << "State"
+      << std::setw(22) << "Down |  Up (kB/s/now)"
+      << std::setw(8) << "Alive(s)"
       << std::endl;
 
   for (auto & info : res.connections)
@@ -826,7 +826,7 @@ bool t_rpc_command_executor::print_connections() {
     std::string address = info.incoming ? "INC " : "OUT ";
     address += info.ip + ":" + info.port;
     //std::string in_out = info.incoming ? "INC " : "OUT ";
-    tools::msg_writer() 
+    tools::msg_writer()
      //<< std::setw(30) << std::left << in_out
      << std::setw(30) << std::left << address
      << std::setw(6) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
@@ -839,11 +839,11 @@ bool t_rpc_command_executor::print_connections() {
      << std::setw(18) << info.state
      << std::setw(22) << std::to_string(info.avg_download) + "/" + std::to_string(info.current_download) + "  |  "+ std::to_string(info.avg_upload) + "/" + std::to_string(info.current_upload)
      << std::setw(8) << info.live_time
-    
+
      << std::left << (info.localhost ? "[LOCALHOST]" : "")
      << std::left << (info.local_ip ? "[LAN]" : "");
     //tools::msg_writer() << boost::format("%-25s peer_id: %-25s %s") % address % info.peer_id % in_out;
-    
+
   }
 
   return true;
@@ -1517,7 +1517,7 @@ bool t_rpc_command_executor::start_mining(cryptonote::account_public_address add
   req.threads_count = num_threads;
   req.do_background_mining = do_background_mining;
   req.ignore_battery = ignore_battery;
-  
+
   std::string fail_message = "Mining did not start";
 
   if (m_is_rpc)
@@ -1744,12 +1744,12 @@ bool t_rpc_command_executor::out_peers(bool set, uint32_t limit)
 {
 	cryptonote::COMMAND_RPC_OUT_PEERS::request req;
 	cryptonote::COMMAND_RPC_OUT_PEERS::response res;
-	
+
 	epee::json_rpc::error error_resp;
 
 	req.set = set;
 	req.out_peers = limit;
-	
+
 	std::string fail_message = "Unsuccessful";
 
 	if (m_is_rpc)
@@ -1871,7 +1871,7 @@ bool t_rpc_command_executor::print_bans()
             tools::msg_writer() << i->host << " banned for " << i->seconds << " seconds";
         }
     }
-    else 
+    else
         tools::msg_writer() << "No IPs are banned";
 
     return true;
@@ -2075,7 +2075,7 @@ bool t_rpc_command_executor::print_coinbase_tx_sum(uint64_t height, uint64_t cou
   tools::msg_writer() << "Sum of coinbase transactions between block heights ["
     << height << ", " << (height + count) << "] is "
     << cryptonote::print_money(res.emission_amount + res.fee_amount) << " "
-    << "consisting of " << cryptonote::print_money(res.emission_amount) 
+    << "consisting of " << cryptonote::print_money(res.emission_amount)
     << " in emissions, and " << cryptonote::print_money(res.fee_amount) << " in fees";
   return true;
 }

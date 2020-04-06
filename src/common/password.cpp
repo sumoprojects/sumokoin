@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include "password.h"
@@ -86,12 +86,12 @@ namespace
         {
           int len = chlen.back();
           chlen.pop_back();
-          while(len-- > 0) 
+          while(len-- > 0)
             pass.pop_back();
         }
         continue;
       }
-      
+
       char utf8_ch[8] = {0};
       int len;
       if((len = WideCharToMultiByte(CP_UTF8, 0, &ucs2_ch, 1, utf8_ch, sizeof(utf8_ch), NULL, NULL)) <= 0)
@@ -109,7 +109,7 @@ namespace
     return r;
   }
 
-#else // end WIN32 
+#else // end WIN32
 
   bool is_cin_tty() noexcept
   {
@@ -229,12 +229,12 @@ namespace
 
 } // anonymous namespace
 
-namespace tools 
+namespace tools
 {
   // deleted via private member
   password_container::password_container() noexcept : m_password() {}
   password_container::password_container(std::string&& password) noexcept
-    : m_password(std::move(password)) 
+    : m_password(std::move(password))
   {
   }
   password_container::password_container(const epee::wipeable_string& password) noexcept
@@ -286,4 +286,4 @@ namespace tools
     password_container wipe{std::move(userpass)};
     return {std::move(out)};
   }
-} 
+}

@@ -863,7 +863,7 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
   if (m_nettype == MAINNET && (uint64_t)height >= MAINNET_HARDFORK_V7_HEIGHT && (uint64_t)height <= MAINNET_HARDFORK_V7_HEIGHT + (uint64_t)DIFFICULTY_BLOCKS_COUNT_V3){
     return (difficulty_type)240000000;
   }
-  
+
   size_t difficulty_blocks_count;
   uint8_t hf_version = get_current_hard_fork_version();
   if (hf_version == 1) {
@@ -1216,7 +1216,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
   LOG_PRINT_L3("Blockchain::" << __func__);
 
   uint64_t money_in_use = 0;
-  
+
   if (m_nettype == MAINNET && height == config::EXCHANGE_FUND_RELEASE_HEIGHT){
     uint64_t exchange_fund_amount = 0;
     crypto::public_key tx_pub = get_tx_pub_key_from_extra(b.miner_tx);
@@ -1475,7 +1475,7 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
   }
 
   CHECK_AND_ASSERT_MES(diffic, false, "difficulty overhead.");
-  
+
   cal_height = height - height % COIN_EMISSION_HEIGHT_INTERVAL;
   already_generated_coins = cal_height ? m_db->get_block_already_generated_coins(cal_height - 1) : 0;
   size_t txs_weight;
@@ -2985,7 +2985,7 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
       }
     }
   }
-  
+
   size_t n_unmixable = 0, n_mixable = 0;
   size_t mixin = std::numeric_limits<size_t>::max();
   const size_t min_mixin = hf_version < 7 ? DEFAULT_MIXIN : DEFAULT_MIXIN_V2;
@@ -3056,7 +3056,7 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
     tvc.m_verifivation_failed = true;
     return false;
   }
-  
+
   // from v6, check for sorted ins
   if (hf_version >= 6) {
     const crypto::key_image *last_key_image = NULL;
@@ -3387,7 +3387,7 @@ uint64_t Blockchain::get_dynamic_base_fee(uint64_t block_reward, size_t median_b
     lo /= 5;
     return lo;
   }
-  
+
   if (median_block_weight < BLOCK_SIZE_GROWTH_FAVORED_ZONE)
     median_block_weight = BLOCK_SIZE_GROWTH_FAVORED_ZONE;
 
@@ -3421,7 +3421,7 @@ bool Blockchain::check_fee(size_t tx_weight, uint64_t fee) const
   uint64_t base_reward;
   if (!get_block_reward(median, 1, cal_generated_coins, base_reward, height))
     return false;
- 
+
   MDEBUG("Using " << print_money(fee) << "/kB fee");
 
   uint64_t needed_fee;
@@ -5203,12 +5203,12 @@ bool Blockchain::for_all_transactions(std::function<bool(const crypto::hash&, co
 
 bool Blockchain::for_all_outputs(std::function<bool(uint64_t amount, const crypto::hash &tx_hash, uint64_t height, size_t tx_idx)> f) const
 {
-  return m_db->for_all_outputs(f);;
+  return m_db->for_all_outputs(f);
 }
 
 bool Blockchain::for_all_outputs(uint64_t amount, std::function<bool(uint64_t height)> f) const
 {
-  return m_db->for_all_outputs(amount, f);;
+  return m_db->for_all_outputs(amount, f);
 }
 
 void Blockchain::invalidate_block_template_cache()

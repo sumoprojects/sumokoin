@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -93,18 +93,18 @@ namespace net_utils
 			m_pErrorText = NULL;
 
 			// Initialize WinSock
-			WORD wVer  = MAKEWORD( 2, 2 );    
+			WORD wVer  = MAKEWORD( 2, 2 );
 			if ( WSAStartup( wVer, &m_wsaData ) != NO_ERROR )
 			{
-				SetErrorText( "WSAStartup.", WSAGetLastError() );        
-				throw; 
+				SetErrorText( "WSAStartup.", WSAGetLastError() );
+				throw;
 			}
 			if ( LOBYTE( m_wsaData.wVersion ) != 2 || HIBYTE( m_wsaData.wVersion ) != 2  )
 			{
 				SetErrorText( "Can't find a useable WinSock DLL." );
 				WSACleanup();
-				throw; 
-			}    
+				throw;
+			}
 		}
 
 		//////////////////////////////////////////////////////////////////////////
@@ -136,7 +136,7 @@ namespace net_utils
 			if ( dwErrorCode )
 			{
 				FormatMessageA(
-					FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+					FORMAT_MESSAGE_ALLOCATE_BUFFER |
 					FORMAT_MESSAGE_FROM_SYSTEM,
 					NULL,
 					dwErrorCode,
@@ -181,7 +181,7 @@ namespace net_utils
 				int iReceived = 0;
 				int iLength = 0;
 
-				iLength = recv( hSocket, (LPSTR)pReceiveBuffer + iReceived, dwReceiveBufferSize - iReceived, 
+				iLength = recv( hSocket, (LPSTR)pReceiveBuffer + iReceived, dwReceiveBufferSize - iReceived,
 					NO_FLAGS );
 
 				if ( iLength != 0 && iLength != SOCKET_ERROR )
@@ -207,7 +207,7 @@ namespace net_utils
 
 				while ( iLength != SOCKET_ERROR && dwSendBufferSize - iSended > 0 )
 				{
-					iLength = send( hSocket, (LPSTR)pSendBuffer + iSended, dwSendBufferSize - iSended, 
+					iLength = send( hSocket, (LPSTR)pSendBuffer + iSended, dwSendBufferSize - iSended,
 						NO_FLAGS );
 
 					if ( iLength != 0 && iLength != SOCKET_ERROR )
@@ -224,7 +224,7 @@ namespace net_utils
 		}
 
 		//////////////////////////////////////////////////////////////////////////
-		inline unsigned short CSMTPClient::GetResponseCode( LPBYTE pBuffer, DWORD dwBufferSize ) 
+		inline unsigned short CSMTPClient::GetResponseCode( LPBYTE pBuffer, DWORD dwBufferSize )
 		{
 			unsigned short iCode = 0;
 
@@ -299,7 +299,7 @@ namespace net_utils
 			m_bConnected = FALSE;
 			m_hSocket = INVALID_SOCKET;
 
-			m_hSocket = _connectServerSocket( szServerAddress, iPortNumber );  
+			m_hSocket = _connectServerSocket( szServerAddress, iPortNumber );
 
 			if ( m_hSocket != INVALID_SOCKET )
 			{
@@ -334,7 +334,7 @@ namespace net_utils
 					sprintf( (char*)szHelloBuffer, "%s %s\r\n", (char*)SMTP_COMMAND_EHLO, (char*)szServerAddress );
 					if ( SendData( m_hSocket, (PBYTE)szHelloBuffer, strlen( (const char*)szHelloBuffer ) ) == 0 )
 					{
-						SetErrorText( "SendData error.", WSAGetLastError() );    
+						SetErrorText( "SendData error.", WSAGetLastError() );
 						free( pReceiveBuffer );
 						ServerDisconnect();
 						return FALSE;
@@ -352,7 +352,7 @@ namespace net_utils
 							sprintf( (char*)szHelloBuffer, "%s %s\r\n", (char*)SMTP_COMMAND_HELO, (char*)szServerAddress );
 							if ( SendData( m_hSocket, (PBYTE)szHelloBuffer, strlen( (const char*)szHelloBuffer ) ) == 0 )
 							{
-								SetErrorText( "SendData error.", WSAGetLastError() );    
+								SetErrorText( "SendData error.", WSAGetLastError() );
 								free( pReceiveBuffer );
 								ServerDisconnect();
 								return FALSE;
@@ -432,13 +432,13 @@ namespace net_utils
 			int              nConnect;
 			short            nProtocolPort  = iPortNumber;
 			LPHOSTENT        lpHostEnt;
-			SOCKADDR_IN      sockAddr;        
+			SOCKADDR_IN      sockAddr;
 
 			SOCKET           hServerSocket = INVALID_SOCKET;
 
 			lpHostEnt = gethostbyname( szServerAddress );
 			if (lpHostEnt)
-			{        
+			{
 				hServerSocket = socket( AF_INET, SOCK_STREAM, IPPROTO_TCP );
 				if (hServerSocket != INVALID_SOCKET)
 				{
@@ -446,15 +446,15 @@ namespace net_utils
 					sockAddr.sin_port = htons( nProtocolPort );
 					sockAddr.sin_addr = *((LPIN_ADDR)*lpHostEnt->h_addr_list);
 
-					nConnect = connect( hServerSocket, (PSOCKADDR)&sockAddr, 
+					nConnect = connect( hServerSocket, (PSOCKADDR)&sockAddr,
 						sizeof(sockAddr) );
 
-					if ( nConnect != 0 ) 
+					if ( nConnect != 0 )
 					{
-						SetErrorText( "connect error.", WSAGetLastError() );    
+						SetErrorText( "connect error.", WSAGetLastError() );
 						hServerSocket = INVALID_SOCKET;
 					}
-				} 
+				}
 				else
 				{
 					SetErrorText( "Invalid socket." );
@@ -476,7 +476,7 @@ namespace net_utils
 			{
 				if ( SendData( m_hSocket, (PBYTE)SMTP_COMMAND_QUIT, strlen( SMTP_COMMAND_QUIT ) ) == 0 )
 				{
-					SetErrorText( "SendData error.", WSAGetLastError() );    
+					SetErrorText( "SendData error.", WSAGetLastError() );
 					return;
 				}
 
@@ -487,7 +487,7 @@ namespace net_utils
 					DWORD iReceived = ReceiveData( m_hSocket, pReceiveBuffer, dwReceiveBufferSize );
 
 					if ( iReceived )
-						SetErrorText( pReceiveBuffer );    
+						SetErrorText( pReceiveBuffer );
 
 					free( pReceiveBuffer );
 				}
@@ -568,7 +568,7 @@ namespace net_utils
 			sprintf( (char*)szCommandBuffer, "%s %s\r\n", (char*)SMTP_COMMAND_AUTH, (char*)SMTP_COMMAND_AUTH_PLAIN );
 			if ( SendData( m_hSocket, (PBYTE)szCommandBuffer, strlen( (const char*)szCommandBuffer ) ) == 0 )
 			{
-				SetErrorText( "SendData error.", WSAGetLastError() );    
+				SetErrorText( "SendData error.", WSAGetLastError() );
 				return FALSE;
 			}
 
@@ -592,7 +592,7 @@ namespace net_utils
 				}
 				else
 				{
-					SetErrorText( "ReceiveData error.", WSAGetLastError() );    
+					SetErrorText( "ReceiveData error.", WSAGetLastError() );
 					free( pReceiveBuffer );
 					return FALSE;
 				}
@@ -621,7 +621,7 @@ namespace net_utils
 
 							if ( SendData( m_hSocket, (PBYTE)pSendBuffer, strlen( (const char*)pSendBuffer ) ) == 0 )
 							{
-								SetErrorText( "SendData error.", WSAGetLastError() );    
+								SetErrorText( "SendData error.", WSAGetLastError() );
 								free( pSendBuffer );
 								free( pLoginBuffer );
 								free( pReceiveBuffer );
@@ -652,7 +652,7 @@ namespace net_utils
 					}
 					else
 					{
-						SetErrorText( "ReceiveData error.", WSAGetLastError() );    
+						SetErrorText( "ReceiveData error.", WSAGetLastError() );
 						free( pReceiveBuffer );
 						return FALSE;
 					}
@@ -673,7 +673,7 @@ namespace net_utils
 			sprintf( (char*)szCommandBuffer, "%s %s\r\n", (char*)SMTP_COMMAND_AUTH, (char*)SMTP_COMMAND_AUTH_LOGIN );
 			if ( SendData( m_hSocket, (PBYTE)szCommandBuffer, strlen( (const char*)szCommandBuffer ) ) == 0 )
 			{
-				SetErrorText( "SendData error.", WSAGetLastError() );    
+				SetErrorText( "SendData error.", WSAGetLastError() );
 				return FALSE;
 			}
 
@@ -684,7 +684,7 @@ namespace net_utils
 				DWORD iReceived = ReceiveData( m_hSocket, pReceiveBuffer, dwReceiveBufferSize );
 				if ( iReceived )
 				{
-					SetErrorText( pReceiveBuffer );    
+					SetErrorText( pReceiveBuffer );
 
 					// Check 334
 					int iResponseCode = GetResponseCode( pReceiveBuffer, iReceived );
@@ -715,7 +715,7 @@ namespace net_utils
 
 									if ( SendData( m_hSocket, (PBYTE)szLoginUsernameBuffer, strlen( (const char*)szLoginUsernameBuffer ) ) == 0 )
 									{
-										SetErrorText( "SendData error.", WSAGetLastError() );    
+										SetErrorText( "SendData error.", WSAGetLastError() );
 										free( pReceiveBuffer );
 										return FALSE;
 									}
@@ -761,7 +761,7 @@ namespace net_utils
 
 													if ( SendData( m_hSocket, (PBYTE)szLoginPasswordBuffer, strlen( (const char*)szLoginPasswordBuffer ) ) == 0 )
 													{
-														SetErrorText( "SendData error.", WSAGetLastError() );    
+														SetErrorText( "SendData error.", WSAGetLastError() );
 														free( pReceiveBuffer );
 														return FALSE;
 													}
@@ -791,7 +791,7 @@ namespace net_utils
 												}
 												else
 												{
-													SetErrorText( "ReceiveData error.", WSAGetLastError() );    
+													SetErrorText( "ReceiveData error.", WSAGetLastError() );
 													free( pReceiveBuffer );
 													return FALSE;
 												}
@@ -820,7 +820,7 @@ namespace net_utils
 				}
 				else
 				{
-					SetErrorText( "ReceiveData error.", WSAGetLastError() );    
+					SetErrorText( "ReceiveData error.", WSAGetLastError() );
 					free( pReceiveBuffer );
 					return FALSE;
 				}
@@ -840,7 +840,7 @@ namespace net_utils
 			sprintf( (char*)szCommandBuffer, "%s %s\r\n", (char*)SMTP_COMMAND_AUTH, (char*)SMTP_COMMAND_AUTH_CRAM_MD5 );
 			if ( SendData( m_hSocket, (PBYTE)szCommandBuffer, strlen( (const char*)szCommandBuffer ) ) == 0 )
 			{
-				SetErrorText( "SendData error.", WSAGetLastError() );    
+				SetErrorText( "SendData error.", WSAGetLastError() );
 				return FALSE;
 			}
 
@@ -904,7 +904,7 @@ namespace net_utils
 									// Send auth data
 									if ( SendData( m_hSocket, (PBYTE)szAuthCommand, strlen( (const char*)szAuthCommand ) ) == 0 )
 									{
-										SetErrorText( "SendData error.", WSAGetLastError() );    
+										SetErrorText( "SendData error.", WSAGetLastError() );
 										free( szAuthCommand );
 										free( pReceiveBuffer );
 										return FALSE;
@@ -928,7 +928,7 @@ namespace net_utils
 									}
 									else
 									{
-										SetErrorText( "ReceiveData error.", WSAGetLastError() );    
+										SetErrorText( "ReceiveData error.", WSAGetLastError() );
 										free( pReceiveBuffer );
 										return FALSE;
 									}
@@ -958,7 +958,7 @@ namespace net_utils
 				}
 				else
 				{
-					SetErrorText( "ReceiveData error.", WSAGetLastError() );    
+					SetErrorText( "ReceiveData error.", WSAGetLastError() );
 					free( pReceiveBuffer );
 					return FALSE;
 				}
@@ -967,7 +967,7 @@ namespace net_utils
 			}
 			else
 			{
-				SetErrorText( "malloc() failed.", GetLastError() );    
+				SetErrorText( "malloc() failed.", GetLastError() );
 			}
 
 			return bSuccess;
@@ -1055,7 +1055,7 @@ namespace net_utils
 			sprintf( (char*)szCommandBuffer, "MAIL FROM:<%s> SIZE=%u\r\n", (char*)szFromAddress, strlen( szHeaderBuffer ) + dwBodySize + 2 );
 			if ( SendData( m_hSocket, (PBYTE)szCommandBuffer, strlen( (const char*)szCommandBuffer ) ) == 0 )
 			{
-				SetErrorText( "SendData error.", WSAGetLastError() );    
+				SetErrorText( "SendData error.", WSAGetLastError() );
 				free( szHeaderBuffer );
 				return FALSE;
 			}
@@ -1080,7 +1080,7 @@ namespace net_utils
 				}
 				else
 				{
-					SetErrorText( "ReceiveData error.", WSAGetLastError() );    
+					SetErrorText( "ReceiveData error.", WSAGetLastError() );
 					free( szHeaderBuffer );
 					free( pReceiveBuffer );
 					return FALSE;
@@ -1090,7 +1090,7 @@ namespace net_utils
 				char *szCurrentAddr = (char*)malloc( strlen( szToAddresses ) + 1 );
 				if ( !szCurrentAddr )
 				{
-					SetErrorText( "malloc error.", GetLastError() );    
+					SetErrorText( "malloc error.", GetLastError() );
 					free( szHeaderBuffer );
 					free( pReceiveBuffer );
 					return FALSE;
@@ -1100,7 +1100,7 @@ namespace net_utils
 				char* szZap = NULL;
 
 				BOOL bRCPTAccepted = FALSE;
-				do 
+				do
 				{
 					strcpy( szCurrentAddr, szToOffset );
 					char *szExtractedAdress = szCurrentAddr;
@@ -1126,7 +1126,7 @@ namespace net_utils
 						sprintf( (char*)szCommandBuffer, "RCPT TO:<%s>\r\n", (char*)szExtractedAdress );
 						if ( SendData( m_hSocket, (PBYTE)szCommandBuffer, strlen( (const char*)szCommandBuffer ) ) == 0 )
 						{
-							SetErrorText( "SendData error.", WSAGetLastError() );    
+							SetErrorText( "SendData error.", WSAGetLastError() );
 							free( szCurrentAddr );
 							free( pReceiveBuffer );
 							free( szHeaderBuffer );
@@ -1147,7 +1147,7 @@ namespace net_utils
 						}
 						else
 						{
-							SetErrorText( "ReceiveData error.", WSAGetLastError() );    
+							SetErrorText( "ReceiveData error.", WSAGetLastError() );
 							free( szCurrentAddr );
 							free( pReceiveBuffer );
 							free( szHeaderBuffer );
@@ -1164,7 +1164,7 @@ namespace net_utils
 					sprintf( (char*)szCommandBuffer, "DATA\r\n" );
 					if ( SendData( m_hSocket, (PBYTE)szCommandBuffer, strlen( (const char*)szCommandBuffer ) ) == 0 )
 					{
-						SetErrorText( "SendData error.", WSAGetLastError() );    
+						SetErrorText( "SendData error.", WSAGetLastError() );
 						free( pReceiveBuffer );
 						free( szHeaderBuffer );
 						return FALSE;
@@ -1186,7 +1186,7 @@ namespace net_utils
 					}
 					else
 					{
-						SetErrorText( "ReceiveData error.", WSAGetLastError() );    
+						SetErrorText( "ReceiveData error.", WSAGetLastError() );
 						free( pReceiveBuffer );
 						free( szHeaderBuffer );
 						return FALSE;
@@ -1195,7 +1195,7 @@ namespace net_utils
 					// Send message data (header + body + .)
 					if ( SendData( m_hSocket, (PBYTE)szHeaderBuffer, strlen( (const char*)szHeaderBuffer ) ) == 0 )
 					{
-						SetErrorText( "SendData error.", WSAGetLastError() );    
+						SetErrorText( "SendData error.", WSAGetLastError() );
 						free( pReceiveBuffer );
 						free( szHeaderBuffer );
 						return FALSE;
@@ -1203,7 +1203,7 @@ namespace net_utils
 
 					if ( SendData( m_hSocket, (PBYTE)pBodyBuffer, dwBodySize ) == 0 )
 					{
-						SetErrorText( "SendData error.", WSAGetLastError() );    
+						SetErrorText( "SendData error.", WSAGetLastError() );
 						free( pReceiveBuffer );
 						free( szHeaderBuffer );
 						return FALSE;
@@ -1211,7 +1211,7 @@ namespace net_utils
 
 					if ( SendData( m_hSocket, (PBYTE)"\r\n.\r\n", 5 ) == 0 )
 					{
-						SetErrorText( "SendData error.", WSAGetLastError() );    
+						SetErrorText( "SendData error.", WSAGetLastError() );
 						free( pReceiveBuffer );
 						free( szHeaderBuffer );
 						return FALSE;
@@ -1231,7 +1231,7 @@ namespace net_utils
 					}
 					else
 					{
-						SetErrorText( "ReceiveData error.", WSAGetLastError() );    
+						SetErrorText( "ReceiveData error.", WSAGetLastError() );
 					}
 				}
 
@@ -1286,13 +1286,13 @@ namespace net_utils
 				delete [] m_pEBuffer;
 		}
 
-		inline LPCSTR Base64Coder::DecodedMessage() const 
-		{ 
+		inline LPCSTR Base64Coder::DecodedMessage() const
+		{
 			return (LPCSTR) m_pDBuffer;
 		}
 
 		inline LPCSTR Base64Coder::EncodedMessage() const
-		{ 
+		{
 			return (LPCSTR) m_pEBuffer;
 		}
 

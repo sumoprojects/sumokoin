@@ -71,7 +71,7 @@ namespace lmdb
 
         expect<write_txn> do_create_txn(unsigned int flags) noexcept;
 
-    public: 
+    public:
         database(environment env);
 
         database(database&&) = delete;
@@ -135,4 +135,3 @@ namespace lmdb
         }
     };
 } // lmdb
-

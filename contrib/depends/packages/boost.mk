@@ -1,4 +1,4 @@
-package=boost                                                                                                                                                                                                                      
+package=boost
 $(package)_version=1_64_0
 $(package)_download_path=https://dl.bintray.com/boostorg/release/1.64.0/source/
 $(package)_file_name=$(package)_$($(package)_version).tar.bz2

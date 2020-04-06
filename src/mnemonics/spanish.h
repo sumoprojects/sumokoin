@@ -51,7 +51,7 @@
 
 /*!
  * \file spanish.h
- * 
+ *
  * \brief Spanish word list and map.
  */
 

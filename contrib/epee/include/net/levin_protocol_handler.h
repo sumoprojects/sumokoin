@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -71,7 +71,7 @@ namespace levin
 
 		config_type& m_config;
 		t_connection_context& m_conn_context;
-		net_utils::i_service_endpoint* m_psnd_hndlr; 
+		net_utils::i_service_endpoint* m_psnd_hndlr;
 		std::string m_cach_in_buffer;
 		connection_data_state m_state;
 		bucket_head m_current_head;
@@ -79,11 +79,11 @@ namespace levin
 
   template<class t_connection_context>
 	protocol_handler<t_connection_context>::protocol_handler(net_utils::i_service_endpoint* psnd_hndlr, config_type& config, t_connection_context& conn_context):
-                  m_config(config), 
+                  m_config(config),
                   m_conn_context(conn_context),
-                  m_psnd_hndlr(psnd_hndlr), 
-                  m_state(conn_state_reading_head), 
-                  m_current_head(bucket_head()) 
+                  m_psnd_hndlr(psnd_hndlr),
+                  m_state(conn_state_reading_head),
+                  m_current_head(bucket_head())
 	{}
 
   template<class t_connection_context>
@@ -190,4 +190,3 @@ namespace levin
 
 
 #endif //_LEVIN_PROTOCOL_HANDLER_H_
-

@@ -141,12 +141,12 @@ namespace rct {
         key64 s1;
         key ee;
     };
-  
+
     //Container for precomp
     struct geDsmp {
         ge_dsmp k;
     };
-    
+
     //just contains the necessary keys to represent MLSAG sigs
     //c.f. https://eprint.iacr.org/2015/1098
     struct mgSig {

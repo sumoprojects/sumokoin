@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,12 +22,12 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
 
-#pragma once 
+#pragma once
 #include <wininet.h>
 #include <atlutil.h>
 #pragma comment(lib, "Wininet.lib")
@@ -39,7 +39,7 @@ namespace epee
 {
 namespace net_utils
 {
-	inline 
+	inline
 	bool http_ssl_invoke(const std::string& url, const std::string usr, const std::string psw, std::string& http_response_body, bool use_post = false)
 	{
 		bool final_res = false;
@@ -61,10 +61,10 @@ namespace net_utils
 		if(usr.size())
 		{
 			dwFlags |=  INTERNET_FLAG_IGNORE_CERT_CN_INVALID|INTERNET_FLAG_IGNORE_CERT_DATE_INVALID|
-				INTERNET_FLAG_PRAGMA_NOCACHE | SECURITY_FLAG_IGNORE_UNKNOWN_CA|INTERNET_FLAG_SECURE; 
+				INTERNET_FLAG_PRAGMA_NOCACHE | SECURITY_FLAG_IGNORE_UNKNOWN_CA|INTERNET_FLAG_SECURE;
 		}else
 		{
-			dwFlags |=  INTERNET_FLAG_PRAGMA_NOCACHE; 
+			dwFlags |=  INTERNET_FLAG_PRAGMA_NOCACHE;
 		}
 
 

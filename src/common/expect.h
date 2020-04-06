@@ -74,7 +74,7 @@ namespace detail
     // Shortens the characters in the places that `enable_if` is used below.
     template<bool C>
     using enable_if = typename std::enable_if<C>::type;
- 
+
     struct expect
     {
         //! \throw std::system_error with `ec`, optional `msg` and/or optional `file` + `line`.
@@ -306,7 +306,7 @@ public:
     //! \return Value, \pre `has_value()`.
     T const& operator*() const noexcept { return get(); }
 
-    /*! 
+    /*!
         \note This function is `noexcept` when `U == T` is `noexcept`.
         \return True if `has_value() == rhs.has_value()` and if values or errors are equal.
     */
@@ -446,4 +446,3 @@ namespace detail
             throw_(result.error(), error_msg, file, line);
     }
 }
-
