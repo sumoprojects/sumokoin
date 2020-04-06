@@ -39,7 +39,7 @@
 
 #define CRYPTONOTE_MAX_BLOCK_NUMBER                     500000000
 #define CRYPTONOTE_MAX_BLOCK_WEIGHT                     500000000  // block header blob limit, never used!
-#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE	    196608 //size of block (bytes) that is the maximum that miners will produce
+#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE      196608 //size of block (bytes) that is the maximum that miners will produce
 #define CRYPTONOTE_MAX_TX_SIZE                          1000000000
 #define CRYPTONOTE_MAX_TX_PER_BLOCK                     0x10000000
 #define CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER          0
@@ -48,7 +48,7 @@
 #define CURRENT_BLOCK_MINOR_VERSION                     0
 
 #define CURRENT_TRANSACTION_VERSION                     2
-#define MIN_TRANSACTION_VERSION			  2
+#define MIN_TRANSACTION_VERSION                         2
 #define CRYPTONOTE_HEAVY_BLOCK_VERSION                  3
 #define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT              60*60*2
 #define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
@@ -90,7 +90,7 @@
 #define DIFFICULTY_CUT                                  60   // timestamps to cut after sorting
 #define DIFFICULTY_BLOCKS_COUNT                         DIFFICULTY_WINDOW + DIFFICULTY_LAG
 
-#define DIFFICULTY_WINDOW_V2							              17
+#define DIFFICULTY_WINDOW_V2                            17
 #define DIFFICULTY_CUT_V2                               6
 #define DIFFICULTY_BLOCKS_COUNT_V2                      DIFFICULTY_WINDOW_V2 + DIFFICULTY_CUT_V2*2
 
@@ -107,12 +107,12 @@
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              50     //by default, blocks count in blocks downloading
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4           1      //by default, blocks count in blocks downloading at the end of the chain
 
-#define LAST_CHECKPOINT				  375000
+#define LAST_CHECKPOINT                                 375000
 
-#define CRYPTONOTE_MEMPOOL_TX_LIVETIME                    (86400*3) //seconds, three days
-#define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME     604800 //seconds, one week
+#define CRYPTONOTE_MEMPOOL_TX_LIVETIME                  (86400*3) //seconds, three days
+#define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME   604800 //seconds, one week
 
-#define CRYPTONOTE_DANDELIONPP_FLUSH_AVERAGE 5 // seconds
+#define CRYPTONOTE_DANDELIONPP_FLUSH_AVERAGE            5 // seconds
 
 // see src/cryptonote_protocol/levin_notify.cpp
 #define CRYPTONOTE_NOISE_MIN_EPOCH                      5      // minutes
@@ -155,13 +155,13 @@
 
 #define RPC_IP_FAILS_BEFORE_BLOCK                       3
 
-#define CRYPTONOTE_NAME                         "sumokoin"
-#define CRYPTONOTE_POOLDATA_FILENAME            "poolstate.bin"
-#define CRYPTONOTE_BLOCKCHAINDATA_FILENAME      "data.mdb"
-#define CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME "lock.mdb"
-#define P2P_NET_DATA_FILENAME                   "p2pstate.bin"
-#define RPC_PAYMENTS_DATA_FILENAME              "rpcpayments.bin"
-#define MINER_CONFIG_FILE_NAME                  "miner_conf.json"
+#define CRYPTONOTE_NAME                                 "sumokoin"
+#define CRYPTONOTE_POOLDATA_FILENAME                    "poolstate.bin"
+#define CRYPTONOTE_BLOCKCHAINDATA_FILENAME              "data.mdb"
+#define CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME         "lock.mdb"
+#define P2P_NET_DATA_FILENAME                           "p2pstate.bin"
+#define RPC_PAYMENTS_DATA_FILENAME                      "rpcpayments.bin"
+#define MINER_CONFIG_FILE_NAME                          "miner_conf.json"
 
 
 // coin emission change interval/speed configs
@@ -178,25 +178,25 @@
 #define BLOCK_SIZE_GROWTH_FAVORED_ZONE                  ((uint64_t) (CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 4))
 
 
-#define HF_VERSION_DYNAMIC_FEE                  1
-#define HF_VERSION_PER_BYTE_FEE                 7
-#define HF_VERSION_BP                           7   // Bulletproof HF
-#define HF_VERSION_SMALLER_BP                   7
-#define HF_VERSION_LONG_TERM_BLOCK_WEIGHT       8
-#define HF_VERSION_MIN_2_OUTPUTS                9
-#define HF_VERSION_ENFORCE_MIN_AGE              9
+#define HF_VERSION_DYNAMIC_FEE                            1
+#define HF_VERSION_PER_BYTE_FEE                           7
+#define HF_VERSION_BP                                     7   // Bulletproof HF
+#define HF_VERSION_SMALLER_BP                             7
+#define HF_VERSION_LONG_TERM_BLOCK_WEIGHT                 8
+#define HF_VERSION_MIN_2_OUTPUTS                          9
+#define HF_VERSION_ENFORCE_MIN_AGE                        9
 #define HF_VERSION_EFFECTIVE_SHORT_TERM_MEDIAN_IN_PENALTY 9
 
-#define PER_KB_FEE_QUANTIZATION_DECIMALS        6
-#define HASH_OF_HASHES_STEP                     512
-#define BULLETPROOF_MAX_OUTPUTS                 16
-#define DEFAULT_TXPOOL_MAX_WEIGHT               259200000ull // 3 days at 240000, in bytes
+#define PER_KB_FEE_QUANTIZATION_DECIMALS                 6
+#define HASH_OF_HASHES_STEP                              512
+#define BULLETPROOF_MAX_OUTPUTS                          16
+#define DEFAULT_TXPOOL_MAX_WEIGHT                        259200000ull // 3 days at 240000, in bytes
 
-#define CRYPTONOTE_PRUNING_STRIPE_SIZE          4096 // the smaller, the smoother the increase
-#define CRYPTONOTE_PRUNING_LOG_STRIPES          3 // the higher, the more space saved
-#define CRYPTONOTE_PRUNING_TIP_BLOCKS           5500 // the smaller, the more space saved
+#define CRYPTONOTE_PRUNING_STRIPE_SIZE                   4096 // the smaller, the smoother the increase
+#define CRYPTONOTE_PRUNING_LOG_STRIPES                   3 // the higher, the more space saved
+#define CRYPTONOTE_PRUNING_TIP_BLOCKS                    5500 // the smaller, the more space saved
 
-#define RPC_CREDITS_PER_HASH_SCALE ((float)(1<<24))
+#define RPC_CREDITS_PER_HASH_SCALE                       ((float)(1<<24))
 
 // New constants are intended to go here
 namespace config
