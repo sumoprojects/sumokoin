@@ -257,7 +257,6 @@ class TransferTest():
         assert res.too_big == False
         assert res.overspend == False
         assert res.fee_too_low == False
-        assert res.not_rct == False
 
         self.wallet[0].refresh()
 
@@ -599,7 +598,6 @@ class TransferTest():
         assert res.too_big == False
         assert res.overspend == False
         assert res.fee_too_low == False
-        assert res.not_rct == False
 
         res = daemon.get_transactions([txes[0][0]])
         assert len(res.txs) >= 1
@@ -616,7 +614,6 @@ class TransferTest():
         assert res.too_big == False
         assert res.overspend == False
         assert res.fee_too_low == False
-        assert res.not_rct == False
         assert res.too_few_outputs == False
 
         res = daemon.get_transactions([txes[0][0]])
