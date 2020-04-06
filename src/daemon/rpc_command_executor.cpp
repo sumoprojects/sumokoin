@@ -566,8 +566,8 @@ bool t_rpc_command_executor::show_disk() {
     }
   }
 
-  uint64_t chainsize = (ires.database_size)/1000000;
-  uint64_t freespace = (ires.free_space)/1000000;
+  uint64_t chainsize = (ires.database_size)/(1024*1024);
+  uint64_t freespace = (ires.free_space)/(1024*1024);
   std::string os_version = tools::get_os_version_string();
   std::string win = "Windows";
   if (!(os_version.find(win) != std::string::npos)) 
@@ -650,7 +650,7 @@ bool t_rpc_command_executor::show_status() {
       bootstrap_msg += " was used before";
     }
   }
-  uint64_t chainsize = (ires.database_size)/1000000;
+  uint64_t chainsize = (ires.database_size)/(1024*1024);
   std::string os_version = tools::get_os_version_string();
   std::string win = "Windows";
   std::string network_type = (ires.testnet ? "testnet" : ires.stagenet ? "stagenet" : "mainnet");
