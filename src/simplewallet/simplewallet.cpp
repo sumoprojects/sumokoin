@@ -5046,7 +5046,8 @@ boost::optional<epee::wipeable_string> simple_wallet::open_wallet(const boost::p
     tr("Use the \"help\" command to see a simplified list of available commands.\n") <<
     tr("Use the \"help_advanced\" command to see an advanced list of available commands.\n") <<
     tr("Use \"help_advanced <command>\" to see a command's documentation.\n") <<
-    "**********************************************************************";
+    "**********************************************************************\n" <<
+    tr("NOTE: For privacy reasons avoid using an encrypted payment ID, consider using subaddresses instead");
   return password;
 }
 //----------------------------------------------------------------------------------------------------
@@ -5491,9 +5492,9 @@ void simple_wallet::on_money_received(uint64_t height, const crypto::hash &txid,
      }
     }
 
-    if (payment_id8 != crypto::null_hash8)
-      message_writer() <<
-        tr("NOTE: this transaction uses an encrypted payment ID: consider using subaddresses instead");
+//  if (payment_id8 != crypto::null_hash8)
+//    message_writer() <<
+//      tr("NOTE: this transaction uses an encrypted payment ID: consider using subaddresses instead");
 
     crypto::hash payment_id = crypto::null_hash;
     if (get_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id))
