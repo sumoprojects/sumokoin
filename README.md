@@ -412,7 +412,7 @@ You can also cross-compile static binaries on Linux for Windows and macOS with t
 * ```make depends target=x86_64-w64-mingw32``` for 64-bit windows binaries.
   * Requires: `python3 g++-mingw-w64-x86-64 wine1.6 bc`
 * ```make depends target=x86_64-apple-darwin11``` for macOS binaries.
-  * Requires: `cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev` and `MacOSX10.11.sdk` (download and extract it to `contrib/depends/SDKs`)
+  * Requires: `cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev` and `MacOSX10.11.sdk` (download and extract it to `contrib/depends/SDKs`, it can be downloaded from https://www.sumokoin.org/depends/MacOSX10.11.sdk.tar.xz)
 * ```make depends target=i686-linux-gnu``` for 32-bit linux binaries.
   * Requires: `g++-multilib bc`
 * ```make depends target=i686-w64-mingw32``` for 32-bit windows binaries.
