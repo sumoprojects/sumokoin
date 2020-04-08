@@ -1,21 +1,21 @@
-// Copyright (c) 2019, The Monero Project
-// 
+// Copyright (c) 2020, The Monero Project
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -26,24 +26,30 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
 
-#include "rpc/rpc_version_str.h"
-#include "version.h"
+#include "rpc/message.h"
+#include "serialization/json_object.h"
 
-TEST(rpc, is_version_string_valid)
+TEST(ZmqFullMessage, InvalidRequest)
 {
-  using namespace cryptonote::rpc;
-  ASSERT_TRUE(is_version_string_valid(SUMOKOIN_VERSION));
-  ASSERT_TRUE(is_version_string_valid("0.5.1.0"));
-  ASSERT_TRUE(is_version_string_valid("0.6.0.0-release"));
-  ASSERT_TRUE(is_version_string_valid("0.6.1.0-fe3f6a3e6"));
+  EXPECT_THROW(
+    (cryptonote::rpc::FullMessage{"{\"jsonrpc\":\"2.0\",\"id\":0,\"params\":[]}", true}),
+    cryptonote::json::MISSING_KEY
+  );
+  EXPECT_THROW(
+    (cryptonote::rpc::FullMessage{"{\"jsonrpc\":\"2.0\",\"id\":0,\"method\":3,\"params\":[]}", true}),
+    cryptonote::json::WRONG_TYPE
+  );
+}
 
-  ASSERT_FALSE(is_version_string_valid(""));
-  ASSERT_FALSE(is_version_string_valid("invalid"));
-  ASSERT_FALSE(is_version_string_valid("0.6.1.0-invalid"));
-  ASSERT_FALSE(is_version_string_valid("0.6.1.0-release0"));
-  ASSERT_FALSE(is_version_string_valid("0.6.1.0-release "));
-  ASSERT_FALSE(is_version_string_valid("0.6.1.0-fe3f6a3e60"));
-  ASSERT_FALSE(is_version_string_valid("0.6.1.0-fe3f6a3e6 "));
+TEST(ZmqFullMessage, Request)
+{
+  static constexpr const char request[] = "{\"jsonrpc\":\"2.0\",\"id\":0,\"method\":\"foo\",\"params\":[]}";
+  EXPECT_NO_THROW(
+    (cryptonote::rpc::FullMessage{request, true})
+  );
+
+  cryptonote::rpc::FullMessage parsed{request, true};
+  EXPECT_STREQ("foo", parsed.getRequestType().c_str());
 }
