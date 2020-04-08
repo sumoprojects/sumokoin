@@ -60,7 +60,7 @@ public:
                             const std::string &language) const override;
     bool open(const std::string &path, const std::string &password);
     bool recover(const std::string &path,const std::string &password,
-                            const std::string &seed);
+                            const std::string &seed, const std::string &seed_offset = {});
     bool recoverFromKeysWithPassword(const std::string &path,
                             const std::string &password,
                             const std::string &language,
@@ -166,6 +166,8 @@ public:
     bool importKeyImages(const std::string &filename) override;
 
     virtual void disposeTransaction(PendingTransaction * t) override;
+    virtual uint64_t estimateTransactionFee(const std::vector<std::pair<std::string, uint64_t>> &destinations,
+                                            PendingTransaction::Priority priority) const override;
     virtual TransactionHistory * history() override;
     virtual AddressBook * addressBook() override;
     virtual Subaddress * subaddress() override;

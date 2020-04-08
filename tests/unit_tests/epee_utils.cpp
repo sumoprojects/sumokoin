@@ -45,6 +45,7 @@
 #include "boost/archive/portable_binary_iarchive.hpp"
 #include "boost/archive/portable_binary_oarchive.hpp"
 #include "byte_slice.h"
+#include "crypto/crypto.h"
 #include "hex.h"
 #include "net/net_utils_base.h"
 #include "net/local_ip.h"
@@ -850,6 +851,17 @@ TEST(ToHex, Array)
   EXPECT_EQ(
     (std::array<char, 8>{{'f', 'f', 'a', 'b', '0', '1', '0', '0'}}),
     (epee::to_hex::array(std::array<unsigned char, 4>{{0xFF, 0xAB, 0x01, 0x00}}))
+  );
+}
+
+TEST(ToHex, ArrayFromPod)
+{
+  std::array<char, 64> expected{{'5', 'f', '2', 'b', '0', '1'}};
+  std::fill(expected.begin() + 6, expected.end(), '0');
+
+  EXPECT_EQ(
+    expected,
+    (epee::to_hex::array(crypto::ec_point{{0x5F, 0x2B, 0x01, 0x00}}))
   );
 }
 
