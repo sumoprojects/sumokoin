@@ -863,7 +863,7 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
   if (m_nettype == MAINNET && (uint64_t)height >= MAINNET_HARDFORK_V7_HEIGHT && (uint64_t)height <= MAINNET_HARDFORK_V7_HEIGHT + (uint64_t)DIFFICULTY_BLOCKS_COUNT_V3){
     return (difficulty_type)240000000;
   }
-  
+
   size_t difficulty_blocks_count;
   uint8_t hf_version = get_current_hard_fork_version();
   if (hf_version == 1) {
@@ -971,7 +971,7 @@ bool Blockchain::rollback_blockchain_switching(std::list<block>& original_chain,
   for (auto& bl : original_chain)
   {
     block_verification_context bvc = {};
-    bool r = handle_block_to_main_chain(bl, bvc);
+    bool r = handle_block_to_main_chain(bl, bvc, false);
     CHECK_AND_ASSERT_MES(r && bvc.m_added_to_main_chain, false, "PANIC! failed to add (again) block while chain switching during the rollback!");
   }
 
@@ -1022,7 +1022,7 @@ bool Blockchain::switch_to_alternative_blockchain(std::list<block_extended_info>
     block_verification_context bvc = {};
 
     // add block to main chain
-    bool r = handle_block_to_main_chain(bei.bl, bvc);
+    bool r = handle_block_to_main_chain(bei.bl, bvc, false);
 
     // if adding block to main chain failed, rollback to previous state and
     // return false
@@ -1085,6 +1085,11 @@ bool Blockchain::switch_to_alternative_blockchain(std::list<block_extended_info>
   if (reorg_notify)
     reorg_notify->notify("%s", std::to_string(split_height).c_str(), "%h", std::to_string(m_db->height()).c_str(),
         "%n", std::to_string(m_db->height() - split_height).c_str(), "%d", std::to_string(discarded_blocks).c_str(), NULL);
+
+  std::shared_ptr<tools::Notify> block_notify = m_block_notify;
+  if (block_notify)
+  for (const auto &bei: alt_chain)
+    block_notify->notify("%s", epee::string_tools::pod_to_hex(get_block_hash(bei.bl)).c_str(), NULL);
 
   MGINFO_GREEN("REORGANIZE SUCCESS! on height: " << split_height << ", new blockchain size: " << m_db->height());
   return true;
@@ -1216,7 +1221,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
   LOG_PRINT_L3("Blockchain::" << __func__);
 
   uint64_t money_in_use = 0;
-  
+
   if (m_nettype == MAINNET && height == config::EXCHANGE_FUND_RELEASE_HEIGHT){
     uint64_t exchange_fund_amount = 0;
     crypto::public_key tx_pub = get_tx_pub_key_from_extra(b.miner_tx);
@@ -1475,7 +1480,7 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
   }
 
   CHECK_AND_ASSERT_MES(diffic, false, "difficulty overhead.");
-  
+
   cal_height = height - height % COIN_EMISSION_HEIGHT_INTERVAL;
   already_generated_coins = cal_height ? m_db->get_block_already_generated_coins(cal_height - 1) : 0;
   size_t txs_weight;
@@ -2615,11 +2620,11 @@ bool Blockchain::have_block(const crypto::hash& id) const
   return false;
 }
 //------------------------------------------------------------------
-bool Blockchain::handle_block_to_main_chain(const block& bl, block_verification_context& bvc)
+bool Blockchain::handle_block_to_main_chain(const block& bl, block_verification_context& bvc, bool notify/* = true*/)
 {
     LOG_PRINT_L3("Blockchain::" << __func__);
     crypto::hash id = get_block_hash(bl);
-    return handle_block_to_main_chain(bl, id, bvc);
+    return handle_block_to_main_chain(bl, id, bvc, notify);
 }
 //------------------------------------------------------------------
 size_t Blockchain::get_total_transactions() const
@@ -2985,7 +2990,7 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
       }
     }
   }
-  
+
   size_t n_unmixable = 0, n_mixable = 0;
   size_t mixin = std::numeric_limits<size_t>::max();
   const size_t min_mixin = hf_version < 7 ? DEFAULT_MIXIN : DEFAULT_MIXIN_V2;
@@ -3056,7 +3061,7 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
     tvc.m_verifivation_failed = true;
     return false;
   }
-  
+
   // from v6, check for sorted ins
   if (hf_version >= 6) {
     const crypto::key_image *last_key_image = NULL;
@@ -3387,7 +3392,7 @@ uint64_t Blockchain::get_dynamic_base_fee(uint64_t block_reward, size_t median_b
     lo /= 5;
     return lo;
   }
-  
+
   if (median_block_weight < BLOCK_SIZE_GROWTH_FAVORED_ZONE)
     median_block_weight = BLOCK_SIZE_GROWTH_FAVORED_ZONE;
 
@@ -3421,7 +3426,7 @@ bool Blockchain::check_fee(size_t tx_weight, uint64_t fee) const
   uint64_t base_reward;
   if (!get_block_reward(median, 1, cal_generated_coins, base_reward, height))
     return false;
- 
+
   MDEBUG("Using " << print_money(fee) << "/kB fee");
 
   uint64_t needed_fee;
@@ -3713,7 +3718,7 @@ bool Blockchain::flush_txes_from_pool(const std::vector<crypto::hash> &txids)
 //      Needs to validate the block and acquire each transaction from the
 //      transaction mem_pool, then pass the block and transactions to
 //      m_db->add_block()
-bool Blockchain::handle_block_to_main_chain(const block& bl, const crypto::hash& id, block_verification_context& bvc)
+bool Blockchain::handle_block_to_main_chain(const block& bl, const crypto::hash& id, block_verification_context& bvc, bool notify/* = true*/)
 {
   LOG_PRINT_L3("Blockchain::" << __func__);
 
@@ -4098,9 +4103,12 @@ leave:
   get_difficulty_for_next_block(); // just to cache it
   invalidate_block_template_cache();
 
-  std::shared_ptr<tools::Notify> block_notify = m_block_notify;
-  if (block_notify)
-    block_notify->notify("%s", epee::string_tools::pod_to_hex(id).c_str(), NULL);
+  if (notify)
+  {
+    std::shared_ptr<tools::Notify> block_notify = m_block_notify;
+    if (block_notify)
+      block_notify->notify("%s", epee::string_tools::pod_to_hex(id).c_str(), NULL);
+  }
 
   return true;
 }
