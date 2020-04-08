@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include <boost/preprocessor/stringize.hpp>
@@ -173,7 +173,7 @@ namespace cryptonote
     return set_bootstrap_daemon(address, credentials);
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  boost::optional<std::string> core_rpc_server::get_random_public_node()
+  std::map<std::string, bool> core_rpc_server::get_public_nodes(uint32_t credits_per_hash_threshold/* = 0*/)
   {
     COMMAND_RPC_GET_PUBLIC_NODES::request request;
     COMMAND_RPC_GET_PUBLIC_NODES::response response;
@@ -182,35 +182,36 @@ namespace cryptonote
     request.white = true;
     if (!on_get_public_nodes(request, response) || response.status != CORE_RPC_STATUS_OK)
     {
-      return boost::none;
+      return {};
     }
 
-    const auto get_random_node_address = [](const std::vector<public_node>& public_nodes) -> std::string {
-      const auto& random_node = public_nodes[crypto::rand_idx(public_nodes.size())];
-      const auto address = random_node.host + ":" + std::to_string(random_node.rpc_port);
-      return address;
+    std::map<std::string, bool> result;
+
+    const auto append = [&result, &credits_per_hash_threshold](const std::vector<public_node> &nodes, bool white) {
+      for (const auto &node : nodes)
+      {
+        const bool rpc_payment_enabled = credits_per_hash_threshold > 0;
+        const bool node_rpc_payment_enabled = node.rpc_credits_per_hash > 0;
+        if (!node_rpc_payment_enabled ||
+            (rpc_payment_enabled && node.rpc_credits_per_hash >= credits_per_hash_threshold))
+        {
+          result.insert(std::make_pair(node.host + ":" + std::to_string(node.rpc_port), white));
+        }
+      }
     };
 
-    if (!response.white.empty())
-    {
-      return get_random_node_address(response.white);
-    }
+    append(response.white, true);
+    append(response.gray, false);
 
-    MDEBUG("No white public node found, checking gray peers");
-
-    if (!response.gray.empty())
-    {
-      return get_random_node_address(response.gray);
-    }
-
-    MERROR("Failed to find any suitable public node");
-
-    return boost::none;
+    return result;
   }
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::set_bootstrap_daemon(const std::string &address, const boost::optional<epee::net_utils::http::login> &credentials)
   {
     boost::unique_lock<boost::shared_mutex> lock(m_bootstrap_daemon_mutex);
+
+    constexpr const uint32_t credits_per_hash_threshold = 0;
+    constexpr const bool rpc_payment_enabled = credits_per_hash_threshold != 0;
 
     if (address.empty())
     {
@@ -218,11 +219,14 @@ namespace cryptonote
     }
     else if (address == "auto")
     {
-      m_bootstrap_daemon.reset(new bootstrap_daemon([this]{ return get_random_public_node(); }));
+      auto get_nodes = [this, credits_per_hash_threshold]() {
+        return get_public_nodes(credits_per_hash_threshold);
+      };
+      m_bootstrap_daemon.reset(new bootstrap_daemon(std::move(get_nodes), rpc_payment_enabled));
     }
     else
     {
-      m_bootstrap_daemon.reset(new bootstrap_daemon(address, credentials));
+      m_bootstrap_daemon.reset(new bootstrap_daemon(address, credentials, rpc_payment_enabled));
     }
 
     m_should_use_bootstrap_daemon = m_bootstrap_daemon.get() != nullptr;
@@ -1421,7 +1425,7 @@ namespace cryptonote
     res.active = lMiner.is_mining();
     res.is_background_mining_enabled = lMiner.get_is_background_mining_enabled();
     store_difficulty(m_core.get_blockchain_storage().get_difficulty_for_next_block(), res.difficulty, res.wide_difficulty, res.difficulty_top64);
-    
+
     res.block_target = DIFFICULTY_TARGET;
     if ( lMiner.is_mining() ) {
       res.speed = lMiner.get_speed();
@@ -1929,7 +1933,7 @@ namespace cryptonote
       error_resp.message = "Wrong block blob";
       return false;
     }
-    
+
     // Fixing of high orphan issue for most pools
     // Thanks Boolberry!
     block b;
@@ -1965,13 +1969,13 @@ namespace cryptonote
     RPC_TRACKER(generateblocks);
 
     CHECK_CORE_READY();
-    
+
     res.status = CORE_RPC_STATUS_OK;
 
     if(m_core.get_nettype() != FAKECHAIN)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_REGTEST_REQUIRED;
-      error_resp.message = "Regtest required when generating blocks";      
+      error_resp.message = "Regtest required when generating blocks";
       return false;
     }
 
@@ -1991,7 +1995,7 @@ namespace cryptonote
       bool r = on_getblocktemplate(template_req, template_res, error_resp, ctx);
       res.status = template_res.status;
       template_req.prev_block.clear();
-      
+
       if (!r) return false;
 
       blobdata blockblob;
@@ -2100,7 +2104,7 @@ namespace cryptonote
       if (*bootstrap_daemon_height < target_height)
       {
         MINFO("Bootstrap daemon is out of sync");
-        return m_bootstrap_daemon->handle_result(false);
+        return m_bootstrap_daemon->handle_result(false, {});
       }
 
       uint64_t top_height = m_core.get_current_blockchain_height();
