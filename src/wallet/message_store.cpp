@@ -218,7 +218,7 @@ void message_store::process_signer_config(const multisig_wallet_state &state, co
   // those arriving in "signer_config".
   std::vector<authorized_signer> signers;
   unpack_signer_config(state, signer_config, signers);
-  
+
   uint32_t new_index = 1;
   for (uint32_t i = 0; i < m_num_authorized_signers; ++i)
   {
@@ -407,7 +407,7 @@ void message_store::stop_auto_config()
     m.auto_config_secret_key = crypto::null_skey;
     m.auto_config_transport_address.clear();
     m.auto_config_running = false;
-  }  
+  }
 }
 
 void message_store::setup_signer_for_auto_config(uint32_t index, const std::string token, bool receiving)
@@ -852,7 +852,7 @@ bool message_store::get_processable_messages(const multisig_wallet_state &state,
 
   if (!state.multisig)
   {
-    
+
     if (!any_message_of_type(message_type::key_set, message_direction::out))
     {
       // With the own key set not yet ready we must do "prepare_multisig" first;

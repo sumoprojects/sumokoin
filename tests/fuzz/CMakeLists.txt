@@ -187,4 +187,3 @@ target_link_libraries(bulletproof_fuzz_tests
 set_property(TARGET bulletproof_fuzz_tests
   PROPERTY
     FOLDER "tests")
-

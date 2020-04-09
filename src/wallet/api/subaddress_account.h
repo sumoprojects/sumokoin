@@ -38,7 +38,7 @@ class SubaddressAccountImpl : public SubaddressAccount
 public:
     SubaddressAccountImpl(WalletImpl * wallet);
     ~SubaddressAccountImpl();
-    
+
     // Fetches addresses from Wallet2
     void refresh();
     std::vector<SubaddressAccountRow*> getAll() const;
@@ -47,7 +47,7 @@ public:
 
 private:
     void clearRows();
-    
+
 private:
     WalletImpl *m_wallet;
     std::vector<SubaddressAccountRow*> m_rows;

@@ -52,4 +52,3 @@ target_link_libraries(serialization
     ${EXTRA_LIBRARIES})
 add_dependencies(serialization
   version)
-

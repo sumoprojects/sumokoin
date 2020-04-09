@@ -137,4 +137,3 @@ namespace rct {
     bool signMultisig(rctSig &rv, const std::vector<unsigned int> &indices, const keyV &k, const multisig_out &msout, const key &secret_key);
 }
 #endif  /* RCTSIGS_H */
-

@@ -157,7 +157,7 @@ namespace mms
     crypto::public_key encryption_public_key;
     message internal_message;
   };
-  
+
   struct auto_config_data
   {
     std::string label;
@@ -299,7 +299,7 @@ namespace mms
     static const char* message_direction_to_string(message_direction direction);
     static const char* message_state_to_string(message_state state);
     std::string signer_to_string(const authorized_signer &signer, uint32_t max_width);
-    
+
     static const char *tr(const char *str) { return i18n_translate(str, "tools::mms"); }
     static void init_options(boost::program_options::options_description& desc_params);
 
@@ -391,7 +391,7 @@ namespace boost
       a & x.auto_config_public_key;
       a & x.auto_config_secret_key;
       a & x.auto_config_transport_address;
-      a & x.auto_config_running;  
+      a & x.auto_config_running;
     }
 
     template <class Archive>

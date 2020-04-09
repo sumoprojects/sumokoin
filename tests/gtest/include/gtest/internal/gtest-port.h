@@ -2550,4 +2550,3 @@ const char* StringFromGTestEnv(const char* flag, const char* default_val);
 }  // namespace testing
 
 #endif  // GTEST_INCLUDE_GTEST_INTERNAL_GTEST_PORT_H_
-
