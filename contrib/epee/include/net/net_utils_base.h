@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -83,7 +83,7 @@ namespace net_utils
 
 		constexpr uint32_t ip() const noexcept { return m_ip; }
 		constexpr uint16_t port() const noexcept { return m_port; }
-		std::string str() const; 
+		std::string str() const;
 		std::string host_str() const;
 		bool is_loopback() const;
 		bool is_local() const;
@@ -418,7 +418,7 @@ namespace net_utils
       set_details(a.m_connection_id, a.m_remote_address, a.m_is_income, a.m_ssl);
       return *this;
     }
-    
+
   private:
     template<class t_protocol_handler>
     friend class connection;
@@ -479,7 +479,7 @@ inline MAKE_LOGGABLE(connection_context_base, ct, os)
 #define LOG_PRINT_CCONTEXT_L2(message) LOG_PRINT_CC_L2(context, message)
 #define LOG_PRINT_CCONTEXT_L3(message) LOG_PRINT_CC_L3(context, message)
 #define LOG_ERROR_CCONTEXT(message)    LOG_ERROR_CC(context, message)
- 
+
 #define CHECK_AND_ASSERT_MES_CC(condition, return_val, err_message) CHECK_AND_ASSERT_MES(condition, return_val, "[" << epee::net_utils::print_connection_context_short(context) << "]" << err_message)
 
 }

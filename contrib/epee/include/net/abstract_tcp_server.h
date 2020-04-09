@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -41,7 +41,7 @@
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "net"
 
-namespace epee 
+namespace epee
 {
 namespace net_utils
 {
@@ -68,7 +68,7 @@ namespace net_utils
 		SOCKET m_sock;
 	};
 
-	
+
 
 	/************************************************************************/
 	/*                                                                      */
@@ -112,7 +112,7 @@ namespace net_utils
 		connections_container m_connections;
 		critical_section m_connections_lock;
 	};
-	
+
 	template<class THandler>
 	unsigned __stdcall abstract_tcp_server<THandler>::ConnectionHandlerProc(void* lpParameter)
 	{
@@ -123,7 +123,7 @@ namespace net_utils
 		abstract_tcp_server<THandler>* pthis = pthread_context->powner;
 
 		::InterlockedIncrement(&pthis->m_threads_count);
-		
+
 		::CoInitialize(NULL);
 
 
@@ -159,8 +159,8 @@ namespace net_utils
 	}
 	//----------------------------------------------------------------------------------------
 	template<class THandler>
-	abstract_tcp_server<THandler>::abstract_tcp_server():m_listen_socket(INVALID_SOCKET), 
-														 m_initialized(false), 
+	abstract_tcp_server<THandler>::abstract_tcp_server():m_listen_socket(INVALID_SOCKET),
+														 m_initialized(false),
 														 m_stop_server(0), m_port(0), m_threads_count(0)
 	{
 
@@ -258,7 +258,7 @@ namespace net_utils
 			LOG_ERROR("Failed to listen, err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
 			return false;
 		}
-		
+
 		LOG_PRINT("Listening port "<< m_port << "...." , LOG_LEVEL_2);
 
 		while(!m_stop_server)
@@ -282,7 +282,7 @@ namespace net_utils
 
 #define ABSTR_TCP_SRV_WAIT_COUNT_MAX 5000
 #define ABSTR_TCP_SRV_WAIT_COUNT_INTERVAL 1000
-		
+
 		int wait_count = 0;
 
 		while(m_threads_count && wait_count*1000 < ABSTR_TCP_SRV_WAIT_COUNT_MAX)

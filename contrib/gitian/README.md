@@ -102,7 +102,7 @@ sudo usermod -aG docker gitianuser
 Manual Building
 -------------------
 
-The instructions below use the automated script [gitian-build.py](gitian-build.py) which only works in Ubuntu. 
+The instructions below use the automated script [gitian-build.py](gitian-build.py) which only works in Ubuntu.
 =======
 The script automatically installs some packages with apt. If you are not running it on a debian-like system, pass `--no-apt` along with the other
 arguments to it. It calls all available .yml descriptors, which in turn pass the build configurations for different platforms to gitian.
@@ -131,7 +131,7 @@ VERSION=v0.6.1.0
 ./gitian-build.py --setup $GH_USER $VERSION
 ```
 
-Where `GH_USER` is your Github user name and `VERSION` is the version tag you want to build. 
+Where `GH_USER` is your Github user name and `VERSION` is the version tag you want to build.
 
 Setup for docker:
 
@@ -140,8 +140,8 @@ Setup for docker:
 ```
 
 While gitian and this build script does provide a way for you to sign the build directly, it is recommended to sign in a separate step. This script is only there for convenience. Separate steps for building can still be taken.
-In order to sign gitian builds on your host machine, which has your PGP key, 
-fork the [gitian.sigs repository](https://github.com/sumoprojects/gitian.sigs) and clone it on your host machine, 
+In order to sign gitian builds on your host machine, which has your PGP key,
+fork the [gitian.sigs repository](https://github.com/sumoprojects/gitian.sigs) and clone it on your host machine,
 or pass the signed assert file back to your build machine.
 
 ```bash
@@ -240,4 +240,3 @@ Local-Only Builds
 If you need to run builds while disconnected from the internet, make sure you have
 local up-to-date repos in advance. Then specify your local repo using the `--url`
 option when building. This will avoid attempts to git pull across a network.
-

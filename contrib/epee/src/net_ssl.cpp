@@ -1,21 +1,21 @@
 // Copyright (c) 2018, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -222,7 +222,7 @@ bool create_ec_ssl_certificate(EVP_PKEY *&pkey, X509 *&cert, int type)
   }
   openssl_group group_deleter{group};
 
-  EC_GROUP_set_asn1_flag(group, OPENSSL_EC_NAMED_CURVE); 
+  EC_GROUP_set_asn1_flag(group, OPENSSL_EC_NAMED_CURVE);
   EC_GROUP_set_point_conversion_form(group, POINT_CONVERSION_UNCOMPRESSED);
 
   if (!EC_GROUP_check(group, NULL))
@@ -599,4 +599,3 @@ static void add_windows_root_certs(SSL_CTX *ctx) noexcept
     SSL_CTX_set_cert_store(ctx, store);
 }
 #endif
-

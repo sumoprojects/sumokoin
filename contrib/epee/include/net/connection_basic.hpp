@@ -2,30 +2,30 @@
 /// @author rfree (current maintainer in monero.cc project)
 /// @brief base for connection, contains e.g. the ratelimit hooks
 
-// ! This file might contain variable names same as in template class connection<> 
+// ! This file might contain variable names same as in template class connection<>
 // ! from files contrib/epee/include/net/abstract_tcp_server2.*
 // ! I am not a lawyer; afaik APIs, var names etc are not copyrightable ;)
 // ! (how ever if in some wonderful juristdictions that is not the case, then why not make another sub-class withat that members and licence it as epee part)
 // ! Working on above premise, IF this is valid in your juristdictions, then consider this code as released as:
 
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -95,7 +95,7 @@ class connection_basic_pimpl; // PIMPL for this class
 	  e_connection_type_RPC = 1, // the rpc commands  (probably not rate limited, not chunked, etc)
 	  e_connection_type_P2P = 2  // to other p2p node (probably limited)
   };
-  
+
   std::string to_string(t_connection_type type);
 
 class connection_basic { // not-templated base class for rapid developmet of some code parts
@@ -173,7 +173,7 @@ class connection_basic { // not-templated base class for rapid developmet of som
 		void logger_handle_net_read(size_t size); // network data read
 
 		// config for rate limit
-		
+
 		static void set_rate_up_limit(uint64_t limit);
 		static void set_rate_down_limit(uint64_t limit);
 		static uint64_t get_rate_up_limit();
@@ -193,5 +193,3 @@ class connection_basic { // not-templated base class for rapid developmet of som
 } // nameserver
 
 #endif
-
-

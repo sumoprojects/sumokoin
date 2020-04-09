@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -55,13 +55,13 @@ namespace levin
 		std::string buff_strg;
 		if(!StorageNamed::save_struct_as_storage_to_buff_t<t_struct, StorageNamed::DefaultStorageType>(t, buff_strg))
 			return false;
-		
+
 		head.m_cb = SWAP64LE(buff_strg.size());
 		buff.append(buff_strg);
 		return true;
 	}
 
-	
+
 	bool pack_data_to_levin_message(const std::string& data, std::string& buff, int command_id)
 	{
 		buff.resize(sizeof(levin::bucket_head));
@@ -123,7 +123,7 @@ namespace levin
 			LOG_ERROR("size of buff(" << buff.size() << ") is too small, at load_struct_from_levin_message");
 			return false;
 		}
-		
+
 #if BYTE_ORDER == LITTLE_ENDIAN
 		levin::bucket_head &head = *(levin::bucket_head*)(&buff[0]);
 #else

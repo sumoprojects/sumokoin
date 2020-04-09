@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 #ifndef _DB_ADO_HELPER_H_
@@ -81,7 +81,7 @@ namespace ado_db_helper
 
 	class profiler_manager
 	{
-	public: 
+	public:
 		typedef std::map<std::string, profile_entry> sqls_map;
 		profiler_manager(){}
 
@@ -104,7 +104,7 @@ namespace ado_db_helper
 			for(std::list<sqls_map::iterator>::iterator it = m_sorted_by_time_sqls.begin();it!=m_sorted_by_time_sqls.end();it++)
 			{
 				strm << "---------------------------------------------------------------------------------------------------------\r\nSQL: " << (*it)->first << "\r\n";
-				strm << "\tavrg: " << (*it)->second.m_avrg.get_avg() << "\r\n\tmax: " << (*it)->second.m_max_time << "\r\n\tmin: " << (*it)->second.m_min_time << "\r\n\tcount: " << (*it)->second.m_call_count << "\r\n"; 
+				strm << "\tavrg: " << (*it)->second.m_avrg.get_avg() << "\r\n\tmax: " << (*it)->second.m_max_time << "\r\n\tmin: " << (*it)->second.m_min_time << "\r\n\tcount: " << (*it)->second.m_call_count << "\r\n";
 			}
 
 			return file_io_utils::save_string_to_file(path.c_str(), strm.str());
@@ -140,7 +140,7 @@ namespace ado_db_helper
 		sqls_map m_sqls;
 		critical_section m_sqls_lock;
 	};
-inline 
+inline
 	profiler_manager* get_set_profiler(bool need_to_set = false, profiler_manager** pprofiler = NULL)
 	{
 		static profiler_manager* pmanager = NULL;
@@ -148,7 +148,7 @@ inline
 			pmanager = *pprofiler;
 		//else
 		//	*pprofiler = pmanager;
-		
+
 		return pmanager;
 	}
 inline
@@ -158,7 +158,7 @@ inline
 		get_set_profiler(true, &pmanager);
 		return true;
 	}
-inline		
+inline
 	bool deinit()
 	{
 		profiler_manager* pmanager = get_set_profiler();
@@ -189,7 +189,7 @@ inline
 	{
 		DWORD m_start_time;
 		std::string m_sql;
-	
+
 	public:
 		timing_guard(const std::string& sql)
 		{
@@ -309,7 +309,7 @@ inline
 				return false;
 		return true;
 	}
-	
+
 	/*
 	inline bool add_parametr(ADODB::_CommandPtr cmd, const size_t parametr)
 	{
@@ -321,7 +321,7 @@ inline
 		return true;
 	}*/
 
-	
+
 	inline bool add_parametr(ADODB::_CommandPtr cmd, const DATE parametr)
 	{
 		/*_variant_t param;
@@ -329,17 +329,17 @@ inline
 		param.dblVal = parametr;
 		ADODB::_ParameterPtr param_obj = cmd->CreateParameter("parametr", ADODB::adDouble, ADODB::adParamInput, sizeof(float), param);
 		cmd->Parameters->Append(param_obj);*/
-		
+
 		_variant_t param;
 		param.ChangeType(VT_DATE);
 		param.date = parametr;
 		ADODB::_ParameterPtr param_obj = cmd->CreateParameter("parametr", ADODB::adDBDate, ADODB::adParamInput, sizeof(parametr), param);
 		cmd->Parameters->Append(param_obj);
-		
+
 		return true;
 	}
 
-	
+
 	inline bool execute_helper(ADODB::_CommandPtr cmd, _variant_t* pcount_processed = NULL)
 	{
 		//BEGIN_TRY_SECTION();
@@ -438,7 +438,7 @@ inline
 		TParam3 tparam3;
 		TParam4 tparam4;
 	};
-	
+
 	template<typename TParam1, typename TParam2, typename TParam3, typename TParam4, typename TParam5>
 	struct adapter_quanto
 	{
@@ -531,7 +531,7 @@ inline
 		if(!add_parametr(cmd, params.tparam4)) return false;
 		return add_parametr(cmd, params.tparam5);
 	}
-	
+
 	template<typename TParam1, typename TParam2, typename TParam3, typename TParam4, typename TParam5, typename TParam6>
 	bool add_parametrs_multi(ADODB::_CommandPtr cmd, const adapter_sixto<TParam1, TParam2, TParam3, TParam4, TParam5, TParam6>& params)
 	{
@@ -667,17 +667,17 @@ inline
 		PROFILE_SQL(sql_statment);
 		bool res = false;
 		BEGIN_TRY_SECTION();
-		
+
 			ADODB::_CommandPtr cmd;
 			cmd.CreateInstance(__uuidof(ADODB::Command));
-			cmd->CommandText = _bstr_t(sql_statment.c_str());	
+			cmd->CommandText = _bstr_t(sql_statment.c_str());
 
 			if(!add_parametrs_multi(cmd, parametrs))
 				return false;
 
 			cmd->ActiveConnection = pconnection;
-			res = execute_helper(cmd, pcount_processed);	
-		
+			res = execute_helper(cmd, pcount_processed);
+
 		CATCH_TRY_SECTION_MESS(false, "while statment: " << sql_statment << " [params]: " << print_parameters_multi(parametrs));
 		return res;
 	}
@@ -692,14 +692,14 @@ inline
 		BEGIN_TRY_SECTION();
 			ADODB::_CommandPtr cmd;
 			cmd.CreateInstance(__uuidof(ADODB::Command));
-			cmd->CommandText = _bstr_t(sql_statment.c_str());	
+			cmd->CommandText = _bstr_t(sql_statment.c_str());
 
 
 			if(!add_parametrs_multi(cmd, parametrs))
 				return false;
 
 			cmd->ActiveConnection = pconnection;
-			res = select_helper(cmd, result_vector);	
+			res = select_helper(cmd, result_vector);
 		CATCH_TRY_SECTION_MESS(false, "while statment: " << sql_statment << " [params]: " << print_parameters_multi(parametrs));
 		return res;
 	}
@@ -714,16 +714,16 @@ inline
 		BEGIN_TRY_SECTION();
 		ADODB::_CommandPtr cmd;
 		cmd.CreateInstance(__uuidof(ADODB::Command));
-		cmd->CommandText = _bstr_t(sql_statment.c_str());	
-		
-		
+		cmd->CommandText = _bstr_t(sql_statment.c_str());
+
+
 		for(TParams::const_iterator it = parametrs.begin(); it!=parametrs.end(); it++)
 		{
 			add_parametr(cmd, *it);
 		}
 
 		cmd->ActiveConnection = pconnection;
-		res = select_helper(cmd, result_vector);	
+		res = select_helper(cmd, result_vector);
 
 		CATCH_TRY_SECTION(false);
 		return res;
@@ -945,7 +945,7 @@ inline
 			ADODB::_ConnectionPtr& get_db_connection()
 			{
 
-				//soci::session 
+				//soci::session
 
 				m_db_connections_lock.lock();
 				boost::shared_ptr<ADODB::_ConnectionPtr>& conn_ptr = m_db_connections[::GetCurrentThreadId()];
@@ -966,7 +966,7 @@ inline
 					}
 
 					HRESULT res = conn->Open(_bstr_t(m_connection_string.c_str()), _bstr_t(m_login.c_str()), _bstr_t(m_password.c_str()), NULL);
-					if(res != S_OK) 
+					if(res != S_OK)
 					{
 						LOG_ERROR("Failed to connect do DB, connection str:" << m_connection_string);
 						return conn;
@@ -997,7 +997,7 @@ inline
 					BEGIN_TRY_SECTION();
 
 					HRESULT res = rconn->Open(_bstr_t(m_connection_string.c_str()), _bstr_t(m_login.c_str()), _bstr_t(m_password.c_str()), NULL);
-					if(res != S_OK) 
+					if(res != S_OK)
 					{
 						LOG_PRINT("Failed to restore connection to local AI DB", LOG_LEVEL_1);
 						return false;
@@ -1007,7 +1007,7 @@ inline
 
 				return true;
 			}
-			
+
 		protected:
 		private:
 			std::map<DWORD, boost::shared_ptr<ADODB::_ConnectionPtr> > m_db_connections;
@@ -1065,7 +1065,7 @@ inline
 			//CHECK_CONNECTION(false);
 
 			new_object_added = false;
-			ado_db_helper::table result_table;	
+			ado_db_helper::table result_table;
 
 			bool res = select_helper_multiparam(c.get_db_connection(), sql_select_statment, params, result_table);
 			if(!result_table.size())

@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 #include <boost/regex.hpp>
@@ -37,7 +37,7 @@
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "net.http"
 
-#define HTTP_MAX_URI_LEN		 9000 
+#define HTTP_MAX_URI_LEN		 9000
 #define HTTP_MAX_HEADER_LEN		 100000
 #define HTTP_MAX_STARTING_NEWLINES       8
 
@@ -61,7 +61,7 @@ namespace net_utils
 		{
 			STATIC_REGEXP_EXPR_1(rexp_match_boundary, "boundary=(.*?)(($)|([;\\s,]))", boost::regex::icase | boost::regex::normal);
 			//											        1
-			boost::smatch result;	
+			boost::smatch result;
 			if(boost::regex_search(content_type, result, rexp_match_boundary, boost::match_default) && result[0].matched)
 			{
 				boundary = result[1];
@@ -71,14 +71,14 @@ namespace net_utils
 			return false;
 		}
 
-		inline 
+		inline
 			bool parse_header(std::string::const_iterator it_begin, std::string::const_iterator it_end, multipart_entry& entry)
 		{
-			STATIC_REGEXP_EXPR_1(rexp_mach_field, 
+			STATIC_REGEXP_EXPR_1(rexp_mach_field,
 				"\n?((Content-Disposition)|(Content-Type)"
-				//  12                     3 
-				"|([\\w-]+?)) ?: ?((.*?)(\r?\n))[^\t ]",	
-				//4               56    7 
+				//  12                     3
+				"|([\\w-]+?)) ?: ?((.*?)(\r?\n))[^\t ]",
+				//4               56    7
 				boost::regex::icase | boost::regex::normal);
 
 			boost::smatch		result;
@@ -86,7 +86,7 @@ namespace net_utils
 			std::string::const_iterator it_end_bound = it_end;
 
 			//lookup all fields and fill well-known fields
-			while( boost::regex_search( it_current_bound, it_end_bound, result, rexp_mach_field, boost::match_default) && result[0].matched) 
+			while( boost::regex_search( it_current_bound, it_end_bound, result, rexp_mach_field, boost::match_default) && result[0].matched)
 			{
 				const size_t field_val = 6;
 				const size_t field_etc_name = 4;
@@ -115,7 +115,7 @@ namespace net_utils
 			std::string::const_iterator end_header_it = std::search(it_begin, it_end, end_str.begin(), end_str.end());
 			if(end_header_it == it_end)
 			{
-				//header not matched 
+				//header not matched
 				return false;
 			}
 
@@ -124,7 +124,7 @@ namespace net_utils
 				LOG_ERROR("Failed to parse header:" << std::string(it_begin, end_header_it+2));
 				return false;
 			}
-		
+
 			entry.m_body.assign(end_header_it+4, it_end);
 
 			return true;
@@ -141,17 +141,17 @@ namespace net_utils
 				MERROR("Failed to match boundary in content type: " << content_type);
 				return false;
 			}
-			
+
 			boundary+="\r\n";
 			bool is_stop = false;
 			bool first_step = true;
-			
+
 			std::string::const_iterator it_begin = body.begin();
 			std::string::const_iterator it_end;
 			while(!is_stop)
 			{
 				std::string::size_type pos = body.find(boundary, std::distance(body.begin(), it_begin));
-			
+
 				if(std::string::npos == pos)
 				{
 					is_stop = true;
@@ -169,7 +169,7 @@ namespace net_utils
 				}else
 					it_end =  body.begin() + pos;
 
-			
+
 				if(first_step && !is_stop)
 				{
 					first_step = false;
@@ -178,7 +178,7 @@ namespace net_utils
 					boundary = temp + boundary;
 					continue;
 				}
-				
+
 				out_values.push_back(multipart_entry());
 				if(!handle_part_of_multipart(it_begin, it_end, out_values.back()))
 				{
@@ -300,7 +300,7 @@ namespace net_utils
 							LOG_ERROR_CC(m_conn_context, "simple_http_connection_handler::handle_buff_in: Too long header area");
 							m_state = http_state_error;
 							return false;
-						}	
+						}
 						break;
 					}
 					if (!analize_cached_request_header_and_invoke_state(pos))
@@ -344,7 +344,7 @@ namespace net_utils
 			method = http::http_method_post;
 		else if(result[7].matched)
 			method = http::http_method_put;
-		else 
+		else
 			method = http::http_method_etc;
 
 		return true;
@@ -353,11 +353,11 @@ namespace net_utils
   //--------------------------------------------------------------------------------------------
   template<class t_connection_context>
 	bool simple_http_connection_handler<t_connection_context>::handle_invoke_query_line()
-	{ 
+	{
 		STATIC_REGEXP_EXPR_1(rexp_match_command_line, "^(((OPTIONS)|(GET)|(HEAD)|(POST)|(PUT)|(DELETE)|(TRACE)) (\\S+) HTTP/(\\d+)\\.(\\d+))\r?\n", boost::regex::icase | boost::regex::normal);
-		//											    123         4     5      6      7     8        9        10          11     12    
+		//											    123         4     5      6      7     8        9        10          11     12
 		//size_t match_len = 0;
-		boost::smatch result;	
+		boost::smatch result;
 		if(boost::regex_search(m_cache, result, rexp_match_command_line, boost::match_default) && result[0].matched)
 		{
 			if (!analize_http_method(result, m_query_info.m_http_method, m_query_info.m_http_ver_hi, m_query_info.m_http_ver_hi))
@@ -407,11 +407,11 @@ namespace net_utils
 	//--------------------------------------------------------------------------------------------
   template<class t_connection_context>
 	bool simple_http_connection_handler<t_connection_context>::analize_cached_request_header_and_invoke_state(size_t pos)
-	{ 
+	{
 		LOG_PRINT_L3("HTTP HEAD:\r\n" << m_cache.substr(0, pos));
 
 		m_query_info.m_full_request_buf_size = pos;
-    m_query_info.m_request_head.assign(m_cache.begin(), m_cache.begin()+pos); 
+    m_query_info.m_request_head.assign(m_cache.begin(), m_cache.begin()+pos);
 
 		if(!parse_cached_header(m_query_info.m_header_info, m_cache, pos))
 		{
@@ -424,7 +424,7 @@ namespace net_utils
 
 		std::string req_command_str = m_query_info.m_full_request_str;
     //if we have POST or PUT command, it is very possible tha we will get body
-    //but now, we suppose than we have body only in case of we have "ContentLength" 
+    //but now, we suppose than we have body only in case of we have "ContentLength"
 		if(m_query_info.m_header_info.m_content_length.size())
 		{
 			m_state = http_state_retriving_body;
@@ -500,12 +500,12 @@ namespace net_utils
 	//--------------------------------------------------------------------------------------------
   template<class t_connection_context>
 	bool simple_http_connection_handler<t_connection_context>::parse_cached_header(http_header_info& body_info, const std::string& m_cache_to_process, size_t pos)
-	{ 
-		STATIC_REGEXP_EXPR_1(rexp_mach_field, 
+	{
+		STATIC_REGEXP_EXPR_1(rexp_mach_field,
 			"\n?((Connection)|(Referer)|(Content-Length)|(Content-Type)|(Transfer-Encoding)|(Content-Encoding)|(Host)|(Cookie)|(User-Agent)|(Origin)"
 			//  12            3         4                5              6                   7                  8      9        10           11
-			"|([\\w-]+?)) ?: ?((.*?)(\r?\n))[^\t ]",	
-			//11             1213   14 
+			"|([\\w-]+?)) ?: ?((.*?)(\r?\n))[^\t ]",
+			//11             1213   14
 			boost::regex::icase | boost::regex::normal);
 
 		boost::smatch		result;
@@ -515,7 +515,7 @@ namespace net_utils
 		body_info.clear();
 
 		//lookup all fields and fill well-known fields
-		while( boost::regex_search( it_current_bound, it_end_bound, result, rexp_mach_field, boost::match_default) && result[0].matched) 
+		while( boost::regex_search( it_current_bound, it_end_bound, result, rexp_mach_field, boost::match_default) && result[0].matched)
 		{
 			const size_t field_val = 14;
 			const size_t field_etc_name = 12;
@@ -718,7 +718,7 @@ namespace net_utils
 	template<class t_connection_context>
   std::string simple_http_connection_handler<t_connection_context>::get_not_found_response_body(const std::string& URI)
 	{
-		std::string body = 
+		std::string body =
 			"<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\r\n"
 			"<html><head>\r\n"
 			"<title>404 Not Found</title>\r\n"

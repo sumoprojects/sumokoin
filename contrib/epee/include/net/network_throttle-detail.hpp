@@ -3,23 +3,23 @@
 /// @brief implementaion for throttling of connection (count and rate-limit speed etc)
 
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -54,7 +54,7 @@ class network_throttle : public i_network_throttle {
 
 
 		network_speed_bps m_target_speed;
-		size_t m_network_add_cost; // estimated add cost of headers 
+		size_t m_network_add_cost; // estimated add cost of headers
 		size_t m_network_minimal_segment; // estimated minimal cost of sending 1 byte to round up to
 		size_t m_network_max_segment; // recommended max size of 1 TCP transmission
 
@@ -125,5 +125,3 @@ struct network_throttle_bw {
 
 
 #endif
-
-

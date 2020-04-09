@@ -136,7 +136,7 @@ POP_WARNINGS
 
     // For MyMonero/OpenMonero backend compatibility
     // MyMonero backend sends amount, fees and timestamp values as strings.
-    // Until MM backend is updated, this is needed for compatibility between OpenMonero and MyMonero. 
+    // Until MM backend is updated, this is needed for compatibility between OpenMonero and MyMonero.
     template<>
     struct convert_to_integral<std::string, uint64_t, false>
     {

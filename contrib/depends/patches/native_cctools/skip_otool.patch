@@ -8,5 +8,5 @@
 -SUBDIRS=libstuff ar as misc libobjc2 otool ld64 $(LD_CLASSIC)
 +SUBDIRS=libstuff ar as misc ld64 $(LD_CLASSIC)
  endif
- 
+
  ACLOCAL_AMFLAGS = -I m4

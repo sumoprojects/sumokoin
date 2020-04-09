@@ -15,8 +15,8 @@ int main(int argc, char* argv[])
   //set up logging options
   log_space::get_set_log_detalisation_level(true, LOG_LEVEL_2);
   log_space::log_singletone::add_logger(LOGGER_CONSOLE, NULL, NULL);
-  log_space::log_singletone::add_logger(LOGGER_FILE, 
-    log_space::log_singletone::get_default_log_file().c_str(), 
+  log_space::log_singletone::add_logger(LOGGER_FILE,
+    log_space::log_singletone::get_default_log_file().c_str(),
     log_space::log_singletone::get_default_log_folder().c_str());
 
 

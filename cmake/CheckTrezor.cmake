@@ -120,7 +120,7 @@ if(Protobuf_FOUND AND USE_DEVICE_TREZOR AND TREZOR_PYTHON AND Protobuf_COMPILE_T
     if (USE_DEVICE_TREZOR_DEBUG)
         set(TREZOR_PROTOBUF_PARAMS "--debug")
     endif()
-    
+
     execute_process(COMMAND ${TREZOR_PYTHON} tools/build_protob.py ${TREZOR_PROTOBUF_PARAMS} WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../src/device_trezor/trezor RESULT_VARIABLE RET OUTPUT_VARIABLE OUT ERROR_VARIABLE ERR)
     if(RET)
         message(WARNING "Trezor protobuf messages could not be regenerated (err=${RET}, python ${PYTHON})."

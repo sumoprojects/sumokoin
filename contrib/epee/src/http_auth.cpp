@@ -138,7 +138,7 @@ namespace
 
     template<typename... T>
     std::array<char, 32> operator()(const T&... args) const
-    {      
+    {
       md5::MD5_CTX ctx{};
       md5::MD5Init(std::addressof(ctx));
       boost::fusion::for_each(std::tie(args...), update{ctx});
@@ -471,9 +471,9 @@ namespace
         }
 
         boost::optional<auth_message> operator()(const boost::string_ref request) const
-        { 
+        {
           namespace qi = boost::spirit::qi;
-           
+
           iterator current = request.begin();
           const iterator end = request.end();
 
@@ -656,7 +656,7 @@ namespace
     boost::iterator_range<iterator> response;
     boost::iterator_range<iterator> stale;
     boost::iterator_range<iterator> uri;
-    boost::iterator_range<iterator> username; 
+    boost::iterator_range<iterator> username;
   }; // auth_message
 
   struct add_challenge
@@ -677,7 +677,7 @@ namespace
         add_field(out, u8"realm", quoted(auth_realm));
         add_field(out, u8"nonce", quoted(nonce));
         add_field(out, u8"stale", is_stale ? ceref("true") : ceref("false"));
-        
+
         fields.push_back(std::make_pair(std::string(server_auth_field), std::move(out)));
       }
     }
@@ -693,13 +693,13 @@ namespace
     rc.m_response_code = 401;
     rc.m_response_comment = u8"Unauthorized";
     rc.m_mime_tipe = u8"text/html";
-    rc.m_body = 
+    rc.m_body =
       u8"<html><head><title>Unauthorized Access</title></head><body><h1>401 Unauthorized</h1></body></html>";
 
     boost::fusion::for_each(
       digest_algorithms, add_challenge{nonce, rc.m_additional_fields, is_stale}
     );
-    
+
     return rc;
   }
 }
@@ -782,4 +782,3 @@ namespace epee
     }
   }
 }
-
