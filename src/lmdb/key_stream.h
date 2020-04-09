@@ -58,7 +58,7 @@ namespace lmdb
     {
         MDB_cursor* cur;
         epee::span<const std::uint8_t> key;
-        
+
         void increment()
         {
             // MDB_NEXT_MULTIPLE doesn't work if only one value is stored :/
@@ -261,4 +261,3 @@ namespace lmdb
         return !lhs.equal(rhs);
     }
 } // lmdb
-

@@ -42,7 +42,7 @@
             return {::net::zmq::get_error_code()}; \
     } while (0)
 
-//! Print a message followed by the current ZMQ error message. 
+//! Print a message followed by the current ZMQ error message.
 #define MONERO_LOG_ZMQ_ERROR(...)                                                   \
     do                                                                          \
     {                                                                           \

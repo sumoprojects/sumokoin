@@ -138,7 +138,7 @@ namespace cryptonote
     uint64_t fee;
 
     fee = tx.rct_signatures.txnFee;
-    
+
     if (!kept_by_block && !m_blockchain.check_fee(tx_weight, fee))
     {
       tvc.m_verifivation_failed = true;
@@ -1289,7 +1289,7 @@ namespace cryptonote
     uint64_t best_coinbase = 0, coinbase = 0;
     total_weight = 0;
     fee = 0;
-    
+
     //baseline empty block
     if (!get_block_reward(median_weight, total_weight, already_generated_coins, best_coinbase, height))
     {
@@ -1328,7 +1328,7 @@ namespace cryptonote
         LOG_PRINT_L2("  would exceed maximum block weight");
         continue;
       }
-            
+
       // If we're getting lower coinbase tx,
       // stop including more tx
       uint64_t block_reward;

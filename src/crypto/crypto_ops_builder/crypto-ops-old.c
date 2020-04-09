@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 
@@ -51,7 +51,7 @@ static void fe_divpowm1(fe, const fe, const fe);
 
 /* Common functions */
 
-//x 
+//x
 //u
 static uint64_t load_3(const unsigned char *in) {
   uint64_t result;
@@ -61,7 +61,7 @@ static uint64_t load_3(const unsigned char *in) {
   return result;
 }
 
-//x 
+//x
 //u
 static uint64_t load_4(const unsigned char *in)
 {
@@ -1162,7 +1162,7 @@ static void slide(signed char *r, const unsigned char *a) {
   int b;
   int k;
 
-  //this loop just makes a binary string out of a 
+  //this loop just makes a binary string out of a
   //e.g. a = {3, 0, 0, ...} then r = 110000....
   for (i = 0; i < 256; ++i) {
     r[i] = 1 & (a[i >> 3] >> (i & 7));
@@ -1257,7 +1257,7 @@ void ge_double_scalarmult_base_vartime(ge_p2 *r, const unsigned char *a, const g
 }
 
 /* From ge_frombytes.c, modified */
-//this is like xrecover .. 
+//this is like xrecover ..
 //x
 int ge_frombytes_vartime(ge_p3 *h, const unsigned char *s) {
   fe u;
@@ -1336,7 +1336,7 @@ int ge_frombytes_vartime(ge_p3 *h, const unsigned char *s) {
     if (fe_isnonzero(check)) {
       return -1;
     }
-    fe_mul(h->X, h->X, fe_sqrtm1); //this is mapping X to X * sqrt(-1) c.f. 3.1 in hisil, dong, etc. 
+    fe_mul(h->X, h->X, fe_sqrtm1); //this is mapping X to X * sqrt(-1) c.f. 3.1 in hisil, dong, etc.
   }
 
   if (fe_isnegative(h->X) != (s[31] >> 7)) {
@@ -1603,9 +1603,9 @@ void ge_scalarmult_base(ge_p3 *h, const unsigned char *a) {
   /* each e[i] is between -8 and 8 */
 
   ge_p3_0(h);
-  //note, these are indexing from 1, 3, 5, etc. 
+  //note, these are indexing from 1, 3, 5, etc.
   for (i = 1; i < 64; i += 2) {
-    select(&t, i / 2, e[i]); //here's where you grab multiples of the basepoint .. 
+    select(&t, i / 2, e[i]); //here's where you grab multiples of the basepoint ..
     //so must be doing e P = (e[0] (2^4)^0 P + e[1] (2^4)^1 P + e[2] (2^4)^2 P + ...)
     //except, probably writing in big-endian to make more sense..
     //and the e[i] P are going to be pre-computed...
@@ -1618,7 +1618,7 @@ void ge_scalarmult_base(ge_p3 *h, const unsigned char *a) {
   ge_p2_dbl(&r, &s); ge_p1p1_to_p2(&s, &r);
   ge_p2_dbl(&r, &s); ge_p1p1_to_p3(h, &r);
 
-  //note, these are indexing from 0, 2, 4, etc. 
+  //note, these are indexing from 0, 2, 4, etc.
   for (i = 0; i < 64; i += 2) {
     select(&t, i / 2, e[i]);
     ge_madd(&r, h, &t); ge_p1p1_to_p3(h, &r);
@@ -1678,7 +1678,7 @@ Output:
 void sc_reduce(unsigned char *s) {
   //the point is to load in 21 bits at a time..
   //Mininero should give you the ints 2097151, the shifts below, and either load 3 or 4
-  int64_t s0 = 2097151 & load_3(s); //2097151 is 21 1's in binary, so there are possible 5 bits left over.. 
+  int64_t s0 = 2097151 & load_3(s); //2097151 is 21 1's in binary, so there are possible 5 bits left over..
   int64_t s1 = 2097151 & (load_4(s + 2) >> 5); //now you start at 2^16, so you have to move right 5 bits to 2^21.., the 2 comes from the fact that you loaded 3 last time..
   int64_t s2 = 2097151 & (load_3(s + 5) >> 2); //in last one you had bits 22 ->42, you are starting at (2^8)^5 = 2^40, so need to move right 2 bits...
   int64_t s3 = 2097151 & (load_4(s + 7) >> 7); //etc...
@@ -1701,9 +1701,9 @@ void sc_reduce(unsigned char *s) {
   int64_t s20 = 2097151 & (load_4(s + 52) >> 4);
   int64_t s21 = 2097151 & (load_3(s + 55) >> 1);
   int64_t s22 = 2097151 & (load_4(s + 57) >> 6);
-  int64_t s23 = (load_4(s + 60) >> 3); //note no &2097151 here .. 
-                                       //so rather than doing 24 = 512 
-                                       //we've done 23 = 504 
+  int64_t s23 = (load_4(s + 60) >> 3); //note no &2097151 here ..
+                                       //so rather than doing 24 = 512
+                                       //we've done 23 = 504
                                        //so curve size rather than
                                        //size of s
                                        //this should be handled
@@ -1732,17 +1732,17 @@ void sc_reduce(unsigned char *s) {
   //Note that 683901 * 2^(5*21) - 136657 * 2^(4 * 21) + ... - 66643 = 27742317777372353535851937790883648493, which is c in the curve order..
   s11 += s23 * 666643; // =1430509 - 2 ^ 21  //note there is a 12 step difference, 12^21 = 252
                                              //so you subtract q 12^21 and then add c at each step..
-                                             //just have to be careful of the carries .. 
+                                             //just have to be careful of the carries ..
                                              //If you are using unsigned int's, you had better carry at each step
                                              //so the first step is to factorize 252 and whatever radix
-                                             //must be in those factors.. 
+                                             //must be in those factors..
   s12 += s23 * 470296; // = 1626855 - 2^21 - 1
   s13 += s23 * 654183; // = 1442968 - 2 ^ 21 - 1?
   s14 -= s23 * 997805; //note the negative ones are same as result from toDigits
   s15 += s23 * 136657; // 1960495 - 2 ** 21
-  s16 -= s23 * 683901; //note negative ones are same 
+  s16 -= s23 * 683901; //note negative ones are same
 
-  s10 += s22 * 666643; //22 - 10 = 12, 12 * 21 = 252 
+  s10 += s22 * 666643; //22 - 10 = 12, 12 * 21 = 252
   s11 += s22 * 470296;
   s12 += s22 * 654183;
   s13 -= s22 * 997805;
@@ -1898,7 +1898,7 @@ void sc_reduce(unsigned char *s) {
   carry9 = s9 >> 21; s10 += carry9; s9 -= carry9 << 21;
   carry10 = s10 >> 21; s11 += carry10; s10 -= carry10 << 21;
 
-  //go from 2^[256/12]'s to 2^[256/32]'s 
+  //go from 2^[256/12]'s to 2^[256/32]'s
   s[0] = s0 >> 0;
   s[1] = s0 >> 8;
   s[2] = (s0 >> 16) | (s1 << 5); // | since there is no overlap

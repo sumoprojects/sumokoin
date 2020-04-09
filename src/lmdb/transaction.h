@@ -52,7 +52,7 @@ namespace lmdb
         associated `context`, and aborts a LMDB transaction (`mdb_txn_abort`).
     */
     struct release_read_txn
-    { 
+    {
         void operator()(MDB_txn* ptr) const noexcept;
         // implementation in database.cpp
     };
