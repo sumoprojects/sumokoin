@@ -118,19 +118,19 @@ struct aesdata
 		v64x0 = mem.as_uqword(0);
 		v64x1 = mem.as_uqword(1);
 	}
-	
+
 	inline void xor_load(const cn_sptr mem)
 	{
 		v64x0 ^= mem.as_uqword(0);
 		v64x1 ^= mem.as_uqword(1);
 	}
-	
+
 	inline void write(cn_sptr mem)
 	{
 		mem.as_uqword(0) = v64x0;
 		mem.as_uqword(1) = v64x1;
 	}
-    
+
 	inline aesdata& operator^=(const aesdata& rhs) noexcept
 	{
 		v64x0 ^= rhs.v64x0;
@@ -145,7 +145,7 @@ struct aesdata
 		v64x1 ^= t;
 		return *this;
 	}
-	
+
 	inline void get_quad(uint32_t& x0, uint32_t& x1, uint32_t& x2, uint32_t& x3)
 	{
 		x0 = v64x0;
@@ -153,7 +153,7 @@ struct aesdata
 		x2 = v64x1;
 		x3 = v64x1 >> 32;
 	}
-	
+
 	inline void set_quad(uint32_t x0, uint32_t x1, uint32_t x2, uint32_t x3)
 	{
 		v64x0 = uint64_t(x0) | uint64_t(x1) << 32;
@@ -163,7 +163,7 @@ struct aesdata
 
 inline uint32_t sub_word(uint32_t key)
 {
-	return (saes_sbox[key >> 24 ] << 24)   | (saes_sbox[(key >> 16) & 0xff] << 16 ) | 
+	return (saes_sbox[key >> 24 ] << 24)   | (saes_sbox[(key >> 16) & 0xff] << 16 ) |
 		(saes_sbox[(key >> 8)  & 0xff] << 8  ) | saes_sbox[key & 0xff];
 }
 
@@ -267,7 +267,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::implode_scratchpad_soft()
 {
 	aesdata x0, x1, x2, x3, x4, x5, x6, x7;
 	aesdata k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
-	
+
 	aes_genkey(spad.as_uqword() + 4, k0, k1, k2, k3, k4, k5, k6, k7, k8, k9);
 
 	x0.load(spad.as_uqword() + 8);
@@ -363,7 +363,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::explode_scratchpad_soft()
 {
 	aesdata x0, x1, x2, x3, x4, x5, x6, x7;
 	aesdata k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
-	
+
 	aes_genkey(spad.as_uqword(), k0, k1, k2, k3, k4, k5, k6, k7, k8, k9);
 
 	x0.load(spad.as_uqword() + 8);
@@ -450,7 +450,7 @@ inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
 	*hi = r >> 64;
 	return (uint64_t)r;
 }
-#endif 
+#endif
 #endif
 
 extern "C" void blake256_hash(uint8_t*, const uint8_t*, uint64_t);
@@ -465,7 +465,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::software_hash(const void* in, size_t le
 		keccak((const uint8_t *)in, len, spad.as_byte(), 200);
 
 	explode_scratchpad_soft();
-	
+
 	uint64_t* h0 = spad.as_uqword();
 
 	aesdata ax;
@@ -478,7 +478,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::software_hash(const void* in, size_t le
 
 	aesdata cx;
 	cn_sptr idx = scratchpad_ptr(ax.v64x0);
-	
+
 	for(size_t i = 0; i < ITER/2; i++)
 	{
 		uint64_t hi, lo;
@@ -505,7 +505,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::software_hash(const void* in, size_t le
 			int32_t d  = idx.as_dword(2);
 
 #if defined(__arm__)
-			asm volatile ("nop"); //Fix for RasPi3 ARM - maybe needed on armv8 
+			asm volatile ("nop"); //Fix for RasPi3 ARM - maybe needed on armv8
 #endif
 
 			int64_t q = n / (d | 5);
@@ -535,7 +535,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::software_hash(const void* in, size_t le
 			int32_t d  = idx.as_dword(2); // read bytes 8 - 11
 
 #if defined(__arm__)
-			asm volatile ("nop"); //Fix for RasPi3 ARM - maybe needed on armv8 
+			asm volatile ("nop"); //Fix for RasPi3 ARM - maybe needed on armv8
 #endif
 
 			int64_t q = n / (d | 5);

@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 #ifndef _PROFILE_TOOLS_H_
@@ -83,7 +83,7 @@ namespace profile_tools
 		uint64_t m_summary_time_used;
 		const char* m_pname;
 	};
-	
+
 	struct call_frame
 	{
 
@@ -93,11 +93,11 @@ namespace profile_tools
 			m_call_time = boost::posix_time::microsec_clock::local_time();
 			//::QueryPerformanceCounter((LARGE_INTEGER *)&m_call_time);
 		}
-		
+
 		~call_frame()
 		{
 			//__int64 ret_time = 0;
-			
+
 			boost::posix_time::ptime now_t(boost::posix_time::microsec_clock::local_time());
 			boost::posix_time::time_duration delta_microsec = now_t - m_call_time;
 			uint64_t miliseconds_used = delta_microsec.total_microseconds();
@@ -106,12 +106,12 @@ namespace profile_tools
 			//m_call_time = (ret_time-m_call_time)/1000;
 			m_cc.m_summary_time_used += miliseconds_used;
 		}
-		
+
 	private:
 		local_call_account& m_cc;
 		boost::posix_time::ptime m_call_time;
 	};
-	
+
 
 }
 }

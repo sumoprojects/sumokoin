@@ -213,7 +213,7 @@ namespace cryptonote {
     }
 
     uint64_t timespan_length = length - cut_begin * 2 - 1;
-    
+
     uint64_t total_timespan_median = timespan_median > 0 ? timespan_median * timespan_length : total_timespan * 7 / 10;
     uint64_t adjusted_total_timespan = (total_timespan * 8 + total_timespan_median * 3) / 10; //  0.8A + 0.3M (the median of a poisson distribution is 70% of the mean, so 0.25A = 0.25/0.7 = 0.285M)
     if (adjusted_total_timespan > MAX_AVERAGE_TIMESPAN * timespan_length){
@@ -234,7 +234,7 @@ namespace cryptonote {
 
     uint64_t next_diff = (low + adjusted_total_timespan - 1) / adjusted_total_timespan;
     if (next_diff < 1) next_diff = 1;
-    
+
     return next_diff;
   }
 

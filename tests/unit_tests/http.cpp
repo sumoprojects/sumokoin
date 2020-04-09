@@ -1,7 +1,7 @@
 // Copyright (c) 2014-2019, The Monero Project
 //
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
 //
@@ -84,7 +84,7 @@ void write_fields(std::string& out, const fields& args)
   namespace karma = boost::spirit::karma;
   karma::generate(
     std::back_inserter(out),
-    (karma::string << " = " << karma::string) % " , ", 
+    (karma::string << " = " << karma::string) % " , ",
     args);
 }
 
@@ -126,7 +126,7 @@ http::http_response_info make_response(const auth_responses& choices)
 bool has_same_fields(const auth_responses& in)
 {
   const std::vector<std::string> check{u8"nonce", u8"qop", u8"realm", u8"stale"};
-  
+
   auto current = in.begin();
   const auto end = in.end();
   if (current == end)

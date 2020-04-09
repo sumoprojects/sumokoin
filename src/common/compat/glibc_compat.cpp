@@ -95,4 +95,3 @@ extern "C" int __wrap_glob(const char * pattern, int flags, int (*errfunc) (cons
 {
     return glob_old(pattern, flags, errfunc, pglob);
 }
-

@@ -13,4 +13,3 @@ fi
 
 echo "using $lupdate"
 "$lupdate" `find src -name \*.cpp` -ts translations/*.ts -no-obsolete
-

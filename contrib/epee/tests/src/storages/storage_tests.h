@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -38,7 +38,7 @@ namespace epee
 
 
     struct test_struct
-    {      
+    {
 
       std::string m_str;
       unsigned int m_uint;
@@ -62,12 +62,12 @@ namespace epee
 
     bool operator == (const test_struct& a, const test_struct& b)
     {
-      if(   b.m_str != a.m_str 
-        ||  b.m_uint != a.m_uint 
-        ||  b.m_bool != a.m_bool 
-        ||  b.m_list_of_str != a.m_list_of_str 
-        ||  b.m_list_of_int != a.m_list_of_int 
-        ||  b.m_list_of_self != a.m_list_of_self 
+      if(   b.m_str != a.m_str
+        ||  b.m_uint != a.m_uint
+        ||  b.m_bool != a.m_bool
+        ||  b.m_list_of_str != a.m_list_of_str
+        ||  b.m_list_of_int != a.m_list_of_int
+        ||  b.m_list_of_self != a.m_list_of_self
         )
         return false;
       return true;
@@ -89,18 +89,18 @@ namespace epee
       {
         t.m_list_of_self.push_back(t);
       }
-      return t; 
+      return t;
     }
 
     bool test_storages(const std::string& tests_folder)
     {
-      
+
       epee::serialization::portable_storage  ps;
       auto s = ps.open_section("zzz", nullptr);
       uint64_t i = 0;
       ps.get_value("afdsdf", i, s);
-      
-      
+
+
       LOG_PRINT_L0("Generating test struct...");
       boost::filesystem::path storage_folder = tests_folder;
       storage_folder /= "storages";
@@ -139,4 +139,3 @@ namespace epee
     }
   }
 }
-

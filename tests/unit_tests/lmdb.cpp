@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -82,7 +82,7 @@ TEST(LMDB, ToNative)
     EXPECT_EQ(unsigned(0xffffffff), lmdb::to_native(choice(0xffffffff)));
     EXPECT_EQ(-1, lmdb::to_native(negative_choice(-1)));
 
-    // test constexpr 
+    // test constexpr
     static_assert(100 == lmdb::to_native(choice(100)), "to_native failed");
     static_assert(-100 == lmdb::to_native(negative_choice(-100)), "to_native failed");
 }
@@ -337,7 +337,7 @@ TEST(LMDB, InvalidKeyStream)
     };
 
     using record = std::pair<choice, boost::iterator_range<lmdb::value_iterator<one>>>;
-    
+
     lmdb::key_stream<choice, one, close_test_cursor> test{test_cursor{}};
 
     EXPECT_TRUE((std::is_same<record, decltype(*(test.make_iterator()))>()));
@@ -400,5 +400,3 @@ TEST(LMDB, InvalidKeyIterator)
     EXPECT_FALSE(test1 != test2);
     EXPECT_FALSE(test2 != test1);
 }
-
-

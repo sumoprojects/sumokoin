@@ -2,7 +2,7 @@
 #define	JSONRPC_SERVER_IMPL_BASE_H
 
 #include <boost/thread.hpp>
-#include <boost/bind.hpp> 
+#include <boost/bind.hpp>
 
 #include "net/jsonrpc_protocol_handler.h"
 #include "net/jsonrpc_server_handlers_map.h"
@@ -74,11 +74,10 @@ template<class t_child_class, class t_connection_context = epee::net_utils::conn
       return m_net_server.get_binded_port();
     }
 
-  protected: 
+  protected:
     net_utils::boosted_tcp_server<net_utils::jsonrpc2::jsonrpc2_connection_handler<t_connection_context> > m_net_server;
   };
 
 }
 
 #endif	/* JSONRPC_SERVER_IMPL_BASE_H */
-

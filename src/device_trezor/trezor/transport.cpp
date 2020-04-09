@@ -1020,7 +1020,7 @@ namespace trezor{
 
     m_open_counter = 1;
     m_proto->session_begin(*this);
-    
+
 #undef TREZOR_DESTROY_SESSION
   };
 
@@ -1178,7 +1178,7 @@ namespace trezor{
     if (!env_trezor_path){
       return;
     }
-    
+
     // Sort transports by the longest matching prefix with TREZOR_PATH
     std::string trezor_path(env_trezor_path);
     std::vector<size_t> match_idx(res.size());
@@ -1188,7 +1188,7 @@ namespace trezor{
       auto cpath = res[i]->get_path();
       std::string * s1 = &trezor_path;
       std::string * s2 = &cpath;
-      
+
       // first has to be shorter in std::mismatch(). Returns first non-matching iterators.
       if (s1->size() >= s2->size()){
         std::swap(s1, s2);
@@ -1267,4 +1267,3 @@ namespace trezor{
 
 }
 }
-

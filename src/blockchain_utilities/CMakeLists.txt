@@ -166,7 +166,7 @@ set_property(TARGET utilities_menu
 	OUTPUT_NAME "sumo-utilities-menu")
 
 install(TARGETS utilities_menu DESTINATION bin)
-if (UNIX)   
+if (UNIX)
 set(CMAKE_EXE_LINKER_FLAGS "${COMMON_CXX_FLAGS}")
 add_custom_command(TARGET utilities_menu POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-utilities-menu ${CMAKE_BINARY_DIR}/bin/blockchain_utilities/sumo-utilities-menu)

@@ -507,7 +507,7 @@ STATIC INLINE int force_software_aes(void)
 
   const char *env = getenv("SUMOKOIN_USE_SOFTWARE_AES");
   if (!env) {
-    use = 0;  
+    use = 0;
   }
   else if (!strcmp(env, "0") || !strcmp(env, "no")) {
     use = 0;

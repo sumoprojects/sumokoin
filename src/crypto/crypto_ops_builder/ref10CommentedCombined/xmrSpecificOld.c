@@ -80,7 +80,7 @@ void ge_double_scalarmult_base_vartime(ge_p2 *r, const unsigned char *a, const g
 
 
 /* From ge_frombytes.c, modified */
-//this is like xrecover .. 
+//this is like xrecover ..
 //x
 int ge_frombytes_vartime(ge_p3 *h, const unsigned char *s) {
   fe u;
@@ -159,7 +159,7 @@ int ge_frombytes_vartime(ge_p3 *h, const unsigned char *s) {
     if (fe_isnonzero(check)) {
       return -1;
     }
-    fe_mul(h->X, h->X, fe_sqrtm1); //this is mapping X to X * sqrt(-1) c.f. 3.1 in hisil, dong, etc. 
+    fe_mul(h->X, h->X, fe_sqrtm1); //this is mapping X to X * sqrt(-1) c.f. 3.1 in hisil, dong, etc.
   }
 
   if (fe_isnegative(h->X) != (s[31] >> 7)) {

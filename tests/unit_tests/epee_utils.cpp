@@ -69,7 +69,7 @@ namespace
       unsigned(std::is_assignable<Destination, Source&>());
     EXPECT_TRUE(count == 6 || count == 0) <<
       "Mismatch on construction results - " << count << " were true";
-    return count == 6; 
+    return count == 6;
   }
 
   // This is probably stressing the compiler more than the implementation ...
@@ -274,7 +274,7 @@ TEST(Span, Nullptr)
     EXPECT_EQ(0, data.size_bytes());
   };
   check_empty({});
-  check_empty(nullptr); 
+  check_empty(nullptr);
 }
 
 TEST(Span, Writing)

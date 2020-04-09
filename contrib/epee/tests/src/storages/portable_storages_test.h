@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -58,7 +58,7 @@ namespace epee
 #pragma pack(pop)
 
     struct port_test_struct
-    {      
+    {
       std::string m_str;
       uint64_t m_uint64;
       uint32_t m_uint32;
@@ -66,7 +66,7 @@ namespace epee
       uint8_t m_uint8;
       int64_t m_int64;
       int32_t m_int32;
-      int16_t m_int16;      
+      int16_t m_int16;
       int8_t m_int8;
       double m_double;
       bool m_bool;
@@ -121,7 +121,7 @@ namespace epee
 
     bool operator == (const port_test_struct& a, const port_test_struct& b)
     {
-      if(   b.m_str != a.m_str 
+      if(   b.m_str != a.m_str
         ||  b.m_uint64 != a.m_uint64
         ||  b.m_uint32 != a.m_uint32
         ||  b.m_uint16 != a.m_uint16
@@ -132,8 +132,8 @@ namespace epee
         ||  b.m_int8 != a.m_int8
         ||  b.m_double != a.m_double
         ||  b.m_bool != a.m_bool
-        ||  b.m_pod.a != a.m_pod.a 
-        ||  b.m_pod.b != a.m_pod.b 
+        ||  b.m_pod.a != a.m_pod.a
+        ||  b.m_pod.b != a.m_pod.b
         ||  b.m_list_of_str != a.m_list_of_str
         ||  b.m_list_of_uint64_t != a.m_list_of_uint64_t
         ||  b.m_list_of_uint32_t != a.m_list_of_uint32_t

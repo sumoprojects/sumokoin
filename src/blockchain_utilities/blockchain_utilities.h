@@ -37,4 +37,3 @@
 #define CHUNK_SIZE_WARNING_THRESHOLD 500000
 #define NUM_BLOCKS_PER_CHUNK 1
 #define BLOCKCHAIN_RAW "blockchain.raw"
-

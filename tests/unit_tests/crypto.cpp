@@ -61,7 +61,7 @@ namespace
     std::memcpy(addressof(value), source, sizeof(T));
 
     std::stringstream out;
-    out << "BEGIN" << value << "END";  
+    out << "BEGIN" << value << "END";
     return out.str() == "BEGIN<" + std::string{expected, sizeof(T) * 2} + ">END";
   }
 }

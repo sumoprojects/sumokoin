@@ -66,4 +66,3 @@ namespace net
     expect<epee::net_utils::ipv4_network_subnet>
         get_ipv4_subnet_address(boost::string_ref address, bool allow_implicit_32 = false);
 }
-

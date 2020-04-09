@@ -44,7 +44,7 @@ for n in range(1, len(sys.argv)):
   rpc = framework.rpc.JSONRPC('{protocol}://{host}:{port}'.format(protocol=scheme, host=host, port=port))
   get_version = {
       'method': 'get_version',
-      'jsonrpc': '2.0', 
+      'jsonrpc': '2.0',
       'id': '0'
   }
   try:

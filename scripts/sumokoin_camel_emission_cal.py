@@ -30,7 +30,7 @@ def calculate_emssion_speed(print_by_year = False):
     cal_block_reward = 0
     count = 0
     round_factor = 10000000
-    
+
     print "Height\t\tB.Reward\tCoin Emitted\tEmission(%)\tDays\tYears"
     f.write("Height\tB.Reward\tCoin Emitted\tEmission(%)\tDays\tYears\n")
     while coins_already_generated < MONEY_SUPPLY - FINAL_SUBSIDY:
@@ -39,30 +39,30 @@ def calculate_emssion_speed(print_by_year = False):
             cal_block_reward = get_block_reward(height, coins_already_generated)
             emission_speed_change_happened = True
             count += 1
-        
+
         if height == 0:
             block_reward = GENESIS_BLOCK_REWARD
         else:
             block_reward = int(cal_block_reward) / round_factor * round_factor
-        
+
         if block_reward < FINAL_SUBSIDY:
             if MONEY_SUPPLY > coins_already_generated:
                 block_reward = FINAL_SUBSIDY
             else:
                 block_reward = FINAL_SUBSIDY/2
-        
+
         coins_already_generated += block_reward
         total_time += DIFFICULTY_TARGET
-        
+
         if emission_speed_change_happened and (count % 2 if print_by_year else True):
             print format(height, '07'), "\t", '{0:.10f}'.format(block_reward/1000000000.0), "\t", coins_already_generated/1000000000.0, "\t", str(round(coins_already_generated*100.0/MONEY_SUPPLY, 2)), "\t\t", format(int(total_time/(60*60*24.0)), '04'), "\t", total_time/(60*60*24)/365.25
             f.write(format(height, '07') + "\t" + '{0:.8f}'.format(block_reward/1000000000.0) + "\t" + str(coins_already_generated/1000000000.0) + "\t" + '%05.2f'%(coins_already_generated*100.0/MONEY_SUPPLY) + "\t" + format(int(total_time/(60*60*24.0)), '04') + "\t" + str(round(total_time/(60*60*24)/365.25, 2)) + "\n")
-        
+
         height += 1
-        
+
     print format(height, '07'), "\t", '{0:.10f}'.format(block_reward/1000000000.0), "\t", coins_already_generated/1000000000.0, "\t", str(round(coins_already_generated*100.0/MONEY_SUPPLY, 2)), "\t\t", format(int(total_time/(60*60*24.0)), '04'), "\t", total_time/(60*60*24)/365.
     f.write(format(height, '07') + "\t" + '{0:.8f}'.format(block_reward/1000000000.0) + "\t" + str(coins_already_generated/1000000000.0) + "\t" + '{0:.2f}'.format(round(coins_already_generated*100.0/MONEY_SUPPLY, 2)) + "\t" + format(int(total_time/(60*60*24.0)), '04') + "\t" + str(round(total_time/(60*60*24)/365.25, 2)) + "\n")
-    
+
 if __name__ == "__main__":
     f = open("sumokoin_camel_emmission.txt", "w")
     calculate_emssion_speed()

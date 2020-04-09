@@ -616,7 +616,7 @@ eof:
       }
       catch (const std::exception &e) { /* ignore */ }
     }
-    
+
     bool start_handling(std::function<std::string(void)> prompt, const std::string& usage_string = "", std::function<void(void)> exit_handler = NULL)
     {
       m_console_thread.reset(new boost::thread(boost::bind(&console_handlers_binder::run_handling, this, prompt, usage_string, exit_handler)));

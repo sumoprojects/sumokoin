@@ -3,7 +3,7 @@ diff -dur old/qtbase/src/plugins/platforms/windows/qwindowscontext.h new/qtbase/
 +++ new/qtbase/src/plugins/platforms/windows/qwindowscontext.h
 @@ -136,10 +136,18 @@
      inline void init();
- 
+
      typedef HRESULT (WINAPI *SHCreateItemFromParsingName)(PCWSTR, IBindCtx *, const GUID&, void **);
 +#if defined(Q_CC_MINGW) && (!defined(__MINGW64_VERSION_MAJOR) || __MINGW64_VERSION_MAJOR < 3)
 +    typedef HRESULT (WINAPI *SHGetKnownFolderIDList)(const GUID &, DWORD, HANDLE, ITEMIDLIST **);
@@ -17,7 +17,7 @@ diff -dur old/qtbase/src/plugins/platforms/windows/qwindowscontext.h new/qtbase/
 +#else
      typedef HRESULT (WINAPI *SHCreateItemFromIDList)(PCIDLIST_ABSOLUTE, REFIID, void **);
 +#endif
- 
+
      SHCreateItemFromParsingName sHCreateItemFromParsingName;
      SHGetKnownFolderIDList sHGetKnownFolderIDList;
 diff -dur old/qtbase/src/plugins/platforms/windows/qwindowsdialoghelpers.cpp new/qtbase/src/plugins/platforms/windows/qwindowsdialoghelpers.cpp

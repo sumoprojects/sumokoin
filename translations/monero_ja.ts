@@ -2086,8 +2086,8 @@ Otherwise, you prove the reserve of the smallest possible amount above &lt;amoun
 To start synchronizing with the daemon, use the &quot;refresh&quot; command.
 Use the &quot;help&quot; command to see the list of available commands.
 Use &quot;help &lt;command&gt;&quot; to see a command&apos;s documentation.
-Always use the &quot;exit&quot; command when closing monero-wallet-cli to save 
-your current session&apos;s state. Otherwise, you might need to synchronize 
+Always use the &quot;exit&quot; command when closing monero-wallet-cli to save
+your current session&apos;s state. Otherwise, you might need to synchronize
 your wallet again (your wallet keys are NOT at risk in any case).
 </source>
         <translation type="unfinished"></translation>

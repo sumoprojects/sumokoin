@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -48,9 +48,9 @@ namespace net_utils
 		*  Function content_encoding_gzip : Constructor
 		*
 		*/
-		inline 
-		content_encoding_gzip(i_target_handler* powner_filter, bool is_deflate_mode = false):m_powner_filter(powner_filter), 
-			m_is_stream_ended(false), 
+		inline
+		content_encoding_gzip(i_target_handler* powner_filter, bool is_deflate_mode = false):m_powner_filter(powner_filter),
+			m_is_stream_ended(false),
 			m_is_deflate_mode(is_deflate_mode),
 			m_is_first_update_in(true)
 		{
@@ -59,19 +59,19 @@ namespace net_utils
 			int ret = 0;
 			if(is_deflate_mode)
 			{
-				ret = inflateInit(&m_zstream_in);	
+				ret = inflateInit(&m_zstream_in);
 				ret = deflateInit(&m_zstream_out, Z_DEFAULT_COMPRESSION);
 			}else
 			{
 				ret = inflateInit2(&m_zstream_in, 0x1F);
 				ret = deflateInit2(&m_zstream_out, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 0x1F, 8, Z_DEFAULT_STRATEGY);
-			}	
+			}
 		}
 		/*! \brief
 		*  Function content_encoding_gzip : Destructor
 		*
 		*/
-		inline 
+		inline
 		~content_encoding_gzip()
 		{
 			inflateEnd(& m_zstream_in );
@@ -81,9 +81,9 @@ namespace net_utils
 		*  Function update_in : Entry point for income data
 		*
 		*/
-		inline 
+		inline
 		virtual bool update_in( std::string& piece_of_transfer)
-		{	
+		{
 
 			bool is_first_time_here = m_is_first_update_in;
 			m_is_first_update_in = false;
@@ -180,7 +180,7 @@ namespace net_utils
 		*  Function stop : Entry point for stop signal and flushing cached data buffer.
 		*
 		*/
-		inline 
+		inline
 		virtual void stop(std::string& OUT collect_remains)
 		{
 		}
@@ -215,7 +215,7 @@ namespace net_utils
 		*/
 		bool		m_is_deflate_mode;
 		/*! \brief
-		*	Marks that it is a first data packet 
+		*	Marks that it is a first data packet
 		*/
 		bool		m_is_first_update_in;
 	};
