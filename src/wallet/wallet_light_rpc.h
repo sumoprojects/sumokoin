@@ -1,17 +1,17 @@
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
@@ -48,15 +48,15 @@ namespace tools
         END_KV_SERIALIZE_MAP()
       };
       typedef epee::misc_utils::struct_init<request_t> request;
-      
+
       struct spent_output {
         uint64_t amount;
         std::string key_image;
         std::string tx_pub_key;
         uint64_t out_index;
         uint32_t mixin;
-        
-        
+
+
         BEGIN_KV_SERIALIZE_MAP()
           KV_SERIALIZE(amount)
           KV_SERIALIZE(key_image)
@@ -65,7 +65,7 @@ namespace tools
           KV_SERIALIZE(mixin)
         END_KV_SERIALIZE_MAP()
       };
-      
+
       struct transaction
       {
         uint64_t id;
@@ -96,8 +96,8 @@ namespace tools
           KV_SERIALIZE(mixin)
         END_KV_SERIALIZE_MAP()
       };
-      
-      
+
+
       struct response_t
       {
         //std::list<std::string> txs_as_json;
@@ -120,7 +120,7 @@ namespace tools
       };
       typedef epee::misc_utils::struct_init<response_t> response;
   };
-  
+
   //-----------------------------------------------
   struct COMMAND_RPC_GET_ADDRESS_INFO
   {
@@ -135,15 +135,15 @@ namespace tools
         END_KV_SERIALIZE_MAP()
       };
       typedef epee::misc_utils::struct_init<request_t> request;
-      
-      struct spent_output 
+
+      struct spent_output
       {
         uint64_t amount;
         std::string key_image;
         std::string tx_pub_key;
         uint64_t  out_index;
         uint32_t  mixin;
-        
+
         BEGIN_KV_SERIALIZE_MAP()
           KV_SERIALIZE(amount)
           KV_SERIALIZE(key_image)
@@ -152,9 +152,9 @@ namespace tools
           KV_SERIALIZE(mixin)
         END_KV_SERIALIZE_MAP()
       };
- 
+
       struct response_t
-      { 
+      {
         uint64_t locked_funds;
         uint64_t total_received;
         uint64_t total_sent;
@@ -167,7 +167,7 @@ namespace tools
         BEGIN_KV_SERIALIZE_MAP()
           KV_SERIALIZE(locked_funds)
           KV_SERIALIZE(total_received)
-          KV_SERIALIZE(total_sent)        
+          KV_SERIALIZE(total_sent)
           KV_SERIALIZE(scanned_height)
           KV_SERIALIZE(scanned_block_height)
           KV_SERIALIZE(start_height)
@@ -178,7 +178,7 @@ namespace tools
       };
       typedef epee::misc_utils::struct_init<response_t> response;
   };
-  
+
   //-----------------------------------------------
   struct COMMAND_RPC_GET_UNSPENT_OUTS
   {
@@ -202,8 +202,8 @@ namespace tools
         END_KV_SERIALIZE_MAP()
       };
       typedef epee::misc_utils::struct_init<request_t> request;
-    
-      
+
+
       struct output {
         uint64_t amount;
         std::string public_key;
@@ -215,7 +215,7 @@ namespace tools
         std::string tx_prefix_hash;
         std::vector<std::string> spend_key_images;
         uint64_t timestamp;
-        uint64_t height;                
+        uint64_t height;
 
 
         BEGIN_KV_SERIALIZE_MAP()
@@ -227,12 +227,12 @@ namespace tools
           KV_SERIALIZE(tx_hash)
           KV_SERIALIZE(tx_pub_key)
           KV_SERIALIZE(tx_prefix_hash)
-          KV_SERIALIZE(spend_key_images)  
-          KV_SERIALIZE(timestamp)  
-          KV_SERIALIZE(height)                                    
+          KV_SERIALIZE(spend_key_images)
+          KV_SERIALIZE(timestamp)
+          KV_SERIALIZE(height)
         END_KV_SERIALIZE_MAP()
       };
-      
+
       struct response_t
       {
         uint64_t amount;
@@ -261,8 +261,8 @@ namespace tools
 
         BEGIN_KV_SERIALIZE_MAP()
           KV_SERIALIZE(address)
-          KV_SERIALIZE(view_key) 
-          KV_SERIALIZE(create_account) 
+          KV_SERIALIZE(view_key)
+          KV_SERIALIZE(create_account)
         END_KV_SERIALIZE_MAP()
       };
       typedef epee::misc_utils::struct_init<request_t> request;
@@ -272,7 +272,7 @@ namespace tools
         std::string status;
         std::string reason;
         bool new_address;
-        
+
         BEGIN_KV_SERIALIZE_MAP()
           KV_SERIALIZE(status)
           KV_SERIALIZE(reason)
@@ -288,7 +288,7 @@ namespace tools
       {
         std::string address;
         std::string view_key;
-        
+
         BEGIN_KV_SERIALIZE_MAP()
           KV_SERIALIZE(address)
           KV_SERIALIZE(view_key)
@@ -304,14 +304,14 @@ namespace tools
         bool request_fulfilled;
         std::string payment_address;
         std::string status;
-        
+
         BEGIN_KV_SERIALIZE_MAP()
           KV_SERIALIZE(payment_id)
           KV_SERIALIZE(import_fee)
           KV_SERIALIZE(new_request)
           KV_SERIALIZE(request_fulfilled)
           KV_SERIALIZE(payment_address)
-          KV_SERIALIZE(status)            
+          KV_SERIALIZE(status)
         END_KV_SERIALIZE_MAP()
       };
       typedef epee::misc_utils::struct_init<response_t> response;

@@ -50,7 +50,7 @@
 
 /*!
  * \file japanese.h
- * 
+ *
  * \brief Japanese word list and map.
  */
 

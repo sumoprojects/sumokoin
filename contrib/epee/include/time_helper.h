@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -52,7 +52,7 @@ namespace misc_utils
 		return true;
 	}
 #endif
-	inline 
+	inline
 	std::string get_time_str(const time_t& time_)
 	{
 
@@ -75,7 +75,7 @@ PRAGMA_WARNING_POP
 		return tmpbuf;
 	}
 
-	inline 
+	inline
 		std::string get_time_str_v2(const time_t& time_)
 	{
 
@@ -97,13 +97,13 @@ PRAGMA_WARNING_POP
 		return tmpbuf;
 	}
 
-  inline 
+  inline
     std::string get_time_str_v3(const boost::posix_time::ptime& time_)
   {
     return boost::posix_time::to_simple_string(time_);
   }
 
-  
+
 
 	inline std::string get_internet_time_str(const time_t& time_)
 	{
@@ -139,7 +139,7 @@ PRAGMA_WARNING_POP
 	inline
 	bool odbc_time_to_oledb_taime(const SQL_TIMESTAMP_STRUCT& odbc_timestamp, DATE& oledb_date)
 	{
-		
+
 		SYSTEMTIME st = {0};
 		st.wYear = odbc_timestamp.year;
 		st.wDay = odbc_timestamp.day;

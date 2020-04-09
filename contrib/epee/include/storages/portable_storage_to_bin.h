@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,11 +22,11 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
-#pragma once 
+#pragma once
 
 #include "pragma_comp_defs.h"
 #include "misc_language.h"
@@ -80,7 +80,7 @@ namespace epee
     {
       pack_varint(strm, v.size());
       if(v.size())
-        strm.write((const char*)v.data(), v.size());        
+        strm.write((const char*)v.data(), v.size());
       return true;
     }
 
@@ -123,7 +123,7 @@ namespace epee
           put_string(m_strm, s);
         return true;
       }
-      bool operator()(const array_entry_t<section>& arr_sec)    
+      bool operator()(const array_entry_t<section>& arr_sec)
       {
         uint8_t type = SERIALIZE_TYPE_OBJECT|SERIALIZE_FLAG_ARRAY;
         m_strm.write((const char*)&type, 1);
@@ -132,7 +132,7 @@ namespace epee
           pack_entry_to_buff(m_strm, s);
         return true;
       }
-      bool operator()(const array_entry_t<array_entry>& arra_ar)    
+      bool operator()(const array_entry_t<array_entry>& arra_ar)
       {
         uint8_t type = SERIALIZE_TYPE_ARRAY|SERIALIZE_FLAG_ARRAY;
         m_strm.write((const char*)&type, 1);
@@ -174,14 +174,14 @@ namespace epee
         put_string(m_strm, v);
         return true;
       }
-      bool operator()(const section& v)  
+      bool operator()(const section& v)
       {
         uint8_t type = SERIALIZE_TYPE_OBJECT;
         m_strm.write((const char*)&type, 1);
         return pack_entry_to_buff(m_strm, v);
       }
 
-      bool operator()(const array_entry& v)  
+      bool operator()(const array_entry& v)
       {
         //uint8_t type = SERIALIZE_TYPE_ARRAY;
         //m_strm.write((const char*)&type, 1);

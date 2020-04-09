@@ -8,7 +8,7 @@ enum V4_Settings
 {
 	// Generate code with minimal theoretical latency = 45 cycles, which is equivalent to 15 multiplications
 	TOTAL_LATENCY = 15 * 3,
-	
+
 	// Always generate at least 60 instructions
 	NUM_INSTRUCTIONS_MIN = 60,
 

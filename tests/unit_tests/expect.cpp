@@ -323,7 +323,7 @@ TEST(Expect, Trivial)
 }
 
 TEST(Expect, Assignment)
-{ 
+{
     expect<std::string> val1{std::string{}};
     expect<std::string> val2{"foobar"};
 
@@ -912,4 +912,3 @@ TEST(Expect, Macros) {
         MONERO_UNWRAP(expect<int>{common_error::kInvalidArgument}), std::system_error
     );
 }
-

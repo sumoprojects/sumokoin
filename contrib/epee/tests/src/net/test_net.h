@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,12 +22,12 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 #pragma once
 
 #include <boost/thread.hpp>
-#include <boost/bind.hpp> 
+#include <boost/bind.hpp>
 
 #include "net/abstract_tcp_server2.h"
 #include "net/levin_protocol_handler.h"
@@ -43,7 +43,7 @@ namespace StorageNamed
 namespace tests
 {
   struct some_subdata
-  {		
+  {
 
     std::string str1;
     std::list<uint64_t> array_of_id;
@@ -63,7 +63,7 @@ namespace tests
     const static int ID = 1000;
 
     struct request_t
-    {		
+    {
 
       std::string example_string_data;
       uint64_t example_id_data;
@@ -79,7 +79,7 @@ namespace tests
 
     struct response_t
     {
-      bool 	 m_success; 
+      bool 	 m_success;
       uint64_t example_id_data;
       std::list<some_subdata> subs;
 
@@ -97,7 +97,7 @@ namespace tests
     const static int ID = 1001;
 
     struct request_t
-    {		
+    {
       std::string example_string_data2;
       uint64_t example_id_data;
 
@@ -110,7 +110,7 @@ namespace tests
 
     struct response_t
     {
-      bool m_success; 
+      bool m_success;
       uint64_t example_id_data;
 
       BEGIN_NAMED_SERIALIZE_MAP()
@@ -197,7 +197,7 @@ namespace tests
     {
       return m_net_server.get_binded_port();
     }
-  private: 
+  private:
 
 
     CHAIN_LEVIN_INVOKE_TO_MAP(); //move levin_commands_handler interface invoke(...) callbacks into invoke map
@@ -211,7 +211,7 @@ namespace tests
     //----------------- commands handlers ----------------------------------------------
     int handle_1(int command, COMMAND_EXAMPLE_1::request& arg, COMMAND_EXAMPLE_1::response& rsp, const net_utils::connection_context_base& context)
     {
-      LOG_PRINT_L0("on_command_1: id " << arg.example_id_data << "---->>");      
+      LOG_PRINT_L0("on_command_1: id " << arg.example_id_data << "---->>");
       COMMAND_EXAMPLE_2::request arg_ = AUTO_VAL_INIT(arg_);
       arg_.example_id_data = arg.example_id_data;
       COMMAND_EXAMPLE_2::response rsp_ = AUTO_VAL_INIT(rsp_);
@@ -223,12 +223,12 @@ namespace tests
           {LOG_PRINT_L0("on_command_1: command_2 response " << rsp.example_id_data);}
         });
       rsp.example_id_data = arg.example_id_data;
-      LOG_PRINT_L0("on_command_1: id " << arg.example_id_data << "<<----");      
+      LOG_PRINT_L0("on_command_1: id " << arg.example_id_data << "<<----");
       return true;
     }
     int handle_2(int command, COMMAND_EXAMPLE_2::request& arg, COMMAND_EXAMPLE_2::response& rsp, const net_utils::connection_context_base& context)
     {
-      LOG_PRINT_L0("on_command_2: id "<< arg.example_id_data);     
+      LOG_PRINT_L0("on_command_2: id "<< arg.example_id_data);
       rsp.example_id_data = arg.example_id_data;
       //misc_utils::sleep_no_w(6000);
       return true;
@@ -238,7 +238,7 @@ namespace tests
   };
 
 
-  inline 
+  inline
     bool do_run_test_server()
   {
 
@@ -267,7 +267,7 @@ namespace tests
     boost::thread th2( boost::bind(&test_levin_server::run, &srv2));
 
     LOG_PRINT_L0("Initialized servers, waiting for worker threads started...");
-    misc_utils::sleep_no_w(1000);  
+    misc_utils::sleep_no_w(1000);
 
 
     LOG_PRINT_L0("Connecting to each other...");
@@ -333,10 +333,10 @@ namespace tests
         boost::mutex& wait_event_ = wait_event;
         int r = srv.invoke_async<COMMAND_EXAMPLE_1::request>(cntxt.m_connection_id, COMMAND_EXAMPLE_1::ID, arg, [port_, &wait_event_](int code, const COMMAND_EXAMPLE_1::request& rsp, const net_utils::connection_context_base& cntxt)
         {
-            CHECK_AND_ASSERT_MES(code > 0, void(), "Failed to invoke"); 
+            CHECK_AND_ASSERT_MES(code > 0, void(), "Failed to invoke");
             LOG_PRINT_L0("command 1 invoke to " << port_ << " OK.");
             wait_event_.unlock();
-        });        
+        });
       });
       wait_event.lock();
       srv.close(cntxt_local);
@@ -345,7 +345,7 @@ namespace tests
     return true;
   }
 
-  inline 
+  inline
     bool do_run_test_server_async_connect()
   {
     test_levin_server srv1, srv2;
@@ -373,7 +373,7 @@ namespace tests
     boost::thread thmain2( boost::bind(&test_levin_server::run, &srv2));
 
     LOG_PRINT_L0("Initalized servers, waiting for worker threads started...");
-    misc_utils::sleep_no_w(1000);  
+    misc_utils::sleep_no_w(1000);
 
 
     LOG_PRINT_L0("Connecting to each other...");

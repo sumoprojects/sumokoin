@@ -72,4 +72,3 @@ std::error_category const& common_category() noexcept
     static const category instance{};
     return instance;
 }
-

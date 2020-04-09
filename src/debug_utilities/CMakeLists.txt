@@ -90,4 +90,3 @@ target_link_libraries(dns_checks
 set_property(TARGET dns_checks
 	PROPERTY
 	OUTPUT_NAME "sumo-utils-dns-checks")
-

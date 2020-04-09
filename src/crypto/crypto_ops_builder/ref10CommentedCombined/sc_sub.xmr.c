@@ -1,6 +1,6 @@
 /*
  * sc_sub, sc_mulsub, sc_mul
- * 
+ *
  * (These are from the old code as well)
  */
 
@@ -500,5 +500,3 @@ void sc_mulsub(unsigned char *s, const unsigned char *a, const unsigned char *b,
   s[30] = s11 >> 9;
   s[31] = s11 >> 17;
 }
-
-

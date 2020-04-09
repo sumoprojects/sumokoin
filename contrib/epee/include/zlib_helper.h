@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,20 +22,20 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 #pragma once
-extern "C" { 
+extern "C" {
 #include "zlib/zlib.h"
 }
 #pragma comment(lib, "zlibstat.lib")
 
-namespace epee 
+namespace epee
 {
 namespace zlib_helper
 {
-	inline 
+	inline
 	bool pack(std::string& target){
 		std::string result_packed_buff;
 
@@ -44,7 +44,7 @@ namespace zlib_helper
 		if(target.size())
 		{
 
-			
+
 			result_packed_buff.resize(target.size()*2, 'X');
 
 			zstream.next_in = (Bytef*)target.data();
@@ -58,7 +58,7 @@ namespace zlib_helper
 			if(result_packed_buff.size() != zstream.avail_out)
 				result_packed_buff.resize(result_packed_buff.size()-zstream.avail_out);
 
-			
+
 			result_packed_buff.erase(0, 2);
 			target.swap(result_packed_buff);
 		}
@@ -79,12 +79,12 @@ namespace zlib_helper
 		while(target.size())
 		{
 
-			
+
 			zstream.next_out = (Bytef*)current_decode_buff.data();
 			zstream.avail_out = (uInt)ungzip_buff_size;
 
 			int flag = Z_SYNC_FLUSH;
-			
+
 			static char dummy_head[2] =
 			{
 				0x8 + 0x7 * 0x10,
@@ -98,7 +98,7 @@ namespace zlib_helper
 				LOCAL_ASSERT(0);
 				return false;
 			}
-			
+
 			zstream.next_in = (Bytef*)target.data();
 			zstream.avail_in = (uInt)target.size();
 
@@ -109,17 +109,17 @@ namespace zlib_helper
 				return false;
 			}
 
-			
+
 			target.erase(0, target.size()-zstream.avail_in);
 
-			
+
 			if(ungzip_buff_size == zstream.avail_out)
 			{
 				LOG_ERROR("Can't unpack buffer");
 				return false;
 			}
 
-			
+
 			current_decode_buff.resize(ungzip_buff_size - zstream.avail_out);
 			if(decode_summary_buff.size())
 				decode_summary_buff += current_decode_buff;

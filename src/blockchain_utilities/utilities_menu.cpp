@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2019, Sumo Projects
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -32,16 +32,16 @@
 #include <unistd.h>
 #include <sstream>
 
-using namespace std;  
+using namespace std;
 
 const std::string flagmsg = "(Type --help for list of options / press ENTER for none)";
 
   void show_menu()
-  {     
+  {
     cout << endl << endl <<
     "-----------------------------------------------------" << std::endl <<
     "       SUMOKOIN BLOCKCHAIN UTILITIES LAUNCHER        " << std::endl <<
-    "-----------------------------------------------------" << std::endl 
+    "-----------------------------------------------------" << std::endl
      << "1. Import blockchain from file " << endl
      << "2. Export blockchain to file " << endl
      << "3. Print blockchain statistics " << endl
@@ -280,11 +280,11 @@ const std::string flagmsg = "(Type --help for list of options / press ENTER for 
   }
   //---------------------------------------------------------------
   int main()
-  {    
+  {
    int choice;
     do
     {
-     show_menu(); 
+     show_menu();
      cin>>choice;
      switch(choice)
       {

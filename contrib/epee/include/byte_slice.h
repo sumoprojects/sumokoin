@@ -142,4 +142,3 @@ namespace epee
     byte_slice get_slice(std::size_t begin, std::size_t end) const;
   };
 } // epee
-

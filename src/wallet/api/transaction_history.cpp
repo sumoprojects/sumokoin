@@ -153,13 +153,13 @@ void TransactionHistoryImpl::refresh()
 
     for (std::list<std::pair<crypto::hash, tools::wallet2::confirmed_transfer_details>>::const_iterator i = out_payments.begin();
          i != out_payments.end(); ++i) {
-        
+
         const crypto::hash &hash = i->first;
         const tools::wallet2::confirmed_transfer_details &pd = i->second;
-        
+
         uint64_t change = pd.m_change == (uint64_t)-1 ? 0 : pd.m_change; // change may not be known
         uint64_t fee = pd.m_amount_in - pd.m_amount_out;
-        
+
 
         std::string payment_id = string_tools::pod_to_hex(i->second.m_payment_id);
         if (payment_id.substr(16).find_first_not_of('0') == std::string::npos)
@@ -214,8 +214,8 @@ void TransactionHistoryImpl::refresh()
         ti->m_confirmations = 0;
         m_history.push_back(ti);
     }
-    
-    
+
+
     // unconfirmed payments (tx pool)
     std::list<std::pair<crypto::hash, tools::wallet2::pool_payment_details>> upayments;
     m_wallet->m_wallet->get_unconfirmed_payments(upayments);
@@ -237,10 +237,10 @@ void TransactionHistoryImpl::refresh()
         ti->m_timestamp = pd.m_timestamp;
         ti->m_confirmations = 0;
         m_history.push_back(ti);
-        
+
         LOG_PRINT_L1(__FUNCTION__ << ": Unconfirmed payment found " << pd.m_amount);
     }
-     
+
 }
 
 } // namespace

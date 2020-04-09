@@ -4,7 +4,7 @@ diff -dur a/mac_alias/alias.py b/mac_alias/alias.py
 @@ -243,10 +243,10 @@
          alias = Alias()
          alias.appinfo = appinfo
-             
+
 -        alias.volume = VolumeInfo (volname.replace('/',':'),
 +        alias.volume = VolumeInfo (volname.decode().replace('/',':'),
                                     voldate, fstype, disktype,
@@ -16,7 +16,7 @@ diff -dur a/mac_alias/alias.py b/mac_alias/alias.py
          alias.target.levels_from = levels_from
 @@ -261,9 +261,9 @@
                  b.read(1)
- 
+
              if tag == TAG_CARBON_FOLDER_NAME:
 -                alias.target.folder_name = value.replace('/',':')
 +                alias.target.folder_name = value.decode().replace('/',':')
@@ -55,7 +55,7 @@ diff -dur a/mac_alias/alias.py b/mac_alias/alias.py
                              self.target.type_code,
                              self.target.levels_from,
 @@ -449,12 +449,12 @@
- 
+
          b.write(struct.pack(b'>hhQhhQ',
                  TAG_HIGH_RES_VOLUME_CREATION_DATE,
 -                8, long(voldate * 65536),
@@ -63,7 +63,7 @@ diff -dur a/mac_alias/alias.py b/mac_alias/alias.py
                  TAG_HIGH_RES_CREATION_DATE,
 -                8, long(crdate * 65536)))
 +                8, int(crdate * 65536)))
- 
+
          if self.target.cnid_path:
 -            cnid_path = struct.pack(b'>%uI' % len(self.target.cnid_path),
 +            cnid_path = struct.pack('>%uI' % len(self.target.cnid_path),

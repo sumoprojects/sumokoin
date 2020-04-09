@@ -30,4 +30,3 @@ source_group(general  FILES ${SRC})
 
 add_executable(tests ${SRC} )
 target_link_libraries( tests ${Boost_LIBRARIES} )
-

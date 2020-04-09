@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -60,7 +60,7 @@ namespace misc_utils
 			return (std::numeric_limits<t_type>::max)();
 		}
 
-		
+
 	template<typename t_iterator>
 		t_iterator move_it_forward(t_iterator it, size_t count)
 		{
@@ -94,15 +94,15 @@ namespace misc_utils
   {	// apply operator< to operands
       return memcmp(&_Left, &_Right, sizeof(_Left)) < 0;
   }
-	
+
 
 	inline
 	bool sleep_no_w(long ms )
 	{
-		boost::this_thread::sleep( 
-			boost::get_system_time() + 
+		boost::this_thread::sleep(
+			boost::get_system_time() +
 			boost::posix_time::milliseconds( std::max<long>(ms,0) ) );
-		
+
 		return true;
 	}
 
@@ -120,7 +120,7 @@ namespace misc_utils
     if(v.size()%2)
     {//1, 3, 5...
       return v[n];
-    }else 
+    }else
     {//2, 4, 6...
       return (v[n-1] + v[n])/2;
     }

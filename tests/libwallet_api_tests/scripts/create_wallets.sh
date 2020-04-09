@@ -14,5 +14,3 @@ create_wallet wallet_05.bin
 create_wallet wallet_06.bin
 
 # create_wallet wallet_m
-
-

@@ -392,7 +392,7 @@ int main(int argc, char *argv[])
 			dohdr = 1;
 		} else if (!(mode & NOHDR))
 			readhdr();
-		
+
 		rc = mdb_txn_begin(env, NULL, 0, &txn);
 		if (rc) {
 			fprintf(stderr, "mdb_txn_begin failed, error %d %s\n", rc, mdb_strerror(rc));

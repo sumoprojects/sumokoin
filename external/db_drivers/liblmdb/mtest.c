@@ -43,7 +43,7 @@ int main(int argc,char * argv[])
 	    for(i = 0;i<count;i++) {
 			values[i] = rand()%1024;
 	    }
-    
+
 		E(mdb_env_create(&env));
 		E(mdb_env_set_maxreaders(env, 1));
 		E(mdb_env_set_mapsize(env, 10485760));
@@ -51,12 +51,12 @@ int main(int argc,char * argv[])
 
 		E(mdb_txn_begin(env, NULL, 0, &txn));
 		E(mdb_dbi_open(txn, NULL, 0, &dbi));
-   
+
 		key.mv_size = sizeof(int);
 		key.mv_data = sval;
 
 		printf("Adding %d values\n", count);
-	    for (i=0;i<count;i++) {	
+	    for (i=0;i<count;i++) {
 			sprintf(sval, "%03x %d foo bar", values[i], values[i]);
 			/* Set <data> in each iteration, since MDB_NOOVERWRITE may modify it */
 			data.mv_size = sizeof(sval);
