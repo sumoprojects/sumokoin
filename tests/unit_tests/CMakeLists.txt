@@ -34,6 +34,7 @@ set(unit_tests_sources
   blockchain_db.cpp
   block_queue.cpp
 #  block_reward.cpp (Needs have manipulation to work with sumo TODO)
+  bootstrap_node_selector.cpp
   bulletproofs.cpp
   canonical_amounts.cpp
   chacha.cpp
