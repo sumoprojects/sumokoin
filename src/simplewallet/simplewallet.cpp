@@ -99,7 +99,8 @@ typedef cryptonote::simple_wallet sw;
 
 #define MIN_RING_SIZE 49 // Used to inform user about min ring size -- does not track actual protocol
 
-#define OLD_AGE_WARN_THRESHOLD (60 * 86400 / DIFFICULTY_TARGET) // number of blocks emitted in 60 days
+#define OLD_AGE_WARN_THRESHOLD_DAYS 60
+#define OLD_AGE_WARN_THRESHOLD (OLD_AGE_WARN_THRESHOLD_DAYS * 86400 / DIFFICULTY_TARGET) // number of blocks emitted in 60 days
 
 #define LOCK_IDLE_SCOPE() \
   bool auto_refresh_enabled = m_auto_refresh_enabled.load(std::memory_order_relaxed); \
@@ -3120,7 +3121,7 @@ simple_wallet::simple_wallet()
   m_cmd_binder.set_handler("locked_sweep_all",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::locked_sweep_all,_1),
                            tr(USAGE_LOCKED_SWEEP_ALL),
-                           tr("Send all unlocked balance to an address and lock it for <lockblocks> (max. 500000). If the parameter \"index=<N1>[,<N2>,...]\" or \"index=all\" is specified, the wallet sweeps outputs received by those or all address indices, respectively. If omitted, the wallet randomly chooses an address index to be used. <priority> is the priority of the sweep. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability."));  
+                           tr("Send all unlocked balance to an address and lock it for <lockblocks> (max. 500000). If the parameter \"index=<N1>[,<N2>,...]\" or \"index=all\" is specified, the wallet sweeps outputs received by those or all address indices, respectively. If omitted, the wallet randomly chooses an address index to be used. <priority> is the priority of the sweep. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability."));
   m_cmd_binder.set_handler("sweep_unmixable",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::sweep_unmixable, _1),
                            tr("Send all unmixable outputs to yourself with ring_size 1"));
@@ -5047,7 +5048,9 @@ boost::optional<epee::wipeable_string> simple_wallet::open_wallet(const boost::p
     tr("Use the \"help_advanced\" command to see an advanced list of available commands.\n") <<
     tr("Use \"help_advanced <command>\" to see a command's documentation.\n") <<
     "**********************************************************************\n" <<
-    tr("NOTE: For privacy reasons avoid using an encrypted payment ID, consider using subaddresses instead");
+    tr("NOTES:\n") <<
+    tr("1. If you wallet has more than one output older than ") << OLD_AGE_WARN_THRESHOLD_DAYS <<  tr(" days (") << OLD_AGE_WARN_THRESHOLD << tr(" blocks), privacy would be better if they were spent separately.\n") <<
+    tr("2. For privacy reasons avoid using an encrypted payment ID, consider using subaddresses instead.");
   return password;
 }
 //----------------------------------------------------------------------------------------------------
@@ -6185,6 +6188,7 @@ bool simple_wallet::process_ring_members(const std::vector<tools::wallet2::pendi
   }
   return true;
 }
+/*
 //----------------------------------------------------------------------------------------------------
 bool simple_wallet::prompt_if_old(const std::vector<tools::wallet2::pending_tx> &ptx_vector)
 {
@@ -6222,6 +6226,8 @@ bool simple_wallet::prompt_if_old(const std::vector<tools::wallet2::pending_tx> 
   }
   return true;
 }
+*/
+//----------------------------------------------------------------------------------------------------
 void simple_wallet::check_for_inactivity_lock(bool user)
 {
   if (m_locked)
@@ -6272,7 +6278,7 @@ void simple_wallet::check_for_inactivity_lock(bool user)
       {
         if (get_and_verify_password())
           break;
-        else 
+        else
         {
           ++attempt;
           int left = 3 - attempt;
@@ -6280,7 +6286,7 @@ void simple_wallet::check_for_inactivity_lock(bool user)
         }
         if (attempt > 2)
         {
-          close_wallet(); 
+          close_wallet();
           message_writer(console_color_red, true) << "Your wallet is now closed, press Ctrl^C to exit to terminal" << std::endl;
           break;
         }
@@ -6588,11 +6594,11 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
       }
     }
 
-    if (!prompt_if_old(ptx_vector))
-    {
-      fail_msg_writer() << tr("transaction cancelled.");
-      return false;
-    }
+//    if (!prompt_if_old(ptx_vector))
+//    {
+//      fail_msg_writer() << tr("transaction cancelled.");
+//      return false;
+//    }
 
     // if more than one tx necessary, prompt user to confirm
     if (m_wallet->always_confirm_transfers() || ptx_vector.size() > 1)
@@ -7081,11 +7087,11 @@ bool simple_wallet::sweep_main(uint64_t below, bool locked, const std::vector<st
       return true;
     }
 
-    if (!prompt_if_old(ptx_vector))
-    {
-      fail_msg_writer() << tr("transaction cancelled.");
-      return false;
-    }
+//    if (!prompt_if_old(ptx_vector))
+//    {
+//      fail_msg_writer() << tr("transaction cancelled.");
+//      return false;
+//    }
 
     // give user total and fee, and prompt to confirm
     uint64_t total_fee = 0, total_sent = 0;
@@ -8571,7 +8577,7 @@ bool simple_wallet::show_transfers(const std::vector<std::string> &args_)
      }
 
     std::string payment_id;
-  
+
     auto formatter = boost::format("%7.7llu %6.6s %20.20s %10.10s %s %-9.9s %s %s - %s %4.4s");
 
     message_writer(color, false) << formatter
@@ -8585,7 +8591,7 @@ bool simple_wallet::show_transfers(const std::vector<std::string> &args_)
       % boost::algorithm::join(transfer.index | boost::adaptors::transformed([](uint32_t i) { return std::to_string(i); }), ", ")
       % transfer.note
       % lock_status;
-    
+
    if (!transfer.payment_id.empty() && transfer.payment_id != "0000000000000000")
     {
      payment_id = "payment id: "+transfer.payment_id;
