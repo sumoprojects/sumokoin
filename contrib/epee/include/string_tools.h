@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -42,6 +42,7 @@
 #include <type_traits>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/utility/string_ref.hpp>
 #include "misc_log_ex.h"
 #include "storages/parserse_base_utils.h"
 #include "hex.h"
@@ -69,34 +70,9 @@ namespace string_tools
     return to_hex::string(to_byte_span(to_span(src)));
   }
   //----------------------------------------------------------------------------
-  inline bool parse_hexstr_to_binbuff(const epee::span<const char> s, epee::span<char>& res)
+  inline bool parse_hexstr_to_binbuff(const boost::string_ref s, std::string& res)
   {
-      if (s.size() != res.size() * 2)
-        return false;
-
-      unsigned char *dst = (unsigned char *)&res[0];
-      const unsigned char *src = (const unsigned char *)s.data();
-      for(size_t i = 0; i < s.size(); i += 2)
-      {
-        int tmp = *src++;
-        tmp = epee::misc_utils::parse::isx[tmp];
-        if (tmp == 0xff) return false;
-        int t2 = *src++;
-        t2 = epee::misc_utils::parse::isx[t2];
-        if (t2 == 0xff) return false;
-        *dst++ = (tmp << 4) | t2;
-      }
-
-      return true;
-  }
-  //----------------------------------------------------------------------------
-  inline bool parse_hexstr_to_binbuff(const std::string& s, std::string& res)
-  {
-    if (s.size() & 1)
-      return false;
-    res.resize(s.size() / 2);
-    epee::span<char> rspan((char*)&res[0], res.size());
-    return parse_hexstr_to_binbuff(epee::to_span(s), rspan);
+    return from_hex::to_string(res, s);
   }
   //----------------------------------------------------------------------------
 PUSH_WARNINGS
@@ -199,10 +175,10 @@ POP_WARNINGS
 		return s;
 	}
 	//----------------------------------------------------------------------------
-	
+
 	inline bool compare_no_case(const std::string& str1, const std::string& str2)
 	{
-		
+
 		return !boost::iequals(str1, str2);
 	}
 	//----------------------------------------------------------------------------
@@ -213,7 +189,7 @@ POP_WARNINGS
 	}
 	//----------------------------------------------------------------------------
 	inline std::string& get_current_module_folder()
-	{	
+	{
 		static std::string module_folder;
 		return module_folder;
 	}
@@ -233,14 +209,14 @@ POP_WARNINGS
     std::string path_to_process = path_to_process_;
 #ifdef _WIN32
     path_to_process = get_current_module_path();
-#endif 
+#endif
 		std::string::size_type a = path_to_process.rfind( '\\' );
 		if(a == std::string::npos )
 		{
 			a = path_to_process.rfind( '/' );
 		}
 		if ( a != std::string::npos )
-		{	
+		{
 			get_current_module_name() = path_to_process.substr(a+1, path_to_process.size());
 			get_current_module_folder() = path_to_process.substr(0, a);
 			return true;
@@ -254,7 +230,7 @@ POP_WARNINGS
 	{
 		for(std::string::iterator it = str.begin(); it!= str.end() && isspace(static_cast<unsigned char>(*it));)
 			str.erase(str.begin());
-			
+
 		return true;
 	}
 	//----------------------------------------------------------------------------
@@ -303,23 +279,20 @@ POP_WARNINGS
   }
   //----------------------------------------------------------------------------
   template<class t_pod_type>
-  bool hex_to_pod(const std::string& hex_str, t_pod_type& s)
+  bool hex_to_pod(const boost::string_ref hex_str, t_pod_type& s)
   {
-    static_assert(std::is_pod<t_pod_type>::value, "expected pod type");
-    if(sizeof(s)*2 != hex_str.size())
-      return false;
-    epee::span<char> rspan((char*)&s, sizeof(s));
-    return parse_hexstr_to_binbuff(epee::to_span(hex_str), rspan);
+    static_assert(std::is_standard_layout<t_pod_type>(), "expected standard layout type");
+    return from_hex::to_buffer(as_mut_byte_span(s), hex_str);
   }
   //----------------------------------------------------------------------------
   template<class t_pod_type>
-  bool hex_to_pod(const std::string& hex_str, tools::scrubbed<t_pod_type>& s)
+  bool hex_to_pod(const boost::string_ref hex_str, tools::scrubbed<t_pod_type>& s)
   {
     return hex_to_pod(hex_str, unwrap(s));
   }
   //----------------------------------------------------------------------------
   template<class t_pod_type>
-  bool hex_to_pod(const std::string& hex_str, epee::mlocked<t_pod_type>& s)
+  bool hex_to_pod(const boost::string_ref hex_str, epee::mlocked<t_pod_type>& s)
   {
     return hex_to_pod(hex_str, unwrap(s));
   }
@@ -332,7 +305,7 @@ POP_WARNINGS
 		std::string::size_type pos = str.rfind('.');
 		if(std::string::npos == pos)
 			return res;
-		
+
 		res = str.substr(pos+1, str.size()-pos);
 		return res;
 	}
