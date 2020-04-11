@@ -472,7 +472,7 @@ namespace cryptonote
     res.database_size = m_core.get_blockchain_storage().get_db().get_database_size();
     if (restricted)
       res.database_size = round_up(res.database_size, 5ull* 1024 * 1024 * 1024);
-    res.update_available = restricted ? false : m_core.is_update_available();
+//  res.update_available = restricted ? false : m_core.is_update_available();
     res.version = restricted ? "" : SUMOKOIN_VERSION_FULL;
 
     res.status = CORE_RPC_STATUS_OK;
@@ -792,7 +792,7 @@ namespace cryptonote
 
     const bool restricted = m_restricted && ctx;
     const bool request_has_rpc_origin = ctx != NULL;
-    
+
     std::vector<crypto::hash> vh;
     for(const auto& tx_hex_str: req.txs_hashes)
     {
@@ -2798,6 +2798,7 @@ namespace cryptonote
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
+/*
   bool core_rpc_server::on_update(const COMMAND_RPC_UPDATE::request& req, COMMAND_RPC_UPDATE::response& res, const connection_context *ctx)
   {
     RPC_TRACKER(update);
@@ -2901,6 +2902,7 @@ namespace cryptonote
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
+*/
   bool core_rpc_server::on_pop_blocks(const COMMAND_RPC_POP_BLOCKS::request& req, COMMAND_RPC_POP_BLOCKS::response& res, const connection_context *ctx)
   {
     RPC_TRACKER(pop_blocks);
