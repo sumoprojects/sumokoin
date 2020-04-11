@@ -78,7 +78,7 @@ namespace cryptonote
   private:
     epee::net_utils::http::http_simple_client m_http_client;
     const bool m_rpc_payment_enabled;
-    const std::unique_ptr<bootstrap_node::selector> m_selector;
+    std::unique_ptr<bootstrap_node::selector> m_selector;
     boost::mutex m_selector_mutex;
   };
 
