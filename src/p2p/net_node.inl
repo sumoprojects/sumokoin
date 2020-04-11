@@ -253,7 +253,7 @@ namespace nodetool
       conns.clear();
     }
 
-    MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked.");
+    MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << P2P_IP_BLOCKTIME << " seconds.");
     return true;
   }
   //-----------------------------------------------------------------------------------
@@ -629,7 +629,7 @@ namespace nodetool
       full_addrs.insert("133.18.53.223:19733"); // Japan
       full_addrs.insert("157.230.187.169:19733"); // NY - explorer
       full_addrs.insert("157.245.14.220:19733"); // NY
-      full_addrs.insert("134.209.109.190:19733"); // SINGAPORE
+      full_addrs.insert("134.209.109.190:19733"); // Singapore
       full_addrs.insert("167.172.44.84:19733"); // Amsterdam
     }
     return full_addrs;
@@ -1058,7 +1058,7 @@ namespace nodetool
 
       if(rsp.node_data.network_id != m_network_id)
       {
-        LOG_WARNING_CC(context, "COMMAND_HANDSHAKE Failed, wrong network!  (" << rsp.node_data.network_id << "), closing connection.");
+        LOG_WARNING_CC(context, "COMMAND_HANDSHAKE Failed, wrong network!  (" << rsp.node_data.network_id << "), closing connection and banning peer.");
         return;
       }
 
@@ -1093,11 +1093,12 @@ namespace nodetool
         }
         LOG_INFO_CC(context, "New connection handshaked, pruning seed " << epee::string_tools::to_string_hex(context.m_pruning_seed));
         LOG_DEBUG_CC(context, " COMMAND_HANDSHAKE INVOKED OK");
-      }else
+       }
+      else
       {
         LOG_DEBUG_CC(context, " COMMAND_HANDSHAKE(AND CLOSE) INVOKED OK");
       }
-      context_ = context;
+     context_ = context;
     }, P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT);
 
     if(r)
