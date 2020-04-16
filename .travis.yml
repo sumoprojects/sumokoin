@@ -47,6 +47,9 @@ install:
     - if [ -n "$DPKG_ADD_ARCH" ]; then $DOCKER_EXEC dpkg --add-architecture "$DPKG_ADD_ARCH" ; fi
     - travis_retry $DOCKER_EXEC apt-get update
     - travis_retry $DOCKER_EXEC apt-get install --no-install-recommends --no-upgrade -qq $PACKAGES $DOCKER_PACKAGES
+# install ccache
+   - if [[ $HOST = *-freebsd ]]; then brew install ccache ; fi
+   - if [[ $HOST = *-freebsd ]]; then export PATH="/usr/local/opt/ccache/libexec:$PATH" ; fi
 before_script:
     - mkdir -p contrib/depends/SDKs contrib/depends/sdk-sources
     - if [ -n "$OSX_SDK" -a ! -f contrib/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz ]; then curl --location --fail $SDK_URL/MacOSX${OSX_SDK}.sdk.tar.gz -o contrib/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz; fi

@@ -34,7 +34,7 @@ list(INSERT CMAKE_MODULE_PATH 0
   "${CMAKE_SOURCE_DIR}/cmake")
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
-include(CheckLinkerFlag)
+include(CheckLinkerFlag) 
 include(CheckLibraryExists)
 include(CheckFunctionExists)
 include(FindPythonInterp)
@@ -47,6 +47,15 @@ cmake_minimum_required(VERSION 2.8.7)
 message(STATUS "CMake version ${CMAKE_VERSION}")
 
 project(sumokoin)
+
+find_program(CCACHE_PROG ccache)
+if (CCACHE_PROG)
+    message("ccache was found...launching it")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROG}")
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK    "${CCACHE_PROG}")
+else()
+    message("ccache was NOT found")
+endif()
 
 enable_language(C ASM)
 
