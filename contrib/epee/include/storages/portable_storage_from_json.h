@@ -274,7 +274,7 @@ namespace epee
             }else CHECK_ISSPACE();
             break;
           case match_state_array_waiting_value:
-            switch(array_md)
+            switch (array_md)
             {
             case array_mode_sections:
               if(*it == '{')

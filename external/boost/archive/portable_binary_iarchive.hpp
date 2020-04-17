@@ -52,7 +52,7 @@ public:
     virtual const char *what( ) const throw( )
     {
         const char *msg = "programmer error";
-        switch(m_exception_code){
+        switch (m_exception_code){
         case incompatible_integer_size:
             msg = "integer cannot be represented";
             break;

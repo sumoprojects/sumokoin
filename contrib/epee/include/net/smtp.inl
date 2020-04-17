@@ -1468,7 +1468,7 @@ namespace net_utils
 			for (int i = 0; i < 4; i++)
 				pBuffer[i] = Base64Digits()[Data.nData[i]];
 
-			switch(Decode.nSize)
+			switch (Decode.nSize)
 			{
 			case 1:
 				pBuffer[2] = '=';
@@ -1533,7 +1533,7 @@ namespace net_utils
 
 		inline BOOL Base64Coder::_IsBadMimeChar(BYTE nData)
 		{
-			switch(nData)
+			switch (nData)
 			{
 			case '\r': case '\n': case '\t': case ' ' :
 			case '\b': case '\a': case '\f': case '\v':

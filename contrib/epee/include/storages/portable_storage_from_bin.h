@@ -151,7 +151,7 @@ namespace epee
     {
       RECURSION_LIMITATION();
       type &= ~SERIALIZE_FLAG_ARRAY;
-      switch(type)
+      switch (type)
       {
       case SERIALIZE_TYPE_INT64:  return read_ae<int64_t>();
       case SERIALIZE_TYPE_INT32:  return read_ae<int32_t>();
@@ -238,7 +238,7 @@ namespace epee
       if (ent_type&SERIALIZE_FLAG_ARRAY)
         return load_storage_array_entry(ent_type);
 
-      switch(ent_type)
+      switch (ent_type)
       {
       case SERIALIZE_TYPE_INT64:  return read_se<int64_t>();
       case SERIALIZE_TYPE_INT32:  return read_se<int32_t>();

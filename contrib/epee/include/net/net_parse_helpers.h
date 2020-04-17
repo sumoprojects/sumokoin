@@ -51,7 +51,7 @@ namespace net_utils
     std::pair<std::string, std::string> e;
     for (std::string::const_iterator it = query.begin(); it != query.end(); it++)
     {
-      switch(st)
+      switch (st)
       {
       case st_param_name:
         if(*it == '=')

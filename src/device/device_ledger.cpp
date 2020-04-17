@@ -576,7 +576,7 @@ namespace hw {
 
         int offset;
 
-        switch(mode) {
+        switch (mode) {
         case TRANSACTION_CREATE_REAL:
         case TRANSACTION_CREATE_FAKE:
           offset = set_command_header_noopt(INS_SET_SIGNATURE_MODE, 1);

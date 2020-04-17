@@ -548,7 +548,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::software_hash(const void* in, size_t le
 
 	keccakf(spad.as_uqword(), 24);
 
-	switch(spad.as_byte(0) & 3)
+	switch (spad.as_byte(0) & 3)
 	{
 	case 0:
 		blake256_hash((uint8_t*)out, spad.as_byte(), 200);

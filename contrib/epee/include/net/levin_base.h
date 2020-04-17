@@ -109,7 +109,7 @@ namespace levin
   inline
   const char* get_err_descr(int err)
   {
-    switch(err)
+    switch (err)
     {
       DESCRIBE_RET_CODE(LEVIN_OK);
       DESCRIBE_RET_CODE(LEVIN_ERROR_CONNECTION);

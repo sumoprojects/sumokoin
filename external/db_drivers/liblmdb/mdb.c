@@ -1724,7 +1724,7 @@ mdb_strerror(int err)
 	 * if the error actually came from a Win32 API. A major mess, we should
 	 * have used LMDB-specific error codes for everything.
 	 */
-	switch(err) {
+	switch (err) {
 	case ENOENT:	/* 2, FILE_NOT_FOUND */
 	case EIO:		/* 5, ACCESS_DENIED */
 	case ENOMEM:	/* 12, INVALID_ACCESS */
@@ -4937,7 +4937,7 @@ static int mdb_tls_nkeys;
 static void NTAPI mdb_tls_callback(PVOID module, DWORD reason, PVOID ptr)
 {
 	int i;
-	switch(reason) {
+	switch (reason) {
 	case DLL_PROCESS_ATTACH: break;
 	case DLL_THREAD_ATTACH: break;
 	case DLL_THREAD_DETACH:

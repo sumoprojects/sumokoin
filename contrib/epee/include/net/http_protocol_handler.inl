@@ -251,7 +251,7 @@ namespace net_utils
 		m_is_stop_handling = false;
 		while(!m_is_stop_handling)
 		{
-			switch(m_state)
+			switch (m_state)
 			{
 			case http_state_retriving_comand_line:
 				//The HTTP protocol does not place any a priori limit on the length of a URI.  (c)RFC2616
@@ -455,7 +455,7 @@ namespace net_utils
   template<class t_connection_context>
 	bool simple_http_connection_handler<t_connection_context>::handle_retriving_query_body()
 	{
-		switch(m_body_transfer_type)
+		switch (m_body_transfer_type)
 		{
 		case http_body_transfer_measure:
 			return handle_query_measure();

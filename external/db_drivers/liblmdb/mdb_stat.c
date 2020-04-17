@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	 * (default) print stat of only the main DB
 	 */
 	while ((i = getopt(argc, argv, "Vaefnrs:")) != EOF) {
-		switch(i) {
+		switch (i) {
 		case 'V':
 			printf("%s\n", MDB_VERSION_STRING);
 			exit(0);

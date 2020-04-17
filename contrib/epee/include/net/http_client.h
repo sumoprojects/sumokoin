@@ -493,7 +493,7 @@ namespace net_utils
             }
             need_more_data = false;
 					}
-					switch(m_state)
+					switch (m_state)
 					{
 					case reciev_machine_state_header:
 						keep_handling = handle_header(recv_buffer, need_more_data);
@@ -708,7 +708,7 @@ namespace net_utils
 						break;
 					}
 
-					switch(m_chunked_state)
+					switch (m_chunked_state)
 					{
 					case http_chunked_state_chunk_head:
 						if (m_chunked_cache[0] == '\n' || m_chunked_cache[0] == '\r')

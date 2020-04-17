@@ -285,7 +285,7 @@ namespace trezor {
       }
       m_last_msg_type = input.m_type;
 
-      switch(input.m_type){
+      switch (input.m_type){
         case messages::MessageType_ButtonRequest:
           on_button_request(input, dynamic_cast<const messages::common::ButtonRequest*>(input.m_msg.get()));
           return true;

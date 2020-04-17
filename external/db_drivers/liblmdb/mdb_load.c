@@ -312,7 +312,7 @@ int main(int argc, char *argv[])
 	 * -V: print version and exit
 	 */
 	while ((i = getopt(argc, argv, "af:ns:NTV")) != EOF) {
-		switch(i) {
+		switch (i) {
 		case 'V':
 			printf("%s\n", MDB_VERSION_STRING);
 			exit(0);

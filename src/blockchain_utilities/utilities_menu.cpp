@@ -286,7 +286,7 @@ const std::string flagmsg = "(Type --help for list of options / press ENTER for 
     {
      show_menu(); 
      cin>>choice;
-     switch(choice)
+     switch (choice)
       {
        case 1: import_chain();
        break;

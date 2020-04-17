@@ -99,7 +99,7 @@ namespace trezor
     return message;
 
 //    // CODEGEN way, fast
-//    switch(wire_number){
+//    switch (wire_number){
 //      case 501:
 //        return new messages::monero::MoneroTransactionSignRequest();
 //      default:

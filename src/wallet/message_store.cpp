@@ -463,7 +463,7 @@ bool message_store::get_signer_index_by_label(const std::string label, uint32_t 
 
 void message_store::process_wallet_created_data(const multisig_wallet_state &state, message_type type, const std::string &content)
 {
-  switch(type)
+  switch (type)
   {
   case message_type::key_set:
     // Result of a "prepare_multisig" command in the wallet

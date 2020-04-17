@@ -99,7 +99,7 @@ namespace levin
 		bool is_continue = true;
 		while(is_continue)
 		{
-			switch(m_state)
+			switch (m_state)
 			{
 			case conn_state_reading_head:
 				if (m_cach_in_buffer.size() < sizeof(bucket_head))

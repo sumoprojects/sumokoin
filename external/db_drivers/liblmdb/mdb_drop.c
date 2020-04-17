@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	 * (default) empty the main DB
 	 */
 	while ((i = getopt(argc, argv, "dns:V")) != EOF) {
-		switch(i) {
+		switch (i) {
 		case 'V':
 			printf("%s\n", MDB_VERSION_STRING);
 			exit(0);

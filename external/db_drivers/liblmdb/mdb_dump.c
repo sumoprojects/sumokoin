@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 	 * (default) dump only the main DB
 	 */
 	while ((i = getopt(argc, argv, "af:lnps:V")) != EOF) {
-		switch(i) {
+		switch (i) {
 		case 'V':
 			printf("%s\n", MDB_VERSION_STRING);
 			exit(0);

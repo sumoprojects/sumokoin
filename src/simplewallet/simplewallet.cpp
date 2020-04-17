@@ -10769,7 +10769,7 @@ void simple_wallet::mms_next(const std::vector<std::string> &args)
   {
     mms::processing_data data = data_list[choice];
     bool command_successful = false;
-    switch(data.processing)
+    switch (data.processing)
     {
     case mms::message_processing::prepare_multisig:
       message_writer() << tr("prepare_multisig");

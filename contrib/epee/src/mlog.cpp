@@ -343,7 +343,7 @@ void set_console_color(int color, bool bright)
   if (!is_stdout_a_tty())
     return;
 
-  switch(color)
+  switch (color)
   {
   case console_color_default:
     {

@@ -209,7 +209,7 @@ private:
 
 	inline const char* get_wait_for_result_as_text(DWORD res)
 	{
-		switch(res)
+		switch (res)
 		{
 		case WAIT_ABANDONED: return "WAIT_ABANDONED";
 		case WAIT_TIMEOUT:  return "WAIT_TIMEOUT";

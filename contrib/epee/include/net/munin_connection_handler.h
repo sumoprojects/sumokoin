@@ -152,7 +152,7 @@ namespace net_utils
 				bool stop_handling = false;
 				while(!stop_handling)
 				{
-					switch(m_machine_state)
+					switch (m_machine_state)
 					{
 					case http_state_retriving_comand_line:
 						{

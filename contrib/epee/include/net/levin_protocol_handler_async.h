@@ -416,7 +416,7 @@ public:
     bool is_continue = true;
     while(is_continue)
     {
-      switch(m_state)
+      switch (m_state)
       {
       case stream_state_body:
         if (m_cache_in_buffer.size() < m_current_head.m_cb)

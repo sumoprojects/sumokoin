@@ -338,7 +338,7 @@ static HashReturn Final(hashState *state, BitSequence *hashval)
       }
 
       /*truncating the final hash value to generate the message digest*/
-      switch(state->hashbitlen) {
+      switch (state->hashbitlen) {
             case 224: memcpy(hashval,(unsigned char*)state->x+64+36,28);  break;
             case 256: memcpy(hashval,(unsigned char*)state->x+64+32,32);  break;
             case 384: memcpy(hashval,(unsigned char*)state->x+64+16,48);  break;
