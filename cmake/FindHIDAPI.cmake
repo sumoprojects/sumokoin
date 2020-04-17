@@ -37,14 +37,14 @@ find_package_handle_standard_args(HIDAPI
   HIDAPI_LIBRARY
   HIDAPI_INCLUDE_DIR)
 
-if(HIDAPI_FOUND)
+if (HIDAPI_FOUND)
   set(HIDAPI_LIBRARIES "${HIDAPI_LIBRARY}")
   if((STATIC AND UNIX AND NOT APPLE) OR (DEPENDS AND CMAKE_SYSTEM_NAME STREQUAL "Linux"))
     find_library(LIBUSB-1.0_LIBRARY usb-1.0)
     find_library(LIBUDEV_LIBRARY udev)
-    if(LIBUSB-1.0_LIBRARY)
+    if (LIBUSB-1.0_LIBRARY)
       set(HIDAPI_LIBRARIES "${HIDAPI_LIBRARIES};${LIBUSB-1.0_LIBRARY}")
-      if(LIBUDEV_LIBRARY)
+      if (LIBUDEV_LIBRARY)
         set(HIDAPI_LIBRARIES "${HIDAPI_LIBRARIES};${LIBUDEV_LIBRARY}")
       else()
         message(WARNING "libudev library not found, binaries may fail to link.")

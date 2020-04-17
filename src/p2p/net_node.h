@@ -413,7 +413,7 @@ namespace nodetool
     void kill() { ///< will be called e.g. from deinit()
       _info("Killing the net_node");
       is_closing = true;
-      if(mPeersLoggerThread != nullptr)
+      if (mPeersLoggerThread != nullptr)
         mPeersLoggerThread->join(); // make sure the thread finishes
       _info("Joined extra background net_node threads");
     }

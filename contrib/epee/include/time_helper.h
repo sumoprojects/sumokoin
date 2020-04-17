@@ -45,7 +45,7 @@ namespace misc_utils
 	bool get_time_t_from_ole_date(DATE src, time_t& res)
 	{
 		SYSTEMTIME st = {0};
-		if(TRUE != ::VariantTimeToSystemTime(src, &st))
+		if (TRUE != ::VariantTimeToSystemTime(src, &st))
 			return false;
 		ATL::CTime ss(st);
 		res = ss.GetTime();
@@ -64,7 +64,7 @@ PRAGMA_WARNING_DISABLE_VS(4996)
 		pt = localtime(&time_);
 PRAGMA_WARNING_POP
 
-		if(pt)
+		if (pt)
 			strftime( tmpbuf, 199, "%d.%m.%Y %H:%M:%S", pt );
 		else
 		{
@@ -86,7 +86,7 @@ PRAGMA_WARNING_DISABLE_VS(4996)
 		pt = localtime(&time_);
 PRAGMA_WARNING_POP
 
-		if(pt)
+		if (pt)
 			strftime( tmpbuf, 199, "%Y_%m_%d %H_%M_%S", pt );
 		else
 		{
@@ -149,7 +149,7 @@ PRAGMA_WARNING_POP
 		st.wMonth = odbc_timestamp.month ;
 		st.wSecond = odbc_timestamp.second ;
 
-		if(TRUE != ::SystemTimeToVariantTime(&st, &oledb_date))
+		if (TRUE != ::SystemTimeToVariantTime(&st, &oledb_date))
 			return false;
 		return true;
 	}

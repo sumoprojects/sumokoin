@@ -97,7 +97,7 @@ Wallet *WalletManagerImpl::recoveryWallet(const std::string &path,
                                                 const std::string &seed_offset/* = {}*/)
 {
     WalletImpl * wallet = new WalletImpl(nettype, kdf_rounds);
-    if(restoreHeight > 0){
+    if (restoreHeight > 0){
         wallet->setRefreshFromBlockHeight(restoreHeight);
     }
     wallet->recover(path, password, mnemonic, seed_offset);
@@ -115,7 +115,7 @@ Wallet *WalletManagerImpl::createWalletFromKeys(const std::string &path,
                                                 uint64_t kdf_rounds)
 {
     WalletImpl * wallet = new WalletImpl(nettype, kdf_rounds);
-    if(restoreHeight > 0){
+    if (restoreHeight > 0){
         wallet->setRefreshFromBlockHeight(restoreHeight);
     }
     wallet->recoverFromKeysWithPassword(path, password, language, addressString, viewKeyString, spendKeyString);
@@ -137,7 +137,7 @@ Wallet *WalletManagerImpl::createWalletFromDevice(const std::string &path,
         listener->onSetWallet(wallet);
     }
 
-    if(restoreHeight > 0){
+    if (restoreHeight > 0){
         wallet->setRefreshFromBlockHeight(restoreHeight);
     } else {
         wallet->setRefreshFromBlockHeight(wallet->estimateBlockChainHeight());
@@ -170,7 +170,7 @@ bool WalletManagerImpl::walletExists(const std::string &path)
     bool keys_file_exists;
     bool wallet_file_exists;
     tools::wallet2::wallet_exists(path, keys_file_exists, wallet_file_exists);
-    if(keys_file_exists){
+    if (keys_file_exists){
         return true;
     }
     return false;

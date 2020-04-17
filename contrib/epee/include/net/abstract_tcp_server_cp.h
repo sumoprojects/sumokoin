@@ -130,16 +130,16 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 			//}
 			~connection()
 			{
-				if(m_psend_data)
+				if (m_psend_data)
 					delete m_psend_data;
 
-				if(m_precv_data)
+				if (m_precv_data)
 					delete m_precv_data;
 			}
 			virtual bool handle_send(const void* ptr, size_t cb)
 			{
 				PROFILE_FUNC("[handle_send]");
-				if(m_psend_data->TotalBuffBytes < cb)
+				if (m_psend_data->TotalBuffBytes < cb)
 					resize_send_buff((DWORD)cb);
 				
 				ZeroMemory(&m_psend_data->m_overlapped, sizeof(OVERLAPPED));
@@ -156,10 +156,10 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 					res = ::WSASend(m_sock, &(m_psend_data->DataBuf), 1, &bytes_sent, flags, &(m_psend_data->m_overlapped), NULL);
 				}
 				
-				if(res == SOCKET_ERROR )
+				if (res == SOCKET_ERROR )
 				{
 					int err = ::WSAGetLastError();
-					if(WSA_IO_PENDING == err )
+					if (WSA_IO_PENDING == err )
 						return true;
 					}
 					LOG_ERROR("BIG FAIL: WSASend error code not correct, res=" << res << " last_err=" << err);
@@ -167,7 +167,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 					query_shutdown();
 					//closesocket(m_psend_data);
 					return false;
-				}else if(0 == res)
+				}else if (0 == res)
 				{
 					::InterlockedExchange(&m_psend_data->m_is_in_use, 0);
 					if(!bytes_sent || bytes_sent != cb)
@@ -186,7 +186,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 			}
 			bool resize_send_buff(DWORD new_size)
 			{
-				if(m_psend_data->TotalBuffBytes >= new_size)
+				if (m_psend_data->TotalBuffBytes >= new_size)
 					return true;
 
 				delete m_psend_data;

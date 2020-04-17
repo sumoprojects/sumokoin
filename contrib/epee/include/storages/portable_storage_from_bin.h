@@ -235,7 +235,7 @@ namespace epee
       RECURSION_LIMITATION();
       uint8_t ent_type = 0;
       read(ent_type);
-      if(ent_type&SERIALIZE_FLAG_ARRAY)
+      if (ent_type&SERIALIZE_FLAG_ARRAY)
         return load_storage_array_entry(ent_type);
 
       switch(ent_type)

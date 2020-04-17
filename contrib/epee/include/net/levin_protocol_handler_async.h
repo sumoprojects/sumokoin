@@ -184,13 +184,13 @@ public:
       :m_cb(cb), m_timeout(timeout), m_con(con), m_timer(con.m_pservice_endpoint->get_io_service()), m_timer_started(false),
       m_cancel_timer_called(false), m_timer_cancelled(false), m_command(command)
     {
-      if(m_con.start_outer_call())
+      if (m_con.start_outer_call())
       {
         MDEBUG(con.get_context_ref() << "anvoke_handler, timeout: " << timeout);
         m_timer.expires_from_now(boost::posix_time::milliseconds(timeout));
         m_timer.async_wait([&con, command, cb, timeout](const boost::system::error_code& ec)
         {
-          if(ec == boost::asio::error::operation_aborted)
+          if (ec == boost::asio::error::operation_aborted)
             return;
           MINFO(con.get_context_ref() << "Timeout on invoke operation happened, command: " << command << " timeout: " << timeout);
           epee::span<const uint8_t> fake;
@@ -225,7 +225,7 @@ public:
     }
     virtual void cancel()
     {
-      if(cancel_timer())
+      if (cancel_timer())
       {
         epee::span<const uint8_t> fake;
         m_cb(LEVIN_ERROR_CONNECTION_DESTROYED, fake, m_con.get_context_ref());
@@ -254,7 +254,7 @@ public:
         m_timer.expires_from_now(boost::posix_time::milliseconds(m_timeout));
         m_timer.async_wait([&con, cb, command, timeout](const boost::system::error_code& ec)
         {
-          if(ec == boost::asio::error::operation_aborted)
+          if (ec == boost::asio::error::operation_aborted)
             return;
           MINFO(con.get_context_ref() << "Timeout on invoke operation happened, command: " << command << " timeout: " << timeout);
           epee::span<const uint8_t> fake;
@@ -308,7 +308,7 @@ public:
     {
 
     m_deletion_initiated = true;
-    if(m_connection_initialized)
+    if (m_connection_initialized)
     {
       m_config.del_connection(this);
     }
@@ -389,7 +389,7 @@ public:
 
   virtual bool handle_recv(const void* ptr, size_t cb)
   {
-    if(boost::interprocess::ipcdetail::atomic_read32(&m_close_called))
+    if (boost::interprocess::ipcdetail::atomic_read32(&m_close_called))
       return false; //closing connections
 
     if(!m_config.m_pcommands_handler)
@@ -403,7 +403,7 @@ public:
     CHECK_AND_ASSERT_MES(m_config.m_max_packet_size - m_cache_in_buffer.size() >= m_fragment_buffer.size(), false, "Bad m_cache_in_buffer.size() + m_fragment_buffer.size()");
 
     // flipped to subtraction; prevent overflow since m_max_packet_size is variable and public
-    if(cb > m_config.m_max_packet_size - m_cache_in_buffer.size() - m_fragment_buffer.size())
+    if (cb > m_config.m_max_packet_size - m_cache_in_buffer.size() - m_fragment_buffer.size())
     {
       MWARNING(m_connection_context << "Maximum packet size exceed!, m_max_packet_size = " << m_config.m_max_packet_size
                           << ", packet received " << m_cache_in_buffer.size() +  cb 
@@ -419,10 +419,10 @@ public:
       switch(m_state)
       {
       case stream_state_body:
-        if(m_cache_in_buffer.size() < m_current_head.m_cb)
+        if (m_cache_in_buffer.size() < m_current_head.m_cb)
         {
           is_continue = false;
-          if(cb >= MIN_BYTES_WANTED)
+          if (cb >= MIN_BYTES_WANTED)
           {
             CRITICAL_REGION_LOCAL(m_invoke_response_handlers_lock);
             if (!m_invoke_response_handlers.empty())
@@ -476,7 +476,7 @@ public:
             <<", cmd = " << m_current_head.m_command 
             << ", v=" << m_current_head.m_protocol_version);
 
-          if(is_response)
+          if (is_response)
           {//response to some invoke 
 
             epee::critical_region_t<decltype(m_invoke_response_handlers_lock)> invoke_response_handlers_guard(m_invoke_response_handlers_lock);
@@ -485,11 +485,11 @@ public:
               boost::shared_ptr<invoke_response_handler_base> response_handler = m_invoke_response_handlers.front();
               bool timer_cancelled = response_handler->cancel_timer();
                // Don't pop handler, to avoid destroying it
-              if(timer_cancelled)
+              if (timer_cancelled)
                 m_invoke_response_handlers.pop_front();
               invoke_response_handlers_guard.unlock();
 
-              if(timer_cancelled)
+              if (timer_cancelled)
                 response_handler->handle(m_current_head.m_return_code, buff_to_invoke, m_connection_context);
             }
             else
@@ -512,7 +512,7 @@ public:
             }
           }else
           {
-            if(m_current_head.m_have_to_return_data)
+            if (m_current_head.m_have_to_return_data)
             {
               std::string return_buff;
               const uint32_t return_code = m_config.m_pcommands_handler->invoke(
@@ -545,9 +545,9 @@ public:
         break;
       case stream_state_head:
         {
-          if(m_cache_in_buffer.size() < sizeof(bucket_head2))
+          if (m_cache_in_buffer.size() < sizeof(bucket_head2))
           {
-            if(m_cache_in_buffer.size() >= sizeof(uint64_t) && *((uint64_t*)m_cache_in_buffer.span(8).data()) != SWAP64LE(LEVIN_SIGNATURE))
+            if (m_cache_in_buffer.size() >= sizeof(uint64_t) && *((uint64_t*)m_cache_in_buffer.span(8).data()) != SWAP64LE(LEVIN_SIGNATURE))
             {
               MWARNING(m_connection_context << "Signature mismatch, connection will be closed");
               return false;
@@ -567,7 +567,7 @@ public:
           phead.m_flags = SWAP32LE(phead.m_flags);
           phead.m_protocol_version = SWAP32LE(phead.m_protocol_version);
 #endif
-          if(LEVIN_SIGNATURE != phead.m_signature)
+          if (LEVIN_SIGNATURE != phead.m_signature)
           {
             LOG_ERROR_CC(m_connection_context, "Signature mismatch, connection will be closed");
             return false;
@@ -577,7 +577,7 @@ public:
           m_cache_in_buffer.erase(sizeof(bucket_head2));
           m_state = stream_state_body;
           m_oponent_protocol_ver = m_current_head.m_protocol_version;
-          if(m_current_head.m_cb > m_config.m_max_packet_size)
+          if (m_current_head.m_cb > m_config.m_max_packet_size)
           {
             LOG_ERROR_CC(m_connection_context, "Maximum packet size exceed!, m_max_packet_size = " << m_config.m_max_packet_size 
               << ", packet header received " << m_current_head.m_cb 
@@ -611,13 +611,13 @@ public:
     misc_utils::auto_scope_leave_caller scope_exit_handler = misc_utils::create_scope_leave_handler(
       boost::bind(&async_protocol_handler::finish_outer_call, this));
 
-    if(timeout == LEVIN_DEFAULT_TIMEOUT_PRECONFIGURED)
+    if (timeout == LEVIN_DEFAULT_TIMEOUT_PRECONFIGURED)
       timeout = m_config.m_invoke_timeout;
 
     int err_code = LEVIN_OK;
     do
     {
-      if(m_deletion_initiated)
+      if (m_deletion_initiated)
       {
         err_code = LEVIN_ERROR_CONNECTION_DESTROYED;
         break;
@@ -625,7 +625,7 @@ public:
 
       CRITICAL_REGION_LOCAL(m_call_lock);
 
-      if(m_deletion_initiated)
+      if (m_deletion_initiated)
       {
         err_code = LEVIN_ERROR_CONNECTION_DESTROYED;
         break;
@@ -665,12 +665,12 @@ public:
     misc_utils::auto_scope_leave_caller scope_exit_handler = misc_utils::create_scope_leave_handler(
                                       boost::bind(&async_protocol_handler::finish_outer_call, this));
 
-    if(m_deletion_initiated)
+    if (m_deletion_initiated)
       return LEVIN_ERROR_CONNECTION_DESTROYED;
 
     CRITICAL_REGION_LOCAL(m_call_lock);
 
-    if(m_deletion_initiated)
+    if (m_deletion_initiated)
       return LEVIN_ERROR_CONNECTION_DESTROYED;
 
     boost::interprocess::ipcdetail::atomic_write32(&m_invoke_buf_ready, 0);
@@ -686,12 +686,12 @@ public:
 
     while(!boost::interprocess::ipcdetail::atomic_read32(&m_invoke_buf_ready) && !m_deletion_initiated && !m_protocol_released)
     {
-      if(m_cache_in_buffer.size() - prev_size >= MIN_BYTES_WANTED)
+      if (m_cache_in_buffer.size() - prev_size >= MIN_BYTES_WANTED)
       {
         prev_size = m_cache_in_buffer.size();
         ticks_start = misc_utils::get_tick_count();
       }
-      if(misc_utils::get_tick_count() - ticks_start > m_config.m_invoke_timeout)
+      if (misc_utils::get_tick_count() - ticks_start > m_config.m_invoke_timeout)
       {
         MWARNING(m_connection_context << "invoke timeout (" << m_config.m_invoke_timeout << "), closing connection ");
         close();
@@ -701,7 +701,7 @@ public:
         return LEVIN_ERROR_CONNECTION_DESTROYED;
     }
 
-    if(m_deletion_initiated || m_protocol_released)
+    if (m_deletion_initiated || m_protocol_released)
       return LEVIN_ERROR_CONNECTION_DESTROYED;
 
     CRITICAL_REGION_BEGIN(m_local_inv_buff_lock);
@@ -717,12 +717,12 @@ public:
     misc_utils::auto_scope_leave_caller scope_exit_handler = misc_utils::create_scope_leave_handler(
                           boost::bind(&async_protocol_handler::finish_outer_call, this));
 
-    if(m_deletion_initiated)
+    if (m_deletion_initiated)
       return LEVIN_ERROR_CONNECTION_DESTROYED;
 
     CRITICAL_REGION_LOCAL(m_call_lock);
 
-    if(m_deletion_initiated)
+    if (m_deletion_initiated)
       return LEVIN_ERROR_CONNECTION_DESTROYED;
 
     if (!send_message(command, in_buff, LEVIN_PACKET_REQUEST, false))
@@ -746,7 +746,7 @@ public:
       boost::bind(&async_protocol_handler::finish_outer_call, this)
     );
 
-    if(m_deletion_initiated)
+    if (m_deletion_initiated)
       return LEVIN_ERROR_CONNECTION_DESTROYED;
 
     const std::size_t length = message.size();
@@ -842,7 +842,7 @@ int async_protocol_handler_config<t_connection_context>::find_and_lock_connectio
 {
   CRITICAL_REGION_LOCAL(m_connects_lock);
   aph = find_connection(connection_id);
-  if(0 == aph)
+  if (0 == aph)
     return LEVIN_ERROR_CONNECTION_NOT_FOUND;
   if(!aph->start_outer_call())
     return LEVIN_ERROR_CONNECTION_DESTROYED;
@@ -962,7 +962,7 @@ bool async_protocol_handler_config<t_connection_context>::update_connection_cont
 {
   CRITICAL_REGION_LOCAL(m_connects_lock);
   async_protocol_handler<t_connection_context>* aph = find_connection(contxt.m_connection_id);
-  if(0 == aph)
+  if (0 == aph)
     return false;
   aph->update_connection_context(contxt);
   return true;
@@ -973,7 +973,7 @@ bool async_protocol_handler_config<t_connection_context>::request_callback(boost
 {
   async_protocol_handler<t_connection_context>* aph;
   int r = find_and_lock_connection(connection_id, aph);
-  if(LEVIN_OK == r)
+  if (LEVIN_OK == r)
   {
     aph->request_callback();
     return true;

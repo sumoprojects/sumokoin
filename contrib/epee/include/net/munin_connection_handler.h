@@ -43,7 +43,7 @@
 #define MUNIN_ENTRY(var_name) #var_name".label " #var_name "\n" #var_name".info "#var_name".\n"
 #define MUNIN_ENTRY_AREA(var_name) #var_name".label " #var_name "\n" #var_name".info "#var_name".\n" #var_name".draw AREASTACK\n"
 #define MUNIN_ENTRY_ALIAS(var_name, alias) #var_name".label " #alias"\n" #var_name".info "#alias".\n"
-#define BEGIN_MUNIN_SERVICE(servivece_name_str) if(servivece_name_str == pservice->m_service_name) {
+#define BEGIN_MUNIN_SERVICE(servivece_name_str) if (servivece_name_str == pservice->m_service_name) {
 #define END_MUNIN_SERVICE() }
 #define MUNIN_SERVICE_PARAM(munin_var_name_str, variable) paramters_text += std::string() + munin_var_name_str ".value " + boost::lexical_cast<std::string>(variable) + "\n"
 
@@ -158,7 +158,7 @@ namespace net_utils
 						{
 							
 							std::string::size_type fpos = m_cache.find('\n');
-							if(std::string::npos != fpos )
+							if (std::string::npos != fpos )
 							{
 								bool res = handle_command(m_cache);
 								if(!res)
@@ -202,34 +202,34 @@ namespace net_utils
 				//											    12      3       4        5       6         7      8    9         
 				size_t match_len = 0;
 				boost::smatch result;	
-				if(boost::regex_search(command, result, rexp_match_command_line, boost::match_default) && result[0].matched)
+				if (boost::regex_search(command, result, rexp_match_command_line, boost::match_default) && result[0].matched)
 				{
-					if(result[2].matched)
+					if (result[2].matched)
 					{//list command
 						return handle_list_command();
-					}else if(result[3].matched)
+					}else if (result[3].matched)
 					{//nodes command
 						return handle_nodes_command();
-					}else if(result[4].matched)
+					}else if (result[4].matched)
 					{//config command
-						if(result[9].matched)
+						if (result[9].matched)
 							return handle_config_command(result[9]);
 						else
 						{
 							send_hook("Unknown service\n");
 						}
-					}else if(result[5].matched)
+					}else if (result[5].matched)
 					{//fetch command
-						if(result[9].matched)
+						if (result[9].matched)
 							return handle_fetch_command(result[9]);
 						else
 						{
 							send_hook("Unknown service\n");
 						}
-					}else if(result[6].matched)
+					}else if (result[6].matched)
 					{//version command
 						return handle_version_command();
-					}else if(result[7].matched)
+					}else if (result[7].matched)
 					{//quit command
 						return handle_quit_command();
 					}
@@ -291,7 +291,7 @@ namespace net_utils
 			{
 				LOG_PRINT("munin_send: \n" << buff, LOG_LEVEL_3);
 
-				if(m_psnd_hndlr)
+				if (m_psnd_hndlr)
 					return m_psnd_hndlr->do_send(buff.data(), buff.size());
 				else 
 					return false;
@@ -302,10 +302,10 @@ namespace net_utils
 			{
 				std::list<munin_service>::iterator it = m_config.m_services.begin();
 				for(; it!=m_config.m_services.end(); it++)
-					if(it->m_service_name == srv_name)
+					if (it->m_service_name == srv_name)
 						break;
 
-				if(it==m_config.m_services.end())
+				if (it==m_config.m_services.end())
 					return NULL;
 
 			   return &(*it);

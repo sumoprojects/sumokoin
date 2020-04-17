@@ -232,14 +232,14 @@ portable_binary_oarchive::save_impl(
 ){
     signed char size = 0;
 
-    if(l == 0){
+    if (l == 0){
         this->primitive_base_t::save(size);
         return;
     }
 
     boost::intmax_t ll;
     bool negative = (l < 0);
-    if(negative)
+    if (negative)
         ll = -l;
     else
         ll = l;
@@ -253,17 +253,17 @@ portable_binary_oarchive::save_impl(
         static_cast<signed char>(negative ? -size : size)
     );
 
-    if(negative)
+    if (negative)
         ll = -l;
     else
         ll = l;
     char * cptr = reinterpret_cast<char *>(& ll);
     #if BOOST_ENDIAN_BIG_BYTE
         cptr += (sizeof(boost::intmax_t) - size);
-        if(m_flags & endian_little)
+        if (m_flags & endian_little)
             reverse_bytes(size, cptr);
     #else
-        if(m_flags & endian_big)
+        if (m_flags & endian_big)
             reverse_bytes(size, cptr);
     #endif
     this->primitive_base_t::save_binary(cptr, size);
@@ -271,12 +271,12 @@ portable_binary_oarchive::save_impl(
 
 inline void 
 portable_binary_oarchive::init(unsigned int flags) {
-    if(m_flags == (endian_big | endian_little)){
+    if (m_flags == (endian_big | endian_little)){
         boost::serialization::throw_exception(
             portable_binary_oarchive_exception()
         );
     }
-    if(0 == (flags & boost::archive::no_header)){
+    if (0 == (flags & boost::archive::no_header)){
         // write signature in an archive version independent manner
         const std::string file_signature(
             boost::archive::BOOST_ARCHIVE_SIGNATURE()

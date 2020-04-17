@@ -120,13 +120,13 @@ namespace net_utils
 
 	static inline bool is_unsafe(unsigned char compare_char)
 	{
-		if(compare_char <= 32 || compare_char >= 123)
+		if (compare_char <= 32 || compare_char >= 123)
 			return true;
 
 		const char* punsave = get_unsave_chars();
 
 		for(int ichar_pos = 0; 0!=punsave[ichar_pos] ;ichar_pos++)
-			if(compare_char == punsave[ichar_pos])
+			if (compare_char == punsave[ichar_pos])
 				return true;
 
 		return false;
@@ -152,7 +152,7 @@ namespace net_utils
 
 		csTmp += get_hex_vals()[num_char];
 
-		if(csTmp.size() < 2)
+		if (csTmp.size() < 2)
 		{
 			csTmp += '0';
 		}
@@ -188,7 +188,7 @@ namespace net_utils
 
 		for(size_t i = 0; i!= uri.size(); i++)
 		{
-			if(is_unsafe(uri[i]))
+			if (is_unsafe(uri[i]))
 				result += convert(uri[i]);
 			else
 				result += uri[i];
@@ -204,7 +204,7 @@ namespace net_utils
 
 		for(size_t i = 0; i!= uri.size(); i++)
 		{
-			if(uri[i] == '%' && i + 2 < uri.size())
+			if (uri[i] == '%' && i + 2 < uri.size())
 			{
 				result += hex_to_dec_2bytes(uri.c_str() + i + 1);
 				i += 2;
@@ -409,7 +409,7 @@ namespace net_utils
 
 					bool res = m_net_client.send(req_buff, timeout);
 					CHECK_AND_ASSERT_MES(res, false, "HTTP_CLIENT: Failed to SEND");
-					if(body.size())
+					if (body.size())
 						res = m_net_client.send(body, timeout);
 					CHECK_AND_ASSERT_MES(res, false, "HTTP_CLIENT: Failed to SEND");
 
@@ -419,7 +419,7 @@ namespace net_utils
 						return false;
 					if (m_response_info.m_response_code != 401)
 					{
-						if(ppresponse_info)
+						if (ppresponse_info)
 							*ppresponse_info = std::addressof(m_response_info);
 						return true;
 					}
@@ -476,7 +476,7 @@ namespace net_utils
 				std::string recv_buffer;
 				while(keep_handling)
 				{
-					if(need_more_data)
+					if (need_more_data)
 					{
 						if(!m_net_client.recv(recv_buffer, timeout))
 						{
@@ -486,7 +486,7 @@ namespace net_utils
             if(!recv_buffer.size())
             {
               //connection is going to be closed
-              if(reciev_machine_state_body_connection_close != m_state)
+              if (reciev_machine_state_body_connection_close != m_state)
               {
                 m_state = reciev_machine_state_error;
               }
@@ -517,9 +517,9 @@ namespace net_utils
 
 				}
 				m_header_cache.clear();
-				if(m_state != reciev_machine_state_error)
+				if (m_state != reciev_machine_state_error)
 				{
-					if(m_response_info.m_header_info.m_connection.size() && !string_tools::compare_no_case("close", m_response_info.m_header_info.m_connection))
+					if (m_response_info.m_header_info.m_connection.size() && !string_tools::compare_no_case("close", m_response_info.m_header_info.m_connection))
 						disconnect();
 
 					return true;
@@ -546,7 +546,7 @@ namespace net_utils
 				m_header_cache += recv_buff;
 				recv_buff.clear();
 				std::string::size_type pos = m_header_cache.find("\r\n\r\n");
-				if(pos != std::string::npos)
+				if (pos != std::string::npos)
 				{
 					recv_buff.assign(m_header_cache.begin()+pos+4, m_header_cache.end());
 					m_header_cache.erase(m_header_cache.begin()+pos+4, m_header_cache.end());
@@ -586,7 +586,7 @@ namespace net_utils
 					return false;
 				}
 
-				if(m_len_in_remain == 0)
+				if (m_len_in_remain == 0)
 					m_state = reciev_machine_state_done;
 				else
 					need_more_data = true;
@@ -650,7 +650,7 @@ namespace net_utils
 							if(!get_len_from_chunk_head(chunk_head, chunk_size))
 								return false;
 
-							if(0 == chunk_size)
+							if (0 == chunk_size)
 							{
 								//Here is a small confusion
 								//In brief - if the chunk is the last one we need to get terminating sequence
@@ -669,7 +669,7 @@ namespace net_utils
 									}
 								}
 
-								if(it == buff.end())
+								if (it == buff.end())
 									return true;
 							}
 
@@ -711,10 +711,10 @@ namespace net_utils
 					switch(m_chunked_state)
 					{
 					case http_chunked_state_chunk_head:
-						if(m_chunked_cache[0] == '\n' || m_chunked_cache[0] == '\r')
+						if (m_chunked_cache[0] == '\n' || m_chunked_cache[0] == '\r')
 						{
 							//optimize a bit
-							if(m_chunked_cache[0] == '\r' && m_chunked_cache.size()>1 && m_chunked_cache[1] == '\n')
+							if (m_chunked_cache[0] == '\r' && m_chunked_cache.size()>1 && m_chunked_cache[1] == '\n')
 								m_chunked_cache.erase(0, 2);
 							else
 								m_chunked_cache.erase(0, 1);
@@ -734,7 +734,7 @@ namespace net_utils
 						}else
 						{
 							m_chunked_state = http_chunked_state_chunk_body;
-							if(m_len_in_remain == 0)
+							if (m_len_in_remain == 0)
 							{//last chunk, let stop the stream and fix the chunk queue.
 								m_state = reciev_machine_state_done;
 								return true;
@@ -746,7 +746,7 @@ namespace net_utils
 					case http_chunked_state_chunk_body:
 						{
 							std::string chunk_body;
-							if(m_len_in_remain >= m_chunked_cache.size())
+							if (m_len_in_remain >= m_chunked_cache.size())
 							{
 								m_len_in_remain -= m_chunked_cache.size();
 								chunk_body.swap(m_chunked_cache);
@@ -887,7 +887,7 @@ namespace net_utils
 			{
 				STATIC_REGEXP_EXPR_1(rexp_match_gzip, "^.*?((gzip)|(deflate))", boost::regex::icase | boost::regex::normal);
 				boost::smatch result;						//   12      3
-				if(boost::regex_search( m_response_info.m_header_info.m_content_encoding, result, rexp_match_gzip, boost::match_default) && result[0].matched)
+				if (boost::regex_search( m_response_info.m_header_info.m_content_encoding, result, rexp_match_gzip, boost::match_default) && result[0].matched)
 				{
 #ifdef HTTP_ENABLE_GZIP
 					m_pcontent_encoding_handler.reset(new content_encoding_gzip(this, result[3].matched));
@@ -918,7 +918,7 @@ namespace net_utils
 
 				m_len_in_summary = 0;
 				bool content_len_valid = false;
-				if(m_response_info.m_header_info.m_content_length.size())
+				if (m_response_info.m_header_info.m_content_length.size())
 					content_len_valid = string_tools::get_xtype_from_string(m_len_in_summary, m_response_info.m_header_info.m_content_length);
 
 
@@ -929,10 +929,10 @@ namespace net_utils
 				{//There will be no response body, server will display the local page with error
 					m_state = reciev_machine_state_done;
 					return true;
-				}else if(m_response_info.m_header_info.m_transfer_encoding.size())
+				}else if (m_response_info.m_header_info.m_transfer_encoding.size())
 				{
 					string_tools::trim(m_response_info.m_header_info.m_transfer_encoding);
-					if(string_tools::compare_no_case(m_response_info.m_header_info.m_transfer_encoding, "chunked"))
+					if (string_tools::compare_no_case(m_response_info.m_header_info.m_transfer_encoding, "chunked"))
 					{
 						LOG_ERROR("Wrong Transfer-Encoding:" << m_response_info.m_header_info.m_transfer_encoding);
 						m_state = reciev_machine_state_error;
@@ -965,7 +965,7 @@ namespace net_utils
 				}else if(!m_response_info.m_header_info.m_connection.empty() && is_connection_close_field(m_response_info.m_header_info.m_connection))
 				{   //By indirect signs we suspect that data transfer will end with a connection break
 					m_state = reciev_machine_state_body_connection_close;
-				}else if(is_multipart_body(m_response_info.m_header_info, fake_str))
+				}else if (is_multipart_body(m_response_info.m_header_info, fake_str))
 				{
 					m_state = reciev_machine_state_error;
 					LOG_ERROR("Unsupported MULTIPART BODY.");
@@ -983,7 +983,7 @@ namespace net_utils
 			{
 				STATIC_REGEXP_EXPR_1(rexp_match_close, "^\\s*close", boost::regex::icase | boost::regex::normal);
 				boost::smatch result;
-				if(boost::regex_search( str, result, rexp_match_close, boost::match_default) && result[0].matched)
+				if (boost::regex_search( str, result, rexp_match_close, boost::match_default) && result[0].matched)
 					return true;
 				else
 					return false;
@@ -994,13 +994,13 @@ namespace net_utils
 				//Check whether this is multi part - if yes, capture boundary immediately
 				STATIC_REGEXP_EXPR_1(rexp_match_multipart_type, "^\\s*multipart/([\\w\\-]+); boundary=((\"(.*?)\")|(\\\\\"(.*?)\\\\\")|([^\\s;]*))", boost::regex::icase | boost::regex::normal);
 				boost::smatch result;
-				if(boost::regex_search(head_info.m_content_type, result, rexp_match_multipart_type, boost::match_default) && result[0].matched)
+				if (boost::regex_search(head_info.m_content_type, result, rexp_match_multipart_type, boost::match_default) && result[0].matched)
 				{
-					if(result[4].matched)
+					if (result[4].matched)
 						boundary = result[4];
-					else if(result[6].matched)
+					else if (result[6].matched)
 						boundary = result[6];
-					else if(result[7].matched)
+					else if (result[7].matched)
 						boundary = result[7];
 					else 
 					{

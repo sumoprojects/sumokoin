@@ -121,10 +121,10 @@ bool transactions_flow_test(std::string& working_folder,
 {
   LOG_PRINT_L0("-----------------------STARTING TRANSACTIONS FLOW TEST-----------------------");
   tools::wallet2 w1, w2;
-  if(path_source_wallet.empty())
+  if (path_source_wallet.empty())
     path_source_wallet = generate_random_wallet_name();
 
-  if(path_target_wallet.empty())
+  if (path_target_wallet.empty())
     path_target_wallet = generate_random_wallet_name();
 
 
@@ -186,7 +186,7 @@ bool transactions_flow_test(std::string& working_folder,
   {
     tools::wallet2::transfer_container incoming_transfers;
     w1.get_transfers(incoming_transfers);
-    if(incoming_transfers.size() > FIRST_N_TRANSFERS && get_money_in_first_transfers(incoming_transfers, FIRST_N_TRANSFERS) < w1.unlocked_balance(0, true) )
+    if (incoming_transfers.size() > FIRST_N_TRANSFERS && get_money_in_first_transfers(incoming_transfers, FIRST_N_TRANSFERS) < w1.unlocked_balance(0, true) )
     {
       //lets go!
       size_t count = 0;
@@ -256,7 +256,7 @@ bool transactions_flow_test(std::string& working_folder,
     tx_test_entry& ent = txs[get_transaction_hash(tx)] = tx_test_entry{};
     ent.amount_transfered = amount_to_tx;
     ent.tx = tx;
-    //if(i % transactions_per_second)
+    //if (i % transactions_per_second)
     //  misc_utils::sleep_no_w(1000);
   }
 
@@ -271,7 +271,7 @@ bool transactions_flow_test(std::string& working_folder,
   }
 
   uint64_t money_2 = w2.balance(0, true);
-  if(money_2 == transfered_money)
+  if (money_2 == transfered_money)
   {
     MGINFO_GREEN("-----------------------FINISHING TRANSACTIONS FLOW TEST OK-----------------------");
     MGINFO_GREEN("transferred " << print_money(transfered_money) << " via " << i << " transactions" );
@@ -289,7 +289,7 @@ bool transactions_flow_test(std::string& working_folder,
 
     BOOST_FOREACH(auto& tx_pair, txs)
     {
-      if(tx_pair.second.m_received_count != 1)
+      if (tx_pair.second.m_received_count != 1)
       {
         MERROR("Transaction lost: " << get_transaction_hash(tx_pair.second.tx));
       }

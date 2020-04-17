@@ -1105,7 +1105,7 @@ namespace hw {
         MDEBUG("conceal derivation with main tx pub key");
       } else {
         for(size_t n=0; n < additional_derivations.size();++n) {
-          if(derivation == additional_derivations[n]) {
+          if (derivation == additional_derivations[n]) {
             pkey = &additional_tx_pub_keys[n];
             MDEBUG("conceal derivation with additionnal tx pub key");
             break;
@@ -1493,12 +1493,12 @@ namespace hw {
       }
       log_message  ("generate_output_ephemeral_keys: [[IN]] output_index",  std::to_string(output_index_x));
       log_message  ("generate_output_ephemeral_keys: [[IN]] need_additional_txkeys",  std::to_string(need_additional_txkeys_x));
-      if(need_additional_txkeys_x) {
+      if (need_additional_txkeys_x) {
         log_hexbuffer("generate_output_ephemeral_keys: [[IN]] additional_tx_keys[oi]", additional_tx_keys_x[output_index].data, 32);
       }
       this->controle_device->generate_output_ephemeral_keys(tx_version_x, sender_account_keys_x, txkey_pub_x, tx_key_x, dst_entr_x, change_addr_x, output_index_x, need_additional_txkeys_x,  additional_tx_keys_x,
                                                             additional_tx_public_keys_x, amount_keys_x, out_eph_public_key_x);
-      if(need_additional_txkeys_x) {
+      if (need_additional_txkeys_x) {
         log_hexbuffer("additional_tx_public_keys_x: [[OUT]] additional_tx_public_keys_x", additional_tx_public_keys_x.back().data, 32);
       }
       log_hexbuffer("generate_output_ephemeral_keys: [[OUT]] amount_keys ", (char*)amount_keys_x.back().bytes, 32);

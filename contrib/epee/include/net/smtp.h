@@ -135,7 +135,7 @@ namespace net_utils
 					writeLine( mMessage );
 					writeLine( "\r\n.\r\n");
 					readLine(read_buff);
-					if(read_buff == "250")
+					if (read_buff == "250")
 						mHasError = false;
 					writeLine( "QUIT");
 				}

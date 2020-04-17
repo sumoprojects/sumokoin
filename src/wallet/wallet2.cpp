@@ -292,7 +292,7 @@ void do_prepare_file_names(const std::string& file_path, std::string& keys_file,
   keys_file = file_path;
   wallet_file = file_path;
   boost::system::error_code e;
-  if(string_tools::get_extension(keys_file) == "keys")
+  if (string_tools::get_extension(keys_file) == "keys")
   {//provided keys file name
     wallet_file = string_tools::cut_off_extension(wallet_file);
   }else
@@ -906,7 +906,7 @@ bool get_short_payment_id(crypto::hash8 &payment_id8, const tools::wallet2::pend
   cryptonote::tx_extra_nonce extra_nonce;
   if (find_tx_extra_field_by_type(tx_extra_fields, extra_nonce))
   {
-    if(get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
+    if (get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
     {
       if (ptx.dests.empty())
       {
@@ -1298,7 +1298,7 @@ bool wallet2::set_daemon(std::string daemon_address, boost::optional<epee::net_u
 {
   boost::lock_guard<boost::recursive_mutex> lock(m_daemon_rpc_mutex);
 
-  if(m_http_client.is_connected())
+  if (m_http_client.is_connected())
     m_http_client.disconnect();
   const bool changed = m_daemon_address != daemon_address;
   m_daemon_address = std::move(daemon_address);
@@ -1689,7 +1689,7 @@ void wallet2::check_acc_out_precomp(const tx_out &o, const crypto::key_derivatio
      return;
   }
   tx_scan_info.received = is_out_to_acc_precomp(m_subaddresses, boost::get<txout_to_key>(o.target).key, derivation, additional_derivations, i, hwdev);
-  if(tx_scan_info.received)
+  if (tx_scan_info.received)
   {
     tx_scan_info.money_transfered = o.amount; // may be 0 for ringct outputs
   }
@@ -1706,7 +1706,7 @@ void wallet2::check_acc_out_precomp(const tx_out &o, const crypto::key_derivatio
     return check_acc_out_precomp(o, derivation, additional_derivations, i, tx_scan_info);
 
   tx_scan_info.received = is_out_data->received[i];
-  if(tx_scan_info.received)
+  if (tx_scan_info.received)
   {
     tx_scan_info.money_transfered = o.amount; // may be 0 for ringct outputs
   }
@@ -1883,7 +1883,7 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
       if (pk_index > 1)
         break;
       LOG_PRINT_L0("Public key wasn't found in the transaction extra. Skipping transaction " << txid);
-      if(0 != m_callback)
+      if (0 != m_callback)
 	m_callback->on_skip_transaction(height, txid, tx);
       break;
     }
@@ -2221,17 +2221,17 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
   // check all outputs for spending (compare key images)
   for(auto& in: tx.vin)
   {
-    if(in.type() != typeid(cryptonote::txin_to_key))
+    if (in.type() != typeid(cryptonote::txin_to_key))
       continue;
     const cryptonote::txin_to_key &in_to_key = boost::get<cryptonote::txin_to_key>(in);
     auto it = m_key_images.find(in_to_key.k_image);
-    if(it != m_key_images.end())
+    if (it != m_key_images.end())
     {
       transfer_details& td = m_transfers[it->second];
       uint64_t amount = in_to_key.amount;
       if (amount > 0)
       {
-        if(amount != td.amount())
+        if (amount != td.amount())
         {
           MERROR("Inconsistent amount in tx input: got " << print_money(amount) <<
             ", expected " << print_money(td.amount()));
@@ -2331,7 +2331,7 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
     if (find_tx_extra_field_by_type(tx_extra_fields, extra_nonce))
     {
       crypto::hash8 payment_id8 = null_hash8;
-      if(get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
+      if (get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
       {
         // We got a payment ID to go with this tx
         LOG_PRINT_L2("Found encrypted payment ID: " << payment_id8);
@@ -2430,7 +2430,7 @@ void wallet2::process_unconfirmed(const crypto::hash &txid, const cryptonote::tr
     return;
 
   auto unconf_it = m_unconfirmed_txs.find(txid);
-  if(unconf_it != m_unconfirmed_txs.end()) {
+  if (unconf_it != m_unconfirmed_txs.end()) {
     if (store_tx_info()) {
       try {
         m_confirmed_txs.insert(std::make_pair(txid, confirmed_transfer_details(unconf_it->second, height)));
@@ -2547,9 +2547,9 @@ void wallet2::get_short_chain_history(std::list<crypto::hash>& ids, uint64_t gra
   while(current_back_offset < sz)
   {
     ids.push_back(m_blockchain[m_blockchain.offset() + sz-current_back_offset]);
-    if(sz-current_back_offset == 0)
+    if (sz-current_back_offset == 0)
       base_included = true;
-    if(i < 10)
+    if (i < 10)
     {
       ++current_back_offset;
     }else
@@ -2560,7 +2560,7 @@ void wallet2::get_short_chain_history(std::list<crypto::hash>& ids, uint64_t gra
   }
   if(!base_included)
     ids.push_back(m_blockchain[m_blockchain.offset()]);
-  if(m_blockchain.offset())
+  if (m_blockchain.offset())
     ids.push_back(m_blockchain.genesis());
 }
 //----------------------------------------------------------------------------------------------------
@@ -2745,12 +2745,12 @@ void wallet2::process_parsed_blocks(uint64_t start_height, const std::vector<cry
     const crypto::hash &bl_id = parsed_blocks[i].hash;
     const cryptonote::block &bl = parsed_blocks[i].block;
 
-    if(current_index >= m_blockchain.size())
+    if (current_index >= m_blockchain.size())
     {
       process_new_blockchain_entry(bl, blocks[i], parsed_blocks[i], bl_id, current_index, tx_cache_data, tx_cache_data_offset, output_tracker_cache);
       ++blocks_added;
     }
-    else if(bl_id != m_blockchain[current_index])
+    else if (bl_id != m_blockchain[current_index])
     {
       //split detected here !!!
       THROW_WALLET_EXCEPTION_IF(current_index == start_height, error::wallet_internal_error,
@@ -3157,7 +3157,7 @@ void wallet2::fast_refresh(uint64_t stop_height, uint64_t &blocks_start_height, 
     }
     for(auto& bl_id: hashes)
     {
-      if(current_index >= m_blockchain.size())
+      if (current_index >= m_blockchain.size())
       {
         if (!(current_index % 1024))
           LOG_PRINT_L2( "Skipped block by height: " << current_index);
@@ -3169,7 +3169,7 @@ void wallet2::fast_refresh(uint64_t stop_height, uint64_t &blocks_start_height, 
           m_callback->on_new_block(current_index, dummy);
         }
       }
-      else if(bl_id != m_blockchain[current_index])
+      else if (bl_id != m_blockchain[current_index])
       {
         //split detected here !!!
         return;
@@ -3193,7 +3193,7 @@ bool wallet2::add_address_book_row(const cryptonote::account_public_address &add
 
   auto old_size = m_address_book.size();
   m_address_book.push_back(a);
-  if(m_address_book.size() == old_size+1)
+  if (m_address_book.size() == old_size+1)
     return true;
   return false;
 }
@@ -3215,7 +3215,7 @@ bool wallet2::set_address_book_row(size_t row_id, const cryptonote::account_publ
 }
 
 bool wallet2::delete_address_book_row(std::size_t row_id) {
-  if(m_address_book.size() <= row_id)
+  if (m_address_book.size() <= row_id)
     return false;
 
   m_address_book.erase(m_address_book.begin()+row_id);
@@ -3244,21 +3244,21 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
     return;
   }
 
-  if(m_light_wallet) {
+  if (m_light_wallet) {
 
     // MyMonero get_address_info needs to be called occasionally to trigger wallet sync.
     // This call is not really needed for other purposes and can be removed if mymonero changes their backend.
     tools::COMMAND_RPC_GET_ADDRESS_INFO::response res;
 
     // Get basic info
-    if(light_wallet_get_address_info(res)) {
+    if (light_wallet_get_address_info(res)) {
       // Last stored block height
       uint64_t prev_height = m_light_wallet_blockchain_height;
       // Update lw heights
       m_light_wallet_scanned_block_height = res.scanned_block_height;
       m_light_wallet_blockchain_height = res.blockchain_height;
       // If new height - call new_block callback
-      if(m_light_wallet_blockchain_height != prev_height)
+      if (m_light_wallet_blockchain_height != prev_height)
       {
         MDEBUG("new block since last time!");
         m_callback->on_lw_new_block(m_light_wallet_blockchain_height - 1);
@@ -3433,7 +3433,7 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
     {
       blocks_fetched += added_blocks;
       waiter.wait(&tpool);
-      if(try_count < 3)
+      if (try_count < 3)
       {
         LOG_PRINT_L1("Another try pull_blocks (try_count=" << try_count << ")...");
         first = true;
@@ -3451,7 +3451,7 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
       }
     }
   }
-  if(last_tx_hash_id != (m_transfers.size() ? m_transfers.back().m_txid : null_hash))
+  if (last_tx_hash_id != (m_transfers.size() ? m_transfers.back().m_txid : null_hash))
     received_money = true;
 
   try
@@ -3610,7 +3610,7 @@ void wallet2::detach_blockchain(uint64_t height, std::map<std::pair<uint64_t, ui
 
   for (auto it = m_payments.begin(); it != m_payments.end(); )
   {
-    if(height <= it->second.m_block_height)
+    if (height <= it->second.m_block_height)
       it = m_payments.erase(it);
     else
       ++it;
@@ -3618,7 +3618,7 @@ void wallet2::detach_blockchain(uint64_t height, std::map<std::pair<uint64_t, ui
 
   for (auto it = m_confirmed_txs.begin(); it != m_confirmed_txs.end(); )
   {
-    if(height <= it->second.m_block_height)
+    if (height <= it->second.m_block_height)
       it = m_confirmed_txs.erase(it);
     else
       ++it;
@@ -4012,7 +4012,7 @@ bool wallet2::load_keys(const std::string& keys_file_name, const epee::wipeable_
     m_auto_mine_for_rpc_payment_threshold = -1.0f;
     m_credits_target = 0;
   }
-  else if(json.IsObject())
+  else if (json.IsObject())
   {
     if (!json.HasMember("key_data"))
     {
@@ -4616,7 +4616,7 @@ crypto::secret_key wallet2::generate(const std::string& wallet_, const epee::wip
   setup_keys(password);
 
   // calculate a starting refresh height
-  if(m_refresh_from_block_height == 0 && !recover){
+  if (m_refresh_from_block_height == 0 && !recover){
     m_refresh_from_block_height = estimate_blockchain_height();
   }
 
@@ -5358,7 +5358,7 @@ bool wallet2::parse_long_payment_id(const std::string& payment_id_str, crypto::h
   if(!epee::string_tools::parse_hexstr_to_binbuff(payment_id_str, payment_id_data))
     return false;
 
-  if(sizeof(crypto::hash) != payment_id_data.size())
+  if (sizeof(crypto::hash) != payment_id_data.size())
     return false;
 
   payment_id = *reinterpret_cast<const crypto::hash*>(payment_id_data.data());
@@ -5371,7 +5371,7 @@ bool wallet2::parse_short_payment_id(const std::string& payment_id_str, crypto::
   if(!epee::string_tools::parse_hexstr_to_binbuff(payment_id_str, payment_id_data))
     return false;
 
-  if(sizeof(crypto::hash8) != payment_id_data.size())
+  if (sizeof(crypto::hash8) != payment_id_data.size())
     return false;
 
   payment_id = *reinterpret_cast<const crypto::hash8*>(payment_id_data.data());
@@ -5413,7 +5413,7 @@ bool wallet2::check_connection(uint32_t *version, bool *ssl, uint32_t timeout)
   }
 
   // TODO: Add light wallet version check.
-  if(m_light_wallet) {
+  if (m_light_wallet) {
       m_rpc_version = 0;
       if (version)
         *version = 0;
@@ -5441,7 +5441,7 @@ bool wallet2::check_connection(uint32_t *version, bool *ssl, uint32_t timeout)
     cryptonote::COMMAND_RPC_GET_VERSION::response resp_t = AUTO_VAL_INIT(resp_t);
     bool r = invoke_http_json_rpc("/json_rpc", "get_version", req_t, resp_t);
     if(!r) {
-      if(version)
+      if (version)
         *version = 0;
       return false;
     }
@@ -5462,7 +5462,7 @@ void wallet2::set_offline(bool offline)
   if (offline)
   {
     boost::lock_guard<boost::recursive_mutex> lock(m_daemon_rpc_mutex);
-    if(m_http_client.is_connected())
+    if (m_http_client.is_connected())
       m_http_client.disconnect();
   }
 }
@@ -5821,7 +5821,7 @@ void wallet2::store_to(const std::string &path, const epee::wipeable_string &pas
 uint64_t wallet2::balance(uint32_t index_major, bool strict) const
 {
   uint64_t amount = 0;
-  if(m_light_wallet)
+  if (m_light_wallet)
     return m_light_wallet_unlocked_balance;
   for (const auto& i : balance_per_subaddress(index_major, strict))
     amount += i.second;
@@ -5833,7 +5833,7 @@ uint64_t wallet2::unlocked_balance(uint32_t index_major, bool strict, uint64_t *
   uint64_t amount = 0;
   if (blocks_to_unlock)
     *blocks_to_unlock = 0;
-  if(m_light_wallet)
+  if (m_light_wallet)
     return m_light_wallet_balance;
   for (const auto& i : unlocked_balance_per_subaddress(index_major, strict))
   {
@@ -5882,7 +5882,7 @@ std::map<uint32_t, std::pair<uint64_t, uint64_t>> wallet2::unlocked_balance_per_
   const uint64_t blockchain_height = get_blockchain_current_height();
   for(const transfer_details& td: m_transfers)
   {
-    if(td.m_subaddr_index.major == index_major && !is_spent(td, strict) && !td.m_frozen)
+    if (td.m_subaddr_index.major == index_major && !is_spent(td, strict) && !td.m_frozen)
     {
       uint64_t amount = 0, blocks_to_unlock = 0;
       if (is_transfer_unlocked(td))
@@ -6061,7 +6061,7 @@ void wallet2::rescan_blockchain(bool hard, bool refresh, bool keep_key_images)
   const size_t transfers_cnt = m_transfers.size();
   crypto::hash transfers_hash{};
 
-  if(hard)
+  if (hard)
   {
     clear();
     setup_new_blockchain();
@@ -6090,7 +6090,7 @@ bool wallet2::is_transfer_unlocked(uint64_t unlock_time, uint64_t block_height) 
   if(!is_tx_spendtime_unlocked(unlock_time, block_height))
     return false;
 
-  if(block_height + CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE > get_blockchain_current_height())
+  if (block_height + CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE > get_blockchain_current_height())
     return false;
 
   return true;
@@ -6098,10 +6098,10 @@ bool wallet2::is_transfer_unlocked(uint64_t unlock_time, uint64_t block_height) 
 //----------------------------------------------------------------------------------------------------
 bool wallet2::is_tx_spendtime_unlocked(uint64_t unlock_time, uint64_t block_height) const
 {
-  if(unlock_time < CRYPTONOTE_MAX_BLOCK_NUMBER)
+  if (unlock_time < CRYPTONOTE_MAX_BLOCK_NUMBER)
   {
     //interpret as block index
-    if(get_blockchain_current_height()-1 + CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS >= unlock_time)
+    if (get_blockchain_current_height()-1 + CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS >= unlock_time)
       return true;
     else
       return false;
@@ -6112,7 +6112,7 @@ bool wallet2::is_tx_spendtime_unlocked(uint64_t unlock_time, uint64_t block_heig
     // XXX: this needs to be fast, so we'd need to get the starting heights
     // from the daemon to be correct once voting kicks in
     uint64_t leeway = CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS;
-    if(current_time + leeway >= unlock_time)
+    if (current_time + leeway >= unlock_time)
       return true;
     else
       return false;
@@ -6312,7 +6312,7 @@ crypto::hash wallet2::get_payment_id(const pending_tx &ptx) const
   if (find_tx_extra_field_by_type(tx_extra_fields, extra_nonce))
   {
     crypto::hash8 payment_id8 = null_hash8;
-    if(get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
+    if (get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
     {
       if (ptx.dests.empty())
       {
@@ -6338,7 +6338,7 @@ void wallet2::commit_tx(pending_tx& ptx)
 {
   using namespace cryptonote;
 
-  if(m_light_wallet)
+  if (m_light_wallet)
   {
     cryptonote::COMMAND_RPC_SUBMIT_RAW_TX::request oreq;
     cryptonote::COMMAND_RPC_SUBMIT_RAW_TX::response ores;
@@ -7188,7 +7188,7 @@ uint64_t wallet2::get_dynamic_base_fee_estimate()
 //----------------------------------------------------------------------------------------------------
 uint64_t wallet2::get_base_fee()
 {
-  if(m_light_wallet)
+  if (m_light_wallet)
   {
     if (use_fork_rules(HF_VERSION_PER_BYTE_FEE))
       return m_light_wallet_per_kb_fee / 1024;
@@ -7204,7 +7204,7 @@ uint64_t wallet2::get_base_fee()
 //----------------------------------------------------------------------------------------------------
 uint64_t wallet2::get_fee_quantization_mask()
 {
-  if(m_light_wallet)
+  if (m_light_wallet)
   {
     return 1; // TODO
   }
@@ -7721,7 +7721,7 @@ void wallet2::light_wallet_get_outs(std::vector<std::vector<tools::wallet2::get_
       size_t amount_key;
       for(amount_key = 0; amount_key < ores.amount_outs.size(); ++amount_key)
       {
-        if(boost::lexical_cast<uint64_t>(ores.amount_outs[amount_key].amount) == amount) {
+        if (boost::lexical_cast<uint64_t>(ores.amount_outs[amount_key].amount) == amount) {
           found_amount = true;
           break;
         }
@@ -7764,7 +7764,7 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
   LOG_PRINT_L2("fake_outputs_count: " << fake_outputs_count);
   outs.clear();
 
-  if(m_light_wallet && fake_outputs_count > 0) {
+  if (m_light_wallet && fake_outputs_count > 0) {
     light_wallet_get_outs(outs, selected_transfers, fake_outputs_count);
     return;
   }
@@ -8935,7 +8935,7 @@ bool wallet2::light_wallet_login(bool &new_address)
   MDEBUG("Status: " << response.status);
   MDEBUG("Reason: " << response.reason);
   MDEBUG("New wallet: " << response.new_address);
-  if(m_light_wallet_connected)
+  if (m_light_wallet_connected)
   {
     // Clear old data on successful login.
     // m_transfers.clear();
@@ -8992,7 +8992,7 @@ void wallet2::light_wallet_get_unspent_outs()
   MDEBUG("FOUND " << ores.outputs.size() <<" outputs");
 
   // return if no outputs found
-  if(ores.outputs.empty())
+  if (ores.outputs.empty())
     return;
 
   // Clear old outputs
@@ -9012,7 +9012,7 @@ void wallet2::light_wallet_get_unspent_outs()
       // Check if key image is ours
       THROW_WALLET_EXCEPTION_IF(string_tools::validate_hex(64, ski), error::wallet_internal_error, "Invalid key image");
       string_tools::hex_to_pod(ski, unspent_key_image);
-      if(light_wallet_key_image_is_ours(unspent_key_image, tx_public_key, o.index)){
+      if (light_wallet_key_image_is_ours(unspent_key_image, tx_public_key, o.index)){
         MTRACE("Output " << o.public_key << " is spent. Key image: " <<  ski);
         spent = true;
         break;
@@ -9033,7 +9033,7 @@ void wallet2::light_wallet_get_unspent_outs()
     string_tools::hex_to_pod(o.tx_pub_key, tx_pub_key);
 
     for(auto &t: m_transfers){
-      if(t.get_public_key() == public_key) {
+      if (t.get_public_key() == public_key) {
         t.m_spent = spent;
         add_transfer = false;
         break;
@@ -9079,7 +9079,7 @@ void wallet2::light_wallet_get_unspent_outs()
     if (!o.rct.empty())
     {
       // Coinbase tx's
-      if(miner_tx)
+      if (miner_tx)
       {
         td.m_mask = rct::identity();
       }
@@ -9148,7 +9148,7 @@ void wallet2::light_wallet_get_address_txs()
 
 
   // Abort if no transactions
-  if(ires.transactions.empty())
+  if (ires.transactions.empty())
     return;
 
   // Create searchable vectors
@@ -9185,7 +9185,7 @@ void wallet2::light_wallet_get_address_txs()
     }
 
     // Do not add tx if empty.
-    if(total_sent == 0 && total_received == 0)
+    if (total_sent == 0 && total_received == 0)
       continue;
 
     crypto::hash payment_id = null_hash;
@@ -9212,7 +9212,7 @@ void wallet2::light_wallet_get_address_txs()
 
     // populate data needed for history (m_payments, m_unconfirmed_payments, m_confirmed_txs)
     // INCOMING transfers
-    if(total_received > total_sent) {
+    if (total_received > total_sent) {
       payment_details payment;
       payment.m_tx_hash = tx_hash;
       payment.m_amount       = total_received - total_sent;
@@ -9252,7 +9252,7 @@ void wallet2::light_wallet_get_address_txs()
       {
         // Handled by add_unconfirmed_tx in commit_tx
         // If sent from another wallet instance we need to add it
-        if(m_unconfirmed_txs.find(tx_hash) == m_unconfirmed_txs.end())
+        if (m_unconfirmed_txs.find(tx_hash) == m_unconfirmed_txs.end())
         {
           unconfirmed_transfer_details utd;
           utd.m_amount_in = amount_sent;
@@ -9268,9 +9268,9 @@ void wallet2::light_wallet_get_address_txs()
       {
         // Only add if new
         auto confirmed_tx = m_confirmed_txs.find(tx_hash);
-        if(confirmed_tx == m_confirmed_txs.end()) {
+        if (confirmed_tx == m_confirmed_txs.end()) {
           // tx is added to m_unconfirmed_txs - move to confirmed
-          if(m_unconfirmed_txs.find(tx_hash) != m_unconfirmed_txs.end())
+          if (m_unconfirmed_txs.find(tx_hash) != m_unconfirmed_txs.end())
           {
             process_unconfirmed(tx_hash, dummy_tx, t.height);
           }
@@ -9295,7 +9295,7 @@ void wallet2::light_wallet_get_address_txs()
         // when sending a tx to same wallet the receiving amount has to be credited
         else
         {
-          if(confirmed_tx->second.m_amount_in != amount_sent || confirmed_tx->second.m_amount_out != amount_sent)
+          if (confirmed_tx->second.m_amount_in != amount_sent || confirmed_tx->second.m_amount_out != amount_sent)
           {
             MDEBUG("Adjusting amount sent/received for tx: <" + t.hash + ">. Is tx sent to own wallet? " << print_money(amount_sent) << " != " << print_money(confirmed_tx->second.m_amount_in));
             confirmed_tx->second.m_amount_in = amount_sent;
@@ -9312,7 +9312,7 @@ void wallet2::light_wallet_get_address_txs()
   // Calculate wallet balance
   m_light_wallet_balance = ires.total_received-wallet_total_sent;
   // MyMonero doesn't send unlocked balance
-  if(ires.total_received_unlocked > 0)
+  if (ires.total_received_unlocked > 0)
     m_light_wallet_unlocked_balance = ires.total_received_unlocked-wallet_total_sent;
   else
     m_light_wallet_unlocked_balance = m_light_wallet_balance;
@@ -9348,11 +9348,11 @@ bool wallet2::light_wallet_key_image_is_ours(const crypto::key_image& key_image,
   // Lookup key image from cache
   std::map<uint64_t, crypto::key_image> index_keyimage_map;
   std::unordered_map<crypto::public_key, std::map<uint64_t, crypto::key_image> >::const_iterator found_pub_key = m_key_image_cache.find(tx_public_key);
-  if(found_pub_key != m_key_image_cache.end()) {
+  if (found_pub_key != m_key_image_cache.end()) {
     // pub key found. key image for index cached?
     index_keyimage_map = found_pub_key->second;
     std::map<uint64_t,crypto::key_image>::const_iterator index_found = index_keyimage_map.find(out_index);
-    if(index_found != index_keyimage_map.end())
+    if (index_found != index_keyimage_map.end())
       return key_image == index_found->second;
   }
 
@@ -9410,7 +9410,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_2(std::vector<cryp
 
   auto original_dsts = dsts;
 
-  if(m_light_wallet) {
+  if (m_light_wallet) {
     // Populate m_transfers
     light_wallet_get_unspent_outs();
   }
@@ -10426,7 +10426,7 @@ void wallet2::get_hard_fork_info(uint8_t version, uint64_t &earliest_height)
 bool wallet2::use_fork_rules(uint8_t version, int64_t early_blocks)
 {
   // TODO: How to get fork rule info from light wallet node?
-  if(m_light_wallet)
+  if (m_light_wallet)
     return true;
   uint64_t height, earliest_height;
   boost::optional<std::string> result = m_node_rpc_proxy.get_height(height);
@@ -10814,7 +10814,7 @@ std::string wallet2::get_spend_proof(const crypto::hash &txid, const std::string
 
     // check if the key image belongs to us
     const auto found = m_key_images.find(in_key->k_image);
-    if(found == m_key_images.end())
+    if (found == m_key_images.end())
     {
       THROW_WALLET_EXCEPTION_IF(i > 0, error::wallet_internal_error, "subset of key images belong to us, very weird!");
       THROW_WALLET_EXCEPTION_IF(true, error::wallet_internal_error, "This tx wasn't generated by this wallet!");
@@ -12182,7 +12182,7 @@ uint64_t wallet2::import_key_images(const std::vector<std::pair<crypto::key_imag
   }
   PERF_TIMER_STOP(import_key_images_B);
 
-  if(check_spent)
+  if (check_spent)
   {
     PERF_TIMER(import_key_images_RPC);
     {

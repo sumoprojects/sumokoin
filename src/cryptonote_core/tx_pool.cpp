@@ -189,7 +189,7 @@ namespace cryptonote
     // TODO: Investigate why not?
     if(!kept_by_block)
     {
-      if(have_tx_keyimges_as_spent(tx))
+      if (have_tx_keyimges_as_spent(tx))
       {
         mark_double_spend(tx);
         LOG_PRINT_L1("Transaction with id= "<< id << " used already spent key images");
@@ -220,7 +220,7 @@ namespace cryptonote
     {
       // if the transaction was valid before (kept_by_block), then it
       // may become valid again, so ignore the failed inputs check.
-      if(kept_by_block)
+      if (kept_by_block)
       {
         meta.weight = tx_weight;
         meta.fee = fee;
@@ -306,7 +306,7 @@ namespace cryptonote
       }
       tvc.m_added_to_pool = true;
 
-      if(meta.fee > 0 && tx_relay != relay_method::none)
+      if (meta.fee > 0 && tx_relay != relay_method::none)
         tvc.m_should_be_relayed = true;
     }
 
@@ -1067,7 +1067,7 @@ namespace cryptonote
     for(const auto& in: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, tokey_in, true);//should never fail
-      if(have_tx_keyimg_as_spent(tokey_in.k_image))
+      if (have_tx_keyimg_as_spent(tokey_in.k_image))
          return true;
     }
     return false;
@@ -1139,10 +1139,10 @@ namespace cryptonote
 
     //not the best implementation at this time, sorry :(
     //check is ring_signature already checked ?
-    if(txd.max_used_block_id == null_hash)
+    if (txd.max_used_block_id == null_hash)
     {//not checked, lets try to check
 
-      if(txd.last_failed_id != null_hash && m_blockchain.get_current_blockchain_height() > txd.last_failed_height && txd.last_failed_id == m_blockchain.get_block_id_by_height(txd.last_failed_height))
+      if (txd.last_failed_id != null_hash && m_blockchain.get_current_blockchain_height() > txd.last_failed_height && txd.last_failed_id == m_blockchain.get_block_id_by_height(txd.last_failed_height))
         return false;//we already sure that this tx is broken for this height
 
       tx_verification_context tvc;
@@ -1154,12 +1154,12 @@ namespace cryptonote
       }
     }else
     {
-      if(txd.max_used_block_height >= m_blockchain.get_current_blockchain_height())
+      if (txd.max_used_block_height >= m_blockchain.get_current_blockchain_height())
         return false;
-      if(true)
+      if (true)
       {
         //if we already failed on this height and id, skip actual ring signature check
-        if(txd.last_failed_id == m_blockchain.get_block_id_by_height(txd.last_failed_height))
+        if (txd.last_failed_id == m_blockchain.get_block_id_by_height(txd.last_failed_height))
           return false;
         //check ring signature again, it is possible (with very small chance) that this transaction become again valid
         tx_verification_context tvc;
@@ -1172,7 +1172,7 @@ namespace cryptonote
       }
     }
     //if we here, transaction seems valid, but, anyway, check for key_images collisions with blockchain, just to be sure
-    if(m_blockchain.have_tx_keyimges_as_spent(lazy_tx()))
+    if (m_blockchain.have_tx_keyimges_as_spent(lazy_tx()))
     {
       txd.double_spend_seen = true;
       return false;
@@ -1187,7 +1187,7 @@ namespace cryptonote
     for(size_t i = 0; i!= tx.vin.size(); i++)
     {
       CHECKED_GET_SPECIFIC_VARIANT(tx.vin[i], const txin_to_key, itk, false);
-      if(k_images.count(itk.k_image))
+      if (k_images.count(itk.k_image))
         return true;
     }
     return false;

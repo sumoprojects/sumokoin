@@ -102,9 +102,9 @@ namespace levin
 			switch(m_state)
 			{
 			case conn_state_reading_head:
-				if(m_cach_in_buffer.size() < sizeof(bucket_head))
+				if (m_cach_in_buffer.size() < sizeof(bucket_head))
 				{
-					if(m_cach_in_buffer.size() >= sizeof(uint64_t) && *((uint64_t*)m_cach_in_buffer.data()) != SWAP64LE(LEVIN_SIGNATURE))
+					if (m_cach_in_buffer.size() >= sizeof(uint64_t) && *((uint64_t*)m_cach_in_buffer.data()) != SWAP64LE(LEVIN_SIGNATURE))
 					{
 						LOG_ERROR_CC(m_conn_context, "Signature mismatch on accepted connection");
 						return false;
@@ -124,7 +124,7 @@ namespace levin
 					phead.m_reservedA = SWAP32LE(phead.m_reservedA);
 					phead.m_reservedB = SWAP32LE(phead.m_reservedB);
 #endif
-					if(LEVIN_SIGNATURE != phead.m_signature)
+					if (LEVIN_SIGNATURE != phead.m_signature)
 					{
 						LOG_ERROR_CC(m_conn_context, "Signature mismatch on accepted connection");
 						return false;
@@ -135,14 +135,14 @@ namespace levin
 				m_state = conn_state_reading_body;
 				break;
 			case conn_state_reading_body:
-				if(m_cach_in_buffer.size() < m_current_head.m_cb)
+				if (m_cach_in_buffer.size() < m_current_head.m_cb)
 				{
 					is_continue = false;
 					break;
 				}
 				{
 					std::string buff_to_invoke;
-					if(m_cach_in_buffer.size()  == m_current_head.m_cb)
+					if (m_cach_in_buffer.size()  == m_current_head.m_cb)
 						buff_to_invoke.swap(m_cach_in_buffer);
 					else
 					{
@@ -151,7 +151,7 @@ namespace levin
 					}
 
 
-					if(m_current_head.m_have_to_return_data)
+					if (m_current_head.m_have_to_return_data)
 					{
 						std::string return_buff;
 						m_current_head.m_return_code = m_config.m_pcommands_handler->invoke(m_current_head.m_command, buff_to_invoke, return_buff, m_conn_context);

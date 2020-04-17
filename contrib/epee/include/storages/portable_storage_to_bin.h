@@ -57,14 +57,14 @@ namespace epee
     size_t pack_varint(t_stream& strm, size_t val)
     {   //the first two bits always reserved for size information
 
-      if(val <= 63)
+      if (val <= 63)
       {//mean enough one byte
         return pack_varint_t<uint8_t>(strm, PORTABLE_RAW_SIZE_MARK_BYTE, val);
       }
-      else if(val <= 16383)
+      else if (val <= 16383)
       {//mean need word
         return pack_varint_t<uint16_t>(strm, PORTABLE_RAW_SIZE_MARK_WORD, val);
-      }else if(val <= 1073741823)
+      }else if (val <= 1073741823)
       {//mean need dword
         return pack_varint_t<uint32_t>(strm, PORTABLE_RAW_SIZE_MARK_DWORD, val);
       }else
@@ -79,7 +79,7 @@ namespace epee
     bool put_string(t_stream& strm, const std::string& v)
     {
       pack_varint(strm, v.size());
-      if(v.size())
+      if (v.size())
         strm.write((const char*)v.data(), v.size());        
       return true;
     }

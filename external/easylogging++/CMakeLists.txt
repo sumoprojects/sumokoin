@@ -47,7 +47,7 @@ target_link_libraries(easylogging
 
 # GUI/libwallet install target
 if (BUILD_GUI_DEPS)
-    if(IOS)
+    if (IOS)
         set(lib_folder lib-${ARCH})
     else()
         set(lib_folder lib)

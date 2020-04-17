@@ -149,7 +149,7 @@ struct Wallet2CallbackImpl : public tools::i_wallet2_callback
         // Don't flood the GUI with signals. On fast refresh - send signal every 1000th block
         // get_refresh_from_block_height() returns the blockheight from when the wallet was 
         // created or the restore height specified when wallet was recovered
-        if(height >= m_wallet->m_wallet->get_refresh_from_block_height() || height % 1000 == 0) {
+        if (height >= m_wallet->m_wallet->get_refresh_from_block_height() || height % 1000 == 0) {
             // LOG_PRINT_L3(__FUNCTION__ << ": new block. height: " << height);
             if (m_listener) {
                 m_listener->newBlock(height);
@@ -360,7 +360,7 @@ bool Wallet::keyValid(const std::string &secret_key_string, const std::string &a
       return false;
   }
   bool matchAddress = false;
-  if(isViewKey)
+  if (isViewKey)
       matchAddress = info.address.m_view_public_key == pkey;
   else
       matchAddress = info.address.m_spend_public_key == pkey;
@@ -608,7 +608,7 @@ bool WalletImpl::recoverFromKeysWithPassword(const std::string &path,
     bool has_viewkey = true;
     crypto::secret_key viewkey;
     if (viewkey_string.empty()) {
-        if(has_spendkey) {
+        if (has_spendkey) {
           has_viewkey = false;
         }
         else {
@@ -616,7 +616,7 @@ bool WalletImpl::recoverFromKeysWithPassword(const std::string &path,
           return false;
         }
     }
-    if(has_viewkey) {
+    if (has_viewkey) {
       cryptonote::blobdata viewkey_data;
       if(!epee::string_tools::parse_hexstr_to_binbuff(viewkey_string, viewkey_data) || viewkey_data.size() != sizeof(crypto::secret_key))
       {
@@ -627,7 +627,7 @@ bool WalletImpl::recoverFromKeysWithPassword(const std::string &path,
     }
     // check the spend and view keys match the given address
     crypto::public_key pkey;
-    if(has_spendkey) {
+    if (has_spendkey) {
         if (!crypto::secret_key_to_public_key(spendkey, pkey)) {
             setStatusError(tr("failed to verify secret spend key"));
             return false;
@@ -637,7 +637,7 @@ bool WalletImpl::recoverFromKeysWithPassword(const std::string &path,
             return false;
         }
     }
-    if(has_viewkey) {
+    if (has_viewkey) {
        if (!crypto::secret_key_to_public_key(viewkey, pkey)) {
            setStatusError(tr("failed to verify secret view key"));
            return false;
@@ -658,7 +658,7 @@ bool WalletImpl::recoverFromKeysWithPassword(const std::string &path,
             m_wallet->generate(path, password, info.address, viewkey);
             LOG_PRINT_L1("Generated new view only wallet from keys");
         }
-        if(has_spendkey && !has_viewkey) {
+        if (has_spendkey && !has_viewkey) {
            m_wallet->generate(path, password, spendkey, true, false);
            setSeedLanguage(language);
            LOG_PRINT_L1("Generated deterministic wallet from spend key with seed language: " + language);
@@ -940,7 +940,7 @@ bool WalletImpl::init(const std::string &daemon_address, uint64_t upper_transact
 {
     clearStatus();
     m_wallet->set_light_wallet(lightWallet);
-    if(daemon_username != "")
+    if (daemon_username != "")
         m_daemon_login.emplace(daemon_username, daemon_password);
     return doInit(daemon_address, upper_transaction_size_limit, use_ssl);
 }
@@ -1007,7 +1007,7 @@ uint64_t WalletImpl::unlockedBalance(uint32_t accountIndex) const
 
 uint64_t WalletImpl::blockChainHeight() const
 {
-    if(m_wallet->light_wallet()) {
+    if (m_wallet->light_wallet()) {
         return m_wallet->get_light_wallet_scanned_block_height();
     }
     return m_wallet->get_blockchain_current_height();
@@ -1024,7 +1024,7 @@ uint64_t WalletImpl::estimateBlockChainHeight() const
 
 uint64_t WalletImpl::daemonBlockChainHeight() const
 {
-    if(m_wallet->light_wallet()) {
+    if (m_wallet->light_wallet()) {
         return m_wallet->get_light_wallet_scanned_block_height();
     }
     if (!m_is_connected)
@@ -1043,7 +1043,7 @@ uint64_t WalletImpl::daemonBlockChainHeight() const
 
 uint64_t WalletImpl::daemonBlockChainTargetHeight() const
 {
-    if(m_wallet->light_wallet()) {
+    if (m_wallet->light_wallet()) {
         return m_wallet->get_light_wallet_blockchain_height();
     }
     if (!m_is_connected)
@@ -1058,14 +1058,14 @@ uint64_t WalletImpl::daemonBlockChainTargetHeight() const
         clearStatus();
     }
     // Target height can be 0 when daemon is synced. Use blockchain height instead. 
-    if(result == 0)
+    if (result == 0)
         result = daemonBlockChainHeight();
     return result;
 }
 
 bool WalletImpl::daemonSynced() const
 {   
-    if(connected() == Wallet::ConnectionStatus_Disconnected)
+    if (connected() == Wallet::ConnectionStatus_Disconnected)
         return false;
     uint64_t blockChainHeight = daemonBlockChainHeight();
     return (blockChainHeight >= daemonBlockChainTargetHeight() && blockChainHeight > 1);
@@ -2156,7 +2156,7 @@ void WalletImpl::doRefresh()
         // Syncing daemon and refreshing wallet simultaneously is very resource intensive.
         // Disable refresh if wallet is disconnected or daemon isn't synced.
         if (m_wallet->light_wallet() || daemonSynced()) {
-            if(rescan)
+            if (rescan)
                 m_wallet->rescan_blockchain(false);
             m_wallet->refresh(trustedDaemon());
             if (!m_synchronized) {

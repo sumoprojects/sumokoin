@@ -523,7 +523,7 @@ STATIC INLINE int check_aes_hw(void)
     int cpuid_results[4];
     static int supported = -1;
 
-    if(supported >= 0)
+    if (supported >= 0)
         return supported;
 
     cpuid(cpuid_results,1);
@@ -744,7 +744,7 @@ BOOL SetLockPagesPrivilege(HANDLE hProcess, BOOL bEnable)
 
 void slow_hash_allocate_state(void)
 {
-    if(hp_state != NULL)
+    if (hp_state != NULL)
         return;
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
@@ -760,11 +760,11 @@ void slow_hash_allocate_state(void)
     hp_state = mmap(0, MEMORY, PROT_READ | PROT_WRITE,
                     MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
 #endif
-    if(hp_state == MAP_FAILED)
+    if (hp_state == MAP_FAILED)
         hp_state = NULL;
 #endif
     hp_allocated = 1;
-    if(hp_state == NULL)
+    if (hp_state == NULL)
     {
         hp_allocated = 0;
         hp_state = (uint8_t *) malloc(MEMORY);
@@ -789,7 +789,7 @@ void slow_hash_allocate_state(void)
     hp_jitfunc_memory = mmap(0, 4096 + 4096, PROT_READ | PROT_WRITE | PROT_EXEC,
                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 #endif
-    if(hp_jitfunc_memory == MAP_FAILED)
+    if (hp_jitfunc_memory == MAP_FAILED)
         hp_jitfunc_memory = NULL;
 #endif
     hp_jitfunc_allocated = 1;
@@ -807,7 +807,7 @@ void slow_hash_allocate_state(void)
 
 void slow_hash_free_state(void)
 {
-    if(hp_state == NULL)
+    if (hp_state == NULL)
         return;
 
     if(!hp_allocated)
@@ -892,7 +892,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     };
 
     // this isn't supposed to happen, but guard against it for now.
-    if(hp_state == NULL)
+    if (hp_state == NULL)
         slow_hash_allocate_state();
 
     // locals to avoid constant TLS dereferencing
@@ -914,7 +914,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
      * the 2MB large random access buffer.
      */
 
-    if(useAes)
+    if (useAes)
     {
         aes_expand_key(state.hs.b, expandedKey);
         for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
@@ -950,7 +950,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     _b1 = _mm_load_si128(R128(b) + 1);
     // Two independent versions, one with AES, one without, to ensure that
     // the useAes test is only performed once, not every iteration.
-    if(useAes)
+    if (useAes)
     {
         for(i = 0; i < ITER / 2; i++)
         {
@@ -974,7 +974,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
      * was originally created with the output of Keccak1600. */
 
     memcpy(text, state.init, INIT_SIZE_BYTE);
-    if(useAes)
+    if (useAes)
     {
         aes_expand_key(&state.hs.b[32], expandedKey);
         for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)

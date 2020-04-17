@@ -429,7 +429,7 @@ void mdb_txn_safe::commit(std::string message)
 void mdb_txn_safe::abort()
 {
   LOG_PRINT_L3("mdb_txn_safe: abort()");
-  if(m_txn != nullptr)
+  if (m_txn != nullptr)
   {
     mdb_txn_abort(m_txn);
     m_txn = nullptr;
@@ -522,7 +522,7 @@ void BlockchainLMDB::do_resize(uint64_t increase_size)
   {
     boost::filesystem::path path(m_folder);
     boost::filesystem::space_info si = boost::filesystem::space(path);
-    if(si.available < add_size)
+    if (si.available < add_size)
     {
       MERROR("!! WARNING: Insufficient free space to extend database !!: " <<
           (si.available >> 20L) << " MB available, " << (add_size >> 20L) << " MB needed");
@@ -1459,7 +1459,7 @@ void BlockchainLMDB::open(const std::string& filename, const int db_flags)
   MDB_val_str(k, "version");
   MDB_val v;
   auto get_result = mdb_get(txn, m_properties, &k, &v);
-  if(get_result == MDB_SUCCESS)
+  if (get_result == MDB_SUCCESS)
   {
     const uint32_t db_version = *(const uint32_t*)v.mv_data;
     if (db_version > VERSION)
@@ -4030,7 +4030,7 @@ void BlockchainLMDB::get_output_tx_and_index(const uint64_t& amount, const std::
   }
 
   TIME_MEASURE_START(db3);
-  if(tx_indices.size() > 0)
+  if (tx_indices.size() > 0)
   {
     get_output_tx_and_index_from_global(tx_indices, indices);
   }

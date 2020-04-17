@@ -116,7 +116,7 @@ namespace soci
       m_db_connections_lock.lock();
       boost::shared_ptr<soci::session>& conn_ptr = m_db_connections[misc_utils::get_thread_string_id()];
       m_db_connections_lock.unlock();
-      if(conn_ptr.get())
+      if (conn_ptr.get())
       {
         conn_ptr->close();
         conn_ptr.reset(new soci::session(soci::postgresql, m_connection_string));

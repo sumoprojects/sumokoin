@@ -43,7 +43,7 @@
  		}
 -		if (current_dir)
 -			closedir(current_dir);
-+		if(d_list)
++		if (d_list)
 +			free(d_list);
  		return (ret);
  	}

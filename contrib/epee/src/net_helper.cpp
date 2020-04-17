@@ -19,7 +19,7 @@ namespace net_utils
 		try
 		{
 			iterator = resolver.resolve(query, resolve_error);
-			if(iterator == end) // Documentation states that successful call is guaranteed to be non-empty
+			if (iterator == end) // Documentation states that successful call is guaranteed to be non-empty
 			{
 				// if IPv4 resolution fails, try IPv6.  Unintentional outgoing IPv6 connections should only
 				// be possible if for some reason a hostname was given and that hostname fails IPv4 resolution,

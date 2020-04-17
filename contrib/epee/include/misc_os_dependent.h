@@ -78,7 +78,7 @@ namespace misc_utils
                 return ((uint64_t)mts.tv_sec * 1000000000) + (mts.tv_nsec);
 #else
                 struct timespec ts;
-                if(clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+                if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
                         return 0;
                 }
                 return ((uint64_t)ts.tv_sec * 1000000000) + (ts.tv_nsec);

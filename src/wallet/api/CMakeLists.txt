@@ -82,7 +82,7 @@ target_link_libraries(wallet_api
 set_property(TARGET wallet_api PROPERTY EXCLUDE_FROM_ALL TRUE)
 set_property(TARGET obj_wallet_api PROPERTY EXCLUDE_FROM_ALL TRUE)
 
-if(IOS)
+if (IOS)
     set(lib_folder lib-${ARCH})
 else()
     set(lib_folder lib)

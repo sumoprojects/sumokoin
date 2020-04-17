@@ -1279,10 +1279,10 @@ namespace net_utils
 
 		inline Base64Coder::~Base64Coder()
 		{
-			if(m_pDBuffer != NULL)
+			if (m_pDBuffer != NULL)
 				delete [] m_pDBuffer;
 
-			if(m_pEBuffer != NULL)
+			if (m_pEBuffer != NULL)
 				delete [] m_pEBuffer;
 		}
 
@@ -1298,9 +1298,9 @@ namespace net_utils
 
 		inline void Base64Coder::AllocEncode(DWORD nSize)
 		{
-			if(m_nEBufLen < nSize)
+			if (m_nEBufLen < nSize)
 			{
-				if(m_pEBuffer != NULL)
+				if (m_pEBuffer != NULL)
 					delete [] m_pEBuffer;
 
 				m_nEBufLen = ROUNDTOPAGE(nSize);
@@ -1313,9 +1313,9 @@ namespace net_utils
 
 		inline void Base64Coder::AllocDecode(DWORD nSize)
 		{
-			if(m_nDBufLen < nSize)
+			if (m_nDBufLen < nSize)
 			{
-				if(m_pDBuffer != NULL)
+				if (m_pDBuffer != NULL)
 					delete [] m_pDBuffer;
 
 				m_nDBufLen = ROUNDTOPAGE(nSize);
@@ -1368,7 +1368,7 @@ namespace net_utils
 				m_nEDataLen	+= 4;
 			}
 
-			if(nBufLen > nIndex)
+			if (nBufLen > nIndex)
 			{
 				Raw.Clear();
 				Raw.nSize = (BYTE) (nBufLen - nIndex);
@@ -1380,13 +1380,13 @@ namespace net_utils
 
 		inline void Base64Coder::Encode(LPCSTR szMessage)
 		{
-			if(szMessage != NULL)
+			if (szMessage != NULL)
 				Base64Coder::Encode((const PBYTE)szMessage, strlen( (const char*)szMessage));
 		}
 
 		inline void Base64Coder::Decode(const PBYTE pBuffer, DWORD dwBufLen)
 		{
-			if(is_init())
+			if (is_init())
 				_Init();
 
 			SetEncodeBuffer(pBuffer, dwBufLen);
@@ -1405,9 +1405,9 @@ namespace net_utils
 				Raw.nData[2] = DecodeTable()[m_pEBuffer[nIndex + 2]];
 				Raw.nData[3] = DecodeTable()[m_pEBuffer[nIndex + 3]];
 
-				if(Raw.nData[2] == 255)
+				if (Raw.nData[2] == 255)
 					Raw.nData[2] = 0;
-				if(Raw.nData[3] == 255)
+				if (Raw.nData[3] == 255)
 					Raw.nData[3] = 0;
 
 				Raw.nSize = 4;
@@ -1419,14 +1419,14 @@ namespace net_utils
 			// If nIndex < m_nEDataLen, then we got a decode message without padding.
 			// We may want to throw some kind of warning here, but we are still required
 			// to handle the decoding as if it was properly padded.
-			if(nIndex < m_nEDataLen)
+			if (nIndex < m_nEDataLen)
 			{
 				Raw.Clear();
 				for(DWORD i = nIndex; i < m_nEDataLen; i++)
 				{
 					Raw.nData[i - nIndex] = DecodeTable()[m_pEBuffer[i]];
 					Raw.nSize++;
-					if(Raw.nData[i - nIndex] == 255)
+					if (Raw.nData[i - nIndex] == 255)
 						Raw.nData[i - nIndex] = 0;
 				}
 
@@ -1437,7 +1437,7 @@ namespace net_utils
 
 		inline void Base64Coder::Decode(LPCSTR szMessage)
 		{
-			if(szMessage != NULL)
+			if (szMessage != NULL)
 				Base64Coder::Decode((const PBYTE)szMessage, strlen((const char*)szMessage));
 		}
 
@@ -1451,7 +1451,7 @@ namespace net_utils
 			for(int i = 0; i < 3; i++)
 			{
 				pBuffer[i] = Data.nData[i];
-				if(pBuffer[i] != 255)
+				if (pBuffer[i] != 255)
 					nCount++;
 			}
 

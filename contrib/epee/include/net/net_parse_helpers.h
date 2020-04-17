@@ -76,19 +76,19 @@ namespace net_utils
         return false;
       }
     }
-    if(st == st_param_name)
+    if (st == st_param_name)
     {
-      if(start_it != query.end())
+      if (start_it != query.end())
       {
         e.first.assign(start_it, query.end());
         params.push_back(e);
       }
     }else
     {
-      if(start_it != query.end())
+      if (start_it != query.end())
         e.second.assign(start_it, query.end());
 
-      if(e.first.size())
+      if (e.first.size())
         params.push_back(e);
     }
     return true;
@@ -109,19 +109,19 @@ namespace net_utils
       content.m_path = uri;
       return true;
     }
-    if(result[1].matched)
+    if (result[1].matched)
     {
       content.m_path = result[1];
     }
-    if(result[3].matched)
+    if (result[3].matched)
     {
       content.m_query = result[3];
     }
-    if(result[5].matched)
+    if (result[5].matched)
     {
       content.m_fragment = result[5];
     }
-    if(content.m_query.size())
+    if (content.m_query.size())
     {
       parse_uri_query(content.m_query, content.m_query_params);
     }
@@ -142,11 +142,11 @@ namespace net_utils
       //content.m_path = uri;
       return false;
     }
-    if(result[2].matched)
+    if (result[2].matched)
     {
       content.schema = result[2];
     }
-    if(result[4].matched)
+    if (result[4].matched)
     {
       content.host = result[4];
     }
@@ -154,11 +154,11 @@ namespace net_utils
     {
       return false;
     }
-    if(result[6].matched)
+    if (result[6].matched)
     {
       content.port = boost::lexical_cast<uint64_t>(result[6]);
     }
-    if(result[7].matched)
+    if (result[7].matched)
     {
       content.uri = result[7];
       return parse_uri(result[7], content.m_uri_content);
@@ -185,19 +185,19 @@ namespace net_utils
       //content.m_path = uri;
       return true;
     }
-    if(result[2].matched)
+    if (result[2].matched)
     {
       content.schema = result[2];
     }
-    if(result[4].matched)
+    if (result[4].matched)
     {
       content.host = result[4];
     }
-    if(result[6].matched)
+    if (result[6].matched)
     {
       content.port = boost::lexical_cast<uint64_t>(result[6]);
     }
-    if(result[7].matched)
+    if (result[7].matched)
     {
       content.uri = result[7];
       return parse_uri(result[7], content.m_uri_content);

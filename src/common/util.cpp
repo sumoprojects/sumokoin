@@ -338,7 +338,7 @@ namespace tools
 #if defined(BOOST_GCC) && BOOST_GCC >= 80000
 #pragma GCC diagnostic pop
 #endif
-    if(NULL != pGNSI)
+    if (NULL != pGNSI)
       pGNSI(&si);
     else GetSystemInfo(&si);
 
@@ -570,7 +570,7 @@ std::string get_nix_version_display_string()
 {
   struct utsname un;
 
-  if(uname(&un) < 0)
+  if (uname(&un) < 0)
     return std::string("*nix: failed to get os version");
   return std::string() + un.sysname + " " + un.version + " " + un.release;
 }
@@ -830,7 +830,7 @@ std::string get_nix_version_display_string()
 #ifdef __GLIBC__
     struct stat st;
     std::string prefix;
-    if(stat(file_path, &st) == 0)
+    if (stat(file_path, &st) == 0)
     {
       std::ostringstream s;
       s << "/sys/dev/block/" << major(st.st_dev) << ":" << minor(st.st_dev);
@@ -842,18 +842,18 @@ std::string get_nix_version_display_string()
     }
     std::string attr_path = prefix + "/queue/rotational";
     std::ifstream f(attr_path, std::ios_base::in);
-    if(not f.is_open())
+    if (not f.is_open())
     {
       attr_path = prefix + "/../queue/rotational";
       f.open(attr_path, std::ios_base::in);
-      if(not f.is_open())
+      if (not f.is_open())
       {
           return boost::none;
       }
     }
     unsigned short val = 0xdead;
     f >> val;
-    if(not f.fail())
+    if (not f.fail())
     {
       return (val == 1);
     }

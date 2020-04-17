@@ -99,7 +99,7 @@ namespace cryptonote
     if(!is_a_checkpoint)
       return true;
 
-    if(it->second == h)
+    if (it->second == h)
     {
       MINFO("CHECKPOINT PASSED FOR HEIGHT " << height << " " << h);
       return true;

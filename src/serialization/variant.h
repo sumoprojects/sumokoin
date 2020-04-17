@@ -70,7 +70,7 @@ struct variant_reader
   // A tail recursive inline function.... okay...
   static inline bool read(Archive &ar, Variant &v, variant_tag_type t)
   {
-    if(variant_serialization_traits<Archive, current_type>::get_tag() == t) {
+    if (variant_serialization_traits<Archive, current_type>::get_tag() == t) {
       current_type x;
       if(!::do_serialize(ar, x))
       {

@@ -101,7 +101,7 @@ void mock_daemon::load_params(boost::program_options::variables_map const & vm)
 
 mock_daemon::~mock_daemon()
 {
-  if(m_http_client.is_connected())
+  if (m_http_client.is_connected())
     m_http_client.disconnect();
 
   if (!m_terminated)
@@ -134,7 +134,7 @@ void mock_daemon::init()
   if (m_start_p2p)
     CHECK_AND_ASSERT_THROW_MES(m_server.init(m_vm), "Failed to initialize p2p server.");
 
-  if(m_http_client.is_connected())
+  if (m_http_client.is_connected())
     m_http_client.disconnect();
 
   CHECK_AND_ASSERT_THROW_MES(m_http_client.set_server(rpc_addr(), boost::none, epee::net_utils::ssl_support_t::e_ssl_support_disabled), "RPC client init fail");
@@ -142,7 +142,7 @@ void mock_daemon::init()
 
 void mock_daemon::deinit()
 {
-  if(m_http_client.is_connected())
+  if (m_http_client.is_connected())
     m_http_client.disconnect();
 
   try

@@ -400,11 +400,11 @@ eof:
           string_tools::trim(command);
 
           LOG_PRINT_L2("Read command: " << command);
-          if(cmd_handler(command))
+          if (cmd_handler(command))
           {
             continue;
           }
-          else if(0 == command.compare("exit") || 0 == command.compare("q"))
+          else if (0 == command.compare("exit") || 0 == command.compare("q"))
           {
             continue_handle = false;
           }
@@ -535,10 +535,10 @@ eof:
 
     std::pair<std::string, std::string> get_documentation(const std::vector<std::string>& cmd)
     {
-      if(cmd.empty())
+      if (cmd.empty())
         return std::make_pair("", "");
       auto it = m_command_handlers.find(cmd.front());
-      if(it == m_command_handlers.end())
+      if (it == m_command_handlers.end())
         return std::make_pair("", "");
       return it->second.second;
     }
@@ -574,7 +574,7 @@ eof:
       if(!cmd.size() || (cmd.size() == 1 && !cmd[0].size()))
         return m_empty_command_handler();
       auto it = m_command_handlers.find(cmd.front());
-      if(it == m_command_handlers.end())
+      if (it == m_command_handlers.end())
         return m_unknown_command_handler(cmd);
       std::vector<std::string> cmd_local(cmd.begin()+1, cmd.end());
       return it->second.first(cmd_local);

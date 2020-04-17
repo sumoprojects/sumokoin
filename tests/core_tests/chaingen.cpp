@@ -668,7 +668,7 @@ cryptonote::account_public_address get_address(const var_addr_t& inp)
 {
   if (typeid(cryptonote::account_public_address) == inp.type()){
     return boost::get<cryptonote::account_public_address>(inp);
-  } else if(typeid(cryptonote::account_keys) == inp.type()){
+  } else if (typeid(cryptonote::account_keys) == inp.type()){
     return boost::get<cryptonote::account_keys>(inp).m_account_address;
   } else if (typeid(cryptonote::account_base) == inp.type()){
     return boost::get<cryptonote::account_base>(inp).get_keys().m_account_address;
@@ -1141,7 +1141,7 @@ void test_chain_unit_base::register_callback(const std::string& cb_name, verify_
 bool test_chain_unit_base::verify(const std::string& cb_name, cryptonote::core& c, size_t ev_index, const std::vector<test_event_entry> &events)
 {
   auto cb_it = m_callbacks.find(cb_name);
-  if(cb_it == m_callbacks.end())
+  if (cb_it == m_callbacks.end())
   {
     LOG_ERROR("Failed to find callback " << cb_name);
     return false;

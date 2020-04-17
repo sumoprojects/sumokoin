@@ -230,7 +230,7 @@ namespace nodetool
   bool peerlist_manager::get_white_peer_by_index(peerlist_entry& p, size_t i)
   {
     CRITICAL_REGION_LOCAL(m_peerlist_lock);
-    if(i >= m_peers_white.size())
+    if (i >= m_peers_white.size())
       return false;
 
     peers_indexed::index<by_time>::type& by_time_index = m_peers_white.get<by_time>();
@@ -242,7 +242,7 @@ namespace nodetool
     bool peerlist_manager::get_gray_peer_by_index(peerlist_entry& p, size_t i)
   {
     CRITICAL_REGION_LOCAL(m_peerlist_lock);
-    if(i >= m_peers_gray.size())
+    if (i >= m_peers_gray.size())
       return false;
 
     peers_indexed::index<by_time>::type& by_time_index = m_peers_gray.get<by_time>();
@@ -254,7 +254,7 @@ namespace nodetool
   bool peerlist_manager::is_host_allowed(const epee::net_utils::network_address &address)
   {
     //never allow loopback ip
-    if(address.is_loopback())
+    if (address.is_loopback())
       return false;
 
     if(!m_allow_local_ip && address.is_local())
@@ -286,7 +286,7 @@ namespace nodetool
     bs_head.reserve(pick_depth);
     for(const peers_indexed::value_type& vl: boost::adaptors::reverse(by_time_index))
     {
-      if(cnt++ >= pick_depth)
+      if (cnt++ >= pick_depth)
         break;
 
       bs_head.push_back(vl);
@@ -342,7 +342,7 @@ namespace nodetool
      CRITICAL_REGION_LOCAL(m_peerlist_lock);
     //find in white list
     auto by_addr_it_wt = m_peers_white.get<by_addr>().find(ple.adr);
-    if(by_addr_it_wt == m_peers_white.get<by_addr>().end())
+    if (by_addr_it_wt == m_peers_white.get<by_addr>().end())
     {
       //put new record into white list
       m_peers_white.insert(ple);
@@ -354,7 +354,7 @@ namespace nodetool
     }
     //remove from gray list, if need
     auto by_addr_it_gr = m_peers_gray.get<by_addr>().find(ple.adr);
-    if(by_addr_it_gr != m_peers_gray.get<by_addr>().end())
+    if (by_addr_it_gr != m_peers_gray.get<by_addr>().end())
     {
       m_peers_gray.erase(by_addr_it_gr);
     }
@@ -372,12 +372,12 @@ namespace nodetool
     CRITICAL_REGION_LOCAL(m_peerlist_lock);
     //find in white list
     auto by_addr_it_wt = m_peers_white.get<by_addr>().find(ple.adr);
-    if(by_addr_it_wt != m_peers_white.get<by_addr>().end())
+    if (by_addr_it_wt != m_peers_white.get<by_addr>().end())
       return true;
 
     //update gray list
     auto by_addr_it_gr = m_peers_gray.get<by_addr>().find(ple.adr);
-    if(by_addr_it_gr == m_peers_gray.get<by_addr>().end())
+    if (by_addr_it_gr == m_peers_gray.get<by_addr>().end())
     {
       //put new record into white list
       m_peers_gray.insert(ple);
@@ -406,7 +406,7 @@ namespace nodetool
 
     auto by_addr_it_anchor = m_peers_anchor.get<by_addr>().find(ple.adr);
 
-    if(by_addr_it_anchor == m_peers_anchor.get<by_addr>().end()) {
+    if (by_addr_it_anchor == m_peers_anchor.get<by_addr>().end()) {
       m_peers_anchor.insert(ple);
     }
 

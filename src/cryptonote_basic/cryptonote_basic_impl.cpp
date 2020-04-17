@@ -195,10 +195,10 @@ namespace cryptonote {
   //-----------------------------------------------------------------------
   bool is_coinbase(const transaction& tx)
   {
-    if(tx.vin.size() != 1)
+    if (tx.vin.size() != 1)
       return false;
 
-    if(tx.vin[0].type() != typeid(txin_gen))
+    if (tx.vin[0].type() != typeid(txin_gen))
       return false;
 
     return true;
@@ -279,7 +279,7 @@ namespace cryptonote {
       if(!string_tools::parse_hexstr_to_binbuff(str, buff))
         return false;
 
-      if(buff.size()!=sizeof(public_address_outer_blob))
+      if (buff.size()!=sizeof(public_address_outer_blob))
       {
         LOG_PRINT_L1("Wrong public address size: " << buff.size() << ", expected size: " << sizeof(public_address_outer_blob));
         return false;
@@ -288,13 +288,13 @@ namespace cryptonote {
       public_address_outer_blob blob = *reinterpret_cast<const public_address_outer_blob*>(buff.data());
 
 
-      if(blob.m_ver > CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER)
+      if (blob.m_ver > CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER)
       {
         LOG_PRINT_L1("Unknown version of public address: " << blob.m_ver << ", expected " << CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER);
         return false;
       }
 
-      if(blob.check_sum != get_account_address_checksum(blob))
+      if (blob.check_sum != get_account_address_checksum(blob))
       {
         LOG_PRINT_L1("Wrong public address checksum");
         return false;

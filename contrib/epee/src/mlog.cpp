@@ -351,7 +351,7 @@ void set_console_color(int color, bool bright)
       HANDLE h_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
       SetConsoleTextAttribute(h_stdout, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE| (bright ? FOREGROUND_INTENSITY:0));
 #else
-      if(bright)
+      if (bright)
         std::cout << "\033[1;37m";
       else
         std::cout << "\033[0m";
@@ -364,7 +364,7 @@ void set_console_color(int color, bool bright)
       HANDLE h_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
       SetConsoleTextAttribute(h_stdout, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | (bright ? FOREGROUND_INTENSITY:0));
 #else
-      if(bright)
+      if (bright)
         std::cout << "\033[1;37m";
       else
         std::cout << "\033[0;37m";
@@ -377,7 +377,7 @@ void set_console_color(int color, bool bright)
       HANDLE h_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
       SetConsoleTextAttribute(h_stdout, FOREGROUND_RED | (bright ? FOREGROUND_INTENSITY:0));
 #else
-      if(bright)
+      if (bright)
         std::cout << "\033[1;31m";
       else
         std::cout << "\033[0;31m";
@@ -390,7 +390,7 @@ void set_console_color(int color, bool bright)
       HANDLE h_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
       SetConsoleTextAttribute(h_stdout, FOREGROUND_GREEN | (bright ? FOREGROUND_INTENSITY:0));
 #else
-      if(bright)
+      if (bright)
         std::cout << "\033[1;32m";
       else
         std::cout << "\033[0;32m";
@@ -404,7 +404,7 @@ void set_console_color(int color, bool bright)
       HANDLE h_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
       SetConsoleTextAttribute(h_stdout, FOREGROUND_BLUE | FOREGROUND_INTENSITY);//(bright ? FOREGROUND_INTENSITY:0));
 #else
-      if(bright)
+      if (bright)
         std::cout << "\033[1;34m";
       else
         std::cout << "\033[0;34m";
@@ -418,7 +418,7 @@ void set_console_color(int color, bool bright)
       HANDLE h_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
       SetConsoleTextAttribute(h_stdout, FOREGROUND_GREEN | FOREGROUND_BLUE | (bright ? FOREGROUND_INTENSITY:0));
 #else
-      if(bright)
+      if (bright)
         std::cout << "\033[1;36m";
       else
         std::cout << "\033[0;36m";
@@ -432,7 +432,7 @@ void set_console_color(int color, bool bright)
       HANDLE h_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
       SetConsoleTextAttribute(h_stdout, FOREGROUND_BLUE | FOREGROUND_RED | (bright ? FOREGROUND_INTENSITY:0));
 #else
-      if(bright)
+      if (bright)
         std::cout << "\033[1;35m";
       else
         std::cout << "\033[0;35m";
@@ -446,7 +446,7 @@ void set_console_color(int color, bool bright)
       HANDLE h_stdout = GetStdHandle(STD_OUTPUT_HANDLE);
       SetConsoleTextAttribute(h_stdout, FOREGROUND_RED | FOREGROUND_GREEN | (bright ? FOREGROUND_INTENSITY:0));
 #else
-      if(bright)
+      if (bright)
         std::cout << "\033[1;33m";
       else
         std::cout << "\033[0;33m";

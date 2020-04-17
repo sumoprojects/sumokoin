@@ -52,9 +52,9 @@
   epee::net_utils::http::http_response_info& response_info, \
   t_context& m_conn_context) { \
   bool handled = false; \
-  if(false) return true; //just a stub to have "else if"
+  if (false) return true; //just a stub to have "else if"
 
-#define MAP_URI2(pattern, callback)  else if(std::string::npos != query_info.m_URI.find(pattern)) return callback(query_info, response_info, &m_conn_context);
+#define MAP_URI2(pattern, callback)  else if (std::string::npos != query_info.m_URI.find(pattern)) return callback(query_info, response_info, &m_conn_context);
 
 #define MAP_URI_AUTO_XML2(s_pattern, callback_f, command_type) //TODO: don't think i ever again will use xml - ambiguous and "overtagged" format
 
@@ -87,7 +87,7 @@
 #define MAP_URI_AUTO_JON2(s_pattern, callback_f, command_type) MAP_URI_AUTO_JON2_IF(s_pattern, callback_f, command_type, true)
 
 #define MAP_URI_AUTO_BIN2(s_pattern, callback_f, command_type) \
-    else if(query_info.m_URI == s_pattern) \
+    else if (query_info.m_URI == s_pattern) \
     { \
       handled = true; \
       uint64_t ticks = misc_utils::get_tick_count(); \
@@ -117,7 +117,7 @@
 #define END_URI_MAP2() return handled;}
 
 
-#define BEGIN_JSON_RPC_MAP(uri)    else if(query_info.m_URI == uri) \
+#define BEGIN_JSON_RPC_MAP(uri)    else if (query_info.m_URI == uri) \
     { \
     uint64_t ticks = epee::misc_utils::get_tick_count(); \
     response_info.m_mime_tipe = "application/json"; \
@@ -144,7 +144,7 @@
       epee::serialization::store_t_to_json(static_cast<epee::json_rpc::error_response&>(rsp), response_info.m_body); \
       return true; \
     } \
-    if(false) return true; //just a stub to have "else if"
+    if (false) return true; //just a stub to have "else if"
 
 
 #define PREPARE_OBJECTS_FROM_JSON(command_type) \
@@ -196,7 +196,7 @@
 #define MAP_JON_RPC_WE(method_name, callback_f, command_type) MAP_JON_RPC_WE_IF(method_name, callback_f, command_type, true)
 
 #define MAP_JON_RPC_WERI(method_name, callback_f, command_type) \
-    else if(callback_name == method_name) \
+    else if (callback_name == method_name) \
 { \
   PREPARE_OBJECTS_FROM_JSON(command_type) \
   epee::json_rpc::error_response fail_resp = AUTO_VAL_INIT(fail_resp); \
@@ -213,7 +213,7 @@
 }
 
 #define MAP_JON_RPC(method_name, callback_f, command_type) \
-    else if(callback_name == method_name) \
+    else if (callback_name == method_name) \
 { \
   PREPARE_OBJECTS_FROM_JSON(command_type) \
   MINFO(m_conn_context << "calling RPC method " << method_name); \

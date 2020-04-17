@@ -99,7 +99,7 @@ namespace tools
 
     std::ifstream data_file;  
     data_file.open( file_path, std::ios_base::binary | std::ios_base::in);
-    if(data_file.fail())
+    if (data_file.fail())
       return false;
     try
     {
@@ -113,7 +113,7 @@ namespace tools
       boost::filesystem::copy_file(file_path, file_path + ".unportable", boost::filesystem::copy_option::overwrite_if_exists);
       data_file.close();
       data_file.open( file_path, std::ios_base::binary | std::ios_base::in);
-      if(data_file.fail())
+      if (data_file.fail())
         return false;
       boost::archive::binary_iarchive a(data_file);
       a >> obj;

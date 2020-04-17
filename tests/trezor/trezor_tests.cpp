@@ -253,7 +253,7 @@ static bool unserialize_chain_from_file(std::vector<test_event_entry>& events, g
   TRY_ENTRY();
     std::ifstream data_file;
     data_file.open( file_path, std::ios_base::binary | std::ios_base::in);
-    if(data_file.fail())
+    if (data_file.fail())
       return false;
     try
     {
@@ -277,7 +277,7 @@ static bool serialize_chain_to_file(std::vector<test_event_entry>& events, gen_t
   TRY_ENTRY();
     std::ofstream data_file;
     data_file.open( file_path, std::ios_base::binary | std::ios_base::out | std::ios::trunc);
-    if(data_file.fail())
+    if (data_file.fail())
       return false;
     try
     {
@@ -434,7 +434,7 @@ bool get_short_payment_id(crypto::hash8 &payment_id8, const tools::wallet2::pend
   cryptonote::tx_extra_nonce extra_nonce;
   if (find_tx_extra_field_by_type(tx_extra_fields, extra_nonce))
   {
-    if(get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
+    if (get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
     {
       if (ptx.dests.empty())
       {
@@ -475,7 +475,7 @@ static std::string get_payment_id(const std::vector<uint8_t> &tx_extra)
   if (find_tx_extra_field_by_type(tx_extra_fields, extra_nonce))
   {
     ::crypto::hash8 payment_id8{};
-    if(cryptonote::get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
+    if (cryptonote::get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
     {
       return std::string(payment_id8.data, 8);
     }

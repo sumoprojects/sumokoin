@@ -301,7 +301,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::implode_scratchpad_soft()
 		aes_round8(k8, x0, x1, x2, x3, x4, x5, x6, x7);
 		aes_round8(k9, x0, x1, x2, x3, x4, x5, x6, x7);
 
-		if(VERSION > 0)
+		if (VERSION > 0)
 			xor_shift(x0, x1, x2, x3, x4, x5, x6, x7);
 	}
 
@@ -499,7 +499,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::software_hash(const void* in, size_t le
 
 		ax ^= bx;
 		idx = scratchpad_ptr(ax.v64x0);
-		if(VERSION > 0)
+		if (VERSION > 0)
 		{
 			int64_t n  = idx.as_qword(0);
 			int32_t d  = idx.as_dword(2);
@@ -529,7 +529,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::software_hash(const void* in, size_t le
 		ax.write(idx);
 		ax ^= cx;
 		idx = scratchpad_ptr(ax.v64x0);
-		if(VERSION > 0)
+		if (VERSION > 0)
 		{
 			int64_t n  = idx.as_qword(0); // read bytes 0 - 7
 			int32_t d  = idx.as_dword(2); // read bytes 8 - 11

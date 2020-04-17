@@ -192,7 +192,7 @@ namespace nodetool
   {
     std::ifstream src_file{};
     src_file.open( path , std::ios_base::binary | std::ios_base::in);
-    if(src_file.fail())
+    if (src_file.fail())
       return boost::none;
 
     boost::optional<peerlist_storage> out = open(src_file, true);
@@ -202,7 +202,7 @@ namespace nodetool
       boost::filesystem::copy_file(path, path + ".unportable", boost::filesystem::copy_option::overwrite_if_exists);
       src_file.close();
       src_file.open( path , std::ios_base::binary | std::ios_base::in);
-      if(src_file.fail())
+      if (src_file.fail())
         return boost::none;
 
       out = open(src_file, false);
@@ -241,7 +241,7 @@ namespace nodetool
   {
     std::ofstream dest_file{};
     dest_file.open( path , std::ios_base::binary | std::ios_base::out| std::ios::trunc);
-    if(dest_file.fail())
+    if (dest_file.fail())
       return false;
 
     return store(dest_file, other);

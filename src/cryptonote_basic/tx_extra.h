@@ -79,7 +79,7 @@ namespace cryptonote
     template <template <bool> class Archive>
     bool do_serialize(Archive<true>& ar)
     {
-      if(TX_EXTRA_PADDING_MAX_COUNT < size)
+      if (TX_EXTRA_PADDING_MAX_COUNT < size)
         return false;
 
       // i = 1 - because of variant tag
@@ -108,7 +108,7 @@ namespace cryptonote
 
     BEGIN_SERIALIZE()
       FIELD(nonce)
-      if(TX_EXTRA_NONCE_MAX_COUNT < nonce.size()) return false;
+      if (TX_EXTRA_NONCE_MAX_COUNT < nonce.size()) return false;
     END_SERIALIZE()
   };
 

@@ -87,7 +87,7 @@ bool PendingTransactionImpl::commit(const std::string &filename, bool overwrite)
       if (!filename.empty()) {
         boost::system::error_code ignore;
         bool tx_file_exists = boost::filesystem::exists(filename, ignore);
-        if(tx_file_exists && !overwrite){
+        if (tx_file_exists && !overwrite){
           m_errorString = string(tr("Attempting to save transaction to file, but specified file(s) exist. Exiting to not risk overwriting. File:")) + filename;
           m_status = Status_Error;
           LOG_ERROR(m_errorString);

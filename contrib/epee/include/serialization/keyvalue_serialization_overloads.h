@@ -148,7 +148,7 @@ namespace epee
       container.clear();
       std::string buff;
       bool res = stg.get_value(pname, buff, hparent_section);
-      if(res)
+      if (res)
       {
         size_t loaded_size = buff.size();
         typename stl_container::value_type* pelem =  (typename stl_container::value_type*)buff.data();

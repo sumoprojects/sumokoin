@@ -123,7 +123,7 @@ namespace levin
 			boost::interprocess::ipcdetail::atomic_inc32(&m_current_connection_index); 
 			CRITICAL_REGION_END();
 			CRITICAL_REGION_END();
-			if(res && !boost::interprocess::ipcdetail::atomic_read32(&m_threads_count) )
+			if (res && !boost::interprocess::ipcdetail::atomic_read32(&m_threads_count) )
 			{
 				//boost::interprocess::ipcdetail::atomic_write32(&m_is_stop, 0);//m_is_stop = false;
 				boost::thread( boost::bind(&levin_duplex_client::reciever_thread, this) );
@@ -165,7 +165,7 @@ namespace levin
 			{
 				int res = ::recv(m_socket, pbuff, (int)cb, 0);
 
-				if(SOCKET_ERROR == res)
+				if (SOCKET_ERROR == res)
 				{
 					if(!m_connected)
 						return false;
@@ -175,7 +175,7 @@ namespace levin
 					disconnect();
 					//reconnect();
 					return false;
-				}else if(res == 0)
+				}else if (res == 0)
 				{
 					disconnect();
 					//reconnect();
@@ -255,7 +255,7 @@ namespace levin
 			CRITICAL_REGION_BEGIN(m_send_lock);
 			LOG_PRINT_L4("[" << m_socket <<"] SEND " << sizeof(head));
 			int res = ::send(m_socket, (const char*)&head, sizeof(head), 0);
-			if(SOCKET_ERROR == res)
+			if (SOCKET_ERROR == res)
 			{
 				int err = ::WSAGetLastError();
 				LOG_ERROR("Failed to send(), err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
@@ -264,7 +264,7 @@ namespace levin
 			}
 			LOG_PRINT_L4("[" << m_socket <<"] SEND " << (int)in_buff.size());
 			res = ::send(m_socket, in_buff.data(), (int)in_buff.size(), 0);
-			if(SOCKET_ERROR == res)
+			if (SOCKET_ERROR == res)
 			{
 				int err = ::WSAGetLastError();
 				LOG_ERROR("Failed to send(), err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
@@ -283,13 +283,13 @@ namespace levin
 			{
 				if(!m_invoke_cond.timed_wait(lock, timeout))
 				{
-					if(timeout_count < 10)
+					if (timeout_count < 10)
 					{
 						//workaround to avoid freezing at timed_wait called after notify_all. 
 						timeout = boost::get_system_time()+ boost::posix_time::milliseconds(100);
 						++timeout_count;
 						continue;
-					}else if(timeout_count == 10)
+					}else if (timeout_count == 10)
 					{
 						//workaround to avoid freezing at timed_wait called after notify_all. 
 						timeout = boost::get_system_time()+ boost::posix_time::minutes(10);
@@ -331,7 +331,7 @@ namespace levin
 			CRITICAL_REGION_BEGIN(m_send_lock);
 			LOG_PRINT_L4("[" << m_socket <<"] SEND " << sizeof(head));
 			int res = ::send(m_socket, (const char*)&head, sizeof(head), 0);
-			if(SOCKET_ERROR == res)
+			if (SOCKET_ERROR == res)
 			{
 				int err = ::WSAGetLastError();
 				LOG_ERROR("Failed to send(), err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
@@ -340,7 +340,7 @@ namespace levin
 			}
 			LOG_PRINT_L4("[" << m_socket <<"] SEND " << (int)in_buff.size());
 			res = ::send(m_socket, in_buff.data(), (int)in_buff.size(), 0);
-			if(SOCKET_ERROR == res)
+			if (SOCKET_ERROR == res)
 			{
 				int err = ::WSAGetLastError();
 				LOG_ERROR("Failed to send(), err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
@@ -371,21 +371,21 @@ namespace levin
 			tv.tv_usec = 0;
 
 			int sel_res = select(0, &fds, 0, &fdse, &tv);
-			if(0 == sel_res)
+			if (0 == sel_res)
 				return false;
-			else if(sel_res == SOCKET_ERROR)
+			else if (sel_res == SOCKET_ERROR)
 			{
-				if(m_is_stop)
+				if (m_is_stop)
 					return false;
 				int err_code = ::WSAGetLastError();
 				LOG_ERROR("Filed to call select, err code = " << err_code);
 				disconnect();
 			}else
 			{
-				if(fds.fd_array[0])
+				if (fds.fd_array[0])
 				{//some read operations was performed
 					return true;
-				}else if(fdse.fd_array[0])
+				}else if (fdse.fd_array[0])
 				{//some error was at the socket
 					return true;
 				}
@@ -404,7 +404,7 @@ namespace levin
 
 			if(!recv_n(m_socket, (char*)&head, sizeof(head)))
 			{
-				if(m_is_stop)
+				if (m_is_stop)
 					return false;
 				LOG_ERROR("Failed to recv_n");
 				return false;
@@ -412,7 +412,7 @@ namespace levin
 
 			conn_index = boost::interprocess::ipcdetail::atomic_read32(&m_current_connection_index);
 
-			if(head.m_signature!=LEVIN_SIGNATURE) 
+			if (head.m_signature!=LEVIN_SIGNATURE) 
 			{
 				LOG_ERROR("Signature mismatch in response");
 				return false;
@@ -424,7 +424,7 @@ namespace levin
 			local_buff.resize((size_t)head.m_cb);
 			if(!recv_n(m_socket, local_buff))
 			{
-				if(m_is_stop)
+				if (m_is_stop)
 					return false;
 				LOG_ERROR("Filed to reciev");
 				return false;
@@ -433,7 +433,7 @@ namespace levin
 
 			LOG_PRINT_L4("LEVIN_PACKET_RECEIVED. [len=" << head.m_cb << ", flags=" << head.m_flags << ", is_cmd=" << head.m_have_to_return_data <<", cmd_id = " << head.m_command << ", pr_v=" << head.m_protocol_version << ", uid=" << string_tools::get_str_from_guid_a(head.m_id) << "]");
 
-			if(is_request)
+			if (is_request)
 			{
 				CRITICAL_REGION_BEGIN(m_recieved_packets_lock);
 				m_recieved_packets.resize(m_recieved_packets.size() + 1);
@@ -472,11 +472,11 @@ namespace levin
 					continue;
 				}
 
-				if(have_some_data(m_socket, 1))
+				if (have_some_data(m_socket, 1))
 				{
 					if(!reciev_and_process_incoming_data())
 					{
-						if(m_is_stop)
+						if (m_is_stop)
 						{
 							break;//boost::interprocess::ipcdetail::atomic_dec32(&m_threads_count);
 							//return true;
@@ -499,10 +499,10 @@ namespace levin
 
 			net_utils::connection_context_base conn_context;
 			conn_context.m_remote_address = m_address;
-			if(head.m_have_to_return_data)
+			if (head.m_have_to_return_data)
 			{
 				std::string return_buff;
-				if(m_pcommands_handler)
+				if (m_pcommands_handler)
 					head.m_return_code = m_pcommands_handler->invoke(head.m_id, head.m_command, local_buff, return_buff, conn_context);
 				else 
 					head.m_return_code = LEVIN_ERROR_CONNECTION_HANDLER_NOT_DEFINED;
@@ -517,12 +517,12 @@ namespace levin
 				std::string send_buff((const char*)&head, sizeof(head));
 				send_buff += return_buff;
 				CRITICAL_REGION_BEGIN(m_send_lock);
-				if(conn_index != boost::interprocess::ipcdetail::atomic_read32(&m_current_connection_index))
+				if (conn_index != boost::interprocess::ipcdetail::atomic_read32(&m_current_connection_index))
 				{//there was reconnect, send response back is not allowed
 					return true;
 				}
 				int res = ::send(m_socket, (const char*)send_buff.data(), send_buff.size(), 0);
-				if(res == SOCKET_ERROR)
+				if (res == SOCKET_ERROR)
 				{
 					int err_code = ::WSAGetLastError();
 					LOG_ERROR("Failed to send, err = " << err_code);
@@ -534,7 +534,7 @@ namespace levin
 			}
 			else
 			{
-				if(m_pcommands_handler)
+				if (m_pcommands_handler)
 					m_pcommands_handler->notify(head.m_id, head.m_command, local_buff, conn_context);
 			}
 
@@ -555,7 +555,7 @@ namespace levin
 				uint32_t conn_index = 0;
 
 				CRITICAL_REGION_BEGIN(m_recieved_packets_lock);
-				if(m_recieved_packets.size())
+				if (m_recieved_packets.size())
 				{
 					bh = m_recieved_packets.begin()->m_hd;
 					conn_index = m_recieved_packets.begin()->m_connection_index;
@@ -565,7 +565,7 @@ namespace levin
 				}
 				CRITICAL_REGION_END();
 
-				if(have_some_work)
+				if (have_some_work)
 				{
 					process_recieved_packet(bh, local_buff, conn_index);
 				}else 

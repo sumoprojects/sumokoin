@@ -374,7 +374,7 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL(m_host_fails_score_lock);
     uint64_t fails = m_host_fails_score[ctx->m_remote_address.host_str()] += score;
     MDEBUG("Host " << ctx->m_remote_address.host_str() << " fail score=" << fails);
-    if(fails > RPC_IP_FAILS_BEFORE_BLOCK)
+    if (fails > RPC_IP_FAILS_BEFORE_BLOCK)
     {
       auto it = m_host_fails_score.find(ctx->m_remote_address.host_str());
       CHECK_AND_ASSERT_MES(it != m_host_fails_score.end(), false, "internal error");
@@ -802,7 +802,7 @@ namespace cryptonote
         res.status = "Failed to parse hex representation of transaction hash";
         return true;
       }
-      if(b.size() != sizeof(crypto::hash))
+      if (b.size() != sizeof(crypto::hash))
       {
         res.status = "Failed, size of data mismatch";
         return true;
@@ -828,7 +828,7 @@ namespace cryptonote
       std::vector<tx_info> pool_tx_info;
       std::vector<spent_key_image_info> pool_key_image_info;
       bool r = m_core.get_pool_transactions_and_spent_keys_info(pool_tx_info, pool_key_image_info, !request_has_rpc_origin || !restricted);
-      if(r)
+      if (r)
       {
         // sort to match original request
         std::vector<std::tuple<crypto::hash, cryptonote::blobdata, crypto::hash, cryptonote::blobdata>> sorted_txs;
@@ -1219,7 +1219,7 @@ namespace cryptonote
         res.status = "Failed to parse hex representation of key image";
         return true;
       }
-      if(b.size() != sizeof(crypto::key_image))
+      if (b.size() != sizeof(crypto::key_image))
       {
         res.status = "Failed, size of data mismatch";
       }
@@ -1368,14 +1368,14 @@ namespace cryptonote
     unsigned int concurrency_count = boost::thread::hardware_concurrency() * 4;
 
     // if we couldn't detect threads, set it to a ridiculously high number
-    if(concurrency_count == 0)
+    if (concurrency_count == 0)
     {
       concurrency_count = 257;
     }
 
     // if there are more threads requested than the hardware supports
     // then we fail and log that.
-    if(req.threads_count > concurrency_count)
+    if (req.threads_count > concurrency_count)
     {
       res.status = "Failed, too many threads relative to CPU cores.";
       LOG_PRINT_L0(res.status);
@@ -1555,7 +1555,7 @@ namespace cryptonote
   bool core_rpc_server::on_set_log_hash_rate(const COMMAND_RPC_SET_LOG_HASH_RATE::request& req, COMMAND_RPC_SET_LOG_HASH_RATE::response& res, const connection_context *ctx)
   {
     RPC_TRACKER(set_log_hash_rate);
-    if(m_core.get_miner().is_mining())
+    if (m_core.get_miner().is_mining())
     {
       m_core.get_miner().do_print_hashrate(req.visible);
       res.status = CORE_RPC_STATUS_OK;
@@ -1740,14 +1740,14 @@ namespace cryptonote
         return false;
       }
     }
-    if(req.size() != 1)
+    if (req.size() != 1)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_WRONG_PARAM;
       error_resp.message = "Wrong parameters, expected height";
       return false;
     }
     uint64_t h = req[0];
-    if(m_core.get_current_blockchain_height() <= h)
+    if (m_core.get_current_blockchain_height() <= h)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_TOO_BIG_HEIGHT;
       error_resp.message = std::string("Requested block height: ") + std::to_string(h) + " greater than current top block height: " +  std::to_string(m_core.get_current_blockchain_height() - 1);
@@ -1765,7 +1765,7 @@ namespace cryptonote
     if (patlen > buflen || patlen == 0) return 0;
     while(buflen>0 && (buf=memchr(buf,((const char*)pat)[0],buflen-patlen+1)))
     {
-      if(memcmp(buf,pat,patlen)==0)
+      if (memcmp(buf,pat,patlen)==0)
         return (const char*)buf - (const char*)start_buff;
       buf=(const char*)buf+1;
       buflen = (const char*)end - (const char*)buf;
@@ -1785,7 +1785,7 @@ namespace cryptonote
     }
     blobdata block_blob = t_serializable_object_to_blob(b);
     crypto::public_key tx_pub_key = cryptonote::get_tx_pub_key_from_extra(b.miner_tx);
-    if(tx_pub_key == crypto::null_pkey)
+    if (tx_pub_key == crypto::null_pkey)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
       error_resp.message = "Internal error: failed to create block template";
@@ -1808,7 +1808,7 @@ namespace cryptonote
       return false;
     }
     reserved_offset += sizeof(tx_pub_key) + 2; //2 bytes: tag for TX_EXTRA_NONCE(1 byte), counter in TX_EXTRA_NONCE(1 byte)
-    if(reserved_offset + extra_nonce.size() > block_blob.size())
+    if (reserved_offset + extra_nonce.size() > block_blob.size())
     {
       error_resp.code = CORE_RPC_ERROR_CODE_INTERNAL_ERROR;
       error_resp.message = "Internal error: failed to create block template";
@@ -1832,21 +1832,21 @@ namespace cryptonote
       return false;
     }
 
-    if(req.reserve_size > 255)
+    if (req.reserve_size > 255)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_TOO_BIG_RESERVE_SIZE;
       error_resp.message = "Too big reserved size, maximum 255";
       return false;
     }
 
-    if(req.reserve_size && !req.extra_nonce.empty())
+    if (req.reserve_size && !req.extra_nonce.empty())
     {
       error_resp.code = CORE_RPC_ERROR_CODE_WRONG_PARAM;
       error_resp.message = "Cannot specify both a reserve_size and an extra_nonce";
       return false;
     }
 
-    if(req.extra_nonce.size() > 510)
+    if (req.extra_nonce.size() > 510)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_TOO_BIG_RESERVE_SIZE;
       error_resp.message = "Too big extra_nonce size, maximum 510 hex chars";
@@ -1921,7 +1921,7 @@ namespace cryptonote
       }
     }
     CHECK_CORE_READY();
-    if(req.size()!=1)
+    if (req.size()!=1)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_WRONG_PARAM;
       error_resp.message = "Wrong param";
@@ -1973,7 +1973,7 @@ namespace cryptonote
 
     res.status = CORE_RPC_STATUS_OK;
 
-    if(m_core.get_nettype() != FAKECHAIN)
+    if (m_core.get_nettype() != FAKECHAIN)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_REGTEST_REQUIRED;
       error_resp.message = "Regtest required when generating blocks";
@@ -2302,7 +2302,7 @@ namespace cryptonote
     if (use_bootstrap_daemon_if_necessary<COMMAND_RPC_GET_BLOCK_HEADER_BY_HEIGHT>(invoke_http_mode::JON_RPC, "getblockheaderbyheight", req, res, r))
       return r;
 
-    if(m_core.get_current_blockchain_height() <= req.height)
+    if (m_core.get_current_blockchain_height() <= req.height)
     {
       error_resp.code = CORE_RPC_ERROR_CODE_TOO_BIG_HEIGHT;
       error_resp.message = std::string("Requested block height: ") + std::to_string(req.height) + " greater than current top block height: " +  std::to_string(m_core.get_current_blockchain_height() - 1);
@@ -2352,7 +2352,7 @@ namespace cryptonote
     }
     else
     {
-      if(m_core.get_current_blockchain_height() <= req.height)
+      if (m_core.get_current_blockchain_height() <= req.height)
       {
         error_resp.code = CORE_RPC_ERROR_CODE_TOO_BIG_HEIGHT;
         error_resp.message = std::string("Requested block height: ") + std::to_string(req.height) + " greater than current top block height: " +  std::to_string(m_core.get_current_blockchain_height() - 1);
@@ -3220,7 +3220,7 @@ namespace cryptonote
       {
         MINFO("This payment meets the current network difficulty");
         block_verification_context bvc;
-        if(m_core.handle_block_found(block, bvc))
+        if (m_core.handle_block_found(block, bvc))
           MGINFO_GREEN("Block found by RPC user at height " << get_block_height(block) << ": " <<
               print_money(cryptonote::get_outs_money_amount(block.miner_tx)));
         else

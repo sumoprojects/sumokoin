@@ -81,7 +81,7 @@ namespace levin
 
 	bool load_levin_data_from_levin_message(std::string& levin_data, const std::string& buff, int& command)
 	{
-		if(buff.size() < sizeof(levin::bucket_head) )
+		if (buff.size() < sizeof(levin::bucket_head) )
 		{
 			LOG_PRINT_L3("size of buff(" << buff.size() << ") is too small, at load_struct_from_levin_message");
 			return false;
@@ -98,12 +98,12 @@ namespace levin
 		head.m_reservedA = SWAP32LE(head.m_reservedA);
 		head.m_reservedB = SWAP32LE(head.m_reservedB);
 #endif
-		if(head.m_signature != LEVIN_SIGNATURE)
+		if (head.m_signature != LEVIN_SIGNATURE)
 		{
 			LOG_PRINT_L3("Failed to read signature in levin message, at load_struct_from_levin_message");
 			return false;
 		}
-		if(head.m_cb != buff.size()-sizeof(levin::bucket_head))
+		if (head.m_cb != buff.size()-sizeof(levin::bucket_head))
 		{
 			LOG_PRINT_L3("sizes mismatch, at load_struct_from_levin_message");
 			return false;
@@ -118,7 +118,7 @@ namespace levin
 	template<class t_struct>
 	bool load_struct_from_levin_message(t_struct& t, const std::string& buff, int& command)
 	{
-		if(buff.size() < sizeof(levin::bucket_head) )
+		if (buff.size() < sizeof(levin::bucket_head) )
 		{
 			LOG_ERROR("size of buff(" << buff.size() << ") is too small, at load_struct_from_levin_message");
 			return false;
@@ -135,12 +135,12 @@ namespace levin
 		head.m_reservedA = SWAP32LE(head.m_reservedA);
 		head.m_reservedB = SWAP32LE(head.m_reservedB);
 #endif
-		if(head.m_signature != LEVIN_SIGNATURE)
+		if (head.m_signature != LEVIN_SIGNATURE)
 		{
 			LOG_ERROR("Failed to read signature in levin message, at load_struct_from_levin_message");
 			return false;
 		}
-		if(head.m_cb != buff.size()-sizeof(levin::bucket_head))
+		if (head.m_cb != buff.size()-sizeof(levin::bucket_head))
 		{
 			LOG_ERROR("sizes mismatch, at load_struct_from_levin_message");
 			return false;

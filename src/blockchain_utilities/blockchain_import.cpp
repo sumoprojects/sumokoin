@@ -175,7 +175,7 @@ int check_flush(cryptonote::core &core, std::vector<block_complete_entry> &block
     {
       tx_verification_context tvc = AUTO_VAL_INIT(tvc);
       core.handle_incoming_tx(tx_blob, tvc, relay_method::block, true);
-      if(tvc.m_verifivation_failed)
+      if (tvc.m_verifivation_failed)
       {
         MERROR("transaction verification failed, tx_id = "
             << epee::string_tools::pod_to_hex(get_blob_hash(tx_blob.blob)));
@@ -190,14 +190,14 @@ int check_flush(cryptonote::core &core, std::vector<block_complete_entry> &block
 
     core.handle_incoming_block(block_entry.block, pblocks.empty() ? NULL : &pblocks[blockidx++], bvc, false); // <--- process block
 
-    if(bvc.m_verifivation_failed)
+    if (bvc.m_verifivation_failed)
     {
       MERROR("Block verification failed, id = "
           << epee::string_tools::pod_to_hex(get_blob_hash(block_entry.block)));
       core.cleanup_handle_incoming_blocks();
       return 1;
     }
-    if(bvc.m_marked_as_orphaned)
+    if (bvc.m_marked_as_orphaned)
     {
       MERROR("Block received at sync phase was marked as orphaned");
       core.cleanup_handle_incoming_blocks();

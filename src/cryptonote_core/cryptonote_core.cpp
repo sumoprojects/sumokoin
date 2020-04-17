@@ -243,7 +243,7 @@ namespace cryptonote
   }
   void core::set_cryptonote_protocol(i_cryptonote_protocol* pprotocol)
   {
-    if(pprotocol)
+    if (pprotocol)
       m_pprotocol = pprotocol;
     else
       m_pprotocol = &m_protocol_stub;
@@ -537,27 +537,27 @@ namespace cryptonote
       // default to fast:async:1
       uint64_t DEFAULT_FLAGS = DBF_FAST;
 
-      if(options.size() == 0)
+      if (options.size() == 0)
       {
         // default to fast:async:1
         db_flags = DEFAULT_FLAGS;
       }
 
       bool safemode = false;
-      if(options.size() >= 1)
+      if (options.size() >= 1)
       {
-        if(options[0] == "safe")
+        if (options[0] == "safe")
         {
           safemode = true;
           db_flags = DBF_SAFE;
           sync_mode = db_sync_mode_is_default ? db_defaultsync : db_nosync;
         }
-        else if(options[0] == "fast")
+        else if (options[0] == "fast")
         {
           db_flags = DBF_FAST;
           sync_mode = db_sync_mode_is_default ? db_defaultsync : db_async;
         }
-        else if(options[0] == "fastest")
+        else if (options[0] == "fastest")
         {
           db_flags = DBF_FASTEST;
           sync_threshold = 1000; // default to fastest:async:1000
@@ -567,15 +567,15 @@ namespace cryptonote
           db_flags = DEFAULT_FLAGS;
       }
 
-      if(options.size() >= 2 && !safemode)
+      if (options.size() >= 2 && !safemode)
       {
-        if(options[1] == "sync")
+        if (options[1] == "sync")
           sync_mode = db_sync_mode_is_default ? db_defaultsync : db_sync;
-        else if(options[1] == "async")
+        else if (options[1] == "async")
           sync_mode = db_sync_mode_is_default ? db_defaultsync : db_async;
       }
 
-      if(options.size() >= 3 && !safemode)
+      if (options.size() >= 3 && !safemode)
       {
         char *endptr;
         uint64_t threshold = strtoull(options[2].c_str(), &endptr, 0);
@@ -750,7 +750,7 @@ namespace cryptonote
   {
     tvc = {};
 
-    if(tx_blob.blob.size() > get_max_tx_size())
+    if (tx_blob.blob.size() > get_max_tx_size())
     {
       LOG_PRINT_L1("WRONG TRANSACTION BLOB, too big size " << tx_blob.blob.size() << ", rejected");
       tvc.m_verifivation_failed = true;
@@ -976,12 +976,12 @@ namespace cryptonote
     for (size_t i = 0; i < tx_blobs.size(); i++, ++it) {
       if (!results[i].res)
         continue;
-      if(m_mempool.have_tx(results[i].hash, relay_category::legacy))
+      if (m_mempool.have_tx(results[i].hash, relay_category::legacy))
       {
         LOG_PRINT_L2("tx " << results[i].hash << "already have transaction in tx_pool");
         already_have[i] = true;
       }
-      else if(m_blockchain_storage.have_tx(results[i].hash))
+      else if (m_blockchain_storage.have_tx(results[i].hash))
       {
         LOG_PRINT_L2("tx " << results[i].hash << " already have transaction in blockchain");
         already_have[i] = true;
@@ -1030,12 +1030,12 @@ namespace cryptonote
       const uint64_t weight = results[i].tx.pruned ? get_pruned_transaction_weight(results[i].tx) : get_transaction_weight(results[i].tx, it->blob.size());
       ok &= add_new_tx(results[i].tx, results[i].hash, tx_blobs[i].blob, weight, tvc[i], tx_relay, relayed);
 
-      if(tvc[i].m_verifivation_failed)
+      if (tvc[i].m_verifivation_failed)
       {MERROR_VER("Transaction verification failed: " << results[i].hash);}
-      else if(tvc[i].m_verifivation_impossible)
+      else if (tvc[i].m_verifivation_impossible)
       {MERROR_VER("Transaction verification impossible: " << results[i].hash);}
 
-      if(tvc[i].m_added_to_pool)
+      if (tvc[i].m_added_to_pool)
         MDEBUG("tx added: " << results[i].hash);
     }
     return ok;
@@ -1088,7 +1088,7 @@ namespace cryptonote
       get_inputs_money_amount(tx, amount_in);
       uint64_t amount_out = get_outs_money_amount(tx);
 
-      if(amount_in <= amount_out)
+      if (amount_in <= amount_out)
       {
         MERROR_VER("tx with wrong amounts: ins " << amount_in << ", outs " << amount_out << ", rejected for tx id= " << get_transaction_hash(tx));
         return false;
@@ -1240,13 +1240,13 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------
   bool core::add_new_tx(transaction& tx, const crypto::hash& tx_hash, const cryptonote::blobdata &blob, size_t tx_weight, tx_verification_context& tvc, relay_method tx_relay, bool relayed)
   {
-    if(m_mempool.have_tx(tx_hash, relay_category::legacy))
+    if (m_mempool.have_tx(tx_hash, relay_category::legacy))
     {
       LOG_PRINT_L2("tx " << tx_hash << "already have transaction in tx_pool");
       return true;
     }
 
-    if(m_blockchain_storage.have_tx(tx_hash))
+    if (m_blockchain_storage.have_tx(tx_hash))
     {
       LOG_PRINT_L2("tx " << tx_hash << " already have transaction in blockchain");
       return true;
@@ -1404,7 +1404,7 @@ namespace cryptonote
 
 
     CHECK_AND_ASSERT_MES(!bvc.m_verifivation_failed, false, "mined block failed verification");
-    if(bvc.m_added_to_main_chain)
+    if (bvc.m_added_to_main_chain)
     {
       cryptonote_connection_context exclude_context = {};
       NOTIFY_NEW_BLOCK::request arg = AUTO_VAL_INIT(arg);
@@ -1412,7 +1412,7 @@ namespace cryptonote
       std::vector<crypto::hash> missed_txs;
       std::vector<cryptonote::blobdata> txs;
       m_blockchain_storage.get_transactions_blobs(b.tx_hashes, txs, missed_txs);
-      if(missed_txs.size() &&  m_blockchain_storage.get_block_id_by_height(get_block_height(b)) != get_block_hash(b))
+      if (missed_txs.size() &&  m_blockchain_storage.get_block_id_by_height(get_block_height(b)) != get_block_hash(b))
       {
         LOG_PRINT_L1("Block found but, seems that reorganize just happened after that, do not relay this block");
         return true;
@@ -1502,7 +1502,7 @@ namespace cryptonote
       b = &lb;
     }
     add_new_block(*b, bvc);
-    if(update_miner_blocktemplate && bvc.m_added_to_main_chain)
+    if (update_miner_blocktemplate && bvc.m_added_to_main_chain)
        update_miner_block_template();
     return true;
 
@@ -1517,7 +1517,7 @@ namespace cryptonote
     // blob size against the block weight limit, which acts as a sanity check without
     // having to parse/weigh first; in fact, since the block blob is the block header
     // plus the tx hashes, the weight will typically be much larger than the blob size
-    if(block_blob.size() > m_blockchain_storage.get_current_cumulative_block_weight_limit() + BLOCK_SIZE_SANITY_LEEWAY)
+    if (block_blob.size() > m_blockchain_storage.get_current_cumulative_block_weight_limit() + BLOCK_SIZE_SANITY_LEEWAY)
     {
       LOG_PRINT_L1("WRONG BLOCK BLOB, sanity check failed on size " << block_blob.size() << ", rejected");
       return false;

@@ -62,7 +62,7 @@ namespace net_utils
 			STATIC_REGEXP_EXPR_1(rexp_match_boundary, "boundary=(.*?)(($)|([;\\s,]))", boost::regex::icase | boost::regex::normal);
 			//											        1
 			boost::smatch result;	
-			if(boost::regex_search(content_type, result, rexp_match_boundary, boost::match_default) && result[0].matched)
+			if (boost::regex_search(content_type, result, rexp_match_boundary, boost::match_default) && result[0].matched)
 			{
 				boundary = result[1];
 				return true;
@@ -92,11 +92,11 @@ namespace net_utils
 				const size_t field_etc_name = 4;
 
 				int i = 2; //start position = 2
-				if(result[i++].matched)//"Content-Disposition"
+				if (result[i++].matched)//"Content-Disposition"
 					entry.m_content_disposition = result[field_val];
-				else if(result[i++].matched)//"Content-Type"
+				else if (result[i++].matched)//"Content-Type"
 					entry.m_content_type = result[field_val];
-				else if(result[i++].matched)//e.t.c (HAVE TO BE MATCHED!)
+				else if (result[i++].matched)//e.t.c (HAVE TO BE MATCHED!)
 					entry.m_etc_header_fields.push_back(std::pair<std::string, std::string>(result[field_etc_name], result[field_val]));
 				else
 				{
@@ -113,7 +113,7 @@ namespace net_utils
 		{
 			std::string end_str = "\r\n\r\n";
 			std::string::const_iterator end_header_it = std::search(it_begin, it_end, end_str.begin(), end_str.end());
-			if(end_header_it == it_end)
+			if (end_header_it == it_end)
 			{
 				//header not matched 
 				return false;
@@ -152,13 +152,13 @@ namespace net_utils
 			{
 				std::string::size_type pos = body.find(boundary, std::distance(body.begin(), it_begin));
 			
-				if(std::string::npos == pos)
+				if (std::string::npos == pos)
 				{
 					is_stop = true;
 					boundary.erase(boundary.size()-2, 2);
 					boundary+= "--";
 					pos = body.find(boundary, std::distance(body.begin(), it_begin));
-					if(std::string::npos == pos)
+					if (std::string::npos == pos)
 					{
 						MERROR("Error: Filed to match closing multipart tag");
 						it_end = body.end();
@@ -170,7 +170,7 @@ namespace net_utils
 					it_end =  body.begin() + pos;
 
 			
-				if(first_step && !is_stop)
+				if (first_step && !is_stop)
 				{
 					first_step = false;
 					it_begin = it_end + boundary.size();
@@ -232,7 +232,7 @@ namespace net_utils
 		//file_io_utils::save_string_to_file(string_tools::get_current_module_folder() + "/" + boost::lexical_cast<std::string>(ptr), std::string((const char*)ptr, cb));
 
 		bool res = handle_buff_in(buf);
-		if(m_want_close/*m_state == http_state_connection_close || m_state == http_state_error*/)
+		if (m_want_close/*m_state == http_state_connection_close || m_state == http_state_error*/)
 			return false;
 		return res;
 	}
@@ -243,7 +243,7 @@ namespace net_utils
 
 		size_t ndel;
 
-		if(m_cache.size())
+		if (m_cache.size())
 			m_cache += buf;
 		else
 			m_cache.swap(buf);
@@ -276,12 +276,12 @@ namespace net_utils
 					break;
 				}
 
-				if(std::string::npos != m_cache.find('\n', 0))
+				if (std::string::npos != m_cache.find('\n', 0))
 					handle_invoke_query_line();
 				else
 				{
 					m_is_stop_handling = true;
-					if(m_cache.size() > HTTP_MAX_URI_LEN)
+					if (m_cache.size() > HTTP_MAX_URI_LEN)
 					{
 						LOG_ERROR_CC(m_conn_context, "simple_http_connection_handler::handle_buff_out: Too long URI line");
 						m_state = http_state_error;
@@ -292,10 +292,10 @@ namespace net_utils
 			case http_state_retriving_header:
 				{
 					std::string::size_type pos = match_end_of_header(m_cache);
-					if(std::string::npos == pos)
+					if (std::string::npos == pos)
 					{
 						m_is_stop_handling = true;
-						if(m_cache.size() > HTTP_MAX_HEADER_LEN)
+						if (m_cache.size() > HTTP_MAX_HEADER_LEN)
 						{
 							LOG_ERROR_CC(m_conn_context, "simple_http_connection_handler::handle_buff_in: Too long header area");
 							m_state = http_state_error;
@@ -334,15 +334,15 @@ namespace net_utils
 		if (!boost::conversion::try_lexical_convert<int>(result[12], http_ver_minor))
 			return false;
 
-		if(result[3].matched)
+		if (result[3].matched)
 			method = http::http_method_options;
-		else if(result[4].matched)
+		else if (result[4].matched)
 			method = http::http_method_get;
-		else if(result[5].matched)
+		else if (result[5].matched)
 			method = http::http_method_head;
-		else if(result[6].matched)
+		else if (result[6].matched)
 			method = http::http_method_post;
-		else if(result[7].matched)
+		else if (result[7].matched)
 			method = http::http_method_put;
 		else 
 			method = http::http_method_etc;
@@ -358,7 +358,7 @@ namespace net_utils
 		//											    123         4     5      6      7     8        9        10          11     12    
 		//size_t match_len = 0;
 		boost::smatch result;	
-		if(boost::regex_search(m_cache, result, rexp_match_command_line, boost::match_default) && result[0].matched)
+		if (boost::regex_search(m_cache, result, rexp_match_command_line, boost::match_default) && result[0].matched)
 		{
 			if (!analize_http_method(result, m_query_info.m_http_method, m_query_info.m_http_ver_hi, m_query_info.m_http_ver_hi))
 			{
@@ -397,10 +397,10 @@ namespace net_utils
 
     //Here we returning head size, including terminating sequence (\r\n\r\n or \n\n)
 		std::string::size_type res = buf.find("\r\n\r\n");
-		if(std::string::npos != res)
+		if (std::string::npos != res)
 			return res+4;
 		res = buf.find("\n\n");
-		if(std::string::npos != res)
+		if (std::string::npos != res)
 			return res+2;
 		return res;
 	}
@@ -425,7 +425,7 @@ namespace net_utils
 		std::string req_command_str = m_query_info.m_full_request_str;
     //if we have POST or PUT command, it is very possible tha we will get body
     //but now, we suppose than we have body only in case of we have "ContentLength" 
-		if(m_query_info.m_header_info.m_content_length.size())
+		if (m_query_info.m_header_info.m_content_length.size())
 		{
 			m_state = http_state_retriving_body;
 			m_body_transfer_type = http_body_transfer_measure;
@@ -435,9 +435,9 @@ namespace net_utils
 				m_state = http_state_error;
 				return false;
 			}
-			if(0 == m_len_summary)
+			if (0 == m_len_summary)
 			{	//current query finished, next will be next query
-				if(handle_request_and_send_response(m_query_info))
+				if (handle_request_and_send_response(m_query_info))
 					set_ready_state();
 				else
 					m_state = http_state_error;
@@ -476,7 +476,7 @@ namespace net_utils
 	bool simple_http_connection_handler<t_connection_context>::handle_query_measure()
 	{
 
-		if(m_len_remain >= m_cache.size())
+		if (m_len_remain >= m_cache.size())
 		{
 			m_len_remain -= m_cache.size();
 			m_query_info.m_body += m_cache;
@@ -490,7 +490,7 @@ namespace net_utils
 
 		if(!m_len_remain)
 		{
-			if(handle_request_and_send_response(m_query_info))
+			if (handle_request_and_send_response(m_query_info))
 				set_ready_state();
 			else
 				m_state = http_state_error;
@@ -521,27 +521,27 @@ namespace net_utils
 			const size_t field_etc_name = 12;
 
 			int i = 2; //start position = 2
-			if(result[i++].matched)//"Connection"
+			if (result[i++].matched)//"Connection"
 				body_info.m_connection = result[field_val];
-			else if(result[i++].matched)//"Referer"
+			else if (result[i++].matched)//"Referer"
 				body_info.m_referer = result[field_val];
-			else if(result[i++].matched)//"Content-Length"
+			else if (result[i++].matched)//"Content-Length"
 				body_info.m_content_length = result[field_val];
-			else if(result[i++].matched)//"Content-Type"
+			else if (result[i++].matched)//"Content-Type"
 				body_info.m_content_type = result[field_val];
-			else if(result[i++].matched)//"Transfer-Encoding"
+			else if (result[i++].matched)//"Transfer-Encoding"
 				body_info.m_transfer_encoding = result[field_val];
-			else if(result[i++].matched)//"Content-Encoding"
+			else if (result[i++].matched)//"Content-Encoding"
 				body_info.m_content_encoding = result[field_val];
-			else if(result[i++].matched)//"Host"
+			else if (result[i++].matched)//"Host"
 				body_info.m_host = result[field_val];
-			else if(result[i++].matched)//"Cookie"
+			else if (result[i++].matched)//"Cookie"
 				body_info.m_cookie = result[field_val];
-			else if(result[i++].matched)//"User-Agent"
+			else if (result[i++].matched)//"User-Agent"
 				body_info.m_user_agent = result[field_val];
-			else if(result[i++].matched)//"Origin"
+			else if (result[i++].matched)//"Origin"
 				body_info.m_origin = result[field_val];
-			else if(result[i++].matched)//e.t.c (HAVE TO BE MATCHED!)
+			else if (result[i++].matched)//e.t.c (HAVE TO BE MATCHED!)
 				body_info.m_etc_fields.push_back(std::pair<std::string, std::string>(result[field_etc_name], result[field_val]));
 			else
 			{
@@ -654,7 +654,7 @@ namespace net_utils
 		//Wed, 01 Dec 2010 03:27:41 GMT"
 
 		string_tools::trim(m_query_info.m_header_info.m_connection);
-		if(m_query_info.m_header_info.m_connection.size())
+		if (m_query_info.m_header_info.m_connection.size())
 		{
 			if(!string_tools::compare_no_case("close", m_query_info.m_header_info.m_connection))
 			{
@@ -666,7 +666,7 @@ namespace net_utils
 		}
 
 		// Cross-origin resource sharing
-		if(m_query_info.m_header_info.m_origin.size())
+		if (m_query_info.m_header_info.m_origin.size())
 		{
 			if (std::binary_search(m_config.m_access_control_origins.begin(), m_config.m_access_control_origins.end(), m_query_info.m_header_info.m_origin))
 			{

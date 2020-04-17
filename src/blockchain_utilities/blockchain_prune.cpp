@@ -92,7 +92,7 @@ static void add_size(MDB_env *env, uint64_t bytes)
   {
     boost::filesystem::path path(db_path);
     boost::filesystem::space_info si = boost::filesystem::space(path);
-    if(si.available < bytes)
+    if (si.available < bytes)
     {
       MERROR("!! WARNING: Insufficient free space to extend database !!: " <<
           (si.available >> 20L) << " MB available, " << (bytes >> 20L) << " MB needed");
@@ -395,25 +395,25 @@ static bool parse_db_sync_mode(std::string db_sync_mode, uint64_t &db_flags)
 
   db_flags = 0;
 
-  if(options.size() == 0)
+  if (options.size() == 0)
   {
     // default to fast:async:1
     db_flags = DEFAULT_FLAGS;
   }
 
   bool safemode = false;
-  if(options.size() >= 1)
+  if (options.size() >= 1)
   {
-    if(options[0] == "safe")
+    if (options[0] == "safe")
     {
       safemode = true;
       db_flags = DBF_SAFE;
     }
-    else if(options[0] == "fast")
+    else if (options[0] == "fast")
     {
       db_flags = DBF_FAST;
     }
-    else if(options[0] == "fastest")
+    else if (options[0] == "fastest")
     {
       db_flags = DBF_FASTEST;
       records_per_sync = 1000; // default to fastest:async:1000
@@ -422,7 +422,7 @@ static bool parse_db_sync_mode(std::string db_sync_mode, uint64_t &db_flags)
       return false;
   }
 
-  if(options.size() >= 2 && !safemode)
+  if (options.size() >= 2 && !safemode)
   {
     char *endptr;
     uint64_t bps = strtoull(options[1].c_str(), &endptr, 0);

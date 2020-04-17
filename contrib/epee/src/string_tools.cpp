@@ -44,7 +44,7 @@ namespace string_tools
     in_addr adr;
     adr.s_addr = ip;
     const char* pbuf = inet_ntoa(adr);
-    if(pbuf)
+    if (pbuf)
       return pbuf;
     else
       return "[failed]";
@@ -53,7 +53,7 @@ namespace string_tools
   bool get_ip_int32_from_string(uint32_t& ip, const std::string& ip_str)
   {
     ip = inet_addr(ip_str.c_str());
-    if(INADDR_NONE == ip)
+    if (INADDR_NONE == ip)
       return false;
 
     return true;

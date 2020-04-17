@@ -96,7 +96,7 @@ namespace trezor {
       return false;
     }
 
-    if(pri->m_response_code != 200)
+    if (pri->m_response_code != 200)
     {
       MERROR("Failed to invoke http request to  " << uri << ", wrong response code: " << pri->m_response_code
              << " Response Body: " << pri->m_body);

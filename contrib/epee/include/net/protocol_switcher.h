@@ -90,12 +90,12 @@ namespace net_utils
 
 	bool protocol_switcher::handle_recv(const void* ptr, size_t cb)
 	{
-		if(pcurrent_handler)
+		if (pcurrent_handler)
 			return pcurrent_handler->handle_recv(ptr, cb);
 		else
 		{
 			m_cached_buff.append((const char*)ptr, cb);
-			if(m_cached_buff.size() < sizeof(uint64_t))
+			if (m_cached_buff.size() < sizeof(uint64_t))
 				return true;
 
 			if(*((uint64_t*)&m_cached_buff[0]) == LEVIN_SIGNATURE)
@@ -103,7 +103,7 @@ namespace net_utils
 				pcurrent_handler = &m_levin_handler;
 				return pcurrent_handler->handle_recv(m_cached_buff.data(), m_cached_buff.size());
 			}
-			if(m_cached_buff.substr(0, 4) == "GET " || m_cached_buff.substr(0, 4) == "POST")
+			if (m_cached_buff.substr(0, 4) == "GET " || m_cached_buff.substr(0, 4) == "POST")
 			{
 				pcurrent_handler = &m_http_handler;
 				return pcurrent_handler->handle_recv(m_cached_buff.data(), m_cached_buff.size());

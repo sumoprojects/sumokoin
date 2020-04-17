@@ -55,7 +55,7 @@ namespace net_utils
 	private:
 		virtual bool handle_send(const void* ptr, size_t cb)
 		{
-			if(cb  != send(m_sock, (char*)ptr, (int)cb, 0))
+			if (cb  != send(m_sock, (char*)ptr, (int)cb, 0))
 			{
 				int sock_err = WSAGetLastError();
 				LOG_ERROR("soket_sender: Failed to send " << cb << " bytes, Error=" << sock_err);
@@ -182,7 +182,7 @@ namespace net_utils
 		m_initialized = true;
 
 		m_listen_socket = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, 0);
-		if(INVALID_SOCKET == m_listen_socket)
+		if (INVALID_SOCKET == m_listen_socket)
 		{
 			err = ::WSAGetLastError();
 			LOG_ERROR("Failed to create socket, err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
@@ -198,7 +198,7 @@ namespace net_utils
 		adr.sin_port = (u_short)htons(port_no);
 
 		err = bind(m_listen_socket, (const sockaddr*)&adr, sizeof(adr ));
-		if(SOCKET_ERROR == err )
+		if (SOCKET_ERROR == err )
 		{
 			err = ::WSAGetLastError();
 			LOG_PRINT("Failed to Bind, err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"", LOG_LEVEL_2);
@@ -218,11 +218,11 @@ namespace net_utils
 		if(!m_initialized)
 			return true;
 
-		if(INVALID_SOCKET != m_listen_socket)
+		if (INVALID_SOCKET != m_listen_socket)
 		{
 			shutdown(m_listen_socket, SD_BOTH);
 			int res = closesocket(m_listen_socket);
-			if(SOCKET_ERROR == res)
+			if (SOCKET_ERROR == res)
 			{
 				int err = ::WSAGetLastError();
 				LOG_ERROR("Failed to closesocket(), err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
@@ -231,7 +231,7 @@ namespace net_utils
 		}
 
 		int res = ::WSACleanup();
-		if(SOCKET_ERROR == res)
+		if (SOCKET_ERROR == res)
 		{
 			int err = ::WSAGetLastError();
 			LOG_ERROR("Failed to WSACleanup(), err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
@@ -252,7 +252,7 @@ namespace net_utils
 	bool abstract_tcp_server<THandler>::run_server()
 	{
 		int err = listen(m_listen_socket, 10000);
-		if(SOCKET_ERROR == err )
+		if (SOCKET_ERROR == err )
 		{
 			err = ::WSAGetLastError();
 			LOG_ERROR("Failed to listen, err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");

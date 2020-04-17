@@ -65,14 +65,14 @@ private:
 	static inline bool get_set_is_initialized(bool need_to_set = false, bool val_to_set= false)
 	{
 		static bool val_is_initialized = false;
-		if(need_to_set)
+		if (need_to_set)
 			val_is_initialized = val_to_set;
 		return val_is_initialized;
 	}
 	static inline bool get_set_is_uninitialized(bool need_to_set = false, bool val_to_set = false)
 	{
 		static bool val_is_uninitialized = false;
-		if(need_to_set)
+		if (need_to_set)
 			val_is_uninitialized = val_to_set;
 		return val_is_uninitialized;
 	}*/

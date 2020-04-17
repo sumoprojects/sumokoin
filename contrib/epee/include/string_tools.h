@@ -132,7 +132,7 @@ POP_WARNINGS
     //parse ip and address
     std::string::size_type p = addres.find(':');
     std::string ip_str, port_str;
-    if(p == std::string::npos)
+    if (p == std::string::npos)
     {
       port = 0;
       ip_str = addres;
@@ -148,7 +148,7 @@ POP_WARNINGS
       return false;
     }
 
-    if(p != std::string::npos && !get_xtype_from_string(port, port_str))
+    if (p != std::string::npos && !get_xtype_from_string(port, port_str))
     {
       return false;
     }
@@ -211,7 +211,7 @@ POP_WARNINGS
     path_to_process = get_current_module_path();
 #endif
 		std::string::size_type a = path_to_process.rfind( '\\' );
-		if(a == std::string::npos )
+		if (a == std::string::npos )
 		{
 			a = path_to_process.rfind( '/' );
 		}
@@ -303,7 +303,7 @@ POP_WARNINGS
 	{
 		std::string res;
 		std::string::size_type pos = str.rfind('.');
-		if(std::string::npos == pos)
+		if (std::string::npos == pos)
 			return res;
 
 		res = str.substr(pos+1, str.size()-pos);
@@ -314,7 +314,7 @@ POP_WARNINGS
 	{
 		std::string res;
 		std::string::size_type pos = str.rfind('.');
-		if(std::string::npos == pos)
+		if (std::string::npos == pos)
 			return str;
 
 		res = str.substr(0, pos);

@@ -57,7 +57,7 @@ namespace net_utils
 			memset(&m_zstream_in, 0, sizeof(m_zstream_in));
 			memset(&m_zstream_out, 0, sizeof(m_zstream_out));
 			int ret = 0;
-			if(is_deflate_mode)
+			if (is_deflate_mode)
 			{
 				ret = inflateInit(&m_zstream_in);	
 				ret = deflateInit(&m_zstream_out, Z_DEFAULT_COMPRESSION);
@@ -88,7 +88,7 @@ namespace net_utils
 			bool is_first_time_here = m_is_first_update_in;
 			m_is_first_update_in = false;
 
-			if(m_pre_decode.size())
+			if (m_pre_decode.size())
 				m_pre_decode += piece_of_transfer;
 			else
 				m_pre_decode.swap(piece_of_transfer);
@@ -116,9 +116,9 @@ namespace net_utils
 				int ret = inflate(&m_zstream_in, flag);
 				CHECK_AND_ASSERT_MES(ret>=0 || m_zstream_in.avail_out ||m_is_deflate_mode, false, "content_encoding_gzip::update_in() Failed to inflate. err = " << ret);
 
-				if(Z_STREAM_END == ret)
+				if (Z_STREAM_END == ret)
 					m_is_stream_ended = true;
-				else if(Z_DATA_ERROR == ret && is_first_time_here && m_is_deflate_mode&& first_step)
+				else if (Z_DATA_ERROR == ret && is_first_time_here && m_is_deflate_mode&& first_step)
 				{
 					// some servers (notably Apache with mod_deflate) don't generate zlib headers
 					// insert a dummy header and try again
@@ -154,12 +154,12 @@ namespace net_utils
 				//leave only unpacked part in the output buffer to start with it the next time
 				m_pre_decode.erase(0, m_pre_decode.size()-m_zstream_in.avail_in);
 				//if decoder gave nothing to return, then everything is ahead, now simply break
-				if(ungzip_size == m_zstream_in.avail_out)
+				if (ungzip_size == m_zstream_in.avail_out)
 					break;
 
 				//decode_buff currently stores data parts that were unpacked, fix this size
 				current_decode_buff.resize(ungzip_size - m_zstream_in.avail_out);
-				if(decode_summary_buff.size())
+				if (decode_summary_buff.size())
 					decode_summary_buff += current_decode_buff;
 				else
 					current_decode_buff.swap(decode_summary_buff);

@@ -196,7 +196,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::implode_scratchpad_hard()
 		aes_round10(x6, k0, k1, k2, k3, k4, k5, k6, k7, k8, k9);
 		aes_round10(x7, k0, k1, k2, k3, k4, k5, k6, k7, k8, k9);
 
-		if(VERSION > 0)
+		if (VERSION > 0)
 			xor_shift(x0, x1, x2, x3, x4, x5, x6, x7);
 	}
 
@@ -354,7 +354,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::hardware_hash(const void* in, size_t le
 		al0 ^= cl;
 		idx0 = al0;
 		
-		if(VERSION > 0)
+		if (VERSION > 0)
 		{
 			int64_t n  = scratchpad_ptr(idx0).as_qword(0);
 			int32_t d  = scratchpad_ptr(idx0).as_dword(2);

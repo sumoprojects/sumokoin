@@ -97,7 +97,7 @@ int levin_client_impl::invoke(int command, const epee::span<const uint8_t> in_bu
 	head = *(bucket_head*)local_buff.data();
 
 
-	if(head.m_signature!=SWAP64LE(LEVIN_SIGNATURE))
+	if (head.m_signature!=SWAP64LE(LEVIN_SIGNATURE))
 	{
 		LOG_PRINT_L1("Signature mismatch in response");
 		return -1;
@@ -158,7 +158,7 @@ inline
 
   head = *(bucket_head2*)local_buff.data();
 
-  if(head.m_signature != SWAP64LE(LEVIN_SIGNATURE))
+  if (head.m_signature != SWAP64LE(LEVIN_SIGNATURE))
   {
     LOG_PRINT_L1("Signature mismatch in response");
     return -1;

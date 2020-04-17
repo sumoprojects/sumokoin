@@ -465,14 +465,14 @@ namespace rpc
     unsigned int concurrency_count = boost::thread::hardware_concurrency() * 4;
 
     // if we couldn't detect threads, set it to a ridiculously high number
-    if(concurrency_count == 0)
+    if (concurrency_count == 0)
     {
       concurrency_count = 257;
     }
 
     // if there are more threads requested than the hardware supports
     // then we fail and log that.
-    if(req.threads_count > concurrency_count)
+    if (req.threads_count > concurrency_count)
     {
       res.error_details = "Failed, too many threads relative to CPU cores.";
       LOG_PRINT_L0(res.error_details);

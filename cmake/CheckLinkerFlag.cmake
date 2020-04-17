@@ -1,8 +1,8 @@
 include(CheckCCompilerFlag)
 
 macro(CHECK_LINKER_FLAG flag VARIABLE)
-  if(NOT DEFINED "${VARIABLE}")
-    if(NOT CMAKE_REQUIRED_QUIET)
+  if (NOT DEFINED "${VARIABLE}")
+    if (NOT CMAKE_REQUIRED_QUIET)
       message(STATUS "Looking for ${flag} linker flag")
     endif()
 
@@ -25,7 +25,7 @@ macro(CHECK_LINKER_FLAG flag VARIABLE)
     endif()
 
     if(${VARIABLE})
-      if(NOT CMAKE_REQUIRED_QUIET)
+      if (NOT CMAKE_REQUIRED_QUIET)
         message(STATUS "Looking for ${flag} linker flag - found")
       endif()
       set(${VARIABLE} 1 CACHE INTERNAL "Have linker flag ${flag}")
@@ -34,7 +34,7 @@ macro(CHECK_LINKER_FLAG flag VARIABLE)
         "passed with the following output:\n"
         "${OUTPUT}\n\n")
     else()
-      if(NOT CMAKE_REQUIRED_QUIET)
+      if (NOT CMAKE_REQUIRED_QUIET)
         message(STATUS "Looking for ${flag} linker flag - not found")
       endif()
       set(${VARIABLE} "" CACHE INTERNAL "Have linker flag ${flag}")

@@ -119,7 +119,7 @@
 #ifndef LOCAL_ASSERT
 #include <assert.h>
 #if (defined _MSC_VER)
-#define LOCAL_ASSERT(expr) {if(epee::debug::get_set_enable_assert()){_ASSERTE(expr);}}
+#define LOCAL_ASSERT(expr) {if (epee::debug::get_set_enable_assert()){_ASSERTE(expr);}}
 #else
 #define LOCAL_ASSERT(expr)
 #endif
@@ -140,7 +140,7 @@ namespace debug
   inline bool get_set_enable_assert(bool set = false, bool v = false)
   {
     static bool e = true;
-    if(set)
+    if (set)
       e = v;
     return e;
   }

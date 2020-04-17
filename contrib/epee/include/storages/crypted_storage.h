@@ -39,7 +39,7 @@ public:
 	size_t	PackToSolidBuffer(std::string& targetObj)
 	{
 		size_t res = t_base_storage::PackToSolidBuffer(targetObj);
-		if(res <= 0)
+		if (res <= 0)
 			return res;
 		
 		if(!crypt_provider::encrypt(targetObj, t_key_provider::get_storage_default_key()))
@@ -51,7 +51,7 @@ public:
 	size_t		LoadFromSolidBuffer(const std::string& pTargetObj)
 	{
 		std::string buff_to_decrypt = pTargetObj;
-		if(crypt_provider::decrypt(buff_to_decrypt, t_key_provider::get_storage_default_key()))
+		if (crypt_provider::decrypt(buff_to_decrypt, t_key_provider::get_storage_default_key()))
 			return t_base_storage::LoadFromSolidBuffer(buff_to_decrypt);
 
 		return 0;

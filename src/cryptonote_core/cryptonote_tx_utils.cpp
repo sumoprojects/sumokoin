@@ -289,7 +289,7 @@ namespace cryptonote
     for(const tx_source_entry& src_entr:  sources)
     {
       ++idx;
-      if(src_entr.real_output >= src_entr.outputs.size())
+      if (src_entr.real_output >= src_entr.outputs.size())
       {
         LOG_ERROR("real_output index (" << src_entr.real_output << ")bigger than output_keys.size()=" << src_entr.outputs.size());
         return false;
@@ -417,7 +417,7 @@ namespace cryptonote
       return false;
 
     //check money
-    if(summary_outs_money > summary_inputs_money )
+    if (summary_outs_money > summary_inputs_money )
     {
       LOG_ERROR("Transaction inputs money ("<< summary_inputs_money << ") less than outputs money (" << summary_outs_money << ")");
       return false;
@@ -480,7 +480,7 @@ namespace cryptonote
         // non simple ringct requires all real inputs to be at the same index for all inputs
         for(const tx_source_entry& src_entr:  sources)
         {
-          if(src_entr.real_output != sources.begin()->real_output)
+          if (src_entr.real_output != sources.begin()->real_output)
           {
             LOG_ERROR("All inputs must have the same index for non-simple ringct");
             return false;

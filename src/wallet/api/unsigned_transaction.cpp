@@ -70,7 +70,7 @@ string UnsignedTransactionImpl::errorString() const
 
 bool UnsignedTransactionImpl::sign(const std::string &signedFileName)
 {
-  if(m_wallet.watchOnly())
+  if (m_wallet.watchOnly())
   {
      m_errorString = tr("This is a watch only wallet");
      m_status = Status_Error;
@@ -118,7 +118,7 @@ bool UnsignedTransactionImpl::checkLoadedTx(const std::function<size_t()> get_nu
       if (find_tx_extra_field_by_type(tx_extra_fields, extra_nonce))
       {
         crypto::hash payment_id;
-        if(cryptonote::get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
+        if (cryptonote::get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
         {
           if (!payment_id_string.empty())
             payment_id_string += ", ";
@@ -270,7 +270,7 @@ std::vector<std::string> UnsignedTransactionImpl::paymentId() const
         if (cryptonote::find_tx_extra_field_by_type(tx_extra_fields, extra_nonce))
         {
           crypto::hash8 payment_id8 = crypto::null_hash8;
-          if(cryptonote::get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
+          if (cryptonote::get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
           {
               // We can't decrypt short pid without recipient key.
               memcpy(payment_id.data, payment_id8.data, 8);
@@ -280,7 +280,7 @@ std::vector<std::string> UnsignedTransactionImpl::paymentId() const
             payment_id = crypto::null_hash;
           }      
         }
-        if(payment_id != crypto::null_hash)
+        if (payment_id != crypto::null_hash)
             result.push_back(epee::string_tools::pod_to_hex(payment_id));
         else
             result.push_back("");

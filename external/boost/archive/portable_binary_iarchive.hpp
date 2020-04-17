@@ -238,15 +238,15 @@ portable_binary_iarchive::load_impl(boost::intmax_t & l, char maxsize){
     l = 0;
     this->primitive_base_t::load(size);
 
-    if(0 == size){
+    if (0 == size){
         return;
     }
 
     bool negative = (size < 0);
-    if(negative)
+    if (negative)
         size = -size;
 
-    if(size > maxsize)
+    if (size > maxsize)
         boost::serialization::throw_exception(
             portable_binary_iarchive_exception()
         );
@@ -260,11 +260,11 @@ portable_binary_iarchive::load_impl(boost::intmax_t & l, char maxsize){
     #if BOOST_ENDIAN_BIG_BYTE
         if((m_flags & endian_little) || (!(m_flags & endian_big)))
     #else
-        if(m_flags & endian_big)
+        if (m_flags & endian_big)
     #endif
     reverse_bytes(size, cptr);
     
-    if(negative)
+    if (negative)
         l = -l;
 }
 
@@ -276,7 +276,7 @@ portable_binary_iarchive::load_override(
     std::string cn;
     cn.reserve(BOOST_SERIALIZATION_MAX_KEY_SIZE);
     load_override(cn);
-    if(cn.size() > (BOOST_SERIALIZATION_MAX_KEY_SIZE - 1))
+    if (cn.size() > (BOOST_SERIALIZATION_MAX_KEY_SIZE - 1))
         boost::serialization::throw_exception(
             boost::archive::archive_exception(
                 boost::archive::archive_exception::invalid_class_name)
@@ -293,7 +293,7 @@ portable_binary_iarchive::load_override(
     std::string cn;
     cn.reserve(BOOST_SERIALIZATION_MAX_KEY_SIZE);
     load_override(cn, 0);
-    if(cn.size() > (BOOST_SERIALIZATION_MAX_KEY_SIZE - 1))
+    if (cn.size() > (BOOST_SERIALIZATION_MAX_KEY_SIZE - 1))
         boost::serialization::throw_exception(
             boost::archive::archive_exception(
                 boost::archive::archive_exception::invalid_class_name)
@@ -306,11 +306,11 @@ portable_binary_iarchive::load_override(
 
 inline void 
 portable_binary_iarchive::init(unsigned int flags){
-    if(0 == (flags & boost::archive::no_header)){
+    if (0 == (flags & boost::archive::no_header)){
         // read signature in an archive version independent manner
         std::string file_signature;
         * this >> file_signature;
-        if(file_signature != boost::archive::BOOST_ARCHIVE_SIGNATURE())
+        if (file_signature != boost::archive::BOOST_ARCHIVE_SIGNATURE())
             boost::serialization::throw_exception(
                 boost::archive::archive_exception(
                     boost::archive::archive_exception::invalid_signature
@@ -324,7 +324,7 @@ portable_binary_iarchive::init(unsigned int flags){
         // ignore archive version checking
         /*
         // extra little .t is to get around borland quirk
-        if(boost::archive::BOOST_ARCHIVE_VERSION() < input_library_version)
+        if (boost::archive::BOOST_ARCHIVE_VERSION() < input_library_version)
             boost::serialization::throw_exception(
                 boost::archive::archive_exception(
                     boost::archive::archive_exception::unsupported_version

@@ -77,7 +77,7 @@ target_link_libraries(wallet
   PRIVATE
     ${EXTRA_LIBRARIES})
 
-if(NOT IOS)
+if (NOT IOS)
   set(wallet_rpc_sources
     wallet_rpc_server.cpp)
 
@@ -141,7 +141,7 @@ if (BUILD_GUI_DEPS)
         list(APPEND objlibs $<TARGET_OBJECTS:obj_${lib}>) # matches naming convention in src/CMakeLists.txt
     endforeach()
     add_library(wallet_merged STATIC ${objlibs})
-    if(IOS)
+    if (IOS)
         set(lib_folder lib-${ARCH})
     else()
         set(lib_folder lib)

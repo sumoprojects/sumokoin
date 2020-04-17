@@ -195,7 +195,7 @@ target_link_libraries(blockchain_import
     ${EXTRA_LIBRARIES}
     ${Blocks})
 
-if(ARCH_WIDTH)
+if (ARCH_WIDTH)
   target_compile_definitions(blockchain_import
     PUBLIC -DARCH_WIDTH=${ARCH_WIDTH})
 endif()

@@ -84,18 +84,18 @@ bool make_tx(blockchain_storage& bch)
     transfer_details& td = *it;
     src.amount = td.m_tx.vout[td.m_internal_output_index].amount;
     //paste mixin transaction
-    if(daemon_resp.outs.size())
+    if (daemon_resp.outs.size())
     {
       daemon_resp.outs[i].outs.sort([](const out_entry& a, const out_entry& b){return a.global_amount_index < b.global_amount_index;});
       BOOST_FOREACH(out_entry& daemon_oe, daemon_resp.outs[i].outs)
       {
-        if(td.m_global_output_index == daemon_oe.global_amount_index)
+        if (td.m_global_output_index == daemon_oe.global_amount_index)
           continue;
         tx_output_entry oe;
         oe.first = daemon_oe.global_amount_index;
         oe.second = daemon_oe.out_key;
         src.outputs.push_back(oe);
-        if(src.outputs.size() >= fake_outputs_count)
+        if (src.outputs.size() >= fake_outputs_count)
           break;
       }
     }
@@ -118,7 +118,7 @@ bool make_tx(blockchain_storage& bch)
   }
 
 
-  if(found_money != needed_money)
+  if (found_money != needed_money)
   {
     //lets make last output to odd money
     dsts.resize(dsts.size()+1);
@@ -140,7 +140,7 @@ bool make_tx(blockchain_storage& bch)
   COMMAND_RPC_SEND_RAW_TX::response daemon_send_resp;
   r = net_utils::http::invoke_http_json_remote_command(m_daemon_address + "/sendrawtransaction", req, daemon_send_resp, m_http_client);
   CHECK_AND_ASSERT_MES(r, false, "failed to send transaction");
-  if(daemon_send_resp.status != CORE_RPC_STATUS_OK)
+  if (daemon_send_resp.status != CORE_RPC_STATUS_OK)
   {
     std::cout << "daemon failed to accept generated transaction" << ENDL;
     return false;

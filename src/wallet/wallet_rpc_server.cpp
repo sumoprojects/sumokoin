@@ -1039,7 +1039,7 @@ namespace tools
       er.message = "command not supported by HW wallet";
       return false;
     }
-    if(m_wallet->watch_only())
+    if (m_wallet->watch_only())
     {
       er.code = WALLET_RPC_ERROR_CODE_WATCH_ONLY;
       er.message = "command not supported by watch-only wallet";
@@ -1120,13 +1120,13 @@ namespace tools
       er.message = "command not supported by HW wallet";
       return false;
     }
-    if(m_wallet->watch_only())
+    if (m_wallet->watch_only())
     {
       er.code = WALLET_RPC_ERROR_CODE_WATCH_ONLY;
       er.message = "command not supported by watch-only wallet";
       return false;
     }
-    if(req.unsigned_txset.empty() && req.multisig_txset.empty())
+    if (req.unsigned_txset.empty() && req.multisig_txset.empty())
     {
       er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
       er.message = "no txset provided";
@@ -1201,7 +1201,7 @@ namespace tools
           if (find_tx_extra_field_by_type(tx_extra_fields, extra_nonce))
           {
             crypto::hash payment_id;
-            if(cryptonote::get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
+            if (cryptonote::get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
             {
               if (payment_id8 != crypto::null_hash8)
               {
@@ -1698,11 +1698,11 @@ namespace tools
       return false;
     }
 
-      if(sizeof(payment_id) == payment_id_blob.size())
+      if (sizeof(payment_id) == payment_id_blob.size())
       {
         payment_id = *reinterpret_cast<const crypto::hash*>(payment_id_blob.data());
       }
-      else if(sizeof(payment_id8) == payment_id_blob.size())
+      else if (sizeof(payment_id8) == payment_id_blob.size())
       {
         payment_id8 = *reinterpret_cast<const crypto::hash8*>(payment_id_blob.data());
         memcpy(payment_id.data, payment_id8.data, 8);
@@ -1820,7 +1820,7 @@ namespace tools
   bool wallet_rpc_server::on_incoming_transfers(const wallet_rpc::COMMAND_RPC_INCOMING_TRANSFERS::request& req, wallet_rpc::COMMAND_RPC_INCOMING_TRANSFERS::response& res, epee::json_rpc::error& er, const connection_context *ctx)
   {
     if (!m_wallet) return not_open(er);
-    if(req.transfer_type.compare("all") != 0 && req.transfer_type.compare("available") != 0 && req.transfer_type.compare("unavailable") != 0)
+    if (req.transfer_type.compare("all") != 0 && req.transfer_type.compare("available") != 0 && req.transfer_type.compare("unavailable") != 0)
     {
       er.code = WALLET_RPC_ERROR_CODE_TRANSFER_TYPE;
       er.message = "Transfer type must be one of: all, available, or unavailable";
@@ -1919,12 +1919,12 @@ namespace tools
         }
         res.key = std::string(seed.data(), seed.size()); // send to the network, then wipe RAM :D
       }
-      else if(req.key_type.compare("view_key") == 0)
+      else if (req.key_type.compare("view_key") == 0)
       {
           epee::wipeable_string key = epee::to_hex::wipeable_string(m_wallet->get_account().get_keys().m_view_secret_key);
           res.key = std::string(key.data(), key.size());
       }
-      else if(req.key_type.compare("spend_key") == 0)
+      else if (req.key_type.compare("spend_key") == 0)
       {
           if (m_wallet->watch_only())
           {
@@ -2506,7 +2506,7 @@ namespace tools
       return false;
     }
 
-    if(sizeof(txid) == txid_blob.size())
+    if (sizeof(txid) == txid_blob.size())
     {
       txid = *reinterpret_cast<const crypto::hash*>(txid_blob.data());
     }

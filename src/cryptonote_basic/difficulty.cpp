@@ -127,7 +127,7 @@ namespace cryptonote {
 
   uint64_t next_difficulty_64(std::vector<std::uint64_t> timestamps, std::vector<uint64_t> cumulative_difficulties, size_t target_seconds) {
 
-    if(timestamps.size() > DIFFICULTY_WINDOW)
+    if (timestamps.size() > DIFFICULTY_WINDOW)
     {
       timestamps.resize(DIFFICULTY_WINDOW);
       cumulative_difficulties.resize(DIFFICULTY_WINDOW);

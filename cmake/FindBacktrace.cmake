@@ -44,9 +44,9 @@ include(FindPackageHandleStandardArgs)
 # List of variables to be provided to find_package_handle_standard_args()
 set(_Backtrace_STD_ARGS Backtrace_INCLUDE_DIR)
 
-if(Backtrace_HEADER)
+if (Backtrace_HEADER)
   set(_Backtrace_HEADER_TRY "${Backtrace_HEADER}")
-else(Backtrace_HEADER)
+else (Backtrace_HEADER)
   set(_Backtrace_HEADER_TRY "execinfo.h")
 endif(Backtrace_HEADER)
 
@@ -62,15 +62,15 @@ if (NOT DEFINED Backtrace_LIBRARY)
   cmake_pop_check_state()
 endif()
 
-if(_Backtrace_SYM_FOUND)
+if (_Backtrace_SYM_FOUND)
   # Avoid repeating the message() call below each time CMake is run.
-  if(NOT Backtrace_FIND_QUIETLY AND NOT DEFINED Backtrace_LIBRARY)
+  if (NOT Backtrace_FIND_QUIETLY AND NOT DEFINED Backtrace_LIBRARY)
     message(STATUS "backtrace facility detected in default set of libraries")
   endif()
   set(Backtrace_LIBRARY "" CACHE FILEPATH "Library providing backtrace(3), empty for default set of libraries")
 else()
   # Check for external library, for non-glibc systems
-  if(Backtrace_INCLUDE_DIR)
+  if (Backtrace_INCLUDE_DIR)
     # OpenBSD has libbacktrace renamed to libexecinfo
     find_library(Backtrace_LIBRARY "execinfo")
   elseif()     # respect user wishes
@@ -84,10 +84,10 @@ else()
 endif()
 
 message(STATUS "Backtrace_LIBRARY: ${Backtrace_LIBRARY}")
-if(Backtrace_LIBRARY STREQUAL "NOTFOUND")
+if (Backtrace_LIBRARY STREQUAL "NOTFOUND")
   set(Backtrace_LIBRARY "")
 endif()
-if(Backtrace_LIBRARY STREQUAL "Backtrace_LIBRARY-NOTFOUND")
+if (Backtrace_LIBRARY STREQUAL "Backtrace_LIBRARY-NOTFOUND")
   set(Backtrace_LIBRARY "")
 endif()
 

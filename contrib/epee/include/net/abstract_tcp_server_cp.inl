@@ -63,7 +63,7 @@ bool cp_server_impl<TProtocol>::init_server(int port_no)
 	m_initialized = true;
 
 	m_listen_socket = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-	if(INVALID_SOCKET == m_listen_socket)
+	if (INVALID_SOCKET == m_listen_socket)
 	{
 		err = ::WSAGetLastError();
 		LOG_ERROR("Failed to create socket, err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
@@ -73,7 +73,7 @@ bool cp_server_impl<TProtocol>::init_server(int port_no)
 
 	int opt = 1;
 	err = setsockopt (m_listen_socket, SOL_SOCKET,SO_REUSEADDR, reinterpret_cast<char*>(&opt), sizeof(int));
-	if(SOCKET_ERROR == err )
+	if (SOCKET_ERROR == err )
 	{
 		err = ::WSAGetLastError();
 		LOG_PRINT("Failed to setsockopt(SO_REUSEADDR), err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"", LOG_LEVEL_1);
@@ -89,7 +89,7 @@ bool cp_server_impl<TProtocol>::init_server(int port_no)
 
 	//binding
 	err = bind(m_listen_socket, (const sockaddr*)&adr, sizeof(adr ));
-	if(SOCKET_ERROR == err )
+	if (SOCKET_ERROR == err )
 	{
 		err = ::WSAGetLastError();
 		LOG_PRINT("Failed to Bind, err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"", LOG_LEVEL_1);
@@ -99,7 +99,7 @@ bool cp_server_impl<TProtocol>::init_server(int port_no)
 
 
 	m_completion_port = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
-	if(INVALID_HANDLE_VALUE == m_completion_port)
+	if (INVALID_HANDLE_VALUE == m_completion_port)
 	{
 		err = ::WSAGetLastError();
 		LOG_PRINT("Failed to CreateIoCompletionPort, err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"", LOG_LEVEL_1);
@@ -128,7 +128,7 @@ static int CALLBACK CPConditionFunc(
 	/*cp_server_impl* pthis = (cp_server_impl*)dwCallbackData;
 	if(!pthis)
 		return CF_REJECT;*/
-	/*if(pthis->get_active_connections_num()>=FD_SETSIZE-1)
+	/*if (pthis->get_active_connections_num()>=FD_SETSIZE-1)
 	{
 		LOG_PRINT("Maximum connections count overfull.", LOG_LEVEL_2);
 		return CF_REJECT;
@@ -175,7 +175,7 @@ bool cp_server_impl<TProtocol>::worker_thread_member()
 				int err = GetLastError();
 				LOG_PRINT("GetQueuedCompletionStatus failed with error " << err << " " << log_space::get_win32_err_descr(err), LOG_LEVEL_1);
 
-				if(pio_data)
+				if (pio_data)
 					::InterlockedExchange(&pio_data->m_is_in_use, 0);
 
 
@@ -183,7 +183,7 @@ bool cp_server_impl<TProtocol>::worker_thread_member()
 			}
 		}
 
-		if(pio_data)
+		if (pio_data)
 			::InterlockedExchange(&pio_data->m_is_in_use, 0);
 
 
@@ -207,7 +207,7 @@ bool cp_server_impl<TProtocol>::worker_thread_member()
 			//DebugBreak();
 		}
 
-		if(pio_data->m_op_type == op_type_stop)
+		if (pio_data->m_op_type == op_type_stop)
 		{
 			if(!pconnection)
 			{
@@ -217,14 +217,14 @@ bool cp_server_impl<TProtocol>::worker_thread_member()
 			shutdown_connection(pconnection);
 			continue;//
 		}
-		else if(pio_data->m_op_type == op_type_send)
+		else if (pio_data->m_op_type == op_type_send)
 		{
 			continue;
 			//do nothing, just queuing request
-		}else if(pio_data->m_op_type == op_type_recv)
+		}else if (pio_data->m_op_type == op_type_recv)
 		{
 			PROFILE_FUNC("[worker_thread]m_tprotocol_handler.handle_recv");
-			if(bytes_transfered)
+			if (bytes_transfered)
 			{
 				bool res = pconnection->m_tprotocol_handler.handle_recv(pio_data->Buffer, bytes_transfered);
 				if(!res)
@@ -257,10 +257,10 @@ bool cp_server_impl<TProtocol>::worker_thread_member()
 				LOG_PRINT("Calling WSARecv....", LOG_LEVEL_3);
 				::InterlockedExchange(&pio_data->m_is_in_use, 1);
 				res = WSARecv(pconnection->m_sock, &(pio_data->DataBuf), 1, &bytes_recvd , &flags, &(pio_data->m_overlapped), NULL);
-				if(res == SOCKET_ERROR )
+				if (res == SOCKET_ERROR )
 				{
 					int err = ::WSAGetLastError();
-					if(WSA_IO_PENDING == err )
+					if (WSA_IO_PENDING == err )
 					{//go pending, ok
 						LOG_PRINT("WSARecv return WSA_IO_PENDING", LOG_LEVEL_3);
 						break;
@@ -271,7 +271,7 @@ bool cp_server_impl<TProtocol>::worker_thread_member()
 					break;
 				}
 				break;
-				/*else if(0 == res)
+				/*else if (0 == res)
 				{
 					if(!bytes_recvd)
 					{
@@ -314,7 +314,7 @@ bool cp_server_impl<TProtocol>::shutdown_connection(connection<TProtocol>* pconn
 	m_connections_lock.lock();
 	connections_container::iterator it = m_connections.find(pconn->m_sock);
 	m_connections_lock.unlock();
-	if(it == m_connections.end())
+	if (it == m_connections.end())
 	{
 		LOG_ERROR("Failed to find closing socket=" << pconn->m_sock);
 		return false;
@@ -359,7 +359,7 @@ template<class TProtocol>
 bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 {
 	int err = listen(m_listen_socket, 100);
-	if(SOCKET_ERROR == err )
+	if (SOCKET_ERROR == err )
 	{
 		err = ::WSAGetLastError();
 		LOG_ERROR("Failed to listen, err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
@@ -398,7 +398,7 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 			select_res = select(0, &sock_set, &sock_set, NULL, &tv);
 		}
 		
-		if(SOCKET_ERROR == select_res)
+		if (SOCKET_ERROR == select_res)
 		{
 			err = ::WSAGetLastError();
 			LOG_ERROR("Failed to select, err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
@@ -419,9 +419,9 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 				new_sock = ::WSAAccept(m_listen_socket, (sockaddr *)&adr_from, &adr_len, CPConditionFunc, (DWORD_PTR)this);
 			}
 			
-			if(INVALID_SOCKET == new_sock)
+			if (INVALID_SOCKET == new_sock)
 			{
-				if(m_stop)
+				if (m_stop)
 					break;
 				int err = ::WSAGetLastError();
 				LOG_PRINT("Failed to WSAAccept, err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"", LOG_LEVEL_2);
@@ -494,7 +494,7 @@ bool cp_server_impl<TProtocol>::add_new_connection(SOCKET new_sock, const networ
 		::CreateIoCompletionPort((HANDLE)new_sock, m_completion_port, (ULONG_PTR)&conn, 0);
 	}
 
-	//if(NULL == ::CreateIoCompletionPort((HANDLE)new_sock, m_completion_port, (ULONG_PTR)&conn, 0))
+	//if (NULL == ::CreateIoCompletionPort((HANDLE)new_sock, m_completion_port, (ULONG_PTR)&conn, 0))
 	//{
     //	int err = ::GetLastError();
 	//	LOG_PRINT("Failed to CreateIoCompletionPort(associate socket and completion port), err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"", LOG_LEVEL_2);
@@ -522,10 +522,10 @@ bool cp_server_impl<TProtocol>::add_new_connection(SOCKET new_sock, const networ
 				PROFILE_FUNC("[add_new_connection] ::WSARecv");
 				res = ::WSARecv(conn.m_sock, &(conn.m_precv_data->DataBuf), 1, &bytes_recvd , &flags, &(conn.m_precv_data->m_overlapped), NULL);
 			}
-			if(res == SOCKET_ERROR )
+			if (res == SOCKET_ERROR )
 			{
 				int err = ::WSAGetLastError();
-				if(WSA_IO_PENDING == err )
+				if (WSA_IO_PENDING == err )
 				{
 					break;
 				}
@@ -538,7 +538,7 @@ bool cp_server_impl<TProtocol>::add_new_connection(SOCKET new_sock, const networ
 			
 
 			break;
-			/*else if(0 == res)
+			/*else if (0 == res)
 			{
 				if(!bytes_recvd)
 				{
@@ -566,11 +566,11 @@ bool cp_server_impl<TProtocol>::deinit_server()
 	if(!m_initialized)
 		return true;
 
-	if(INVALID_SOCKET != m_listen_socket)
+	if (INVALID_SOCKET != m_listen_socket)
 	{
 		shutdown(m_listen_socket, SD_BOTH);
 		int res = closesocket(m_listen_socket);
-		if(SOCKET_ERROR == res)
+		if (SOCKET_ERROR == res)
 		{
 			int err = ::WSAGetLastError();
 			LOG_ERROR("Failed to closesocket(), err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
@@ -579,7 +579,7 @@ bool cp_server_impl<TProtocol>::deinit_server()
 	}
 
 	int res = ::WSACleanup();
-	if(SOCKET_ERROR == res)
+	if (SOCKET_ERROR == res)
 	{
 		int err = ::WSAGetLastError();
 		LOG_ERROR("Failed to WSACleanup(), err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");

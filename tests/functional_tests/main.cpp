@@ -104,9 +104,9 @@ int main(int argc, char* argv[])
   {
     std::string working_folder     = command_line::get_arg(vm, arg_working_folder);
     std::string path_source_wallet, path_target_wallet;
-    if(command_line::has_arg(vm, arg_source_wallet))
+    if (command_line::has_arg(vm, arg_source_wallet))
       path_source_wallet = command_line::get_arg(vm, arg_source_wallet);
-    if(command_line::has_arg(vm, arg_dest_wallet))
+    if (command_line::has_arg(vm, arg_dest_wallet))
       path_target_wallet = command_line::get_arg(vm, arg_dest_wallet);
 
     std::string daemon_addr_a = command_line::get_arg(vm, arg_daemon_addr_a);

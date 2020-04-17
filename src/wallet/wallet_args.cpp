@@ -159,7 +159,7 @@ namespace wallet_args
         return true;
       }
 
-      if(command_line::has_arg(vm, arg_config_file))
+      if (command_line::has_arg(vm, arg_config_file))
       {
         std::string config = command_line::get_arg(vm, arg_config_file);
         bf::path config_path(config);

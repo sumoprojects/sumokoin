@@ -897,7 +897,7 @@ private:
     inline void serialize(t_archive &a, const unsigned int ver)
     {
       uint64_t dummy_refresh_height = 0; // moved to keys file
-      if(ver < 5)
+      if (ver < 5)
         return;
       if (ver < 19)
       {
@@ -915,25 +915,25 @@ private:
       a & m_transfers;
       a & m_account_public_address;
       a & m_key_images;
-      if(ver < 6)
+      if (ver < 6)
         return;
       a & m_unconfirmed_txs;
-      if(ver < 7)
+      if (ver < 7)
         return;
       a & m_payments;
-      if(ver < 8)
+      if (ver < 8)
         return;
       a & m_tx_keys;
-      if(ver < 9)
+      if (ver < 9)
         return;
       a & m_confirmed_txs;
-      if(ver < 11)
+      if (ver < 11)
         return;
       a & dummy_refresh_height;
-      if(ver < 12)
+      if (ver < 12)
         return;
       a & m_tx_notes;
-      if(ver < 13)
+      if (ver < 13)
         return;
       if (ver < 17)
       {
@@ -943,9 +943,9 @@ private:
         for (std::unordered_map<crypto::hash, payment_details>::const_iterator i = m.begin(); i != m.end(); ++i)
           m_unconfirmed_payments.insert(std::make_pair(i->first, pool_payment_details{i->second, false}));
       }
-      if(ver < 14)
+      if (ver < 14)
         return;
-      if(ver < 15)
+      if (ver < 15)
       {
         // we're loading an older wallet without a pubkey map, rebuild it
         for (size_t i = 0; i < m_transfers.size(); ++i)
@@ -958,10 +958,10 @@ private:
         return;
       }
       a & m_pub_keys;
-      if(ver < 16)
+      if (ver < 16)
         return;
       a & m_address_book;
-      if(ver < 17)
+      if (ver < 17)
         return;
       if (ver < 22)
       {
@@ -971,7 +971,7 @@ private:
         for (const auto &i: m)
           m_unconfirmed_payments.insert(std::make_pair(i.first, pool_payment_details{i.second, false}));
       }
-      if(ver < 18)
+      if (ver < 18)
         return;
       a & m_scanned_pool_txs[0];
       a & m_scanned_pool_txs[1];
@@ -982,31 +982,31 @@ private:
       a & dummy_subaddresses_inv;
       a & m_subaddress_labels;
       a & m_additional_tx_keys;
-      if(ver < 21)
+      if (ver < 21)
         return;
       a & m_attributes;
-      if(ver < 22)
+      if (ver < 22)
         return;
       a & m_unconfirmed_payments;
-      if(ver < 23)
+      if (ver < 23)
         return;
       a & m_account_tags;
-      if(ver < 24)
+      if (ver < 24)
         return;
       a & m_ring_history_saved;
-      if(ver < 25)
+      if (ver < 25)
         return;
       a & m_last_block_reward;
-      if(ver < 26)
+      if (ver < 26)
         return;
       a & m_tx_device;
-      if(ver < 27)
+      if (ver < 27)
         return;
       a & m_device_last_key_image_sync;
-      if(ver < 28)
+      if (ver < 28)
         return;
       a & m_cold_key_images;
-      if(ver < 29)
+      if (ver < 29)
         return;
       a & m_rpc_client_secret_key;
     }

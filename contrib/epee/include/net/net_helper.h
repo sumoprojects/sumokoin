@@ -257,10 +257,10 @@ namespace net_utils
 		{
 			try
 			{	
-				if(m_connected)
+				if (m_connected)
 				{
 					m_connected = false;
-					if(m_ssl_options)
+					if (m_ssl_options)
 						shutdown_ssl();
 					m_ssl_socket->next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both);
 				}
@@ -444,7 +444,7 @@ namespace net_utils
 				if (ec)
 				{
                     MTRACE("READ ENDS: Connection err_code " << ec.value());
-                    if(ec == boost::asio::error::eof)
+                    if (ec == boost::asio::error::eof)
                     {
                       MTRACE("Connection err_code eof.");
                       //connection closed there, empty
@@ -534,7 +534,7 @@ namespace net_utils
 				}
 
 				m_bytes_received += bytes_transfered;
-				if(bytes_transfered != buff.size())
+				if (bytes_transfered != buff.size())
 				{
 					LOG_ERROR("Transferred mismatch with transfer_at_least value: m_bytes_transferred=" << bytes_transfered << " at_least value=" << buff.size());
 					return false;
@@ -564,16 +564,16 @@ namespace net_utils
 		{
 			m_deadline.cancel();
 			boost::system::error_code ec;
-			if(m_ssl_options)
+			if (m_ssl_options)
 				shutdown_ssl();
 			m_ssl_socket->next_layer().cancel(ec);
-			if(ec)
+			if (ec)
 				MDEBUG("Problems at cancel: " << ec.message());
 			m_ssl_socket->next_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
-			if(ec)
+			if (ec)
 				MDEBUG("Problems at shutdown: " << ec.message());
 			m_ssl_socket->next_layer().close(ec);
-			if(ec)
+			if (ec)
 				MDEBUG("Problems at close: " << ec.message());
 			boost::interprocess::ipcdetail::atomic_write32(&m_shutdowned, 1);
       m_connected = false;
@@ -651,7 +651,7 @@ namespace net_utils
 		bool write(const void* data, size_t sz, boost::system::error_code& ec)
 		{
 			bool success;
-			if(m_ssl_options.support != ssl_support_t::e_ssl_support_disabled)
+			if (m_ssl_options.support != ssl_support_t::e_ssl_support_disabled)
 				success = boost::asio::write(*m_ssl_socket, boost::asio::buffer(data, sz), ec);
 			else
 				success = boost::asio::write(m_ssl_socket->next_layer(), boost::asio::buffer(data, sz), ec);
@@ -660,7 +660,7 @@ namespace net_utils
 		
 		void async_write(const void* data, size_t sz, boost::system::error_code& ec) 
 		{
-			if(m_ssl_options.support != ssl_support_t::e_ssl_support_disabled)
+			if (m_ssl_options.support != ssl_support_t::e_ssl_support_disabled)
 				boost::asio::async_write(*m_ssl_socket, boost::asio::buffer(data, sz), boost::lambda::var(ec) = boost::lambda::_1);
 			else
 				boost::asio::async_write(m_ssl_socket->next_layer(), boost::asio::buffer(data, sz), boost::lambda::var(ec) = boost::lambda::_1);
@@ -668,7 +668,7 @@ namespace net_utils
 		
 		void async_read(char* buff, size_t sz, boost::asio::detail::transfer_at_least_t transfer_at_least, handler_obj& hndlr)
 		{
-			if(m_ssl_options.support == ssl_support_t::e_ssl_support_disabled)
+			if (m_ssl_options.support == ssl_support_t::e_ssl_support_disabled)
 				boost::asio::async_read(m_ssl_socket->next_layer(), boost::asio::buffer(buff, sz), transfer_at_least, hndlr);
 			else
 				boost::asio::async_read(*m_ssl_socket, boost::asio::buffer(buff, sz), transfer_at_least, hndlr);

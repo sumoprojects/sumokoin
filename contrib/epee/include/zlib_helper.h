@@ -41,7 +41,7 @@ namespace zlib_helper
 
 		z_stream    zstream = {0};
 		int ret = deflateInit(&zstream, Z_DEFAULT_COMPRESSION);
-		if(target.size())
+		if (target.size())
 		{
 
 			
@@ -55,7 +55,7 @@ namespace zlib_helper
 			ret = deflate(&zstream, Z_FINISH);
 			CHECK_AND_ASSERT_MES(ret>=0, false, "Failed to deflate. err = " << ret);
 
-			if(result_packed_buff.size() != zstream.avail_out)
+			if (result_packed_buff.size() != zstream.avail_out)
 				result_packed_buff.resize(result_packed_buff.size()-zstream.avail_out);
 
 			
@@ -113,7 +113,7 @@ namespace zlib_helper
 			target.erase(0, target.size()-zstream.avail_in);
 
 			
-			if(ungzip_buff_size == zstream.avail_out)
+			if (ungzip_buff_size == zstream.avail_out)
 			{
 				LOG_ERROR("Can't unpack buffer");
 				return false;
@@ -121,7 +121,7 @@ namespace zlib_helper
 
 			
 			current_decode_buff.resize(ungzip_buff_size - zstream.avail_out);
-			if(decode_summary_buff.size())
+			if (decode_summary_buff.size())
 				decode_summary_buff += current_decode_buff;
 			else
 				current_decode_buff.swap(decode_summary_buff);

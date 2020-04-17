@@ -162,7 +162,7 @@ namespace misc_utils
         it = fi;
         for(;it != buf_end;it++)
         {
-          if(escape_mode/*prev_ch == '\\'*/)
+          if (escape_mode/*prev_ch == '\\'*/)
           {
             switch(*it)
             {
@@ -279,7 +279,7 @@ namespace misc_utils
           else
           {
             val = boost::string_ref(&*star_end_string, chars);
-            if(val.size())
+            if (val.size())
             {
               star_end_string = --it;
               is_float_val = !!(float_flag & 2);
@@ -313,7 +313,7 @@ namespace misc_utils
           if (!(lut[(uint8_t)*it] & 4))
           {
             val = boost::string_ref(&*star_end_string, std::distance(star_end_string, it));
-            if(val.size())
+            if (val.size())
             {
               star_end_string = --it;
               return;
@@ -344,7 +344,7 @@ namespace misc_utils
           if(!isalnum(*it) && *it != '-' && *it != '_')
           {
             val.assign(star_end_string, it);
-            if(val.size())
+            if (val.size())
             {
               star_end_string = --it;
               return true;
@@ -360,7 +360,7 @@ namespace misc_utils
 
         for(std::string::const_iterator it = star_end_string;it != buf_end;it++)
         {
-          if(isspace(*it))
+          if (isspace(*it))
           {
 
             continue;

@@ -81,7 +81,7 @@ set(crypto_sources
   cn_heavy_hash_hard_arm.cpp)
 endif()
 
-if(ARCH_ID STREQUAL "i386" OR ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "amd64")
+if (ARCH_ID STREQUAL "i386" OR ARCH_ID STREQUAL "x86_64" OR ARCH_ID STREQUAL "x86-64" OR ARCH_ID STREQUAL "amd64")
 list(APPEND crypto_sources CryptonightR_template.S)
 endif()
 
@@ -127,7 +127,7 @@ target_link_libraries(cncrypto
 if (ARM)
   option(NO_OPTIMIZED_MULTIPLY_ON_ARM
 	   "Compute multiply using generic C implementation instead of ARM ASM" OFF)
-  if(NO_OPTIMIZED_MULTIPLY_ON_ARM)
+  if (NO_OPTIMIZED_MULTIPLY_ON_ARM)
     message(STATUS "Using generic C implementation for multiply")
     set_property(SOURCE cn_monero_slow_hash.c
       PROPERTY COMPILE_DEFINITIONS "NO_OPTIMIZED_MULTIPLY_ON_ARM")

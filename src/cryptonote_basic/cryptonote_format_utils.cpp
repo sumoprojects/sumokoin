@@ -360,7 +360,7 @@ namespace cryptonote
   //---------------------------------------------------------------
   uint64_t power_integral(uint64_t a, uint64_t b)
   {
-    if(b == 0)
+    if (b == 0)
       return 1;
     uint64_t total = a;
     for(uint64_t i = 1; i != b; i++)
@@ -511,7 +511,7 @@ namespace cryptonote
   {
     tx_extra_fields.clear();
 
-    if(tx_extra.empty())
+    if (tx_extra.empty())
       return true;
 
     std::string extra_str(reinterpret_cast<const char*>(tx_extra.data()), tx_extra.size());
@@ -554,7 +554,7 @@ namespace cryptonote
   {
     std::vector<tx_extra_field> tx_extra_fields;
 
-    if(tx_extra.empty())
+    if (tx_extra.empty())
     {
       sorted_tx_extra.clear();
       return true;
@@ -759,9 +759,9 @@ namespace cryptonote
   //---------------------------------------------------------------
   bool get_payment_id_from_tx_extra_nonce(const blobdata& extra_nonce, crypto::hash& payment_id)
   {
-    if(sizeof(crypto::hash) + 1 != extra_nonce.size())
+    if (sizeof(crypto::hash) + 1 != extra_nonce.size())
       return false;
-    if(TX_EXTRA_NONCE_PAYMENT_ID != extra_nonce[0])
+    if (TX_EXTRA_NONCE_PAYMENT_ID != extra_nonce[0])
       return false;
     payment_id = *reinterpret_cast<const crypto::hash*>(extra_nonce.data() + 1);
     return true;
@@ -769,7 +769,7 @@ namespace cryptonote
   //---------------------------------------------------------------
   bool get_encrypted_payment_id_from_tx_extra_nonce(const blobdata& extra_nonce, crypto::hash8& payment_id)
   {
-    if(sizeof(crypto::hash8) + 1 != extra_nonce.size())
+    if (sizeof(crypto::hash8) + 1 != extra_nonce.size())
       return false;
     if (TX_EXTRA_NONCE_ENCRYPTED_PAYMENT_ID != extra_nonce[0])
       return false;
@@ -837,7 +837,7 @@ namespace cryptonote
     for(const auto& in: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, tokey_in, false);
-      if(money > tokey_in.amount + money)
+      if (money > tokey_in.amount + money)
         return false;
       money += tokey_in.amount;
     }
@@ -849,7 +849,7 @@ namespace cryptonote
     uint64_t money = 0;
     for(const auto& o: tx.vout)
     {
-      if(money > o.amount + money)
+      if (money > o.amount + money)
         return false;
       money += o.amount;
     }
@@ -919,7 +919,7 @@ namespace cryptonote
   bool lookup_acc_outs(const account_keys& acc, const transaction& tx, std::vector<size_t>& outs, uint64_t& money_transfered)
   {
     crypto::public_key tx_pub_key = get_tx_pub_key_from_extra(tx);
-    if(null_pkey == tx_pub_key)
+    if (null_pkey == tx_pub_key)
       return false;
     std::vector<crypto::public_key> additional_tx_pub_keys = get_additional_tx_pub_keys_from_extra(tx);
     return lookup_acc_outs(acc, tx, tx_pub_key, additional_tx_pub_keys, outs, money_transfered);
@@ -933,7 +933,7 @@ namespace cryptonote
     for(const tx_out& o:  tx.vout)
     {
       CHECK_AND_ASSERT_MES(o.target.type() ==  typeid(txout_to_key), false, "wrong type id in transaction out" );
-      if(is_out_to_acc(acc, boost::get<txout_to_key>(o.target), tx_pub_key, additional_tx_pub_keys, i))
+      if (is_out_to_acc(acc, boost::get<txout_to_key>(o.target), tx_pub_key, additional_tx_pub_keys, i))
       {
         outs.push_back(i);
         money_transfered += o.amount;
@@ -997,7 +997,7 @@ namespace cryptonote
     if (decimal_point == (unsigned int)-1)
       decimal_point = default_decimal_point;
     std::string s = std::to_string(amount);
-    if(s.size() < decimal_point+1)
+    if (s.size() < decimal_point+1)
     {
       s.insert(0, decimal_point+1 - s.size(), '0');
     }

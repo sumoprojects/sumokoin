@@ -217,7 +217,7 @@ namespace tests
       COMMAND_EXAMPLE_2::response rsp_ = AUTO_VAL_INIT(rsp_);
       invoke_async<COMMAND_EXAMPLE_2::response>(context.m_connection_id, COMMAND_EXAMPLE_2::ID, arg_, [](int code, const COMMAND_EXAMPLE_2::response& rsp, const net_utils::connection_context_base& context)
         {
-          if(code < 0)
+          if (code < 0)
           {LOG_PRINT_RED_L0("on_command_1: command_2 failed to invoke");}
           else
           {LOG_PRINT_L0("on_command_1: command_2 response " << rsp.example_id_data);}
@@ -289,7 +289,7 @@ namespace tests
     {
       LOG_PRINT_L0("Invoking from A to B...");
       int r = srv1.invoke(cntxt_1.m_connection_id, COMMAND_EXAMPLE_1::ID, arg, resp);
-      if(r<=0)
+      if (r<=0)
       {
         LOG_ERROR("Failed tp invoke A to B");
         break;
@@ -297,7 +297,7 @@ namespace tests
 
       LOG_PRINT_L0("Invoking from B to A...");
       r = srv2.invoke(cntxt_2.m_connection_id, COMMAND_EXAMPLE_1::ID, arg, resp);
-      if(r<=0)
+      if (r<=0)
       {
         LOG_ERROR("Failed tp invoke B to A");
         break;

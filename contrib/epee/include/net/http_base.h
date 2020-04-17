@@ -73,7 +73,7 @@ namespace net_utils
 				if(!string_tools::compare_no_case(param_name, it->first))
 					break;
 
-			if(it==fields.end())
+			if (it==fields.end())
 				return std::string();
 
 			return it->second;
@@ -87,7 +87,7 @@ namespace net_utils
 			buff += param_name + "=([^&]*)";
 			boost::regex match_param(buff.c_str(), boost::regex::icase | boost::regex::normal);
 			boost::smatch	result;
-			if(boost::regex_search(uri, result, match_param, boost::match_default) && result[0].matched) 
+			if (boost::regex_search(uri, result, match_param, boost::match_default) && result[0].matched) 
 			{
 				return result[2];
 			}

@@ -98,7 +98,7 @@ namespace net_utils
     private:
       bool handle_buff_in(std::string& buf)
       {
-        if(m_cache.size())
+        if (m_cache.size())
           m_cache += buf;
         else
           m_cache.swap(buf);
@@ -145,7 +145,7 @@ namespace net_utils
       std::string::size_type match_end_of_request(const std::string& buf)
       {
         std::string::size_type res = buf.find("\n");
-        if(std::string::npos != res) {
+        if (std::string::npos != res) {
           return res + 2;
         }
         return res;

@@ -51,9 +51,9 @@ size_t slow_memmem_original(void* start_buff, size_t buflen,void* pat,size_t pat
   void* end=(char*)buf+buflen-patlen;
   while((buf=memchr(buf,((char*)pat)[0],buflen)))
   {
-    if(buf>end)
+    if (buf>end)
       return 0;
-    if(memcmp(buf,pat,patlen)==0)
+    if (memcmp(buf,pat,patlen)==0)
       return (char*)buf - (char*)start_buff;
     buf=(char*)buf+1;
   }

@@ -38,15 +38,15 @@ if (USE_DEVICE_TREZOR)
     _trezor_protobuf_fix_vars()
 
     # Protobuf handling the cache variables set in docker.
-    if(NOT Protobuf_FOUND AND NOT Protobuf_LIBRARY AND NOT Protobuf_PROTOC_EXECUTABLE AND NOT Protobuf_INCLUDE_DIR)
+    if (NOT Protobuf_FOUND AND NOT Protobuf_LIBRARY AND NOT Protobuf_PROTOC_EXECUTABLE AND NOT Protobuf_INCLUDE_DIR)
         message(STATUS "Could not find Protobuf")
-    elseif(NOT Protobuf_LIBRARY OR NOT EXISTS "${Protobuf_LIBRARY}")
+    elseif (NOT Protobuf_LIBRARY OR NOT EXISTS "${Protobuf_LIBRARY}")
         message(STATUS "Protobuf library not found: ${Protobuf_LIBRARY}")
         unset(Protobuf_FOUND)
-    elseif(NOT Protobuf_PROTOC_EXECUTABLE OR NOT EXISTS "${Protobuf_PROTOC_EXECUTABLE}")
+    elseif (NOT Protobuf_PROTOC_EXECUTABLE OR NOT EXISTS "${Protobuf_PROTOC_EXECUTABLE}")
         message(STATUS "Protobuf executable not found: ${Protobuf_PROTOC_EXECUTABLE}")
         unset(Protobuf_FOUND)
-    elseif(NOT Protobuf_INCLUDE_DIR OR NOT EXISTS "${Protobuf_INCLUDE_DIR}")
+    elseif (NOT Protobuf_INCLUDE_DIR OR NOT EXISTS "${Protobuf_INCLUDE_DIR}")
         message(STATUS "Protobuf include dir not found: ${Protobuf_INCLUDE_DIR}")
         unset(Protobuf_FOUND)
     else()
@@ -55,7 +55,7 @@ if (USE_DEVICE_TREZOR)
         set(Protobuf_FOUND 1)  # override found if all rquired info was provided by variables
     endif()
 
-    if(TREZOR_DEBUG)
+    if (TREZOR_DEBUG)
         set(USE_DEVICE_TREZOR_DEBUG 1)
     endif()
 
@@ -67,32 +67,32 @@ else()
     message(STATUS "Trezor support disabled by USE_DEVICE_TREZOR")
 endif()
 
-if(Protobuf_FOUND AND USE_DEVICE_TREZOR)
+if (Protobuf_FOUND AND USE_DEVICE_TREZOR)
     if (NOT "$ENV{TREZOR_PYTHON}" STREQUAL "")
         set(TREZOR_PYTHON "$ENV{TREZOR_PYTHON}" CACHE INTERNAL "Copied from environment variable TREZOR_PYTHON")
     else()
         find_package(Python QUIET COMPONENTS Interpreter)  # cmake 3.12+
-        if(Python_Interpreter_FOUND)
+        if (Python_Interpreter_FOUND)
             set(TREZOR_PYTHON "${Python_EXECUTABLE}")
         endif()
     endif()
 
-    if(NOT TREZOR_PYTHON)
+    if (NOT TREZOR_PYTHON)
         find_package(PythonInterp)
-        if(PYTHONINTERP_FOUND AND PYTHON_EXECUTABLE)
+        if (PYTHONINTERP_FOUND AND PYTHON_EXECUTABLE)
             set(TREZOR_PYTHON "${PYTHON_EXECUTABLE}")
         endif()
     endif()
 
-    if(NOT TREZOR_PYTHON)
+    if (NOT TREZOR_PYTHON)
         message(STATUS "Trezor: Python not found")
     endif()
 endif()
 
 # Protobuf compilation test
-if(Protobuf_FOUND AND USE_DEVICE_TREZOR AND TREZOR_PYTHON)
+if (Protobuf_FOUND AND USE_DEVICE_TREZOR AND TREZOR_PYTHON)
     execute_process(COMMAND ${Protobuf_PROTOC_EXECUTABLE} -I "${CMAKE_SOURCE_DIR}/cmake" -I "${Protobuf_INCLUDE_DIR}" "${CMAKE_SOURCE_DIR}/cmake/test-protobuf.proto" --cpp_out ${CMAKE_BINARY_DIR} RESULT_VARIABLE RET OUTPUT_VARIABLE OUT ERROR_VARIABLE ERR)
-    if(RET)
+    if (RET)
         message(STATUS "Protobuf test generation failed: ${OUT} ${ERR}")
     endif()
 
@@ -107,13 +107,13 @@ if(Protobuf_FOUND AND USE_DEVICE_TREZOR AND TREZOR_PYTHON)
         LINK_LIBRARIES ${Protobuf_LIBRARY}
         OUTPUT_VARIABLE OUTPUT
     )
-    if(NOT Protobuf_COMPILE_TEST_PASSED)
+    if (NOT Protobuf_COMPILE_TEST_PASSED)
         message(STATUS "Protobuf Compilation test failed: ${OUTPUT}.")
     endif()
 endif()
 
 # Try to build protobuf messages
-if(Protobuf_FOUND AND USE_DEVICE_TREZOR AND TREZOR_PYTHON AND Protobuf_COMPILE_TEST_PASSED)
+if (Protobuf_FOUND AND USE_DEVICE_TREZOR AND TREZOR_PYTHON AND Protobuf_COMPILE_TEST_PASSED)
     set(ENV{PROTOBUF_INCLUDE_DIRS} "${Protobuf_INCLUDE_DIR}")
     set(ENV{PROTOBUF_PROTOC_EXECUTABLE} "${Protobuf_PROTOC_EXECUTABLE}")
     set(TREZOR_PROTOBUF_PARAMS "")
@@ -122,7 +122,7 @@ if(Protobuf_FOUND AND USE_DEVICE_TREZOR AND TREZOR_PYTHON AND Protobuf_COMPILE_T
     endif()
     
     execute_process(COMMAND ${TREZOR_PYTHON} tools/build_protob.py ${TREZOR_PROTOBUF_PARAMS} WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/../src/device_trezor/trezor RESULT_VARIABLE RET OUTPUT_VARIABLE OUT ERROR_VARIABLE ERR)
-    if(RET)
+    if (RET)
         message(WARNING "Trezor protobuf messages could not be regenerated (err=${RET}, python ${PYTHON})."
                 "OUT: ${OUT}, ERR: ${ERR}."
                 "Please read src/device_trezor/trezor/tools/README.md")
@@ -132,11 +132,11 @@ if(Protobuf_FOUND AND USE_DEVICE_TREZOR AND TREZOR_PYTHON AND Protobuf_COMPILE_T
         add_definitions(-DDEVICE_TREZOR_READY=1)
         add_definitions(-DPROTOBUF_INLINE_NOT_IN_HEADERS=0)
 
-        if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        if (CMAKE_BUILD_TYPE STREQUAL "Debug")
             add_definitions(-DTREZOR_DEBUG=1)
         endif()
 
-        if(USE_DEVICE_TREZOR_UDP_RELEASE)
+        if (USE_DEVICE_TREZOR_UDP_RELEASE)
             add_definitions(-DUSE_DEVICE_TREZOR_UDP_RELEASE=1)
         endif()
 
@@ -152,13 +152,13 @@ if(Protobuf_FOUND AND USE_DEVICE_TREZOR AND TREZOR_PYTHON AND Protobuf_COMPILE_T
 
         if (LibUSB_COMPILE_TEST_PASSED)
             add_definitions(-DHAVE_TREZOR_LIBUSB=1)
-            if(LibUSB_INCLUDE_DIRS)
+            if (LibUSB_INCLUDE_DIRS)
                 include_directories(${LibUSB_INCLUDE_DIRS})
             endif()
         endif()
 
         set(TREZOR_LIBUSB_LIBRARIES "")
-        if(LibUSB_COMPILE_TEST_PASSED)
+        if (LibUSB_COMPILE_TEST_PASSED)
             list(APPEND TREZOR_LIBUSB_LIBRARIES ${LibUSB_LIBRARIES} ${LIBUSB_DEP_LINKER})
             message(STATUS "Trezor compatible LibUSB found at: ${LibUSB_INCLUDE_DIRS}")
         endif()

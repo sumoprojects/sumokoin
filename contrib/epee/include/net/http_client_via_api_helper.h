@@ -58,7 +58,7 @@ namespace net_utils
 		DWORD dwFlags = 0;
 		DWORD dwBuffLen = sizeof(dwFlags);
 
-		if(usr.size())
+		if (usr.size())
 		{
 			dwFlags |=  INTERNET_FLAG_IGNORE_CERT_CN_INVALID|INTERNET_FLAG_IGNORE_CERT_DATE_INVALID|
 				INTERNET_FLAG_PRAGMA_NOCACHE | SECURITY_FLAG_IGNORE_UNKNOWN_CA|INTERNET_FLAG_SECURE; 
@@ -72,12 +72,12 @@ namespace net_utils
 		BOOL res = FALSE;
 
 		HINTERNET hsession = ::InternetConnectA(hinet, string_encoding::convert_to_ansii(url_obj.GetHostName()).c_str(), port/*INTERNET_DEFAULT_HTTPS_PORT*/, usr.c_str(), psw.c_str(), INTERNET_SERVICE_HTTP, dwFlags, NULL);
-		if(hsession)
+		if (hsession)
 		{
 			const std::string uri = string_encoding::convert_to_ansii(url_obj.GetUrlPath()) + string_encoding::convert_to_ansii(url_obj.GetExtraInfo());
 
 			HINTERNET hrequest = ::HttpOpenRequestA(hsession, use_post?"POST":NULL, uri.c_str(), NULL, NULL,NULL, dwFlags, NULL);
-			if(hrequest)
+			if (hrequest)
 			{
 				while(true)
 				{
@@ -103,7 +103,7 @@ namespace net_utils
 						LOG_PRINT("Failed to call HttpQueryInfo, \nError: " << log_space::get_win32_err_descr(err), LOG_LEVEL_0);
 						break;
 					}
-					if(code < 200 || code > 299)
+					if (code < 200 || code > 299)
 					{
 						LOG_PRINT("Wrong server response, HttpQueryInfo returned statuse code" << code , LOG_LEVEL_0);
 						break;
@@ -121,7 +121,7 @@ namespace net_utils
 							LOG_PRINT("Failed to call InternetReadFile, \nError: " << log_space::get_win32_err_descr(err), LOG_LEVEL_0);
 							break;
 						}
-						if(readed)
+						if (readed)
 						{
 							http_response_body.append(buff, readed);
 						}

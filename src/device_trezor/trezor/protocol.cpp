@@ -400,7 +400,7 @@ namespace tx {
     if (find_tx_extra_field_by_type(tx_extra_fields, extra_nonce))
     {
       ::crypto::hash8 payment_id8{};
-      if(cryptonote::get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
+      if (cryptonote::get_encrypted_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id8))
       {
         m_ct.tsx_data.set_payment_id(std::string(payment_id8.data, 8));
       }

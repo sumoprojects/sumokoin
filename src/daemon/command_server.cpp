@@ -378,7 +378,7 @@ void t_command_server::stop_handling()
 
 bool t_command_server::help(const std::vector<std::string>& args)
 {
-  if(args.empty())
+  if (args.empty())
   {
     std::cout << get_commands_str() << std::endl;
   }
@@ -405,7 +405,7 @@ std::string t_command_server::get_commands_str()
  {
    std::pair<std::string, std::string> documentation = m_command_lookup.get_documentation(args);
    std::stringstream ss;
-   if(documentation.first.empty())
+   if (documentation.first.empty())
    {
      ss << "Unknown command: " << args.front() << std::endl;
    }

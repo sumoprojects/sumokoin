@@ -25,7 +25,7 @@ rdln::suspend_readline::suspend_readline()
   if(!m_buffer)
     return;
   m_restart = m_buffer->is_running();
-  if(m_restart)
+  if (m_restart)
     m_buffer->stop();
 }
 
@@ -33,7 +33,7 @@ rdln::suspend_readline::~suspend_readline()
 {
   if(!m_buffer)
     return;
-  if(m_restart)
+  if (m_restart)
     m_buffer->start();
 }
 
@@ -51,7 +51,7 @@ rdln::readline_buffer::readline_buffer()
 
 void rdln::readline_buffer::start()
 {
-  if(m_cout_buf != NULL)
+  if (m_cout_buf != NULL)
     return;
   m_cout_buf = std::cout.rdbuf();
   std::cout.rdbuf(this);
@@ -60,7 +60,7 @@ void rdln::readline_buffer::start()
 
 void rdln::readline_buffer::stop()
 {
-  if(m_cout_buf == NULL)
+  if (m_cout_buf == NULL)
     return;
   std::cout.rdbuf(m_cout_buf);
   m_cout_buf = NULL;
@@ -88,7 +88,7 @@ rdln::linestatus rdln::readline_buffer::get_line(std::string& line) const
 
 void rdln::readline_buffer::set_prompt(const std::string& prompt)
 {
-  if(m_cout_buf == NULL)
+  if (m_cout_buf == NULL)
     return;
   boost::lock_guard<boost::mutex> lock(sync_mutex);
   rl_set_prompt(std::string(m_prompt_length, ' ').c_str());
@@ -100,7 +100,7 @@ void rdln::readline_buffer::set_prompt(const std::string& prompt)
 
 void rdln::readline_buffer::add_completion(const std::string& command)
 {
-  if(std::find(completion_commands().begin(), completion_commands().end(), command) != completion_commands().end())
+  if (std::find(completion_commands().begin(), completion_commands().end(), command) != completion_commands().end())
     return;
   completion_commands().push_back(command);
 }
@@ -189,7 +189,7 @@ static char* completion_matches(const char* text, int state)
   static size_t list_index;
   static size_t len;
 
-  if(state == 0)
+  if (state == 0)
   {
     list_index = 0;
     len = strlen(text);
@@ -199,7 +199,7 @@ static char* completion_matches(const char* text, int state)
   for(; list_index<completions.size(); )
   {
     const std::string& cmd = completions[list_index++];
-    if(cmd.compare(0, len, text) == 0)
+    if (cmd.compare(0, len, text) == 0)
     {
       return strdup(cmd.c_str());
     }

@@ -60,7 +60,7 @@ namespace epee
         return false;
       }
 
-      if(pri->m_response_code != 200)
+      if (pri->m_response_code != 200)
       {
         LOG_PRINT_L1("Failed to invoke http request to  " << uri << ", wrong response code: " << pri->m_response_code);
         return false;
@@ -91,7 +91,7 @@ namespace epee
         return false;
       }
 
-      if(pri->m_response_code != 200)
+      if (pri->m_response_code != 200)
       {
         LOG_PRINT_L1("Failed to invoke http request to  " << uri << ", wrong response code: " << pri->m_response_code);
         return false;
@@ -114,7 +114,7 @@ namespace epee
         error_struct = {};
         return false;
       }
-      if(resp_t.error.code || resp_t.error.message.size())
+      if (resp_t.error.code || resp_t.error.message.size())
       {
         error_struct = resp_t.error;
         LOG_ERROR("RPC call of \"" << req_t.method << "\" returned error: " << resp_t.error.code << ", message: " << resp_t.error.message);

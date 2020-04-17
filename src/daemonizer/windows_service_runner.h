@@ -122,7 +122,7 @@ namespace windows {
       {
         m_status.dwControlsAccepted = SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
       }
-      else if(status == SERVICE_STOP_PENDING)
+      else if (status == SERVICE_STOP_PENDING)
       {
         m_status.dwControlsAccepted = 0;
       }

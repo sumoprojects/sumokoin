@@ -94,25 +94,25 @@ static bool parse_db_sync_mode(std::string db_sync_mode)
   // default to fast:async:1
   uint64_t DEFAULT_FLAGS = DBF_FAST;
 
-  if(options.size() == 0)
+  if (options.size() == 0)
   {
     // default to fast:async:1
     db_flags = DEFAULT_FLAGS;
   }
 
   bool safemode = false;
-  if(options.size() >= 1)
+  if (options.size() >= 1)
   {
-    if(options[0] == "safe")
+    if (options[0] == "safe")
     {
       safemode = true;
       db_flags = DBF_SAFE;
     }
-    else if(options[0] == "fast")
+    else if (options[0] == "fast")
     {
       db_flags = DBF_FAST;
     }
-    else if(options[0] == "fastest")
+    else if (options[0] == "fastest")
     {
       db_flags = DBF_FASTEST;
       records_per_sync = 1000; // default to fastest:async:1000
@@ -121,7 +121,7 @@ static bool parse_db_sync_mode(std::string db_sync_mode)
       db_flags = DEFAULT_FLAGS;
   }
 
-  if(options.size() >= 2 && !safemode)
+  if (options.size() >= 2 && !safemode)
   {
     char *endptr;
     uint64_t bps = strtoull(options[1].c_str(), &endptr, 0);
@@ -204,7 +204,7 @@ static int resize_env(const char *db_path)
     {
       boost::filesystem::path path(db_path);
       boost::filesystem::space_info si = boost::filesystem::space(path);
-      if(si.available < needed)
+      if (si.available < needed)
       {
         MERROR("!! WARNING: Insufficient free space to extend database !!: " << (si.available >> 20L) << " MB available");
         return ENOSPC;

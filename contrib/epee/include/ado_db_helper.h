@@ -117,8 +117,8 @@ namespace ado_db_helper
 			profile_entry& entry_ref = m_sqls[sql];
 			entry_ref.m_avrg.push(time);
 			entry_ref.m_call_count++;
-			if(time > entry_ref.m_max_time) entry_ref.m_max_time = time;
-			if(time < entry_ref.m_min_time || entry_ref.m_min_time == 0) entry_ref.m_min_time = time;
+			if (time > entry_ref.m_max_time) entry_ref.m_max_time = time;
+			if (time < entry_ref.m_min_time || entry_ref.m_min_time == 0) entry_ref.m_min_time = time;
 			CRITICAL_REGION_END();
 			return true;
 		}
@@ -127,7 +127,7 @@ namespace ado_db_helper
 		{
 			CRITICAL_REGION_BEGIN(m_sqls_lock);
 			sqls_map::iterator it = m_sqls.find(sql);
-			if(it==m_sqls.end())
+			if (it==m_sqls.end())
 				return false;
 
 			time = static_cast<DWORD>(it->second.m_avrg.get_avg());
@@ -144,7 +144,7 @@ inline
 	profiler_manager* get_set_profiler(bool need_to_set = false, profiler_manager** pprofiler = NULL)
 	{
 		static profiler_manager* pmanager = NULL;
-		if(need_to_set)
+		if (need_to_set)
 			pmanager = *pprofiler;
 		//else
 		//	*pprofiler = pmanager;
@@ -163,7 +163,7 @@ inline
 	{
 		profiler_manager* pmanager = get_set_profiler();
 		//get_set_profiler(false, &pmanager);
-		if(pmanager)
+		if (pmanager)
 			delete pmanager;
 		return true;
 	}
@@ -171,7 +171,7 @@ inline
 	{
 		profiler_manager* pmanager = get_set_profiler();
 		//get_set_profiler(false, &pmanager);
-		if(pmanager)
+		if (pmanager)
 			return pmanager->push_entry(sql, time);
 		return true;
 	}
@@ -180,7 +180,7 @@ inline
 	{
 		profiler_manager* pmanager = get_set_profiler();
 		//get_set_profiler(false, &pmanager);
-		if(pmanager)
+		if (pmanager)
 			return pmanager->flush_log(path);
 		return true;
 	}
@@ -365,13 +365,13 @@ inline
 			return false;
 		}
 
-		//if(precordset->EndOfFile == EOF)
+		//if (precordset->EndOfFile == EOF)
 		//{
 		//	return true;
 		//}
 		/*try
 		{
-			if(precordset->MoveFirst()!= S_OK)
+			if (precordset->MoveFirst()!= S_OK)
 			{
 				LOG_ERROR("DB_ERROR: Filed to move first!!!");
 				return false;
@@ -959,14 +959,14 @@ inline
 					BEGIN_TRY_SECTION();
 					//_bstr_t str = _bstr_t("Provider=SQLOLEDB;Data Source=SRV1;Integrated Security=SSPI;Initial Catalog=dispatcher;");
 
-					if(S_OK != conn.CreateInstance(__uuidof(ADODB::Connection)))
+					if (S_OK != conn.CreateInstance(__uuidof(ADODB::Connection)))
 					{
 						LOG_ERROR("Failed to Create, instance, was CoInitialize called ???!");
 						return conn;
 					}
 
 					HRESULT res = conn->Open(_bstr_t(m_connection_string.c_str()), _bstr_t(m_login.c_str()), _bstr_t(m_password.c_str()), NULL);
-					if(res != S_OK) 
+					if (res != S_OK) 
 					{
 						LOG_ERROR("Failed to connect do DB, connection str:" << m_connection_string);
 						return conn;
@@ -997,7 +997,7 @@ inline
 					BEGIN_TRY_SECTION();
 
 					HRESULT res = rconn->Open(_bstr_t(m_connection_string.c_str()), _bstr_t(m_login.c_str()), _bstr_t(m_password.c_str()), NULL);
-					if(res != S_OK) 
+					if (res != S_OK) 
 					{
 						LOG_PRINT("Failed to restore connection to local AI DB", LOG_LEVEL_1);
 						return false;

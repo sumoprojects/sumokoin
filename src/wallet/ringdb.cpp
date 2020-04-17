@@ -181,7 +181,7 @@ static int resize_env(MDB_env *env, const char *db_path, size_t needed)
     {
       boost::filesystem::path path(db_path);
       boost::filesystem::space_info si = boost::filesystem::space(path);
-      if(si.available < needed)
+      if (si.available < needed)
       {
         MERROR("!! WARNING: Insufficient free space to extend database !!: " << (si.available >> 20L) << " MB available");
         return ENOSPC;

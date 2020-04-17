@@ -82,7 +82,7 @@ public:
     const bool has_restricted_rpc_port_arg = !command_line::is_arg_defaulted(vm, restricted_rpc_port_arg);
     rpcs.emplace_back(new t_rpc{vm, core, p2p, restricted, main_rpc_port, "core", !has_restricted_rpc_port_arg});
 
-    if(has_restricted_rpc_port_arg)
+    if (has_restricted_rpc_port_arg)
     {
       auto restricted_rpc_port = command_line::get_arg(vm, restricted_rpc_port_arg);
       rpcs.emplace_back(new t_rpc{vm, core, p2p, true, restricted_rpc_port, "restricted", true});

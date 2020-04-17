@@ -43,7 +43,7 @@ namespace epee
       {
         is_changed = true;
         bool res = this->update_in(collect_remains);
-        if(res)
+        if (res)
           this->stop(collect_remains);
         return res;
       }

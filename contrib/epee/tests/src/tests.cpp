@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
   std::string tests_data_path;
   string_tools::get_xparam_from_command_line(start_params, std::string("/tests_folder"), tests_data_path);
 
-  if(string_tools::have_in_command_line(start_params, std::string("/run_net_tests")))
+  if (string_tools::have_in_command_line(start_params, std::string("/run_net_tests")))
   {
     if(!tests::do_run_test_server())
     {
@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
       LOG_ERROR("net tests failed");
       return 1;
     }
-  }else if(string_tools::have_in_command_line(start_params, std::string("/run_unit_tests")))
+  }else if (string_tools::have_in_command_line(start_params, std::string("/run_unit_tests")))
   {
     if(!tests::test_median())
     {
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
       LOG_ERROR("storage test failed");
       return 1;
     }
-  }else  if(string_tools::have_in_command_line(start_params, std::string("/run_portable_storage_test")))
+  }else  if (string_tools::have_in_command_line(start_params, std::string("/run_portable_storage_test")))
   {
     tests::test_portable_storages(tests_data_path);
   }

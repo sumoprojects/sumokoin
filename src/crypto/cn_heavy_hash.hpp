@@ -179,7 +179,7 @@ public:
 
 	cn_heavy_hash& operator= (cn_heavy_hash&& other) noexcept
     {
-		if(this == &other)
+		if (this == &other)
 			return *this;
 
 		free_mem();
@@ -200,7 +200,7 @@ public:
 
 	void hash(const void* in, size_t len, void* out, bool prehashed=false)
 	{
-		if(hw_check_aes() && !check_override())
+		if (hw_check_aes() && !check_override())
 			hardware_hash(in, len, out, prehashed);
 		else
 			software_hash(in, len, out, prehashed);
@@ -245,9 +245,9 @@ private:
 	{
 		if(!borrowed_pad)
 		{
-			if(lpad.as_void() != nullptr)
+			if (lpad.as_void() != nullptr)
 				boost::alignment::aligned_free(lpad.as_void());
-			if(lpad.as_void() != nullptr)
+			if (lpad.as_void() != nullptr)
 				boost::alignment::aligned_free(spad.as_void());
 		}
 

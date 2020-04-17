@@ -99,7 +99,7 @@ namespace epee
         LOG_ERROR("Failed to run net tcp server!");
       }
 
-      if(wait)
+      if (wait)
         MINFO("net_service loop stopped.");
       return true;
     }

@@ -26,11 +26,11 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-if(FREEBSD)
+if (FREEBSD)
   add_definitions(-DMDB_DSYNC=O_SYNC)
 endif()
 
-if(ANDROID)
+if (ANDROID)
   add_definitions("-DANDROID=1")
 endif()
 
@@ -53,7 +53,7 @@ endif()
 
 # GUI/libwallet install target
 if (BUILD_GUI_DEPS)
-    if(IOS)
+    if (IOS)
         set(lib_folder lib-${ARCH})
     else()
         set(lib_folder lib)

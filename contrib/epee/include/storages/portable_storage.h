@@ -153,20 +153,20 @@ namespace epee
     bool portable_storage::load_from_binary(const epee::span<const uint8_t> source)
     {
       m_root.m_entries.clear();
-      if(source.size() < sizeof(storage_block_header))
+      if (source.size() < sizeof(storage_block_header))
       {
         LOG_ERROR("portable_storage: wrong binary format, packet size = " << source.size() << " less than expected sizeof(storage_block_header)=" << sizeof(storage_block_header));
         return false;
       }
       storage_block_header* pbuff = (storage_block_header*)source.data();
-      if(pbuff->m_signature_a != SWAP32LE(PORTABLE_STORAGE_SIGNATUREA) ||
+      if (pbuff->m_signature_a != SWAP32LE(PORTABLE_STORAGE_SIGNATUREA) ||
         pbuff->m_signature_b != SWAP32LE(PORTABLE_STORAGE_SIGNATUREB)
         )
       {
         LOG_ERROR("portable_storage: wrong binary format - signature mismatch");
         return false;
       }
-      if(pbuff->m_ver != PORTABLE_STORAGE_FORMAT_VER)
+      if (pbuff->m_ver != PORTABLE_STORAGE_FORMAT_VER)
       {
         LOG_ERROR("portable_storage: wrong binary format - unknown format ver = " << pbuff->m_ver);
         return false;
@@ -192,9 +192,9 @@ namespace epee
       }
       CHECK_AND_ASSERT(pentry , nullptr);
       //check that section_entry we find is real "CSSection"
-      if(pentry->type() != typeid(section))
+      if (pentry->type() != typeid(section))
       {
-        if(create_if_notexist)
+        if (create_if_notexist)
           *pentry = storage_entry(section());//replace
         else
           return nullptr;
@@ -269,7 +269,7 @@ namespace epee
       TRY_ENTRY();
       CHECK_AND_ASSERT(psection, nullptr);
       auto it = psection->m_entries.find(pentry_name);
-      if(it == psection->m_entries.end())
+      if (it == psection->m_entries.end())
         return nullptr;
 
       return &it->second;
@@ -322,7 +322,7 @@ namespace epee
       storage_entry* pentry = find_storage_entry(value_name, hparent_section);
       if(!pentry)
         return nullptr;
-      if(pentry->type() != typeid(array_entry))
+      if (pentry->type() != typeid(array_entry))
         return nullptr;
       array_entry& ar_entry = boost::get<array_entry>(*pentry);
       
@@ -379,11 +379,11 @@ namespace epee
         if(!pentry)
           return nullptr;
       }
-      if(pentry->type() != typeid(array_entry))
+      if (pentry->type() != typeid(array_entry))
         *pentry = storage_entry(array_entry(array_entry_t<t_real_value>()));
 
       array_entry& arr = boost::get<array_entry>(*pentry);
-      if(arr.type() != typeid(array_entry_t<t_real_value>))
+      if (arr.type() != typeid(array_entry_t<t_real_value>))
         arr = array_entry(array_entry_t<t_real_value>());
 
       array_entry_t<t_real_value>& arr_typed = boost::get<array_entry_t<t_real_value> >(arr);
@@ -418,10 +418,10 @@ namespace epee
       storage_entry* pentry = find_storage_entry(sec_name, hparent_section);
       if(!pentry)
         return nullptr;
-      if(pentry->type() != typeid(array_entry))
+      if (pentry->type() != typeid(array_entry))
         return nullptr;
       array_entry& ar_entry = boost::get<array_entry>(*pentry);
-      if(ar_entry.type() != typeid(array_entry_t<section>))
+      if (ar_entry.type() != typeid(array_entry_t<section>))
         return nullptr;
       array_entry_t<section>& sec_array = boost::get<array_entry_t<section>>(ar_entry);
       section* psec = sec_array.get_first_val();
@@ -437,7 +437,7 @@ namespace epee
     {
       TRY_ENTRY();
       CHECK_AND_ASSERT(hsec_array, false);
-      if(hsec_array->type() != typeid(array_entry_t<section>))
+      if (hsec_array->type() != typeid(array_entry_t<section>))
         return false;
       array_entry_t<section>& sec_array = boost::get<array_entry_t<section>>(*hsec_array);
       h_child_section = sec_array.get_next_val();
@@ -459,11 +459,11 @@ namespace epee
         if(!pentry)
           return nullptr;
       }
-      if(pentry->type() != typeid(array_entry))
+      if (pentry->type() != typeid(array_entry))
         *pentry = storage_entry(array_entry(array_entry_t<section>()));
 
       array_entry& ar_entry = boost::get<array_entry>(*pentry);
-      if(ar_entry.type() != typeid(array_entry_t<section>))
+      if (ar_entry.type() != typeid(array_entry_t<section>))
         ar_entry = array_entry(array_entry_t<section>());
 
       array_entry_t<section>& sec_array = boost::get<array_entry_t<section>>(ar_entry);

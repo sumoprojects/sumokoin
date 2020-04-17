@@ -48,7 +48,7 @@ template<class t_child_class, class t_connection_context = epee::net_utils::conn
         LOG_ERROR("Failed to run net tcp server!");
       }
 
-      if(wait)
+      if (wait)
         LOG_PRINT("net_service loop stopped.", LOG_LEVEL_0);
       return true;
     }

@@ -75,13 +75,13 @@ namespace epee
       void operator()(const array_entry_t<t_type>& a)
       {
         m_strm << "[";
-        if(a.m_array.size())
+        if (a.m_array.size())
         {
           auto last_it = --a.m_array.end();
           for(auto it = a.m_array.begin(); it != a.m_array.end(); it++)
           {
             dump_as_json(m_strm, *it, m_indent, m_insert_newlines);
-            if(it != last_it)
+            if (it != last_it)
               m_strm << ",";
           }
         }
@@ -142,7 +142,7 @@ namespace epee
     template<class t_stream>
     void dump_as_json(t_stream& strm, const bool& v, size_t indent, bool insert_newlines)
     {
-      if(v)
+      if (v)
         strm << "true";
       else
         strm << "false";
@@ -163,14 +163,14 @@ namespace epee
       std::string newline = insert_newlines ? "\r\n" : "";
       strm << "{" << newline;
       std::string indent_str = make_indent(local_indent);
-      if(sec.m_entries.size())
+      if (sec.m_entries.size())
       {
         auto it_last = --sec.m_entries.end();
         for(auto it = sec.m_entries.begin(); it!= sec.m_entries.end();it++)
         {
           strm << indent_str << "\"" << misc_utils::parse::transform_to_escape_sequence(it->first) << "\"" << ": ";
           dump_as_json(strm, it->second, local_indent, insert_newlines);
-          if(it_last != it)
+          if (it_last != it)
             strm << ",";
           strm << newline;
         }

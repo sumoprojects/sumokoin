@@ -753,7 +753,7 @@ TEST(Serialization, portability_outputs)
   auto decrypt = [] (const std::string &ciphertext, const crypto::secret_key &skey, bool authenticated) -> string
   {
     const size_t prefix_size = sizeof(chacha_iv) + (authenticated ? sizeof(crypto::signature) : 0);
-    if(ciphertext.size() < prefix_size)
+    if (ciphertext.size() < prefix_size)
       return {};
     crypto::chacha_key key;
     crypto::generate_chacha_key(&skey, sizeof(skey), key, 1);
@@ -1143,7 +1143,7 @@ TEST(Serialization, difficulty_type)
   for(int i = 0; i != 100; i++)
   {
     v_original.push_back(cryptonote::difficulty_type("117868131154734361989189100"));
-    if(v_original.size() > 1)
+    if (v_original.size() > 1)
       v_original.back() *= v_original[v_original.size()-2];
   }
 

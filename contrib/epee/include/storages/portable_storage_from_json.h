@@ -123,7 +123,7 @@ namespace epee
               match_number2(it, buf_end, val, is_v_float, is_signed);
               if(!is_v_float)
               {
-                if(is_signed)
+                if (is_signed)
                 {
                   errno = 0;
                   int64_t nval = strtoll(val.data(), NULL, 10);
@@ -144,19 +144,19 @@ namespace epee
                 stg.set_value(name, double(nval), current_section);              
               }
               state = match_state_wonder_after_value;
-            }else if(isalpha(*it) )
+            }else if (isalpha(*it) )
             {// could be null, true or false
               boost::string_ref word;
               match_word2(it, buf_end, word);
-              if(boost::iequals(word, "null"))
+              if (boost::iequals(word, "null"))
               {
                 state = match_state_wonder_after_value;
                 //just skip this, 
-              }else if(boost::iequals(word, "true"))
+              }else if (boost::iequals(word, "true"))
               {
                 stg.set_value(name, true, current_section);              
                 state = match_state_wonder_after_value;
-              }else if(boost::iequals(word, "false"))
+              }else if (boost::iequals(word, "false"))
               {
                 stg.set_value(name, false, current_section);              
                 state = match_state_wonder_after_value;
@@ -243,17 +243,17 @@ namespace epee
             {
               array_md = array_mode_undifined;
               state = match_state_wonder_after_value;
-            }else if(isalpha(*it) )
+            }else if (isalpha(*it) )
             {// array of booleans
               boost::string_ref word;
               match_word2(it, buf_end, word);
-              if(boost::iequals(word, "true"))
+              if (boost::iequals(word, "true"))
               {
                 h_array = stg.insert_first_value(name, true, current_section);              
                 CHECK_AND_ASSERT_THROW_MES(h_array, " failed to insert values section entry");
                 state = match_state_array_after_value;
                 array_md = array_mode_booleans;
-              }else if(boost::iequals(word, "false"))
+              }else if (boost::iequals(word, "false"))
               {
                 h_array = stg.insert_first_value(name, false, current_section);              
                 CHECK_AND_ASSERT_THROW_MES(h_array, " failed to insert values section entry");
@@ -331,16 +331,16 @@ namespace epee
               }else CHECK_ISSPACE();
               break;
             case array_mode_booleans:
-              if(isalpha(*it) )
+              if (isalpha(*it) )
               {// array of booleans
                 boost::string_ref word;
                 match_word2(it, buf_end, word);
-                if(boost::iequals(word, "true"))
+                if (boost::iequals(word, "true"))
                 {
                   bool r = stg.insert_next_value(h_array, true);              
                   CHECK_AND_ASSERT_THROW_MES(r, " failed to insert values section entry");
                   state = match_state_array_after_value;
-                }else if(boost::iequals(word, "false"))
+                }else if (boost::iequals(word, "false"))
                 {
                   bool r = stg.insert_next_value(h_array, false);
                   CHECK_AND_ASSERT_THROW_MES(r, " failed to insert values section entry");

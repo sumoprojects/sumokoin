@@ -107,14 +107,14 @@ namespace epee
 
       const t_entry_type* get_next_val() const 
       {
-        if(m_it == m_array.end())
+        if (m_it == m_array.end())
           return nullptr;
         return &(*(m_it++));
       }
 
       t_entry_type* get_next_val() 
       {
-        if(m_it == m_array.end())
+        if (m_it == m_array.end())
           return nullptr;
         return (t_entry_type*)&(*(m_it++));//fuckoff
       }

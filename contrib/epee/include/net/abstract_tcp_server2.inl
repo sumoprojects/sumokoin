@@ -190,7 +190,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
       " to " << local_ep.address().to_string() << ':' << local_ep.port() <<
       ", total sockets objects " << get_state().sock_count);
 
-    if(static_cast<shared_state&>(get_state()).pfilter && !static_cast<shared_state&>(get_state()).pfilter->is_remote_host_allowed(context.m_remote_address))
+    if (static_cast<shared_state&>(get_state()).pfilter && !static_cast<shared_state&>(get_state()).pfilter->is_remote_host_allowed(context.m_remote_address))
     {
       _dbg2("[sock " << socket().native_handle() << "] host denied " << context.m_remote_address.host_str() << ", shutdowning connection");
       close();
@@ -271,7 +271,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     //_dbg3("[sock " << socket().native_handle() << "] add_ref, m_peer_number=" << mI->m_peer_number);
     CRITICAL_REGION_LOCAL(self->m_self_refs_lock);
     //_dbg3("[sock " << socket().native_handle() << "] add_ref 2, m_peer_number=" << mI->m_peer_number);
-    if(m_was_shutdown)
+    if (m_was_shutdown)
       return false;
     ++m_reference_count;
     m_self_ref = std::move(self);
@@ -387,7 +387,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
         if(!m_send_que.size())
           do_shutdown = true;
         CRITICAL_REGION_END();
-        if(do_shutdown)
+        if (do_shutdown)
           shutdown();
       }else
       {
@@ -402,7 +402,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     }else
     {
       _dbg3("[sock " << socket().native_handle() << "] Some not success at read: " << e.message() << ':' << e.value());
-      if(e.value() != 2)
+      if (e.value() != 2)
       {
         _dbg3("[sock " << socket().native_handle() << "] Some problems at read: " << e.message() << ':' << e.value());
         shutdown();
@@ -481,7 +481,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
         if(!m_send_que.size())
           do_shutdown = true;
         CRITICAL_REGION_END();
-        if(do_shutdown)
+        if (do_shutdown)
           shutdown();
         return;
       }
@@ -603,7 +603,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     auto self = safe_shared_from_this();
     if(!self)
       return false;
-    if(m_was_shutdown)
+    if (m_was_shutdown)
       return false;
     double current_speed_up;
     {
@@ -662,7 +662,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 
     m_send_que.push_back(std::move(chunk));
 
-    if(m_send_que.size() > 1)
+    if (m_send_que.size() > 1)
     { // active operation should be in progress, nothing to do, just wait last operation callback
         auto size_now = m_send_que.back().size();
         MDEBUG("do_send_chunk() NOW just queues: packet="<<size_now<<" B, is added to queue-size="<<m_send_que.size());
@@ -673,7 +673,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     else
     { // no active operation
 
-        if(m_send_que.size()!=1)
+        if (m_send_que.size()!=1)
         {
             _erro("Looks like no active operations, but send que size != 1!!");
             return false;
@@ -775,7 +775,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     m_timer.expires_from_now(ms);
     m_timer.async_wait([=](const boost::system::error_code& ec)
     {
-      if(ec == boost::asio::error::operation_aborted)
+      if (ec == boost::asio::error::operation_aborted)
         return;
       MDEBUG(context << "connection timeout, closing");
       self->close();
@@ -868,16 +868,16 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 
     bool do_shutdown = false;
     CRITICAL_REGION_BEGIN(m_send_que_lock);
-    if(m_send_que.empty())
+    if (m_send_que.empty())
     {
       _erro("[sock " << socket().native_handle() << "] m_send_que.size() == 0 at handle_write!");
       return;
     }
 
     m_send_que.pop_front();
-    if(m_send_que.empty())
+    if (m_send_que.empty())
     {
-      if(boost::interprocess::ipcdetail::atomic_read32(&m_want_close_connection))
+      if (boost::interprocess::ipcdetail::atomic_read32(&m_want_close_connection))
       {
         do_shutdown = true;
       }
@@ -899,7 +899,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     }
     CRITICAL_REGION_END();
 
-    if(do_shutdown)
+    if (do_shutdown)
     {
       shutdown();
     }
@@ -1187,7 +1187,7 @@ POP_WARNINGS
         return true;
       }
 
-      if(wait && !m_stop_signal_sent)
+      if (wait && !m_stop_signal_sent)
       {
         //some problems with the listening socket ?..
         _dbg1("Net service stopped without stop request, restarting...");
@@ -1212,10 +1212,10 @@ POP_WARNINGS
     CRITICAL_REGION_LOCAL(m_threads_lock);
     BOOST_FOREACH(boost::shared_ptr<boost::thread>& thp,  m_threads)
     {
-      if(thp->get_id() == boost::this_thread::get_id())
+      if (thp->get_id() == boost::this_thread::get_id())
         return true;
     }
-    if(m_threads_count == 1 && boost::this_thread::get_id() == m_main_thread_id)
+    if (m_threads_count == 1 && boost::this_thread::get_id() == m_main_thread_id)
       return true;
     return false;
     CATCH_ENTRY_L0("boosted_tcp_server<t_protocol_handler>::is_thread_worker", false);
@@ -1228,7 +1228,7 @@ POP_WARNINGS
     boost::chrono::milliseconds ms(wait_mseconds);
     for (std::size_t i = 0; i < m_threads.size(); ++i)
     {
-      if(m_threads[i]->joinable() && !m_threads[i]->try_join_for(ms))
+      if (m_threads[i]->joinable() && !m_threads[i]->try_join_for(ms))
       {
         _dbg1("Interrupting thread " << m_threads[i]->native_handle());
         m_threads[i]->interrupt();
@@ -1343,10 +1343,10 @@ POP_WARNINGS
   template<class t_protocol_handler>
   bool boosted_tcp_server<t_protocol_handler>::add_connection(t_connection_context& out, boost::asio::ip::tcp::socket&& sock, network_address real_remote, epee::net_utils::ssl_support_t ssl_support)
   {
-    if(std::addressof(get_io_service()) == std::addressof(GET_IO_SERVICE(sock)))
+    if (std::addressof(get_io_service()) == std::addressof(GET_IO_SERVICE(sock)))
     {
       connection_ptr conn(new connection<t_protocol_handler>(std::move(sock), m_state, m_connection_type, ssl_support));
-      if(conn->start(false, 1 < m_threads_count, std::move(real_remote)))
+      if (conn->start(false, 1 < m_threads_count, std::move(real_remote)))
       {
         conn->get_context(out);
         conn->save_dbg_log();
@@ -1366,7 +1366,7 @@ POP_WARNINGS
     TRY_ENTRY();
 
     sock_.open(remote_endpoint.protocol());
-    if(bind_ip != "0.0.0.0" && bind_ip != "0" && bind_ip != "" )
+    if (bind_ip != "0.0.0.0" && bind_ip != "0" && bind_ip != "" )
     {
       boost::asio::ip::tcp::endpoint local_endpoint(boost::asio::ip::address::from_string(bind_ip.c_str()), 0);
       boost::system::error_code ec;
@@ -1412,7 +1412,7 @@ POP_WARNINGS
           sock_.close();
         return CONNECT_FAILURE;
       }
-      if(local_shared_context->ec == boost::asio::error::would_block && !r)
+      if (local_shared_context->ec == boost::asio::error::would_block && !r)
       {
         //timeout
         sock_.close();
@@ -1499,7 +1499,7 @@ POP_WARNINGS
     std::string bind_ip_to_use;
 
     boost::asio::ip::tcp::resolver::iterator end;
-    if(iterator == end)
+    if (iterator == end)
     {
       if (!m_use_ipv6)
       {
@@ -1523,7 +1523,7 @@ POP_WARNINGS
 
       iterator = resolver.resolve(query6, resolve_error);
 
-      if(iterator == end)
+      if (iterator == end)
       {
         _erro("Failed to resolve " << adr);
         return false;
@@ -1622,7 +1622,7 @@ POP_WARNINGS
     }
 
     boost::asio::ip::tcp::resolver::iterator end;
-    if(iterator == end)
+    if (iterator == end)
     {
       if (!try_ipv6)
       {
@@ -1641,7 +1641,7 @@ POP_WARNINGS
 
       iterator = resolver.resolve(query6, resolve_error);
 
-      if(iterator == end)
+      if (iterator == end)
       {
         _erro("Failed to resolve " << adr);
         return false;
@@ -1652,7 +1652,7 @@ POP_WARNINGS
     boost::asio::ip::tcp::endpoint remote_endpoint(*iterator);
      
     sock_.open(remote_endpoint.protocol());
-    if(bind_ip != "0.0.0.0" && bind_ip != "0" && bind_ip != "" )
+    if (bind_ip != "0.0.0.0" && bind_ip != "0" && bind_ip != "" )
     {
       boost::asio::ip::tcp::endpoint local_endpoint(boost::asio::ip::address::from_string(bind_ip.c_str()), 0);
       boost::system::error_code ec;
@@ -1671,7 +1671,7 @@ POP_WARNINGS
     sh_deadline->expires_from_now(boost::posix_time::milliseconds(conn_timeout));
     sh_deadline->async_wait([=](const boost::system::error_code& error)
       {
-          if(error != boost::asio::error::operation_aborted) 
+          if (error != boost::asio::error::operation_aborted) 
           {
             _dbg3("Failed to connect to " << adr << ':' << port << ", because of timeout (" << conn_timeout << ")");
             new_connection_l->socket().close();

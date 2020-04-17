@@ -40,7 +40,7 @@ namespace reg_utils
 		DWORD dw = 0;
 
 		if( ::RegOpenKeyExA(hParentKey, pSubKey, 0, KEY_WRITE, &hRegKey) != ERROR_SUCCESS )
-			if(force_create && (::RegCreateKeyExA(hParentKey, pSubKey, 0, "", REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hRegKey, &dw) != ERROR_SUCCESS) )
+			if (force_create && (::RegCreateKeyExA(hParentKey, pSubKey, 0, "", REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hRegKey, &dw) != ERROR_SUCCESS) )
 				return false;
 
 
@@ -63,7 +63,7 @@ namespace reg_utils
 		{
 			DWORD dwType, lSize = 0;
 			res = ::RegQueryValueExA(hRegKey, pValName, 0, &dwType, NULL, &lSize);        
-			if(ERROR_SUCCESS!=res || (sizeof(valToSave) < lSize) ) 
+			if (ERROR_SUCCESS!=res || (sizeof(valToSave) < lSize) ) 
 			{
 				::RegCloseKey(hRegKey);
 				return false;
@@ -103,7 +103,7 @@ namespace reg_utils
 		{
 			DWORD dwType, lSize = 0;
 			res = ::RegQueryValueExA(hRegKey, pValName, 0, &dwType, NULL, &lSize);        
-			if(ERROR_SUCCESS!=res) 
+			if (ERROR_SUCCESS!=res) 
 			{
 				
 				::RegCloseKey(hRegKey);
@@ -140,15 +140,15 @@ namespace reg_utils
 	{
 		DWORD dwType, lSize = 0;
 		LONG res = ::RegQueryValueExA(hKey, pValName, 0, &dwType, NULL, &lSize);        
-		if(ERROR_SUCCESS!=res || 0 >= lSize)  
+		if (ERROR_SUCCESS!=res || 0 >= lSize)  
 		{
 			valToSave.release();
 			return false;
 		}
-		if(valToSave.get_size() < lSize)
+		if (valToSave.get_size() < lSize)
 			valToSave.alloc_buff(lSize);
 		res = ::RegQueryValueExA(hKey, pValName, 0, &dwType, (LPBYTE)valToSave.get(0), &lSize);			
-		if(pRegType) *pRegType = dwType;
+		if (pRegType) *pRegType = dwType;
 
 		return ERROR_SUCCESS==res ? true:false;
 	}
@@ -157,14 +157,14 @@ namespace reg_utils
 	{
 		DWORD dwType, lSize = 0;
 		LONG res = ::RegQueryValueExA(hKey, pValName, 0, &dwType, NULL, &lSize);        
-		if(ERROR_SUCCESS!=res || 0 >= lSize)  
+		if (ERROR_SUCCESS!=res || 0 >= lSize)  
 		{
 			return false;
 		}
 		
 		valToSave.resize(lSize);
 		res = ::RegQueryValueExA(hKey, pValName, 0, &dwType, (LPBYTE)valToSave.data(), &lSize);			
-		if(pRegType) *pRegType = dwType;
+		if (pRegType) *pRegType = dwType;
 
 		return ERROR_SUCCESS==res ? true:false;
 	}

@@ -94,7 +94,7 @@ namespace epee
       stg.store_to_binary(buff_to_send);
 
       int res = transport.notify(command, buff_to_send);
-      if(res <=0 )
+      if (res <=0 )
       {
         LOG_ERROR("Failed to notify command " << command << " return code " << res);
         return false;
@@ -188,7 +188,7 @@ namespace epee
 
       on_levin_traffic(context, true, true, false, buff_to_send.size(), command);
       int res = transport.notify(command, epee::strspan<uint8_t>(buff_to_send), conn_id);
-      if(res <=0 )
+      if (res <=0 )
       {
         MERROR("Failed to notify command " << command << " return code " << res);
         return false;
@@ -302,32 +302,32 @@ namespace epee
 
 
 #define HANDLE_NOTIFY2(command_id, func, type_name_in) \
-  if(is_notify && command_id == command) \
+  if (is_notify && command_id == command) \
   {handled=true;return epee::net_utils::buff_to_t_adapter<internal_owner_type_name, type_name_in>(this, command, in_buff, boost::bind(func, this, _1, _2, _3), context);}
 
 #define HANDLE_NOTIFY_T2(NOTIFY, func) \
-  if(is_notify && NOTIFY::ID == command) \
+  if (is_notify && NOTIFY::ID == command) \
   {handled=true;return epee::net_utils::buff_to_t_adapter<internal_owner_type_name, typename NOTIFY::request>(this, command, in_buff, boost::bind(func, this, _1, _2, _3), context);}
 
 
 #define CHAIN_INVOKE_MAP2(func) \
   { \
   int res = func(is_notify, command, in_buff, buff_out, context, handled); \
-  if(handled) \
+  if (handled) \
   return res; \
   }
 
 #define CHAIN_INVOKE_MAP_TO_OBJ2(obj) \
   { \
   int res = obj.handle_invoke_map(is_notify, command, in_buff, buff_out, context, handled); \
-  if(handled) \
+  if (handled) \
   return res; \
   }
 
 #define CHAIN_INVOKE_MAP_TO_OBJ_FORCE_CONTEXT(obj, context_type) \
   { \
   int res = obj.handle_invoke_map(is_notify, command, in_buff, buff_out, static_cast<context_type>(context), handled); \
-  if(handled) return res; \
+  if (handled) return res; \
   }
 
 

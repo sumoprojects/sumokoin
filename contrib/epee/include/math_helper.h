@@ -61,7 +61,7 @@ namespace math_helper
 			CRITICAL_REGION_LOCAL(m_lock);
 
 			m_base = default_base;
-			if(m_list.size() > m_base)
+			if (m_list.size() > m_base)
 				m_list.resize(m_base);
 
       return true;
@@ -75,7 +75,7 @@ namespace math_helper
 
 //#ifndef DEBUG_STUB
 			m_list.push_back(vl);
-			if(m_list.size() > m_base )
+			if (m_list.size() > m_base )
 				m_list.pop_front();
 //#endif
 		}
@@ -95,7 +95,7 @@ namespace math_helper
 			CRITICAL_REGION_LOCAL(m_lock);
 
 			value_type vl = std::accumulate(m_list.begin(), m_list.end(), value_type(0));
-			if(m_list.size())
+			if (m_list.size())
 				return m_last_avg_val = (double)(vl/m_list.size());
 	
 			return m_last_avg_val = (double)vl;
@@ -104,7 +104,7 @@ namespace math_helper
 		value_type get_last_val()
 		{
 			CRITICAL_REGION_LOCAL(m_lock);
-			if(m_list.size())
+			if (m_list.size())
 				return m_list.back();
 
 			return 0;
@@ -225,7 +225,7 @@ namespace math_helper
 			typename tlist::iterator  it_2 = t_list.begin();
 			for(size_t local_offset = 0;local_offset!=offset;local_offset++)
 				it_2++;
-			if(it_2 == it)
+			if (it_2 == it)
 				continue;
 			std::swap(*it_2, *it);
 		}
@@ -276,7 +276,7 @@ namespace math_helper
 		{
 			uint64_t current_time = get_time();
 
-      if(current_time - m_last_worked_time > m_interval)
+      if (current_time - m_last_worked_time > m_interval)
 			{
 				bool res = functr();
 				m_last_worked_time = get_time();

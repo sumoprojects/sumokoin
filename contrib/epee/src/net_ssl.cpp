@@ -586,7 +586,7 @@ static void add_windows_root_certs(SSL_CTX *ctx) noexcept
         X509 *x509 = d2i_X509(NULL,
                               (const unsigned char **)&pContext->pbCertEncoded,
                               pContext->cbCertEncoded);
-        if(x509 != NULL) {
+        if (x509 != NULL) {
             X509_STORE_add_cert(store, x509);
             X509_free(x509);
         }

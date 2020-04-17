@@ -97,7 +97,7 @@ namespace
       if((len = WideCharToMultiByte(CP_UTF8, 0, &ucs2_ch, 1, utf8_ch, sizeof(utf8_ch), NULL, NULL)) <= 0)
         break;
 
-      if(pass.size() + len >= tools::password_container::max_password_size)
+      if (pass.size() + len >= tools::password_container::max_password_size)
         break;
 
       chlen.push_back(len);
@@ -188,7 +188,7 @@ namespace
         std::cout << "Confirm password: ";
         if (!read_from_tty(pass2, hide_input))
           return false;
-        if(pass1!=pass2)
+        if (pass1!=pass2)
         {
           std::cout << "Passwords do not match! Please try again." << std::endl;
           pass1.clear();

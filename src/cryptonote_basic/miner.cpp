@@ -168,7 +168,7 @@ namespace cryptonote
     uint64_t expected_reward; //only used for RPC calls - could possibly be useful here too?
 
     cryptonote::blobdata extra_nonce;
-    if(m_extra_messages.size() && m_config.current_extra_message_index < m_extra_messages.size())
+    if (m_extra_messages.size() && m_config.current_extra_message_index < m_extra_messages.size())
     {
       extra_nonce = m_extra_messages[m_config.current_extra_message_index];
     }
@@ -185,7 +185,7 @@ namespace cryptonote
   bool miner::on_idle()
   {
     m_update_block_template_interval.do_call([&](){
-      if(is_mining())request_block_template();
+      if (is_mining())request_block_template();
       return true;
     });
 
@@ -209,14 +209,14 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------------
   void miner::merge_hr()
   {
-    if(m_last_hr_merge_time && is_mining())
+    if (m_last_hr_merge_time && is_mining())
     {
       m_current_hash_rate = m_hashes * 1000 / ((misc_utils::get_tick_count() - m_last_hr_merge_time + 1));
       CRITICAL_REGION_LOCAL(m_last_hash_rates_lock);
       m_last_hash_rates.push_back(m_current_hash_rate);
-      if(m_last_hash_rates.size() > 19)
+      if (m_last_hash_rates.size() > 19)
         m_last_hash_rates.pop_front();
-      if(m_do_print_hashrate)
+      if (m_do_print_hashrate)
       {
         uint64_t total_hr = std::accumulate(m_last_hash_rates.begin(), m_last_hash_rates.end(), 0);
         float hr = static_cast<float>(total_hr)/static_cast<float>(m_last_hash_rates.size());
@@ -297,7 +297,7 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------------
   bool miner::init(const boost::program_options::variables_map& vm, network_type nettype)
   {
-    if(command_line::has_arg(vm, arg_extra_messages))
+    if (command_line::has_arg(vm, arg_extra_messages))
     {
       std::string buff;
       bool r = file_io_utils::load_file_to_string(command_line::get_arg(vm, arg_extra_messages), buff);
@@ -311,7 +311,7 @@ namespace cryptonote
         if(!extra_vec[i].size())
           continue;
         std::string buff = string_encoding::base64_decode(extra_vec[i]);
-        if(buff != "0")
+        if (buff != "0")
           m_extra_messages[i] = buff;
       }
       m_config_folder_path = boost::filesystem::path(command_line::get_arg(vm, arg_extra_messages)).parent_path().string();
@@ -321,7 +321,7 @@ namespace cryptonote
       MINFO("Loaded " << m_extra_messages.size() << " extra messages, current index " << m_config.current_extra_message_index);
     }
 
-    if(command_line::has_arg(vm, arg_start_mining))
+    if (command_line::has_arg(vm, arg_start_mining))
     {
       address_parse_info info;
       if(!cryptonote::get_account_address_from_str(info, nettype, command_line::get_arg(vm, arg_start_mining)) || info.is_subaddress)
@@ -332,7 +332,7 @@ namespace cryptonote
       m_mine_address = info.address;
       m_threads_total = 1;
       m_do_mining = true;
-      if(command_line::has_arg(vm, arg_mining_threads))
+      if (command_line::has_arg(vm, arg_mining_threads))
       {
         m_threads_total = command_line::get_arg(vm, arg_mining_threads);
       }
@@ -340,15 +340,15 @@ namespace cryptonote
 
     // Background mining parameters
     // Let init set all parameters even if background mining is not enabled, they can start later with params set
-    if(command_line::has_arg(vm, arg_bg_mining_enable))
+    if (command_line::has_arg(vm, arg_bg_mining_enable))
       set_is_background_mining_enabled( command_line::get_arg(vm, arg_bg_mining_enable) );
-    if(command_line::has_arg(vm, arg_bg_mining_ignore_battery))
+    if (command_line::has_arg(vm, arg_bg_mining_ignore_battery))
       set_ignore_battery( command_line::get_arg(vm, arg_bg_mining_ignore_battery) );      
-    if(command_line::has_arg(vm, arg_bg_mining_min_idle_interval_seconds))
+    if (command_line::has_arg(vm, arg_bg_mining_min_idle_interval_seconds))
       set_min_idle_seconds( command_line::get_arg(vm, arg_bg_mining_min_idle_interval_seconds) );
-    if(command_line::has_arg(vm, arg_bg_mining_idle_threshold_percentage))
+    if (command_line::has_arg(vm, arg_bg_mining_idle_threshold_percentage))
       set_idle_threshold( command_line::get_arg(vm, arg_bg_mining_idle_threshold_percentage) );
-    if(command_line::has_arg(vm, arg_bg_mining_miner_target_percentage))
+    if (command_line::has_arg(vm, arg_bg_mining_miner_target_percentage))
       set_mining_target( command_line::get_arg(vm, arg_bg_mining_miner_target_percentage) );
 
     return true;
@@ -381,7 +381,7 @@ namespace cryptonote
     }
     m_starter_nonce = crypto::rand<uint32_t>();
     CRITICAL_REGION_LOCAL(m_threads_lock);
-    if(is_mining())
+    if (is_mining())
     {
       LOG_ERROR("Starting miner but it's already started");
       return false;
@@ -416,7 +416,7 @@ namespace cryptonote
       LOG_PRINT_L0("Background mining controller thread started" );
     }
 
-    if(get_ignore_battery())
+    if (get_ignore_battery())
     {
       MINFO("Ignoring battery");
     }
@@ -426,7 +426,7 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------------
   uint64_t miner::get_speed() const
   {
-    if(is_mining()) {
+    if (is_mining()) {
       return m_current_hash_rate;
     }
     else {
@@ -480,7 +480,7 @@ namespace cryptonote
       crypto::hash h;
       gbh(bl, height, h);
 
-      if(check_hash(h, diffic))
+      if (check_hash(h, diffic))
       {
         bl.invalidate_hashes();
         return true;
@@ -492,7 +492,7 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------------
   void miner::on_synchronized()
   {
-    if(m_do_mining)
+    if (m_do_mining)
     {
       start(m_mine_address, m_threads_total, get_is_background_mining_enabled(), get_ignore_battery());
     }
@@ -503,7 +503,7 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL(m_miners_count_lock);
     MDEBUG("miner::pause: " << m_pausers_count << " -> " << (m_pausers_count + 1));
     ++m_pausers_count;
-    if(m_pausers_count == 1 && is_mining())
+    if (m_pausers_count == 1 && is_mining())
       MDEBUG("MINING PAUSED");
   }
   //-----------------------------------------------------------------------------------------------------
@@ -512,7 +512,7 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL(m_miners_count_lock);
     MDEBUG("miner::resume: " << m_pausers_count << " -> " << (m_pausers_count - 1));
     --m_pausers_count;
-    if(m_pausers_count < 0)
+    if (m_pausers_count < 0)
     {
       m_pausers_count = 0;
       MERROR("Unexpected miner::resume() called");
@@ -535,7 +535,7 @@ namespace cryptonote
     ++m_threads_active;
     while(!m_stop)
     {
-      if(m_pausers_count)//anti split workaround
+      if (m_pausers_count)//anti split workaround
       {
         misc_utils::sleep_no_w(100);
         continue;
@@ -554,7 +554,7 @@ namespace cryptonote
         if( m_stop ) continue;         
       }
 
-      if(local_template_ver != m_template_no)
+      if (local_template_ver != m_template_no)
       {
         CRITICAL_REGION_BEGIN(m_template_lock);
         b = m_template;
@@ -576,7 +576,7 @@ namespace cryptonote
       crypto::hash h;
       m_gbh(b, height, h);
 
-      if(check_hash(h, local_diff))
+      if (check_hash(h, local_diff))
       {
         //we lucky!
         ++m_config.current_extra_message_index;
@@ -637,8 +637,8 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------------
   bool miner::set_min_idle_seconds(uint64_t min_idle_seconds)
   {
-    if(min_idle_seconds > BACKGROUND_MINING_MAX_MIN_IDLE_INTERVAL_IN_SECONDS) return false;
-    if(min_idle_seconds < BACKGROUND_MINING_MIN_MIN_IDLE_INTERVAL_IN_SECONDS) return false;
+    if (min_idle_seconds > BACKGROUND_MINING_MAX_MIN_IDLE_INTERVAL_IN_SECONDS) return false;
+    if (min_idle_seconds < BACKGROUND_MINING_MIN_MIN_IDLE_INTERVAL_IN_SECONDS) return false;
     m_min_idle_seconds = min_idle_seconds;
     return true;
   }
@@ -650,8 +650,8 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------------
   bool miner::set_idle_threshold(uint8_t idle_threshold)
   {
-    if(idle_threshold > BACKGROUND_MINING_MAX_IDLE_THRESHOLD_PERCENTAGE) return false;
-    if(idle_threshold < BACKGROUND_MINING_MIN_IDLE_THRESHOLD_PERCENTAGE) return false;
+    if (idle_threshold > BACKGROUND_MINING_MAX_IDLE_THRESHOLD_PERCENTAGE) return false;
+    if (idle_threshold < BACKGROUND_MINING_MIN_IDLE_THRESHOLD_PERCENTAGE) return false;
     m_idle_threshold = idle_threshold;
     return true;
   }
@@ -663,8 +663,8 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------------
   bool miner::set_mining_target(uint8_t mining_target)
   {
-    if(mining_target > BACKGROUND_MINING_MAX_MINING_TARGET_PERCENTAGE) return false;
-    if(mining_target < BACKGROUND_MINING_MIN_MINING_TARGET_PERCENTAGE) return false;
+    if (mining_target > BACKGROUND_MINING_MAX_MINING_TARGET_PERCENTAGE) return false;
+    if (mining_target < BACKGROUND_MINING_MIN_MINING_TARGET_PERCENTAGE) return false;
     m_mining_target = mining_target;
     return true;
   }
@@ -882,7 +882,7 @@ namespace cryptonote
       host_cpu_load_info_data_t stats;      
       count = HOST_CPU_LOAD_INFO_COUNT;
       status = host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, (host_info_t)&stats, &count);
-      if(status != KERN_SUCCESS)
+      if (status != KERN_SUCCESS)
       {
         return false;
       }

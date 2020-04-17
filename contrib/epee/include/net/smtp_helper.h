@@ -47,7 +47,7 @@ namespace net_utils
 				return false;
 			}
 
-			if(login.size() && pass.size())
+			if (login.size() && pass.size())
 			{
 				if ( !smtp.ServerLogin( login.c_str(), pass.c_str()) )
 				{
