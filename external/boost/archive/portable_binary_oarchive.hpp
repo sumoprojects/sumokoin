@@ -247,7 +247,7 @@ portable_binary_oarchive::save_impl(
     do{
         ll >>= CHAR_BIT;
         ++size;
-    }while(ll != 0);
+    }while (ll != 0);
 
     this->primitive_base_t::save(
         static_cast<signed char>(negative ? -size : size)

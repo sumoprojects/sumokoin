@@ -122,7 +122,7 @@ namespace trezor {
 
     void device_trezor::live_refresh_thread_main()
     {
-      while(m_live_refresh_thread_running)
+      while (m_live_refresh_thread_running)
       {
         boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
         if (!m_live_refresh_in_progress)
@@ -290,7 +290,7 @@ namespace trezor {
                                 const std::vector<tools::wallet2::transfer_details> & transfers,
                                 hw::device_cold::exported_key_image & ski)
     {
-#define EVENT_PROGRESS(P) do { if (m_callback) {(m_callback)->on_progress(device_cold::op_progress(P)); } }while(0)
+#define EVENT_PROGRESS(P) do { if (m_callback) {(m_callback)->on_progress(device_cold::op_progress(P)); } }while (0)
 
       TREZOR_AUTO_LOCK_CMD();
       require_connected();
@@ -578,7 +578,7 @@ namespace trezor {
     {
 #define EVENT_PROGRESS(S, SUB, SUBMAX) do { if (m_callback) { \
       (m_callback)->on_progress(device_cold::tx_progress(idx, m_num_transations_to_sign, S, 10, SUB, SUBMAX)); \
-} }while(0)
+} }while (0)
 
       require_connected();
       if (idx > 0)

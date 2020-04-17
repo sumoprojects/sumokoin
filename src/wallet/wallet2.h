@@ -74,7 +74,7 @@
     handle_payment_changes(res, std::integral_constant<bool, HasCredits<decltype(res)>::Has>()); \
     throw_on_rpc_response_error(r, error, res.status, method); \
     THROW_WALLET_EXCEPTION_IF(res.status != CORE_RPC_STATUS_OK, ## __VA_ARGS__); \
-  } while(0)
+  } while (0)
 
 #define THROW_ON_RPC_RESPONSE_ERROR_GENERIC(r, err, res, method) \
   THROW_ON_RPC_RESPONSE_ERROR(r, err, res, method, tools::error::wallet_generic_rpc_error, method, res.status)

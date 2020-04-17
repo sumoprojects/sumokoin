@@ -815,7 +815,7 @@ inline bool do_replay_file(const std::string& filename)
 //--------------------------------------------------------------------------
 #define DEFAULT_HARDFORKS(HARDFORKS) do { \
   HARDFORKS.push_back(std::make_pair((uint8_t)1, (uint64_t)0)); \
-} while(0)
+} while (0)
 
 #define ADD_HARDFORK(HARDFORKS, FORK, HEIGHT) HARDFORKS.push_back(std::make_pair((uint8_t)FORK, (uint64_t)HEIGHT))
 
@@ -831,7 +831,7 @@ inline bool do_replay_file(const std::string& filename)
       for (size_t msidx = 0; msidx < total; ++msidx) \
         account[msidx].generate(); \
       make_multisig_accounts(account, threshold); \
-    } while(0)
+    } while (0)
 
 #define MAKE_ACCOUNT(VEC_EVENTS, account) \
   cryptonote::account_base account; \

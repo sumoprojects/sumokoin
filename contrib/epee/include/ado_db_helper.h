@@ -383,7 +383,7 @@ inline
 		}*/
 
 		size_t current_record_index = 0;
-		while(precordset->EndOfFile != EOF)
+		while (precordset->EndOfFile != EOF)
 		{
 			result_vector.push_back(table::value_type());
 			size_t fields_count = precordset->Fields->Count;

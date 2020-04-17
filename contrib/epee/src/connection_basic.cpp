@@ -254,7 +254,7 @@ void connection_basic::sleep_before_packet(size_t packet_size, int phase,  int q
 			MTRACE("Sleeping in " << __FUNCTION__ << " for " << ms << " ms before packet_size="<<packet_size); // debug sleep
 			boost::this_thread::sleep(boost::posix_time::milliseconds( ms ) );
 		}
-	} while(delay > 0);
+	} while (delay > 0);
 
 // XXX LATER XXX
 	{

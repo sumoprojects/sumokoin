@@ -49,5 +49,5 @@
   { \
     LOG_ERROR("Field " << #name << " not found in JSON"); \
     return false; \
-  } while(0)
+  } while (0)
 

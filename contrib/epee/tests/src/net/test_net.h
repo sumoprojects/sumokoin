@@ -285,7 +285,7 @@ namespace tests
     r = srv2.connect("127.0.0.1", string_tools::num_to_string_fast(port1), 5000, cntxt_2);
     CHECK_AND_ASSERT_MES(r, false, "connect to server failed");
 
-    while(true)
+    while (true)
     {
       LOG_PRINT_L0("Invoking from A to B...");
       int r = srv1.invoke(cntxt_1.m_connection_id, COMMAND_EXAMPLE_1::ID, arg, resp);
@@ -318,7 +318,7 @@ namespace tests
     uint64_t i = 0;
     boost::mutex wait_event;
     wait_event.lock();
-    while(true)
+    while (true)
     {
       net_utils::connection_context_base cntxt_local = AUTO_VAL_INIT(cntxt_local);
       bool r = srv.connect_async("127.0.0.1", string_tools::num_to_string_fast(port), 5000, [&srv, &port, &wait_event, &i, &cntxt_local](const net_utils::connection_context_base& cntxt, const boost::system::error_code& ec)

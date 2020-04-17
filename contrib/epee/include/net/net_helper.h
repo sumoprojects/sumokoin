@@ -741,7 +741,7 @@ namespace net_utils
 				boost::asio::async_write(m_socket, boost::asio::buffer(data, sz), boost::lambda::var(ec) = boost::lambda::_1);
 
 				// Block until the asynchronous operation has completed.
-				while(ec == boost::asio::error::would_block)
+				while (ec == boost::asio::error::would_block)
 				{
 					m_io_service.run_one();
 				}*/

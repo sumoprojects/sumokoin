@@ -71,7 +71,7 @@
   else if (mandatory)                                                \
   {                                                                  \
     throw std::invalid_argument("Field " #name " not found in JSON");\
-  } while(0)
+  } while (0)
 
 
 namespace hw{
@@ -424,7 +424,7 @@ namespace tx {
   static void generate_rsig_batch_sizes(std::vector<uint64_t> &batches, unsigned rsig_type, size_t num_outputs){
     size_t amount_batched = 0;
 
-    while(amount_batched < num_outputs){
+    while (amount_batched < num_outputs){
       if (rsig_type == rct::RangeProofBorromean || rsig_type == rct::RangeProofBulletproof) {
         batches.push_back(1);
         amount_batched += 1;

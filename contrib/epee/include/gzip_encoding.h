@@ -103,7 +103,7 @@ namespace net_utils
 			//because of the case where if after unpacking the data will exceed the awaited size, we will not halt with error
 			bool continue_unpacking = true;
 			bool first_step = true;
-			while(m_pre_decode.size() && continue_unpacking)
+			while (m_pre_decode.size() && continue_unpacking)
 			{
 
 				//fill buffers

@@ -319,7 +319,7 @@ void mock_daemon::mine_blocks(size_t num_blocks, const std::string &miner_addres
   start_mining(miner_address);
   auto mining_started = std::chrono::system_clock::now();
 
-  while(true) {
+  while (true) {
     epee::misc_utils::sleep_no_w(100);
     const uint64_t cur_height = get_height();
 

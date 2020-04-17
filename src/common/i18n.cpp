@@ -46,7 +46,7 @@ static std::map<std::string,std::string> i18n_entries;
 
 /* Logging isn't initialized yet when this is run */
 /* add std::flush, because std::endl doesn't seem to flush, contrary to expected */
-// #define i18n_log(x) do { std::cout << __FILE__ << ":" << __LINE__ << ": " << x << std::endl; std::cout << std::flush; } while(0)
+// #define i18n_log(x) do { std::cout << __FILE__ << ":" << __LINE__ << ": " << x << std::endl; std::cout << std::flush; } while (0)
 #define i18n_log(x) ((void)0)
 
 std::string i18n_get_language()

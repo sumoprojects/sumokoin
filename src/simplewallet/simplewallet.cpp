@@ -133,7 +133,7 @@ typedef cryptonote::simple_wallet sw;
     fail_msg_writer() << tr("Long payment IDs were not encrypted on the blockchain and would harm your privacy."); \
     fail_msg_writer() << tr("If the party you're sending to still requires a long payment ID, please notify them."); \
     return true; \
-  } while(0)
+  } while (0)
 
 #define REFRESH_PERIOD 90 // seconds
 
@@ -3679,7 +3679,7 @@ bool simple_wallet::set_variable(const std::vector<std::string> &args)
       f(args); \
       return true; \
     } \
-  } while(0)
+  } while (0)
 
     if (args[0] == "seed")
     {
@@ -7833,7 +7833,7 @@ bool simple_wallet::set_tx_key(const std::vector<std::string> &args_)
       fail_msg_writer() << tr("failed to parse tx_key");
       return true;
     }
-    while(true)
+    while (true)
     {
       local_args[1] = local_args[1].substr(64);
       if (local_args[1].empty())

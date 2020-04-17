@@ -79,7 +79,7 @@ namespace net_utils
 			HINTERNET hrequest = ::HttpOpenRequestA(hsession, use_post?"POST":NULL, uri.c_str(), NULL, NULL,NULL, dwFlags, NULL);
 			if (hrequest)
 			{
-				while(true)
+				while (true)
 				{
 					res = ::HttpSendRequestA(hrequest, NULL, 0, NULL, 0);
 					if(!res)
@@ -112,7 +112,7 @@ namespace net_utils
 
 					char buff[100000] = {0};
 					DWORD readed = 0;
-					while(true)
+					while (true)
 					{
 						res = ::InternetReadFile(hrequest, buff, sizeof(buff), &readed);
 						if(!res)

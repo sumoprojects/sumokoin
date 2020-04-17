@@ -350,7 +350,7 @@ typedef HANDLE mdb_mutex_t, mdb_mutexref_t;
 #define pthread_mutex_unlock(x)	ReleaseMutex(*x)
 #define pthread_mutex_lock(x)	WaitForSingleObject(*x, INFINITE)
 #define pthread_cond_signal(x)	SetEvent(*x)
-#define pthread_cond_wait(cond,mutex)	do{SignalObjectAndWait(*mutex, *cond, INFINITE, FALSE); WaitForSingleObject(*mutex, INFINITE);}while(0)
+#define pthread_cond_wait(cond,mutex)	do{SignalObjectAndWait(*mutex, *cond, INFINITE, FALSE); WaitForSingleObject(*mutex, INFINITE);}while (0)
 #define THREAD_CREATE(thr,start,arg) \
 	(((thr) = CreateThread(NULL, 0, start, arg, 0, NULL)) ? 0 : ErrCode())
 #define THREAD_FINISH(thr) \
@@ -406,7 +406,7 @@ typedef struct mdb_mutex {
 	sb.sem_num = (mutex)->semnum; \
 	*(mutex)->locked = 0; \
 	semop((mutex)->semid, &sb, 1); \
-} while(0)
+} while (0)
 
 static int
 mdb_sem_wait(mdb_mutexref_t sem)
@@ -1116,13 +1116,13 @@ typedef struct MDB_node {
 	/** Set the page number in a branch node */
 #define SETPGNO(node,pgno)	do { \
 	(node)->mn_lo = (pgno) & 0xffff; (node)->mn_hi = (pgno) >> 16; \
-	if (PGNO_TOPWORD) (node)->mn_flags = (pgno) >> PGNO_TOPWORD; } while(0)
+	if (PGNO_TOPWORD) (node)->mn_flags = (pgno) >> PGNO_TOPWORD; } while (0)
 
 	/** Get the size of the data in a leaf node */
 #define NODEDSZ(node)	 ((node)->mn_lo | ((unsigned)(node)->mn_hi << 16))
 	/** Set the size of the data for a leaf node */
 #define SETDSZ(node,size)	do { \
-	(node)->mn_lo = (size) & 0xffff; (node)->mn_hi = (size) >> 16;} while(0)
+	(node)->mn_lo = (size) & 0xffff; (node)->mn_hi = (size) >> 16;} while (0)
 	/** The size of a key in a node */
 #define NODEKSZ(node)	 ((node)->mn_ksize)
 
@@ -3041,7 +3041,7 @@ mdb_txn_renew0(MDB_txn *txn)
 			}
 			do /* LY: Retry on a race, ITS#7970. */
 				r->mr_txnid = ti->mti_txnid;
-			while(r->mr_txnid != ti->mti_txnid);
+			while (r->mr_txnid != ti->mti_txnid);
 			txn->mt_txnid = r->mr_txnid;
 			txn->mt_u.reader = r;
 			meta = env->me_metas[txn->mt_txnid & 1];
@@ -4135,13 +4135,13 @@ mdb_env_init_meta(MDB_env *env, MDB_meta *meta)
 	memset(&ov, 0, sizeof(ov));
 #define DO_PWRITE(rc, fd, ptr, size, len, pos)	do { \
 	ov.Offset = pos;	\
-	rc = WriteFile(fd, ptr, size, &len, &ov);	} while(0)
+	rc = WriteFile(fd, ptr, size, &len, &ov);	} while (0)
 #else
 	int len;
 #define DO_PWRITE(rc, fd, ptr, size, len, pos)	do { \
 	len = pwrite(fd, ptr, size, pos);	\
 	if (len == -1 && ErrCode() == EINTR) continue; \
-	rc = (len >= 0); break; } while(1)
+	rc = (len >= 0); break; } while (1)
 #endif
 
 	DPUTS("writing new meta page");

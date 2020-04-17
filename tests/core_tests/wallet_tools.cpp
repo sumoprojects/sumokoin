@@ -97,7 +97,7 @@ bool wallet_tools::fill_tx_sources(tools::wallet2 * wallet, std::vector<cryptono
     brk_cond += 1;                                   \
   if (min_amount && min_amount.get() <= sum)         \
     brk_cond += 1;                                   \
-  } while(0)
+  } while (0)
 
   for (ssize_t i = roffset; iters < ntrans && !abort; i += step, ++iters)
   {

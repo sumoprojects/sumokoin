@@ -368,7 +368,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 					reset_timer(boost::posix_time::milliseconds(ms + 1), true);
 					boost::this_thread::sleep_for(boost::chrono::milliseconds(ms));
 				}
-			} while(delay > 0);
+			} while (delay > 0);
 		} // any form of sleeping
 		
       //_info("[sock " << socket().native_handle() << "] RECV " << bytes_transferred);
@@ -1403,7 +1403,7 @@ POP_WARNINGS
     };
 
     sock_.async_connect(remote_endpoint, boost::bind<void>(connect_callback, _1, local_shared_context));
-    while(local_shared_context->ec == boost::asio::error::would_block)
+    while (local_shared_context->ec == boost::asio::error::would_block)
     {
       bool r = local_shared_context->cond.timed_wait(lock, boost::get_system_time() + boost::posix_time::milliseconds(conn_timeout));
       if (m_stop_signal_sent)

@@ -223,7 +223,7 @@ inline bool do_serialize(Archive &ar, bool &v)
     ar.tag(#f);						\
     bool r = ::do_serialize(ar, f);			\
     if (!r || !ar.stream().good()) return false;	\
-  } while(0);
+  } while (0);
 
 /*! \macro FIELD_N(t,f)
  *
@@ -234,7 +234,7 @@ inline bool do_serialize(Archive &ar, bool &v)
     ar.tag(t);						\
     bool r = ::do_serialize(ar, f);			\
     if (!r || !ar.stream().good()) return false;	\
-  } while(0);
+  } while (0);
 
 /*! \macro FIELD(f)
  *
@@ -245,7 +245,7 @@ inline bool do_serialize(Archive &ar, bool &v)
     ar.tag(#f);						\
     bool r = ::do_serialize(ar, f);			\
     if (!r || !ar.stream().good()) return false;	\
-  } while(0);
+  } while (0);
 
 /*! \macro FIELDS(f)
  *
@@ -255,7 +255,7 @@ inline bool do_serialize(Archive &ar, bool &v)
   do {									\
     bool r = ::do_serialize(ar, f);					\
     if (!r || !ar.stream().good()) return false;			\
-  } while(0);
+  } while (0);
 
 /*! \macro VARINT_FIELD(f)
  *  \brief tags and serializes the varint \a f
@@ -265,7 +265,7 @@ inline bool do_serialize(Archive &ar, bool &v)
     ar.tag(#f);					\
     ar.serialize_varint(f);			\
     if (!ar.stream().good()) return false;	\
-  } while(0);
+  } while (0);
 
 /*! \macro VARINT_FIELD_N(t, f)
  *
@@ -276,7 +276,7 @@ inline bool do_serialize(Archive &ar, bool &v)
     ar.tag(t);					\
     ar.serialize_varint(f);			\
     if (!ar.stream().good()) return false;	\
-  } while(0);
+  } while (0);
 
 
 namespace serialization {

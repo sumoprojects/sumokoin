@@ -559,7 +559,7 @@ void block_tracker::get_fake_outs(size_t num_outs, uint64_t amount, uint64_t glo
   size_t n_iters = 0;
   ssize_t idx = -1;
   outs.reserve(num_outs);
-  while(outs.size() < num_outs){
+  while (outs.size() < num_outs){
     n_iters += 1;
     idx = (idx + 1) % n_outs;
     size_t oi_idx = choices[(size_t)idx];

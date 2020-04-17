@@ -38,7 +38,7 @@
 #define PERF_LOG(level, cat, x) \
   do { \
     if (ELPP->vRegistry()->allowed(level, cat)) PERF_LOG_ALWAYS(level, cat, x); \
-  } while(0)
+  } while (0)
 
 namespace tools
 {

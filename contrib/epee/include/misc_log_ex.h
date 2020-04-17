@@ -93,7 +93,7 @@
       init; \
       el::base::Writer(level, color, __FILE__, __LINE__, ELPP_FUNC, type).construct(cat) << x; \
     } \
-  } while(0)
+  } while (0)
 #define MIDEBUG(init, x) IFLOG(el::Level::Debug, MONERO_DEFAULT_LOG_CATEGORY, el::Color::Default, el::base::DispatchAction::NormalLog, init, x)
 
 
@@ -172,19 +172,19 @@ namespace debug
 
 
 #define ASSERT_MES_AND_THROW(message) {LOG_ERROR(message); std::stringstream ss; ss << message; throw std::runtime_error(ss.str());}
-#define CHECK_AND_ASSERT_THROW_MES(expr, message) do {if(!(expr)) ASSERT_MES_AND_THROW(message);} while(0)
+#define CHECK_AND_ASSERT_THROW_MES(expr, message) do {if(!(expr)) ASSERT_MES_AND_THROW(message);} while (0)
 
 
 #ifndef CHECK_AND_ASSERT
-#define CHECK_AND_ASSERT(expr, fail_ret_val)   do{if(!(expr)){LOCAL_ASSERT(expr); return fail_ret_val;};}while(0)
+#define CHECK_AND_ASSERT(expr, fail_ret_val)   do{if(!(expr)){LOCAL_ASSERT(expr); return fail_ret_val;};}while (0)
 #endif
 
 #ifndef CHECK_AND_ASSERT_MES
-#define CHECK_AND_ASSERT_MES(expr, fail_ret_val, message)   do{if(!(expr)) {LOG_ERROR(message); return fail_ret_val;};}while(0)
+#define CHECK_AND_ASSERT_MES(expr, fail_ret_val, message)   do{if(!(expr)) {LOG_ERROR(message); return fail_ret_val;};}while (0)
 #endif
 
 #ifndef CHECK_AND_NO_ASSERT_MES_L
-#define CHECK_AND_NO_ASSERT_MES_L(expr, fail_ret_val, l, message)   do{if(!(expr)) {LOG_PRINT_L##l(message); /*LOCAL_ASSERT(expr);*/ return fail_ret_val;};}while(0)
+#define CHECK_AND_NO_ASSERT_MES_L(expr, fail_ret_val, l, message)   do{if(!(expr)) {LOG_PRINT_L##l(message); /*LOCAL_ASSERT(expr);*/ return fail_ret_val;};}while (0)
 #endif
 
 #ifndef CHECK_AND_NO_ASSERT_MES
@@ -197,12 +197,12 @@ namespace debug
 
 
 #ifndef CHECK_AND_ASSERT_MES_NO_RET
-#define CHECK_AND_ASSERT_MES_NO_RET(expr, message)   do{if(!(expr)) {LOG_ERROR(message); return;};}while(0)
+#define CHECK_AND_ASSERT_MES_NO_RET(expr, message)   do{if(!(expr)) {LOG_ERROR(message); return;};}while (0)
 #endif
 
 
 #ifndef CHECK_AND_ASSERT_MES2
-#define CHECK_AND_ASSERT_MES2(expr, message)   do{if(!(expr)) {LOG_ERROR(message); };}while(0)
+#define CHECK_AND_ASSERT_MES2(expr, message)   do{if(!(expr)) {LOG_ERROR(message); };}while (0)
 #endif
 
 enum console_colors

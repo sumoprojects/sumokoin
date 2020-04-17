@@ -417,7 +417,7 @@ int main(int argc, char *argv[])
 			goto txn_abort;
 		}
 
-		while(1) {
+		while (1) {
 			rc = readline(&key, &kbuf);
 			if (rc)  /* rc == EOF */
 				break;

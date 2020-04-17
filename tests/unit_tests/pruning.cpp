@@ -32,7 +32,7 @@
 #include "cryptonote_config.h"
 #include "common/pruning.h"
 
-#define ASSERT_EX(x) do { bool ex = false; try { x; } catch(...) { ex = true; }  ASSERT_TRUE(ex); } while(0)
+#define ASSERT_EX(x) do { bool ex = false; try { x; } catch(...) { ex = true; }  ASSERT_TRUE(ex); } while (0)
 
 TEST(pruning, parts)
 {

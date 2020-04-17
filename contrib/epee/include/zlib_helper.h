@@ -76,7 +76,7 @@ namespace zlib_helper
 		size_t	ungzip_buff_size = target.size() * 0x30;
 		std::string current_decode_buff(ungzip_buff_size, 'X');
 
-		while(target.size())
+		while (target.size())
 		{
 
 			

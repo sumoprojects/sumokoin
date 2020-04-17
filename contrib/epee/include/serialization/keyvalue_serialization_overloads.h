@@ -123,7 +123,7 @@ namespace epee
       typename t_storage::harray hval_array = stg.get_first_value(pname, exchange_val, hparent_section);
       if(!hval_array) return false;
       container.insert(container.end(), std::move(exchange_val));
-      while(stg.get_next_value(hval_array, exchange_val))
+      while (stg.get_next_value(hval_array, exchange_val))
         container.insert(container.end(), std::move(exchange_val));
       return true;
     }//--------------------------------------------------------------------------------------------------------------------
@@ -193,7 +193,7 @@ namespace epee
       if(!hsec_array || !hchild_section) return false;
       res = val._load(stg, hchild_section);
       container.insert(container.end(), val);
-      while(stg.get_next_section(hsec_array, hchild_section))
+      while (stg.get_next_section(hsec_array, hchild_section))
       {
         typename stl_container::value_type val_l = typename stl_container::value_type();
         res |= val_l._load(stg, hchild_section);

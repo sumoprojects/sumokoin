@@ -720,7 +720,7 @@ bool Blockchain::get_short_chain_history(std::list<crypto::hash>& ids) const
   db_rtxn_guard rtxn_guard(m_db);
   bool genesis_included = false;
   uint64_t current_back_offset = 1;
-  while(current_back_offset < sz)
+  while (current_back_offset < sz)
   {
     ids.push_back(m_db->get_block_hash_from_height(sz - current_back_offset));
 
@@ -1645,7 +1645,7 @@ bool Blockchain::build_alt_chain(const crypto::hash &prev_id, std::list<block_ex
     cryptonote::blobdata blob;
     bool found = m_db->get_alt_block(prev_id, &data, &blob);
     timestamps.clear();
-    while(found)
+    while (found)
     {
       block_extended_info bei;
       CHECK_AND_ASSERT_MES(cryptonote::parse_and_validate_block_from_blob(blob, bei.bl), false, "Failed to parse alt block");
@@ -4762,7 +4762,7 @@ bool Blockchain::prepare_handle_incoming_blocks(const std::vector<block_complete
             MERROR_VER(m) ;\
             m_scan_table.clear(); \
             return false; \
-        } while(0); \
+        } while (0); \
 
   // generate sorted tables for all amounts and absolute offsets
   size_t tx_index = 0, block_index = 0;

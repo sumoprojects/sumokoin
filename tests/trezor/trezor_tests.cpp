@@ -67,7 +67,7 @@ namespace
     BASE.fork(ctest);                                                                                           \
     GENERATE_AND_PLAY_INSTANCE(genclass, ctest, *(CORE));                                                       \
   }                                                                                                             \
-} while(0)
+} while (0)
 
 #define TREZOR_SETUP_CHAIN(NAME) do {                                                                           \
   ++tests_count;                                                                                                \
@@ -76,7 +76,7 @@ namespace
   } catch (const std::exception& ex) {                                                                          \
     failed_tests.emplace_back("gen_trezor_base " #NAME);                                                        \
   }                                                                                                             \
-} while(0)
+} while (0)
 
 
 static device_trezor_test *trezor_device = nullptr;
@@ -245,7 +245,7 @@ static void rollback_chain(cryptonote::core * core, const cryptonote::block & he
 
     CHECK_AND_ASSERT_THROW_MES(cur_height > height, "Height differs");
     core->get_blockchain_storage().get_db().pop_block(popped_block, popped_txs);
-  } while(true);
+  } while (true);
 }
 
 static bool unserialize_chain_from_file(std::vector<test_event_entry>& events, gen_trezor_base &test_base, const std::string& file_path)

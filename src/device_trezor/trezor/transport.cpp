@@ -209,7 +209,7 @@ namespace trezor{
     uint8_t chunk_buff[REPLEN];
 
     // Chunk by chunk upload
-    while(offset < buff_size){
+    while (offset < buff_size){
       auto to_copy = std::min((size_t)(buff_size - offset), (size_t)(REPLEN - 1));
 
       chunk_buff[0] = '?';
@@ -246,7 +246,7 @@ namespace trezor{
     std::string data_acc(chunk + 3 + 6, nread);
     data_acc.reserve(len);
 
-    while(nread < len){
+    while (nread < len){
       const size_t cur = transport.read_chunk(chunk, REPLEN);
       if (chunk[0] != '?'){
         throw exc::CommunicationException("Chunk malformed");
@@ -651,7 +651,7 @@ namespace trezor{
     }
 
     ssize_t len;
-    while(true) {
+    while (true) {
       try {
         boost::system::error_code ec;
         len = receive(buff, size, &ec, true);
@@ -942,7 +942,7 @@ namespace trezor{
     }
     const int interface = get_interface();
 
-#define TREZOR_DESTROY_SESSION() do { libusb_exit(m_usb_session); m_usb_session = nullptr; } while(0)
+#define TREZOR_DESTROY_SESSION() do { libusb_exit(m_usb_session); m_usb_session = nullptr; } while (0)
 
     int r;
     libusb_device **devs = nullptr;

@@ -108,7 +108,7 @@ static void test_keccak_hmac(const size_t * chunks)
       hmac_keccak_init(&S, key_buff, key_len);
       size_t inp_passed = 0;
       size_t chunk_size = 0;
-      while(inp_passed < inp_len){
+      while (inp_passed < inp_len){
         const size_t to_pass = std::min(inp_len - inp_passed, chunks[chunk_size]);
         hmac_keccak_update(&S, inp_buff + inp_passed, to_pass);
 

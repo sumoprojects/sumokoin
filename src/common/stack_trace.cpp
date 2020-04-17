@@ -58,7 +58,7 @@
     else { \
       std::cout << x << std::endl; \
     } \
-  } while(0)
+  } while (0)
 
 // from https://stackoverflow.com/questions/11665829/how-can-i-print-stack-trace-for-caught-exceptions-in-c-code-injection-in-c
 

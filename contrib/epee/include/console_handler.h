@@ -364,7 +364,7 @@ eof:
     {
       bool continue_handle = true;
       m_prompt = prompt;
-      while(continue_handle)
+      while (continue_handle)
       {
         try
         {

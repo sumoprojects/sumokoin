@@ -285,7 +285,7 @@ namespace net_utils
 		
 		int wait_count = 0;
 
-		while(m_threads_count && wait_count*1000 < ABSTR_TCP_SRV_WAIT_COUNT_MAX)
+		while (m_threads_count && wait_count*1000 < ABSTR_TCP_SRV_WAIT_COUNT_MAX)
 		{
 			::Sleep(ABSTR_TCP_SRV_WAIT_COUNT_INTERVAL);
 			wait_count++;

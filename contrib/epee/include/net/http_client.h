@@ -474,7 +474,7 @@ namespace net_utils
 				bool keep_handling = true;
 				bool need_more_data = true;
 				std::string recv_buffer;
-				while(keep_handling)
+				while (keep_handling)
 				{
 					if (need_more_data)
 					{
@@ -700,7 +700,7 @@ namespace net_utils
 				recv_buff.clear();
 				bool is_matched = false;
 
-				while(true)
+				while (true)
 				{
 					if(!m_chunked_cache.size())
 					{

@@ -59,7 +59,7 @@
       if (test) \
         el::base::Writer(level, el::Color::Default, __FILE__, __LINE__, ELPP_FUNC, el::base::DispatchAction::NormalLog).construct(cat) << x; \
     } \
-  } while(0)
+  } while (0)
 
 #define MLOG_PEER_STATE(x) \
   MCINFO(MONERO_DEFAULT_LOG_CATEGORY, context << "[" << epee::string_tools::to_string_hex(context.m_pruning_seed) << "] state: " << x << " in state " << cryptonote::get_protocol_state_string(context.m_state))
@@ -1957,7 +1957,7 @@ skip:
         }
 
         return true;
-      } while(0);
+      } while (0);
       context.m_state = cryptonote_connection_context::state_synchronizing;
     }
 

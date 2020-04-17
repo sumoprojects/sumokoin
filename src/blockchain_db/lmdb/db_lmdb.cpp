@@ -1699,7 +1699,7 @@ void BlockchainLMDB::unlock()
   do { \
     if (! m_batch_active) \
       auto_txn.commit(); \
-  } while(0)
+  } while (0)
 
 
 // The below two macros are for DB access within block add/remove, whether
@@ -1725,7 +1725,7 @@ void BlockchainLMDB::unlock()
   do { \
     if (! m_batch_active && ! m_write_txn) \
       auto_txn.commit(); \
-  } while(0)
+  } while (0)
 
 void BlockchainLMDB::add_txpool_tx(const crypto::hash &txid, const cryptonote::blobdata &blob, const txpool_tx_meta_t &meta)
 {
@@ -4391,7 +4391,7 @@ void BlockchainLMDB::fixup()
     if (result) \
       throw0(DB_ERROR(lmdb_error("Failed to get DB record for " name ": ", result).c_str())); \
     ptr = (char *)k.mv_data; \
-    ptr[sizeof(name)-2]++; } while(0)
+    ptr[sizeof(name)-2]++; } while (0)
 
 #define LOGIF(y)    if (ELPP->vRegistry()->allowed(y, "global"))
 
@@ -4451,7 +4451,7 @@ void BlockchainLMDB::migrate_0_1()
      */
     i = 0;
     z = m_height;
-    while(1) {
+    while (1) {
       if (!(i % 2000)) {
         if (i) {
           LOGIF(el::Level::Info) {
@@ -4514,7 +4514,7 @@ void BlockchainLMDB::migrate_0_1()
     mdb_set_dupsort(txn, m_block_heights, compare_hash32);
     txn.commit();
 
-  } while(0);
+  } while (0);
 
   /* old tables are k(height), v(value).
    * new table is DUPFIXED, k(zeroval), v{height, values...}.
@@ -4543,7 +4543,7 @@ void BlockchainLMDB::migrate_0_1()
     MDB_cursor *c_cur, *c_coins, *c_diffs, *c_hashes, *c_sizes, *c_timestamps;
     i = 0;
     z = m_height;
-    while(1) {
+    while (1) {
       MDB_val k, v;
       if (!(i % 2000)) {
         if (i) {
@@ -4648,7 +4648,7 @@ void BlockchainLMDB::migrate_0_1()
     if (result)
       throw0(DB_ERROR(lmdb_error("Failed to delete block_coins from the db: ", result).c_str()));
     txn.commit();
-  } while(0);
+  } while (0);
 
   do {
     LOG_PRINT_L1("migrating hf_versions:");
@@ -4678,7 +4678,7 @@ void BlockchainLMDB::migrate_0_1()
     i = 0;
     z = m_height;
 
-    while(1) {
+    while (1) {
       if (!(i % 2000)) {
         if (i) {
           LOGIF(el::Level::Info) {
@@ -4731,7 +4731,7 @@ void BlockchainLMDB::migrate_0_1()
     lmdb_db_open(txn, "hf_versions", MDB_INTEGERKEY, m_hf_versions, "Failed to open db handle for hf_versions");
 
     txn.commit();
-  } while(0);
+  } while (0);
 
   do {
     LOG_PRINT_L1("deleting old indices:");
@@ -4761,7 +4761,7 @@ void BlockchainLMDB::migrate_0_1()
       if (result) \
         throw0(DB_ERROR(lmdb_error("Failed to delete " x ": ", result).c_str())); \
     txn.commit(); \
-    } } while(0)
+    } } while (0)
 
     DELETE_DB("tx_heights");
     DELETE_DB("output_txs");
@@ -4784,7 +4784,7 @@ void BlockchainLMDB::migrate_0_1()
     lmdb_db_open(txn, LMDB_OUTPUT_AMOUNTS, MDB_INTEGERKEY | MDB_DUPSORT | MDB_DUPFIXED | MDB_CREATE, m_output_amounts, "Failed to open db handle for m_output_amounts");
     mdb_set_dupsort(txn, m_output_amounts, compare_uint64);
     txn.commit();
-  } while(0);
+  } while (0);
 
   do {
     LOG_PRINT_L1("migrating txs and outputs:");
@@ -4824,7 +4824,7 @@ void BlockchainLMDB::migrate_0_1()
     txn.m_txn = m_write_txn->m_txn;
     m_height = 0;
 
-    while(1) {
+    while (1) {
       if (!(i % 1000)) {
         if (i) {
           LOGIF(el::Level::Info) {
@@ -4922,7 +4922,7 @@ void BlockchainLMDB::migrate_0_1()
     lmdb_db_open(txn, "txs", MDB_INTEGERKEY, m_txs, "Failed to open db handle for txs");
 
     txn.commit();
-  } while(0);
+  } while (0);
 
   uint32_t version = 1;
   v.mv_data = (void *)&version;
@@ -4980,7 +4980,7 @@ void BlockchainLMDB::migrate_1_2()
     MDB_cursor *c_old, *c_cur0, *c_cur1, *c_cur2;
     i = 0;
 
-    while(1) {
+    while (1) {
       if (!(i % 1000)) {
         if (i) {
           result = mdb_stat(txn, m_txs, &db_stats_txs);
@@ -5064,7 +5064,7 @@ void BlockchainLMDB::migrate_1_2()
 
       i++;
     }
-  } while(0);
+  } while (0);
 
   uint32_t version = 2;
   v.mv_data = (void *)&version;
@@ -5128,7 +5128,7 @@ void BlockchainLMDB::migrate_2_3()
 
     MDB_cursor *c_old, *c_cur;
     i = 0;
-    while(1) {
+    while (1) {
       if (!(i % 1000)) {
         if (i) {
           LOGIF(el::Level::Info) {
@@ -5200,7 +5200,7 @@ void BlockchainLMDB::migrate_2_3()
     mdb_set_dupsort(txn, m_block_info, compare_uint64);
 
     txn.commit();
-  } while(0);
+  } while (0);
 
   uint32_t version = 3;
   v.mv_data = (void *)&version;
@@ -5257,7 +5257,7 @@ void BlockchainLMDB::migrate_3_4()
 
     MDB_cursor *c_old, *c_cur;
     i = 0;
-    while(1) {
+    while (1) {
       if (!(i % 1000)) {
         if (i) {
           LOGIF(el::Level::Info) {
@@ -5360,7 +5360,7 @@ void BlockchainLMDB::migrate_3_4()
     mdb_set_dupsort(txn, m_block_info, compare_uint64);
 
     txn.commit();
-  } while(0);
+  } while (0);
 
   uint32_t version = 4;
   v.mv_data = (void *)&version;
@@ -5414,7 +5414,7 @@ void BlockchainLMDB::migrate_4_5()
 
     MDB_cursor *c_old, *c_cur;
     i = 0;
-    while(1) {
+    while (1) {
       if (!(i % 1000)) {
         if (i) {
           LOGIF(el::Level::Info) {
@@ -5487,7 +5487,7 @@ void BlockchainLMDB::migrate_4_5()
     mdb_set_dupsort(txn, m_block_info, compare_uint64);
 
     txn.commit();
-  } while(0);
+  } while (0);
 
   uint32_t version = 5;
   v.mv_data = (void *)&version;

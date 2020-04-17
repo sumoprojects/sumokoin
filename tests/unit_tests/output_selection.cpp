@@ -57,14 +57,14 @@ static tools::wallet2::transfer_container make_transfers_container(size_t N)
     ASSERT_TRUE(i != unused_indices.end()); \
     unused_indices.erase(i); \
     selected.push_back(idx); \
-  } while(0)
+  } while (0)
 
 #define PICK(expected) \
   do { \
     size_t idx = w.pop_best_value_from(transfers, unused_indices, selected); \
     ASSERT_EQ(expected, idx); \
     selected.push_back(idx); \
-  } while(0)
+  } while (0)
 
 TEST(select_outputs, one_out_of_N)
 {

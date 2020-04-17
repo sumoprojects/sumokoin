@@ -173,7 +173,7 @@ bool transactions_flow_test(std::string& working_folder,
 
   //wait for money, until balance will have enough money
   w1.refresh(true, blocks_fetched, received_money, ok);
-  while(w1.unlocked_balance(0, true) < amount_to_transfer)
+  while (w1.unlocked_balance(0, true) < amount_to_transfer)
   {
     misc_utils::sleep_no_w(1000);
     w1.refresh(true, blocks_fetched, received_money, ok);
@@ -182,7 +182,7 @@ bool transactions_flow_test(std::string& working_folder,
   //lets make a lot of small outs to ourselves
   //since it is not possible to start from transaction that bigger than 20Kb, we gonna make transactions
   //with 500 outs (about 18kb), and we have to wait appropriate count blocks, mined for test wallet
-  while(true)
+  while (true)
   {
     tools::wallet2::transfer_container incoming_transfers;
     w1.get_transfers(incoming_transfers);
@@ -221,7 +221,7 @@ bool transactions_flow_test(std::string& working_folder,
   for (i = 0; i != transactions_count; i++)
   {
     uint64_t amount_to_tx = (amount_to_transfer - transfered_money) > transfer_size ? transfer_size: (amount_to_transfer - transfered_money);
-    while(w1.unlocked_balance(0, true) < amount_to_tx + TEST_FEE)
+    while (w1.unlocked_balance(0, true) < amount_to_tx + TEST_FEE)
     {
       misc_utils::sleep_no_w(1000);
       LOG_PRINT_L0("not enough money, waiting for cashback or mining");
@@ -265,7 +265,7 @@ bool transactions_flow_test(std::string& working_folder,
   misc_utils::sleep_no_w(DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN*20*1000);//wait two blocks before sync on another wallet on another daemon
   LOG_PRINT_L0( "refreshing...");
   bool recvd_money = false;
-  while(w2.refresh(true, blocks_fetched, recvd_money, ok) && ( (blocks_fetched && recvd_money) || !blocks_fetched  ) )
+  while (w2.refresh(true, blocks_fetched, recvd_money, ok) && ( (blocks_fetched && recvd_money) || !blocks_fetched  ) )
   {
     misc_utils::sleep_no_w(DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN*1000);//wait two blocks before sync on another wallet on another daemon
   }

@@ -63,7 +63,7 @@ namespace hw {
         #ifdef DEBUG_HWDEVICE
         #define TRACK printf("file %s:%d\n",__FILE__, __LINE__)
         //#define TRACK MCDEBUG("ledger"," At file " << __FILE__ << ":" << __LINE__)
-        //#define TRACK while(0);
+        //#define TRACK while (0);
 
         void decrypt(char* buf, size_t len) ;
         crypto::key_derivation decrypt(const crypto::key_derivation &derivation) ;

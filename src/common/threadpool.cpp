@@ -83,7 +83,7 @@ void threadpool::create(unsigned int max_threads) {
   max = max_threads ? max_threads : tools::get_max_concurrency();
   size_t i = max ? max - 1 : 0;
   running = true;
-  while(i--) {
+  while (i--) {
     threads.push_back(boost::thread(attrs, boost::bind(&threadpool::run, this, false)));
   }
 }
@@ -138,7 +138,7 @@ void threadpool::waiter::wait(threadpool *tpool) {
   if (tpool)
     tpool->run(true);
   boost::unique_lock<boost::mutex> lock(mt);
-  while(num)
+  while (num)
     cv.wait(lock);
 }
 
@@ -158,7 +158,7 @@ void threadpool::run(bool flush) {
   boost::unique_lock<boost::mutex> lock(mutex);
   while (running) {
     entry e;
-    while(queue.empty() && running)
+    while (queue.empty() && running)
     {
       if (flush)
         return;

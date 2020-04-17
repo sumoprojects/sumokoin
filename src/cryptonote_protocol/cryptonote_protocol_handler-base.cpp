@@ -130,7 +130,7 @@ void cryptonote_protocol_handler_base::handler_response_blocks_now(size_t packet
 			MDEBUG("Sleeping for " << ms << " ms before packet_size="<<packet_size); // XXX debug sleep
 			boost::this_thread::sleep(boost::posix_time::milliseconds( ms ) ); // TODO randomize sleeps
 		}
-	} while(delay > 0);
+	} while (delay > 0);
 
 // XXX LATER XXX
 	{

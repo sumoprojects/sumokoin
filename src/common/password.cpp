@@ -86,7 +86,7 @@ namespace
         {
           int len = chlen.back();
           chlen.pop_back();
-          while(len-- > 0) 
+          while (len-- > 0) 
             pass.pop_back();
         }
         continue;

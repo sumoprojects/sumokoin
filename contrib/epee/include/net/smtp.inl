@@ -1331,7 +1331,7 @@ namespace net_utils
 			DWORD	i = 0;
 
 			AllocEncode(nBufLen);
-			while(i < nBufLen)
+			while (i < nBufLen)
 			{
 				if(!_IsBadMimeChar(pBuffer[i]))
 				{

@@ -198,7 +198,7 @@ namespace math_helper
 		{
 			CRITICAL_REGION_BEGIN(m_lock);
 			std::list<uint64_t>::iterator it = m_chicks.begin();
-			while(it != m_chicks.end())
+			while (it != m_chicks.end())
 			{
 				if(*it + m_time_window < ticks)
 					m_chicks.erase(it++);

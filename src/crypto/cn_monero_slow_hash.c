@@ -97,20 +97,20 @@ static inline int use_v4_jit(void)
     static const uint32_t table = 0x75310; \
     const uint8_t index = (((tmp >> 3) & 6) | (tmp & 1)) << 1; \
     ((uint8_t*)(p))[11] = tmp ^ ((table >> index) & 0x30); \
-  } while(0)
+  } while (0)
 
 #define VARIANT1_2(p) \
   do if (variant == 1) \
   { \
     xor64(p, tweak1_2); \
-  } while(0)
+  } while (0)
 
 #define VARIANT1_CHECK() \
   do if (length < 43) \
   { \
     fprintf(stderr, "Cryptonight variant 1 needs at least 43 bytes of data"); \
     _exit(1); \
-  } while(0)
+  } while (0)
 
 #define NONCE_POINTER (((const uint8_t*)data)+35)
 
@@ -121,7 +121,7 @@ static inline int use_v4_jit(void)
     VARIANT1_CHECK(); \
     memcpy(&tweak1_2, &state.hs.b[192], sizeof(tweak1_2)); \
     xor64(tweak1_2, NONCE_POINTER); \
-  } while(0)
+  } while (0)
 
 #define VARIANT1_INIT64() \
   if (variant == 1) \
@@ -243,7 +243,7 @@ static inline int use_v4_jit(void)
     VARIANT2_INTEGER_MATH_DIVISION_STEP(b, ptr); \
     VARIANT2_INTEGER_MATH_SQRT_STEP_SSE2(); \
     VARIANT2_INTEGER_MATH_SQRT_FIXUP(sqrt_result); \
-  } while(0)
+  } while (0)
 
 #if defined DBL_MANT_DIG && (DBL_MANT_DIG >= 50)
   // double precision floating point type has enough bits of precision on current platform

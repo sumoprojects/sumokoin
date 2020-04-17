@@ -352,10 +352,10 @@ namespace cryptonote
     }
     return true;
   }
-#define CHECK_PAYMENT_BASE(req, res, payment, same_ts) do { if (!ctx) break; uint64_t P = (uint64_t)payment; if (P > 0 && !check_payment(req.client, P, tracker.rpc_name(), same_ts, res.status, res.credits, res.top_hash)){return true;} tracker.pay(P); } while(0)
+#define CHECK_PAYMENT_BASE(req, res, payment, same_ts) do { if (!ctx) break; uint64_t P = (uint64_t)payment; if (P > 0 && !check_payment(req.client, P, tracker.rpc_name(), same_ts, res.status, res.credits, res.top_hash)){return true;} tracker.pay(P); } while (0)
 #define CHECK_PAYMENT(req, res, payment) CHECK_PAYMENT_BASE(req, res, payment, false)
 #define CHECK_PAYMENT_SAME_TS(req, res, payment) CHECK_PAYMENT_BASE(req, res, payment, true)
-#define CHECK_PAYMENT_MIN1(req, res, payment, same_ts) do { if (!ctx || (m_rpc_payment_allow_free_loopback && ctx->m_remote_address.is_loopback())) break; uint64_t P = (uint64_t)payment; if (P == 0) P = 1; if(!check_payment(req.client, P, tracker.rpc_name(), same_ts, res.status, res.credits, res.top_hash)){return true;} tracker.pay(P); } while(0)
+#define CHECK_PAYMENT_MIN1(req, res, payment, same_ts) do { if (!ctx || (m_rpc_payment_allow_free_loopback && ctx->m_remote_address.is_loopback())) break; uint64_t P = (uint64_t)payment; if (P == 0) P = 1; if(!check_payment(req.client, P, tracker.rpc_name(), same_ts, res.status, res.credits, res.top_hash)){return true;} tracker.pay(P); } while (0)
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::check_core_ready()
   {
@@ -383,7 +383,7 @@ namespace cryptonote
     }
     return true;
   }
-#define CHECK_CORE_READY() do { if(!check_core_ready()){res.status =  CORE_RPC_STATUS_BUSY;return true;} } while(0)
+#define CHECK_CORE_READY() do { if(!check_core_ready()){res.status =  CORE_RPC_STATUS_BUSY;return true;} } while (0)
 
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::on_get_height(const COMMAND_RPC_GET_HEIGHT::request& req, COMMAND_RPC_GET_HEIGHT::response& res, const connection_context *ctx)
@@ -1763,7 +1763,7 @@ namespace cryptonote
     const void* buf = start_buff;
     const void* end=(const char*)buf+buflen;
     if (patlen > buflen || patlen == 0) return 0;
-    while(buflen>0 && (buf=memchr(buf,((const char*)pat)[0],buflen-patlen+1)))
+    while (buflen>0 && (buf=memchr(buf,((const char*)pat)[0],buflen-patlen+1)))
     {
       if (memcmp(buf,pat,patlen)==0)
         return (const char*)buf - (const char*)start_buff;

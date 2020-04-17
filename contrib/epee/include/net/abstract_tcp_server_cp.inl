@@ -243,7 +243,7 @@ bool cp_server_impl<TProtocol>::worker_thread_member()
 		{
 			PROFILE_FUNC("[worker_thread]RECV Request small loop");
 			int res = 0;
-			while(true)
+			while (true)
 			{
 				LOG_PRINT("Prepearing data for WSARecv....", LOG_LEVEL_3);
 				ZeroMemory(&pio_data->m_overlapped, sizeof(OVERLAPPED));
@@ -445,7 +445,7 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 	}
 	m_connections_lock.unlock();
 	size_t wait_count = 0;
-	while(m_connections.size() && wait_count < 100)
+	while (m_connections.size() && wait_count < 100)
 	{
 		::Sleep(100);
 		wait_count++;
@@ -460,7 +460,7 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 	}
 
 	wait_count = 0;
-	while(InterlockedCompareExchange(&m_worker_thread_counter, 0, 0) && wait_count < 100)
+	while (InterlockedCompareExchange(&m_worker_thread_counter, 0, 0) && wait_count < 100)
 	{
 		Sleep(100);
 		wait_count++;
@@ -505,7 +505,7 @@ bool cp_server_impl<TProtocol>::add_new_connection(SOCKET new_sock, const networ
 	{
 		PROFILE_FUNC("[add_new_connection] starting loop");
 		int res = 0;
-		while(true)//res!=SOCKET_ERROR)
+		while (true)//res!=SOCKET_ERROR)
 		{
 			PROFILE_FUNC("[add_new_connection] in loop time");
 			conn.m_precv_data->TotalBuffBytes = LEVIN_DEFAULT_DATA_BUFF_SIZE;

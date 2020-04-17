@@ -96,7 +96,7 @@ namespace levin
       disconnect();
 
 
-			while(boost::interprocess::ipcdetail::atomic_read32(&m_threads_count))
+			while (boost::interprocess::ipcdetail::atomic_read32(&m_threads_count))
 				::Sleep(100);
 
 			set_handler(NULL);
@@ -161,7 +161,7 @@ namespace levin
 		inline 
 			bool recv_n(SOCKET s, char* pbuff, size_t cb)
 		{
-			while(cb)
+			while (cb)
 			{
 				int res = ::recv(m_socket, pbuff, (int)cb, 0);
 

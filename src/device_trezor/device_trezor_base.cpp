@@ -384,11 +384,11 @@ namespace trezor {
 #define TREZOR_CALLBACK(method, ...) do { \
   if (m_debug_callback) m_debug_callback->method(__VA_ARGS__); \
   if (m_callback) m_callback->method(__VA_ARGS__);             \
-}while(0)
+}while (0)
 #define TREZOR_CALLBACK_GET(VAR, method, ...) do { \
   if (m_debug_callback) VAR = m_debug_callback->method(__VA_ARGS__); \
   if (m_callback) VAR = m_callback->method(__VA_ARGS__);             \
-}while(0)
+}while (0)
 
     void device_trezor_base::setup_debug(){
       if (!m_debug){
@@ -407,7 +407,7 @@ namespace trezor {
     }
 
 #else
-#define TREZOR_CALLBACK(method, ...) do { if (m_callback) m_callback->method(__VA_ARGS__); } while(0)
+#define TREZOR_CALLBACK(method, ...) do { if (m_callback) m_callback->method(__VA_ARGS__); } while (0)
 #define TREZOR_CALLBACK_GET(VAR, method, ...) VAR = (m_callback ? m_callback->method(__VA_ARGS__) : boost::none)
 #endif
 

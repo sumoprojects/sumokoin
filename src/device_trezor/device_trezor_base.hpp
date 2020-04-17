@@ -177,7 +177,7 @@ namespace trezor {
         bool processed = false;
         do {
           processed = message_handler(msg_resp);
-        } while(processed);
+        } while (processed);
 
         // Response section
         if (resp_type_ptr){

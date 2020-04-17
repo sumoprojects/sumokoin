@@ -141,7 +141,7 @@ namespace epee
       CHECK_AND_ASSERT_THROW_MES(size <= m_count, "Size sanity check failed");
       sa.reserve(size);
       //TODO: add some optimization here later
-      while(size--)
+      while (size--)
         sa.m_array.push_back(read<type_name>());
       return storage_entry(array_entry(std::move(sa)));
     }
@@ -263,7 +263,7 @@ namespace epee
       RECURSION_LIMITATION();
       sec.m_entries.clear();
       size_t count = read_varint();
-      while(count--)
+      while (count--)
       {
         //read section name string
         std::string sec_name;

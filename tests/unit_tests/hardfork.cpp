@@ -530,7 +530,7 @@ TEST(reorganize, changed)
     cryptonote::block b = mkblock(hf, h, v); \
     db.add_block(b, 0, 0, 0, 0, 0, crypto::hash()); \
     ASSERT_##a(hf.add(b, h)); \
-  } while(0)
+  } while (0)
 #define ADD_TRUE(v, h) ADD(v, h, TRUE)
 #define ADD_FALSE(v, h) ADD(v, h, FALSE)
 

@@ -1241,7 +1241,7 @@ namespace nodetool
     } else {\
       LOG_INFO_CC(con, msg); \
     } \
-  } while(0)
+  } while (0)
 
   template<class t_payload_net_handler>
   bool node_server<t_payload_net_handler>::try_to_connect_and_handshake_with_new_peer(const epee::net_utils::network_address& na, bool just_take_peerlist, uint64_t last_seen_stamp, PeerType peer_type, uint64_t first_seen_stamp)
@@ -1427,7 +1427,7 @@ namespace nodetool
 
     size_t try_count = 0;
     size_t rand_count = 0;
-    while(rand_count < (max_random_index+1)*3 &&  try_count < 10 && !zone.m_net_server.is_stop_signal_sent())
+    while (rand_count < (max_random_index+1)*3 &&  try_count < 10 && !zone.m_net_server.is_stop_signal_sent())
     {
       ++rand_count;
       size_t random_index;
@@ -1564,7 +1564,7 @@ namespace nodetool
       bool is_connected_to_at_least_one_seed_node = false;
       size_t current_index = crypto::rand_idx(m_seed_nodes.size());
       const net_server& server = m_network_zones.at(epee::net_utils::zone::public_).m_net_server;
-      while(true)
+      while (true)
       {
         if (server.is_stop_signal_sent())
           return false;
@@ -1633,7 +1633,7 @@ namespace nodetool
       size_t base_expected_white_connections = (zone.second.m_config.m_net_config.max_out_connection_count*P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT)/100;
 
       size_t conn_count = get_outgoing_connections_count(zone.second);
-      while(conn_count < zone.second.m_config.m_net_config.max_out_connection_count)
+      while (conn_count < zone.second.m_config.m_net_config.max_out_connection_count)
       {
         const size_t expected_white_connections = m_payload_handler.get_next_needed_pruning_stripe().second ? zone.second.m_config.m_net_config.max_out_connection_count : base_expected_white_connections;
         if (conn_count < expected_white_connections)

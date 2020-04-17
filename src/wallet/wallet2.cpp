@@ -2544,7 +2544,7 @@ void wallet2::get_short_chain_history(std::list<crypto::hash>& ids, uint64_t gra
   }
   size_t current_back_offset = 1;
   bool base_included = false;
-  while(current_back_offset < sz)
+  while (current_back_offset < sz)
   {
     ids.push_back(m_blockchain[m_blockchain.offset() + sz-current_back_offset]);
     if (sz-current_back_offset == 0)
@@ -3135,7 +3135,7 @@ void wallet2::fast_refresh(uint64_t stop_height, uint64_t &blocks_start_height, 
   }
 
   size_t current_index = m_blockchain.size();
-  while(m_run.load(std::memory_order_relaxed) && current_index < stop_height)
+  while (m_run.load(std::memory_order_relaxed) && current_index < stop_height)
   {
     pull_hashes(0, blocks_start_height, short_chain_history, hashes);
     if (hashes.size() <= 3)
@@ -3330,7 +3330,7 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
   update_pool_state(process_pool_txs, true);
 
   bool first = true, last = false;
-  while(m_run.load(std::memory_order_relaxed))
+  while (m_run.load(std::memory_order_relaxed))
   {
     uint64_t next_blocks_start_height;
     std::vector<cryptonote::block_complete_entry> next_blocks;

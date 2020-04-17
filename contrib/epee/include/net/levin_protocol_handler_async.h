@@ -414,7 +414,7 @@ public:
     m_cache_in_buffer.append((const char*)ptr, cb);
 
     bool is_continue = true;
-    while(is_continue)
+    while (is_continue)
     {
       switch (m_state)
       {

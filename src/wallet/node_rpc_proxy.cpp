@@ -42,7 +42,7 @@
     CHECK_AND_ASSERT_MES(res.status != CORE_RPC_STATUS_BUSY, res.status, "Daemon busy"); \
     CHECK_AND_ASSERT_MES(res.status != CORE_RPC_STATUS_PAYMENT_REQUIRED, res.status, "Payment required"); \
     CHECK_AND_ASSERT_MES(res.status == CORE_RPC_STATUS_OK, res.status, "Error calling " + std::string(method) + " daemon RPC"); \
-  } while(0)
+  } while (0)
 
 using namespace epee;
 

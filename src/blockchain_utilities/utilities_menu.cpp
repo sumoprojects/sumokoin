@@ -308,6 +308,6 @@ const std::string flagmsg = "(Type --help for list of options / press ENTER for 
        break;
       }
     }
-    while(choice > 0);
+    while (choice > 0);
     return 0;
   }

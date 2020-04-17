@@ -82,7 +82,7 @@ public: \
   do { \
     if (!((type*)this)->serialize_map<is_store, t_storage>(stg, hparent_section)) \
       return false; \
-  } while(0);
+  } while (0);
 
   template<typename T> inline void serialize_default(const T &t, T v) { }
   template<typename T> inline void serialize_default(T &t, T v) { t = v; }
@@ -108,7 +108,7 @@ public: \
     bool ret = KV_SERIALIZE_VAL_POD_AS_BLOB_FORCE_N(varialble, val_name); \
     if (!ret) \
       epee::serialize_default(this_ref.varialble, default_value); \
-  } while(0);
+  } while (0);
 
 #define KV_SERIALIZE_CONTAINER_POD_AS_BLOB_N(varialble, val_name) \
   epee::serialization::selector<is_store>::serialize_stl_container_pod_val_as_blob(this_ref.varialble, stg, hparent_section, val_name);
