@@ -2527,7 +2527,7 @@ bool Blockchain::find_blockchain_supplement(const uint64_t req_start_block, cons
   }
   else
   {
-    if(!find_blockchain_supplement(qblock_ids, start_height))
+    if (!find_blockchain_supplement(qblock_ids, start_height))
     {
       return false;
     }
