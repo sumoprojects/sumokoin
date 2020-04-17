@@ -685,14 +685,14 @@ bool t_command_parser_executor::output_histogram(const std::vector<std::string>&
 
 bool t_command_parser_executor::print_coinbase_tx_sum(const std::vector<std::string>& args)
 {
-  if(!args.size())
+  if (!args.size())
   {
     std::cout << "need block height parameter" << std::endl;
     return false;
   }
   uint64_t height = 0;
   uint64_t count = 0;
-  if(!epee::string_tools::get_xtype_from_string(height, args[0]))
+  if (!epee::string_tools::get_xtype_from_string(height, args[0]))
   {
     std::cout << "wrong starter block height parameter" << std::endl;
     return false;
@@ -753,7 +753,7 @@ bool t_command_parser_executor::print_blockchain_dynamic_stats(const std::vector
   }
 
   uint64_t nblocks = 0;
-  if(!epee::string_tools::get_xtype_from_string(nblocks, args[0]) || nblocks == 0)
+  if (!epee::string_tools::get_xtype_from_string(nblocks, args[0]) || nblocks == 0)
   {
     std::cout << "wrong number of blocks" << std::endl;
     return false;
