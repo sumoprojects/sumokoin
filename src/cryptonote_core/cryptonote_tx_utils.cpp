@@ -54,7 +54,7 @@ namespace cryptonote
     num_stdaddresses = 0;
     num_subaddresses = 0;
     std::unordered_set<cryptonote::account_public_address> unique_dst_addresses;
-    for(const tx_destination_entry& dst_entr: destinations)
+    for (const tx_destination_entry& dst_entr: destinations)
     {
       if (change_addr && dst_entr.addr == change_addr)
         continue;
@@ -286,7 +286,7 @@ namespace cryptonote
     uint64_t summary_inputs_money = 0;
     //fill inputs
     int idx = -1;
-    for(const tx_source_entry& src_entr:  sources)
+    for (const tx_source_entry& src_entr:  sources)
     {
       ++idx;
       if (src_entr.real_output >= src_entr.outputs.size())
@@ -324,7 +324,7 @@ namespace cryptonote
       input_to_key.k_image = msout ? rct::rct2ki(src_entr.multisig_kLRki.ki) : img;
 
       //fill outputs array and use relative offsets
-      for(const tx_source_entry::output_entry& out_entry: src_entr.outputs)
+      for (const tx_source_entry::output_entry& out_entry: src_entr.outputs)
         input_to_key.key_offsets.push_back(out_entry.first);
 
       input_to_key.key_offsets = absolute_output_offsets_to_relative(input_to_key.key_offsets);
@@ -381,7 +381,7 @@ namespace cryptonote
     uint64_t summary_outs_money = 0;
     //fill outputs
     size_t output_index = 0;
-    for(const tx_destination_entry& dst_entr: destinations)
+    for (const tx_destination_entry& dst_entr: destinations)
     {
       CHECK_AND_ASSERT_MES(dst_entr.amount > 0 || tx.version > 1, false, "Destination with wrong amount: " << dst_entr.amount);
       crypto::public_key out_eph_public_key;
@@ -440,13 +440,13 @@ namespace cryptonote
 
       std::stringstream ss_ring_s;
       size_t i = 0;
-      for(const tx_source_entry& src_entr:  sources)
+      for (const tx_source_entry& src_entr:  sources)
       {
         ss_ring_s << "pub_keys:" << ENDL;
         std::vector<const crypto::public_key*> keys_ptrs;
         std::vector<crypto::public_key> keys(src_entr.outputs.size());
         size_t ii = 0;
-        for(const tx_source_entry::output_entry& o: src_entr.outputs)
+        for (const tx_source_entry::output_entry& o: src_entr.outputs)
         {
           keys[ii] = rct2pk(o.second.dest);
           keys_ptrs.push_back(&keys[ii]);
@@ -478,7 +478,7 @@ namespace cryptonote
       if (!use_simple_rct)
       {
         // non simple ringct requires all real inputs to be at the same index for all inputs
-        for(const tx_source_entry& src_entr:  sources)
+        for (const tx_source_entry& src_entr:  sources)
         {
           if (src_entr.real_output != sources.begin()->real_output)
           {

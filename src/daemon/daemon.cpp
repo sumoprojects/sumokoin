@@ -159,7 +159,7 @@ bool t_daemon::run(bool interactive)
     if (!mp_internals->core.run())
       return false;
 
-    for(auto& rpc: mp_internals->rpcs)
+    for (auto& rpc: mp_internals->rpcs)
       rpc->run();
 
     std::unique_ptr<daemonize::t_command_server> rpc_commands;
@@ -183,7 +183,7 @@ bool t_daemon::run(bool interactive)
         if (rpc_commands)
           rpc_commands->stop_handling();
 
-        for(auto& rpc : mp_internals->rpcs)
+        for (auto& rpc : mp_internals->rpcs)
           rpc->stop();
 
         return false;
@@ -212,7 +212,7 @@ bool t_daemon::run(bool interactive)
     if (!zmq_rpc_disabled)
       zmq_server.stop();
 
-    for(auto& rpc : mp_internals->rpcs)
+    for (auto& rpc : mp_internals->rpcs)
       rpc->stop();
     MGINFO("Node stopped.");
     return true;
@@ -236,7 +236,7 @@ void t_daemon::stop()
     throw std::runtime_error{"Can't stop stopped daemon"};
   }
   mp_internals->p2p.stop();
-  for(auto& rpc : mp_internals->rpcs)
+  for (auto& rpc : mp_internals->rpcs)
     rpc->stop();
 
   mp_internals.reset(nullptr); // Ensure resources are cleaned up before we return

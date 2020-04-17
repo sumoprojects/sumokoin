@@ -479,7 +479,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::software_hash(const void* in, size_t le
 	aesdata cx;
 	cn_sptr idx = scratchpad_ptr(ax.v64x0);
 	
-	for(size_t i = 0; i < ITER/2; i++)
+	for (size_t i = 0; i < ITER/2; i++)
 	{
 		uint64_t hi, lo;
 		cx.load(idx);

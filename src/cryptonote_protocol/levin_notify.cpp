@@ -140,7 +140,7 @@ namespace levin
       if (pad)
       {
         size_t bytes = 9 /* header */ + 4 /* 1 + 'txs' */ + tools::get_varint_data(request.txs.size()).size();
-        for(auto tx_blob_it = request.txs.begin(); tx_blob_it!=request.txs.end(); ++tx_blob_it)
+        for (auto tx_blob_it = request.txs.begin(); tx_blob_it!=request.txs.end(); ++tx_blob_it)
           bytes += tools::get_varint_data(tx_blob_it->size()).size() + tx_blob_it->size();
 
         // stuff some dummy bytes in to stay safe from traffic volume analysis

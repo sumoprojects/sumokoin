@@ -116,7 +116,7 @@ namespace trezor{
   static size_t TREZOR_DESCS_LEN = sizeof(TREZOR_DESCS)/sizeof(TREZOR_DESCS[0]);
 
   static ssize_t get_device_idx(uint16_t id_vendor, uint16_t id_product){
-    for(size_t i = 0; i < TREZOR_DESCS_LEN; ++i){
+    for (size_t i = 0; i < TREZOR_DESCS_LEN; ++i){
       if (TREZOR_DESCS[i].id_vendor == id_vendor && TREZOR_DESCS[i].id_product == id_product){
         return i;
       }
@@ -358,7 +358,7 @@ namespace trezor{
       throw exc::CommunicationException("Bridge enumeration failed");
     }
 
-    for(rapidjson::Value::ConstValueIterator itr = bridge_res.Begin(); itr != bridge_res.End(); ++itr){
+    for (rapidjson::Value::ConstValueIterator itr = bridge_res.Begin(); itr != bridge_res.End(); ++itr){
       auto element = itr->GetObject();
       auto t = std::make_shared<BridgeTransport>(boost::make_optional(json_get_string(element["path"])));
 
@@ -830,7 +830,7 @@ namespace trezor{
   static std::string get_usb_path(uint8_t bus_id, const std::vector<uint8_t> &path){
     std::stringstream ss;
     ss << WebUsbTransport::PATH_PREFIX << (boost::format("%03d") % ((int)bus_id));
-    for(uint8_t port : path){
+    for (uint8_t port : path){
       ss << ":" << ((int) port);
     }
     return ss.str();
@@ -899,7 +899,7 @@ namespace trezor{
 
     MTRACE("Libusb devices: " << cnt);
 
-    for(ssize_t i = 0; i < cnt; i++) {
+    for (ssize_t i = 0; i < cnt; i++) {
       libusb_device_descriptor desc{};
       r = libusb_get_device_descriptor(devs[i], &desc);
       if (r < 0){
@@ -1184,7 +1184,7 @@ namespace trezor{
     std::vector<size_t> match_idx(res.size());
     std::vector<size_t> path_permutation(res.size());
 
-    for(size_t i = 0; i < res.size(); ++i){
+    for (size_t i = 0; i < res.size(); ++i){
       auto cpath = res[i]->get_path();
       std::string * s1 = &trezor_path;
       std::string * s2 = &cpath;

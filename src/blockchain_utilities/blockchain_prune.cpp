@@ -387,7 +387,7 @@ static bool parse_db_sync_mode(std::string db_sync_mode, uint64_t &db_flags)
   boost::trim(db_sync_mode);
   boost::split(options, db_sync_mode, boost::is_any_of(" :"));
 
-  for(const auto &option : options)
+  for (const auto &option : options)
     MDEBUG("option: " << option);
 
   // default to fast:async:1

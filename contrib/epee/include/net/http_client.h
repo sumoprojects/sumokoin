@@ -125,7 +125,7 @@ namespace net_utils
 
 		const char* punsave = get_unsave_chars();
 
-		for(int ichar_pos = 0; 0!=punsave[ichar_pos] ;ichar_pos++)
+		for (int ichar_pos = 0; 0!=punsave[ichar_pos] ;ichar_pos++)
 			if (compare_char == punsave[ichar_pos])
 				return true;
 
@@ -186,7 +186,7 @@ namespace net_utils
 
 		std::string result;
 
-		for(size_t i = 0; i!= uri.size(); i++)
+		for (size_t i = 0; i!= uri.size(); i++)
 		{
 			if (is_unsafe(uri[i]))
 				result += convert(uri[i]);
@@ -202,7 +202,7 @@ namespace net_utils
 
 		std::string result;
 
-		for(size_t i = 0; i!= uri.size(); i++)
+		for (size_t i = 0; i!= uri.size(); i++)
 		{
 			if (uri[i] == '%' && i + 2 < uri.size())
 			{
@@ -222,7 +222,7 @@ namespace net_utils
 
     std::string result;
 
-    for(size_t i = 0; i!= uri.size(); i++)
+    for (size_t i = 0; i!= uri.size(); i++)
     {
         result += convert(uri[i]);
     }
@@ -394,7 +394,7 @@ namespace net_utils
 				add_field(req_buff, "Content-Length", std::to_string(body.size()));
 
 				//handle "additional_params"
-				for(const auto& field : additional_params)
+				for (const auto& field : additional_params)
 					add_field(req_buff, field);
 
 				for (unsigned sends = 0; sends < 2; ++sends)
@@ -635,7 +635,7 @@ namespace net_utils
 			{
 				is_matched = false;
 				size_t offset = 0;
-				for(std::string::iterator it = buff.begin(); it!= buff.end(); it++, offset++)
+				for (std::string::iterator it = buff.begin(); it!= buff.end(); it++, offset++)
 				{
 					if(!is_hex_symbol(*it))
 					{
@@ -656,7 +656,7 @@ namespace net_utils
 								//In brief - if the chunk is the last one we need to get terminating sequence
 								//along with the cipher, generally in the "ddd\r\n\r\n" form
 
-								for(it++;it != buff.end(); it++)
+								for (it++;it != buff.end(); it++)
 								{
 									if('\r' == *it)
 										continue;

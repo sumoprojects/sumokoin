@@ -78,7 +78,7 @@ namespace epee
         if (a.m_array.size())
         {
           auto last_it = --a.m_array.end();
-          for(auto it = a.m_array.begin(); it != a.m_array.end(); it++)
+          for (auto it = a.m_array.begin(); it != a.m_array.end(); it++)
           {
             dump_as_json(m_strm, *it, m_indent, m_insert_newlines);
             if (it != last_it)
@@ -166,7 +166,7 @@ namespace epee
       if (sec.m_entries.size())
       {
         auto it_last = --sec.m_entries.end();
-        for(auto it = sec.m_entries.begin(); it!= sec.m_entries.end();it++)
+        for (auto it = sec.m_entries.begin(); it!= sec.m_entries.end();it++)
         {
           strm << indent_str << "\"" << misc_utils::parse::transform_to_escape_sequence(it->first) << "\"" << ": ";
           dump_as_json(strm, it->second, local_indent, insert_newlines);

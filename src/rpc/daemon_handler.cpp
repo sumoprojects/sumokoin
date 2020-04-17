@@ -306,7 +306,7 @@ namespace rpc
       return;
     }
 
-    for(size_t i=0; i < req.key_images.size(); i++)
+    for (size_t i=0; i < req.key_images.size(); i++)
     {
       if ( chain_spent_status[i] )
       {

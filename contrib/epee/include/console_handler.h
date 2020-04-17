@@ -526,7 +526,7 @@ eof:
     {
       std::stringstream ss;
 
-      for(auto& x:m_command_handlers)
+      for (auto& x:m_command_handlers)
       {
         ss << x.second.second.first << ENDL;
       }

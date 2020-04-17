@@ -310,10 +310,10 @@ namespace trezor {
 
       const auto batch_size = 10;
       const auto num_batches = (mtds.size() + batch_size - 1) / batch_size;
-      for(uint64_t cur = 0; cur < num_batches; ++cur){
+      for (uint64_t cur = 0; cur < num_batches; ++cur){
         auto step_req = std::make_shared<messages::monero::MoneroKeyImageSyncStepRequest>();
         auto idx_finish = std::min(static_cast<uint64_t>((cur + 1) * batch_size), static_cast<uint64_t>(mtds.size()));
-        for(uint64_t idx = cur * batch_size; idx < idx_finish; ++idx){
+        for (uint64_t idx = cur * batch_size; idx < idx_finish; ++idx){
           auto added_tdis = step_req->add_tdis();
           CHECK_AND_ASSERT_THROW_MES(idx < mtds.size(), "Invalid transfer detail index");
           *added_tdis = mtds[idx];
@@ -322,7 +322,7 @@ namespace trezor {
         auto step_ack = this->client_exchange<messages::monero::MoneroKeyImageSyncStepAck>(step_req);
         auto kis_size = step_ack->kis_size();
         kis.reserve(static_cast<size_t>(kis_size));
-        for(int i = 0; i < kis_size; ++i){
+        for (int i = 0; i < kis_size; ++i){
           auto ckis = step_ack->kis(i);
           kis.push_back(ckis);
         }
@@ -336,7 +336,7 @@ namespace trezor {
       auto final_ack = this->client_exchange<messages::monero::MoneroKeyImageSyncFinalAck>(final_req);
       ski.reserve(kis.size());
 
-      for(auto & sub : kis){
+      for (auto & sub : kis){
         ::crypto::signature sig{};
         ::crypto::key_image ki;
         char buff[sizeof(ki.data)*3];
@@ -501,7 +501,7 @@ namespace trezor {
       signed_tx.key_images.clear();
       signed_tx.key_images.resize(unsigned_tx.transfers.second.size());
 
-      for(size_t tx_idx = 0; tx_idx < num_tx; ++tx_idx) {
+      for (size_t tx_idx = 0; tx_idx < num_tx; ++tx_idx) {
         std::shared_ptr<protocol::tx::Signer> signer;
         tx_sign(wallet, unsigned_tx, tx_idx, aux_data, signer);
 
@@ -542,14 +542,14 @@ namespace trezor {
         cpend.key_images = key_images;
 
         // KI sync
-        for(size_t cidx=0, trans_max=unsigned_tx.transfers.second.size(); cidx < trans_max; ++cidx){
+        for (size_t cidx=0, trans_max=unsigned_tx.transfers.second.size(); cidx < trans_max; ++cidx){
           signed_tx.key_images[cidx] = unsigned_tx.transfers.second[cidx].m_key_image;
         }
 
         size_t num_sources = cdata.tx_data.sources.size();
         CHECK_AND_ASSERT_THROW_MES(num_sources == cdata.source_permutation.size(), "Invalid permutation size");
         CHECK_AND_ASSERT_THROW_MES(num_sources == cdata.tx.vin.size(), "Invalid tx.vin size");
-        for(size_t src_idx = 0; src_idx < num_sources; ++src_idx){
+        for (size_t src_idx = 0; src_idx < num_sources; ++src_idx){
           size_t idx_mapped = cdata.source_permutation[src_idx];
           CHECK_AND_ASSERT_THROW_MES(idx_mapped < cdata.tx_data.selected_transfers.size(), "Invalid idx_mapped");
           CHECK_AND_ASSERT_THROW_MES(src_idx < cdata.tx.vin.size(), "Invalid idx_mapped");
@@ -603,7 +603,7 @@ namespace trezor {
       signer->step_init_ack(response);
 
       // Step: Set transaction inputs
-      for(size_t cur_src = 0; cur_src < num_sources; ++cur_src){
+      for (size_t cur_src = 0; cur_src < num_sources; ++cur_src){
         auto src = signer->step_set_input(cur_src);
         auto ack = this->client_exchange<messages::monero::MoneroTransactionSetInputAck>(src);
         signer->step_set_input_ack(ack);
@@ -619,7 +619,7 @@ namespace trezor {
       EVENT_PROGRESS(3, 1, 1);
 
       // Step: input_vini
-      for(size_t cur_src = 0; cur_src < num_sources; ++cur_src){
+      for (size_t cur_src = 0; cur_src < num_sources; ++cur_src){
         auto src = signer->step_set_vini_input(cur_src);
         auto ack = this->client_exchange<messages::monero::MoneroTransactionInputViniAck>(src);
         signer->step_set_vini_input_ack(ack);
@@ -633,7 +633,7 @@ namespace trezor {
       EVENT_PROGRESS(5, 1, 1);
 
       // Step: outputs
-      for(size_t cur_dst = 0; cur_dst < num_outputs; ++cur_dst){
+      for (size_t cur_dst = 0; cur_dst < num_outputs; ++cur_dst){
         auto src = signer->step_set_output(cur_dst);
         auto ack = this->client_exchange<messages::monero::MoneroTransactionSetOutputAck>(src);
         signer->step_set_output_ack(ack);
@@ -655,7 +655,7 @@ namespace trezor {
       EVENT_PROGRESS(7, 1, 1);
 
       // Step: sign each input
-      for(size_t cur_src = 0; cur_src < num_sources; ++cur_src){
+      for (size_t cur_src = 0; cur_src < num_sources; ++cur_src){
         auto src = signer->step_sign_input(cur_src);
         auto ack_sign = this->client_exchange<messages::monero::MoneroTransactionSignInputAck>(src);
         signer->step_sign_input_ack(ack_sign);

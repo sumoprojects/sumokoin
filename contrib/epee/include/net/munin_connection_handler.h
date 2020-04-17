@@ -243,7 +243,7 @@ namespace net_utils
 			bool handle_list_command()
 			{
 				std::string buff_to_send;
-				for(std::list<munin_service>::const_iterator it = m_config.m_services.begin(); it!=m_config.m_services.end();it++)
+				for (std::list<munin_service>::const_iterator it = m_config.m_services.begin(); it!=m_config.m_services.end();it++)
 				{
 					buff_to_send += it->m_service_name + " ";
 				}

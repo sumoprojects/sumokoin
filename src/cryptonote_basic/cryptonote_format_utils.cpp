@@ -363,7 +363,7 @@ namespace cryptonote
     if (b == 0)
       return 1;
     uint64_t total = a;
-    for(uint64_t i = 1; i != b; i++)
+    for (uint64_t i = 1; i != b; i++)
       total *= a;
     return total;
   }
@@ -486,12 +486,12 @@ namespace cryptonote
     }
     uint64_t amount_in = 0;
     uint64_t amount_out = 0;
-    for(auto& in: tx.vin)
+    for (auto& in: tx.vin)
     {
       CHECK_AND_ASSERT_MES(in.type() == typeid(txin_to_key), 0, "unexpected type id in transaction");
       amount_in += boost::get<txin_to_key>(in).amount;
     }
-    for(auto& o: tx.vout)
+    for (auto& o: tx.vout)
       amount_out += o.amount;
 
     CHECK_AND_ASSERT_MES(amount_in >= amount_out, false, "transaction spend (" <<amount_in << ") more than it has (" << amount_out << ")");
@@ -780,7 +780,7 @@ namespace cryptonote
   bool get_inputs_money_amount(const transaction& tx, uint64_t& money)
   {
     money = 0;
-    for(const auto& in: tx.vin)
+    for (const auto& in: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, tokey_in, false);
       money += tokey_in.amount;
@@ -797,7 +797,7 @@ namespace cryptonote
   //---------------------------------------------------------------
   bool check_inputs_types_supported(const transaction& tx)
   {
-    for(const auto& in: tx.vin)
+    for (const auto& in: tx.vin)
     {
       CHECK_AND_ASSERT_MES(in.type() == typeid(txin_to_key), false, "wrong variant type: "
         << in.type().name() << ", expected " << typeid(txin_to_key).name()
@@ -809,7 +809,7 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------
   bool check_outs_valid(const transaction& tx)
   {
-    for(const tx_out& out: tx.vout)
+    for (const tx_out& out: tx.vout)
     {
       CHECK_AND_ASSERT_MES(out.target.type() == typeid(txout_to_key), false, "wrong variant type: "
         << out.target.type().name() << ", expected " << typeid(txout_to_key).name()
@@ -834,7 +834,7 @@ namespace cryptonote
   bool check_inputs_overflow(const transaction& tx)
   {
     uint64_t money = 0;
-    for(const auto& in: tx.vin)
+    for (const auto& in: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, tokey_in, false);
       if (money > tokey_in.amount + money)
@@ -847,7 +847,7 @@ namespace cryptonote
   bool check_outs_overflow(const transaction& tx)
   {
     uint64_t money = 0;
-    for(const auto& o: tx.vout)
+    for (const auto& o: tx.vout)
     {
       if (money > o.amount + money)
         return false;
@@ -859,7 +859,7 @@ namespace cryptonote
   uint64_t get_outs_money_amount(const transaction& tx)
   {
     uint64_t outputs_amount = 0;
-    for(const auto& o: tx.vout)
+    for (const auto& o: tx.vout)
       outputs_amount += o.amount;
     return outputs_amount;
   }
@@ -930,7 +930,7 @@ namespace cryptonote
     CHECK_AND_ASSERT_MES(additional_tx_pub_keys.empty() || additional_tx_pub_keys.size() == tx.vout.size(), false, "wrong number of additional pubkeys" );
     money_transfered = 0;
     size_t i = 0;
-    for(const tx_out& o:  tx.vout)
+    for (const tx_out& o:  tx.vout)
     {
       CHECK_AND_ASSERT_MES(o.target.type() ==  typeid(txout_to_key), false, "wrong type id in transaction out" );
       if (is_out_to_acc(acc, boost::get<txout_to_key>(o.target), tx_pub_key, additional_tx_pub_keys, i))
@@ -1299,7 +1299,7 @@ namespace cryptonote
   std::vector<uint64_t> relative_output_offsets_to_absolute(const std::vector<uint64_t>& off)
   {
     std::vector<uint64_t> res = off;
-    for(size_t i = 1; i < res.size(); i++)
+    for (size_t i = 1; i < res.size(); i++)
       res[i] += res[i-1];
     return res;
   }
@@ -1310,7 +1310,7 @@ namespace cryptonote
     if(!off.size())
       return res;
     std::sort(res.begin(), res.end());//just to be sure, actually it is already should be sorted
-    for(size_t i = res.size()-1; i != 0; i--)
+    for (size_t i = res.size()-1; i != 0; i--)
       res[i] -= res[i-1];
 
     return res;
@@ -1391,7 +1391,7 @@ namespace cryptonote
     size_t bl_sz = 0;
     CHECK_AND_ASSERT_THROW_MES(get_transaction_hash(b.miner_tx, h, bl_sz), "Failed to calculate transaction hash");
     txs_ids.push_back(h);
-    for(auto& th: b.tx_hashes)
+    for (auto& th: b.tx_hashes)
       txs_ids.push_back(th);
     return get_tx_tree_hash(txs_ids);
   }

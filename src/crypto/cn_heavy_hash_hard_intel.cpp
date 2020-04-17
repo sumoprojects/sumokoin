@@ -245,7 +245,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::explode_scratchpad_hard()
 		xor_shift(x0, x1, x2, x3, x4, x5, x6, x7);
 	}
 
-	for(size_t i = 0; i < MEMORY / sizeof(__m128i); i += 8)
+	for (size_t i = 0; i < MEMORY / sizeof(__m128i); i += 8)
 	{
 		aes_round8(k0, x0, x1, x2, x3, x4, x5, x6, x7);
 		aes_round8(k1, x0, x1, x2, x3, x4, x5, x6, x7);
@@ -340,7 +340,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::hardware_hash(const void* in, size_t le
 	uint64_t idx0 = h0[0] ^ h0[4];
 
 	// Optim - 90% time boundary
-	for(size_t i = 0; i < ITER; i++)
+	for (size_t i = 0; i < ITER; i++)
 	{
 		__m128i cx;
 		cx = _mm_load_si128(scratchpad_ptr(idx0).as_xmm());

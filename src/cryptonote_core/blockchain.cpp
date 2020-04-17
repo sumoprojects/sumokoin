@@ -1016,7 +1016,7 @@ bool Blockchain::switch_to_alternative_blockchain(std::list<block_extended_info>
   auto split_height = m_db->height();
 
   //connecting new alternative chain
-  for(auto alt_ch_iter = alt_chain.begin(); alt_ch_iter != alt_chain.end(); alt_ch_iter++)
+  for (auto alt_ch_iter = alt_chain.begin(); alt_ch_iter != alt_chain.end(); alt_ch_iter++)
   {
     const auto &bei = *alt_ch_iter;
     block_verification_context bvc = {};
@@ -1044,7 +1044,7 @@ bool Blockchain::switch_to_alternative_blockchain(std::list<block_extended_info>
       m_db->remove_alt_block(blkid);
       alt_ch_iter++;
 
-      for(auto alt_ch_to_orph_iter = alt_ch_iter; alt_ch_to_orph_iter != alt_chain.end(); )
+      for (auto alt_ch_to_orph_iter = alt_ch_iter; alt_ch_to_orph_iter != alt_chain.end(); )
       {
         const auto &bei = *alt_ch_to_orph_iter++;
         const crypto::hash blkid = cryptonote::get_block_hash(bei.bl);
@@ -1493,7 +1493,7 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
 #if defined(DEBUG_CREATE_BLOCK_TEMPLATE)
   size_t real_txs_weight = 0;
   uint64_t real_fee = 0;
-  for(crypto::hash &cur_hash: b.tx_hashes)
+  for (crypto::hash &cur_hash: b.tx_hashes)
   {
     auto cur_res = m_tx_pool.m_transactions.find(cur_hash);
     if (cur_res == m_tx_pool.m_transactions.end())
@@ -1910,7 +1910,7 @@ bool Blockchain::get_blocks(uint64_t start_offset, size_t count, std::vector<std
     return false;
   }
 
-  for(const auto& blk : blocks)
+  for (const auto& blk : blocks)
   {
     std::vector<crypto::hash> missed_ids;
     get_transactions_blobs(blk.second.tx_hashes, txs, missed_ids);
@@ -1929,7 +1929,7 @@ bool Blockchain::get_blocks(uint64_t start_offset, size_t count, std::vector<std
     return false;
 
   blocks.reserve(blocks.size() + height - start_offset);
-  for(size_t i = start_offset; i < start_offset + count && i < height;i++)
+  for (size_t i = start_offset; i < start_offset + count && i < height;i++)
   {
     blocks.push_back(std::make_pair(m_db->get_block_blob_from_height(i), block()));
     if (!parse_and_validate_block_from_blob(blocks.back().first, blocks.back().second))
@@ -2480,7 +2480,7 @@ bool Blockchain::find_blockchain_supplement(const std::list<crypto::hash>& qbloc
   hashes.reserve(reserve);
   if (weights)
     weights->reserve(reserve);
-  for(size_t i = start_height; i < stop_height && count < BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT; i++, count++)
+  for (size_t i = start_height; i < stop_height && count < BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT; i++, count++)
   {
     hashes.push_back(m_db->get_block_hash_from_height(i));
     if (weights)
@@ -2537,7 +2537,7 @@ bool Blockchain::find_blockchain_supplement(const uint64_t req_start_block, cons
   total_height = get_current_blockchain_height();
   size_t count = 0, size = 0;
   blocks.reserve(std::min(std::min(max_count, (size_t)10000), (size_t)(total_height - start_height)));
-  for(uint64_t i = start_height; i < total_height && count < max_count && (size < FIND_BLOCKCHAIN_SUPPLEMENT_MAX_SIZE || count < 3); i++, count++)
+  for (uint64_t i = start_height; i < total_height && count < max_count && (size < FIND_BLOCKCHAIN_SUPPLEMENT_MAX_SIZE || count < 3); i++, count++)
   {
     blocks.resize(blocks.size()+1);
     blocks.back().first.first = m_db->get_block_blob_from_height(i);
@@ -5164,7 +5164,7 @@ void Blockchain::load_compiled_in_block_hashes(const GetCheckpointsCallback& get
         bool relayed, do_not_relay, double_spend_seen, pruned;
         transaction pool_tx;
         blobdata txblob;
-        for(const transaction &tx : txs)
+        for (const transaction &tx : txs)
         {
           crypto::hash tx_hash = get_transaction_hash(tx);
           m_tx_pool.take_tx(tx_hash, pool_tx, txblob, tx_weight, fee, relayed, do_not_relay, double_spend_seen, pruned);

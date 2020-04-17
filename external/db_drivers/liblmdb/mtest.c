@@ -40,7 +40,7 @@ int main(int argc,char * argv[])
 	    count = (rand()%384) + 64;
 	    values = (int *)malloc(count*sizeof(int));
 
-	    for(i = 0;i<count;i++) {
+	    for (i = 0;i<count;i++) {
 			values[i] = rand()%1024;
 	    }
     

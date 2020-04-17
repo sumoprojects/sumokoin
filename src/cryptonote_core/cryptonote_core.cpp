@@ -531,7 +531,7 @@ namespace cryptonote
       boost::split(options, db_sync_mode, boost::is_any_of(" :"));
       const bool db_sync_mode_is_default = command_line::is_arg_defaulted(vm, cryptonote::arg_db_sync_mode);
 
-      for(const auto &option : options)
+      for (const auto &option : options)
         MDEBUG("option: " << option);
 
       // default to fast:async:1
@@ -1132,7 +1132,7 @@ namespace cryptonote
   bool core::are_key_images_spent(const std::vector<crypto::key_image>& key_im, std::vector<bool> &spent) const
   {
     spent.clear();
-    for(auto& ki: key_im)
+    for (auto& ki: key_im)
     {
       spent.push_back(m_blockchain_storage.have_tx_keyimg_as_spent(ki));
     }
@@ -1170,7 +1170,7 @@ namespace cryptonote
       uint64_t coinbase_amount = get_outs_money_amount(b.miner_tx);
       this->get_transactions(b.tx_hashes, txs, missed_txs);      
       uint64_t tx_fee_amount = 0;
-      for(const auto& tx: txs)
+      for (const auto& tx: txs)
       {
         tx_fee_amount += get_tx_fee(tx);
       }
@@ -1191,7 +1191,7 @@ namespace cryptonote
   bool core::check_tx_inputs_keyimages_diff(const transaction& tx) const
   {
     std::unordered_set<crypto::key_image> ki;
-    for(const auto& in: tx.vin)
+    for (const auto& in: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, tokey_in, false);
       if(!ki.insert(tokey_in.k_image).second)
@@ -1202,7 +1202,7 @@ namespace cryptonote
   //-----------------------------------------------------------------------------------------------
   bool core::check_tx_inputs_ring_members_diff(const transaction& tx) const
   {
-    for(const auto& in: tx.vin)
+    for (const auto& in: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, tokey_in, false);
       for (size_t n = 1; n < tokey_in.key_offsets.size(); ++n)
@@ -1215,7 +1215,7 @@ namespace cryptonote
   bool core::check_tx_inputs_keyimages_domain(const transaction& tx) const
   {
     std::unordered_set<crypto::key_image> ki;
-    for(const auto& in: tx.vin)
+    for (const auto& in: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, tokey_in, false);
       if (!(rct::scalarmultKey(rct::ki2rct(tokey_in.k_image), rct::curveOrder()) == rct::identity()))
@@ -1422,7 +1422,7 @@ namespace cryptonote
 
       block_to_blob(b, arg.b.block);
       //pack transactions
-      for(auto& tx:  txs)
+      for (auto& tx:  txs)
         arg.b.txs.push_back({tx, crypto::null_hash});
 
       m_pprotocol->relay_block(arg, exclude_context);

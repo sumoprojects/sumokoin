@@ -60,7 +60,7 @@ void wallet_tools::process_transactions(tools::wallet2 * wallet, const std::vect
   v_parsed_block.reserve(blockchain.size());
 
   size_t idx = 0;
-  for(auto bl : blockchain)
+  for (auto bl : blockchain)
   {
     idx += 1;
     uint64_t height;
@@ -99,7 +99,7 @@ bool wallet_tools::fill_tx_sources(tools::wallet2 * wallet, std::vector<cryptono
     brk_cond += 1;                                   \
   } while(0)
 
-  for(ssize_t i = roffset; iters < ntrans && !abort; i += step, ++iters)
+  for (ssize_t i = roffset; iters < ntrans && !abort; i += step, ++iters)
   {
     EVAL_BRK_COND();
     if (brk_cond >= brk_thresh)
@@ -244,7 +244,7 @@ void wallet_tools::compute_subaddresses(std::unordered_map<crypto::public_key, c
   auto &hwdev = hw::get_device("default");
   const std::vector<crypto::public_key> pkeys = hwdev.get_subaddress_spend_public_keys(creds.get_keys(), account, 0, minors);
 
-  for(uint32_t c = 0; c < pkeys.size(); ++c){
+  for (uint32_t c = 0; c < pkeys.size(); ++c){
     cryptonote::subaddress_index sidx{(uint32_t)account, c};
     subaddresses[pkeys[c]] = sidx;
   }

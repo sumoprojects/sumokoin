@@ -327,7 +327,7 @@ namespace trezor {
       boost::cmatch match;
 
       this->m_wallet_deriv_path.reserve(fields.size());
-      for(const std::string & cur : fields){
+      for (const std::string & cur : fields){
         const bool ok = boost::regex_match(cur.c_str(), match, rgx);
         CHECK_AND_ASSERT_THROW_MES(ok, "Invalid wallet code: " << deriv_path << ". Invalid path element: " << cur);
         CHECK_AND_ASSERT_THROW_MES(match[0].length() > 0, "Invalid wallet code: " << deriv_path << ". Invalid path element: " << cur);

@@ -152,7 +152,7 @@ namespace cryptonote {
   {
     const unsigned char* pbuf = reinterpret_cast<const unsigned char*>(&bl);
     uint8_t summ = 0;
-    for(size_t i = 0; i!= sizeof(public_address_outer_blob)-1; i++)
+    for (size_t i = 0; i!= sizeof(public_address_outer_blob)-1; i++)
       summ += pbuf[i];
 
     return summ;
@@ -162,7 +162,7 @@ namespace cryptonote {
   {
     const unsigned char* pbuf = reinterpret_cast<const unsigned char*>(&bl);
     uint8_t summ = 0;
-    for(size_t i = 0; i!= sizeof(public_integrated_address_outer_blob)-1; i++)
+    for (size_t i = 0; i!= sizeof(public_integrated_address_outer_blob)-1; i++)
       summ += pbuf[i];
 
     return summ;

@@ -96,12 +96,12 @@ namespace ado_db_helper
 			std::stringstream strm;
 			strm << "SQL PROFILE:\r\nStatements: " << m_sqls.size() << "\r\n";
 			std::list<sqls_map::iterator> m_sorted_by_time_sqls;
-			for(std::map<std::string, profile_entry>::iterator it = m_sqls.begin();it!=m_sqls.end();it++)
+			for (std::map<std::string, profile_entry>::iterator it = m_sqls.begin();it!=m_sqls.end();it++)
 				m_sorted_by_time_sqls.push_back(it);
 
 			m_sorted_by_time_sqls.sort(sort_by_timing);
 
-			for(std::list<sqls_map::iterator>::iterator it = m_sorted_by_time_sqls.begin();it!=m_sorted_by_time_sqls.end();it++)
+			for (std::list<sqls_map::iterator>::iterator it = m_sorted_by_time_sqls.begin();it!=m_sorted_by_time_sqls.end();it++)
 			{
 				strm << "---------------------------------------------------------------------------------------------------------\r\nSQL: " << (*it)->first << "\r\n";
 				strm << "\tavrg: " << (*it)->second.m_avrg.get_avg() << "\r\n\tmax: " << (*it)->second.m_max_time << "\r\n\tmin: " << (*it)->second.m_min_time << "\r\n\tcount: " << (*it)->second.m_call_count << "\r\n"; 
@@ -304,7 +304,7 @@ inline
 	template<typename TParam>
 	inline bool add_parametr(ADODB::_CommandPtr cmd, const std::list<TParam> params)
 	{
-		for(std::list<TParam>::const_iterator it = params.begin(); it!=params.end(); it++)
+		for (std::list<TParam>::const_iterator it = params.begin(); it!=params.end(); it++)
 			if(!add_parametr(cmd, *it))
 				return false;
 		return true;
@@ -388,7 +388,7 @@ inline
 			result_vector.push_back(table::value_type());
 			size_t fields_count = precordset->Fields->Count;
 			result_vector[current_record_index].resize(fields_count);
-			for(size_t current_field_index = 0; current_field_index < fields_count; current_field_index++)
+			for (size_t current_field_index = 0; current_field_index < fields_count; current_field_index++)
 			{
 				_variant_t var;
 				var.ChangeType(VT_I2);
@@ -630,7 +630,7 @@ inline
 	std::string get_str_param(const std::list<TParam>& prm_lst)
 	{
 		std::stringstream strm;
-		for(std::list<TParam>::const_iterator it = prm_lst.begin();it!=prm_lst.end();it++)
+		for (std::list<TParam>::const_iterator it = prm_lst.begin();it!=prm_lst.end();it++)
 			strm  << get_str_param(*it) << ", ";
 		return strm.str();
 	}
@@ -717,7 +717,7 @@ inline
 		cmd->CommandText = _bstr_t(sql_statment.c_str());	
 		
 		
-		for(TParams::const_iterator it = parametrs.begin(); it!=parametrs.end(); it++)
+		for (TParams::const_iterator it = parametrs.begin(); it!=parametrs.end(); it++)
 		{
 			add_parametr(cmd, *it);
 		}

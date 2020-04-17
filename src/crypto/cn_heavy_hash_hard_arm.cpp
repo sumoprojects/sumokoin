@@ -271,7 +271,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::explode_scratchpad_hard()
 		xor_shift(x0, x1, x2, x3, x4, x5, x6, x7);
 	}
 
-	for(size_t i = 0; i < MEMORY; i += 128)
+	for (size_t i = 0; i < MEMORY; i += 128)
 	{
 		aes_round10(x0, k0, k1, k2, k3, k4, k5, k6, k7, k8, k9);
 		aes_round10(x1, k0, k1, k2, k3, k4, k5, k6, k7, k8, k9);
@@ -328,7 +328,7 @@ void cn_heavy_hash<MEMORY,ITER,VERSION>::hardware_hash(const void* in, size_t le
 
 	const uint8x16_t zero = vdupq_n_u8(0);
 	// Optim - 90% time boundary
-	for(size_t i = 0; i < ITER; i++)
+	for (size_t i = 0; i < ITER; i++)
 	{
 		uint8x16_t cx;
 		cx = vld1q_u8(scratchpad_ptr(idx0).as_byte());

@@ -279,7 +279,7 @@ namespace cryptonote
     }
     boost::interprocess::ipcdetail::atomic_write32(&m_stop, 0);
     boost::interprocess::ipcdetail::atomic_write32(&m_thread_index, 0);
-    for(size_t i = 0; i != m_threads_total; i++)
+    for (size_t i = 0; i != m_threads_total; i++)
       m_threads.push_back(boost::thread(m_attrs, boost::bind(&miner::worker_thread, this)));
   }
   //-----------------------------------------------------------------------------------------------------
@@ -305,7 +305,7 @@ namespace cryptonote
       std::vector<std::string> extra_vec;
       boost::split(extra_vec, buff, boost::is_any_of("\n"), boost::token_compress_on );
       m_extra_messages.resize(extra_vec.size());
-      for(size_t i = 0; i != extra_vec.size(); i++)
+      for (size_t i = 0; i != extra_vec.size(); i++)
       {
         string_tools::trim(extra_vec[i]);
         if(!extra_vec[i].size())
@@ -400,7 +400,7 @@ namespace cryptonote
     set_is_background_mining_enabled(do_background);
     set_ignore_battery(ignore_battery);
     
-    for(size_t i = 0; i != m_threads_total; i++)
+    for (size_t i = 0; i != m_threads_total; i++)
     {
       m_threads.push_back(boost::thread(m_attrs, boost::bind(&miner::worker_thread, this)));
     }

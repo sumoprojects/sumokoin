@@ -126,7 +126,7 @@ namespace nodetool
     time(&now_time);
     std::stringstream ss;
     ss << std::setfill ('0') << std::setw (8) << std::hex << std::noshowbase;
-    for(const peerlist_entry& pe: pl)
+    for (const peerlist_entry& pe: pl)
     {
       ss << peerid_to_string(pe.id) << "\t" << pe.adr.str()
         << " \trpc port " << (pe.rpc_port > 0 ? std::to_string(pe.rpc_port) : "-")

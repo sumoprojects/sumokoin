@@ -210,7 +210,7 @@ namespace trezor {
         CHECK_AND_ASSERT_THROW_MES(msg, "Message is null");
         msg->clear_address_n();
         if (path){
-          for(auto x : path.get()){
+          for (auto x : path.get()){
             msg->add_address_n(x);
           }
         } else {

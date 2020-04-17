@@ -438,7 +438,7 @@ bool fill_tx_sources(std::vector<tx_source_entry>& sources, const std::vector<te
             ts.mask = rct::identity();  // non-rct has identity mask by definition
 
             rct::key comm = rct::zeroCommit(ts.amount);
-            for(auto & ot : ts.outputs)
+            for (auto & ot : ts.outputs)
               ot.second.mask = comm;
 
             sources.push_back(ts);
@@ -537,7 +537,7 @@ void block_tracker::global_indices(const cryptonote::transaction *tx, std::vecto
 {
   indices.clear();
 
-  for(size_t j=0; j < tx->vout.size(); ++j){
+  for (size_t j=0; j < tx->vout.size(); ++j){
     auto it = find_out(tx->hash, j);
     if (it != m_map_outs.end()){
       indices.push_back(it->second.idx);
@@ -553,7 +553,7 @@ void block_tracker::get_fake_outs(size_t num_outs, uint64_t amount, uint64_t glo
   std::set<size_t> used;
   std::vector<size_t> choices;
   choices.resize(n_outs);
-  for(size_t i=0; i < n_outs; ++i) choices[i] = i;
+  for (size_t i=0; i < n_outs; ++i) choices[i] = i;
   shuffle(choices.begin(), choices.end(), std::default_random_engine(crypto::rand<unsigned>()));
 
   size_t n_iters = 0;
@@ -622,14 +622,14 @@ std::string dump_data(const cryptonote::transaction &tx)
   ss << "msg: " << dump_keys(tx.rct_signatures.message.bytes)
      << ", vin: ";
 
-  for(auto & in : tx.vin){
+  for (auto & in : tx.vin){
     if (typeid(txin_to_key) == in.type()){
       auto tk = boost::get<txin_to_key>(in);
       std::vector<uint64_t> full_off;
       int64_t last = -1;
 
       ss << " i: " << tk.amount << " [";
-      for(auto ix : tk.key_offsets){
+      for (auto ix : tk.key_offsets){
         ss << ix << ", ";
         if (last == -1){
           last = ix;
@@ -641,7 +641,7 @@ std::string dump_data(const cryptonote::transaction &tx)
       }
 
       ss << "], full: [";
-      for(auto ix : full_off){
+      for (auto ix : full_off){
         ss << ix << ", ";
       }
       ss << "]; ";
@@ -655,7 +655,7 @@ std::string dump_data(const cryptonote::transaction &tx)
 
   ss << ", mixring: \n";
   for (const auto & row : tx.rct_signatures.mixRing){
-    for(auto cur : row){
+    for (auto cur : row){
       ss << "    (" << dump_keys(cur.dest.bytes) << ", " << dump_keys(cur.mask.bytes) << ")\n ";
     }
     ss << "; ";
@@ -702,7 +702,7 @@ cryptonote::account_public_address get_address(const cryptonote::tx_destination_
 uint64_t sum_amount(const std::vector<tx_destination_entry>& destinations)
 {
   uint64_t amount = 0;
-  for(auto & cur : destinations){
+  for (auto & cur : destinations){
     amount += cur.amount;
   }
 
@@ -712,7 +712,7 @@ uint64_t sum_amount(const std::vector<tx_destination_entry>& destinations)
 uint64_t sum_amount(const std::vector<cryptonote::tx_source_entry>& sources)
 {
   uint64_t amount = 0;
-  for(auto & cur : sources){
+  for (auto & cur : sources){
     amount += cur.amount;
   }
 
@@ -822,7 +822,7 @@ std::vector<cryptonote::tx_destination_entry> build_dsts(std::initializer_list<d
 {
   std::vector<cryptonote::tx_destination_entry> res;
   res.reserve(inps.size());
-  for(auto & c : inps){
+  for (auto & c : inps){
     res.push_back(build_dst(c.addr, c.is_subaddr, c.amount));
   }
   return res;
@@ -964,7 +964,7 @@ uint64_t get_balance(const cryptonote::account_base& addr, const std::vector<cry
 
 bool extract_hard_forks(const std::vector<test_event_entry>& events, v_hardforks_t& hard_forks)
 {
-  for(auto & ev : events)
+  for (auto & ev : events)
   {
     if (typeid(event_replay_settings) == ev.type())
     {
@@ -1004,7 +1004,7 @@ bool trim_block_chain(std::vector<cryptonote::block>& blockchain, const crypto::
   size_t cut = 0;
   bool found = true;
 
-  for(size_t i = 0; i < blockchain.size(); ++i){
+  for (size_t i = 0; i < blockchain.size(); ++i){
     crypto::hash chash = get_block_hash(blockchain[i]);
     if (chash == tail){
       cut = i;
@@ -1024,7 +1024,7 @@ bool trim_block_chain(std::vector<const cryptonote::block*>& blockchain, const c
   size_t cut = 0;
   bool found = true;
 
-  for(size_t i = 0; i < blockchain.size(); ++i){
+  for (size_t i = 0; i < blockchain.size(); ++i){
     crypto::hash chash = get_block_hash(*blockchain[i]);
     if (chash == tail){
       cut = i;
@@ -1056,7 +1056,7 @@ uint64_t num_blocks(const std::vector<test_event_entry>& events)
 
 cryptonote::block get_head_block(const std::vector<test_event_entry>& events)
 {
-  for(auto it = events.rbegin(); it != events.rend(); ++it)
+  for (auto it = events.rbegin(); it != events.rend(); ++it)
   {
     auto &ev = *it;
     if (typeid(block) == ev.type())

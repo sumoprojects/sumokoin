@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
     mock_daemon::default_options(vm_core);
 
     // Transaction tests
-    for(uint8_t hf=initial_hf; hf <= max_hf + 1; ++hf)
+    for (uint8_t hf=initial_hf; hf <= max_hf + 1; ++hf)
     {
       if (hf > initial_hf || hf > max_hf)
       {
@@ -579,7 +579,7 @@ static uint64_t get_available_funds(tools::wallet2* wallet, uint32_t account=0)
   tools::wallet2::transfer_container transfers;
   wallet->get_transfers(transfers);
   uint64_t sum = 0;
-  for(const auto & cur : transfers)
+  for (const auto & cur : transfers)
   {
     sum += !cur.m_spent && cur.m_subaddr_index.major == account ? cur.amount() : 0;
   }
@@ -662,7 +662,7 @@ void gen_trezor_base::clear()
 void gen_trezor_base::add_shared_events(std::vector<test_event_entry>& events)
 {
   events.reserve(m_events.size());
-  for(const test_event_entry & c : m_events){
+  for (const test_event_entry & c : m_events){
     events.push_back(c);
   }
 }
@@ -713,7 +713,7 @@ bool gen_trezor_base::generate(std::vector<test_event_entry>& events)
   m_bob_account.set_createtime(m_wallet_ts);
   m_eve_account.set_createtime(m_wallet_ts);
   cryptonote::account_base * accounts[] = {TREZOR_ACCOUNT_ORDERING};
-  for(cryptonote::account_base * ac : accounts){
+  for (cryptonote::account_base * ac : accounts){
     events.push_back(*ac);
   }
 
@@ -776,7 +776,7 @@ bool gen_trezor_base::generate(std::vector<test_event_entry>& events)
   MAKE_TX_LIST_START_RCT(events, txs_blk_5, m_miner_account, m_alice_account, MK_COINS(50), 10, blk_4);
 
   const size_t target_rct = m_heavy_tests ? 105 : 15;
-  for(size_t i = 0; i < target_rct; ++i)
+  for (size_t i = 0; i < target_rct; ++i)
   {
     MAKE_TX_MIX_LIST_RCT(events, txs_blk_5, m_miner_account, m_alice_account, MK_COINS(1) >> 2, 10, blk_4);
   }
@@ -857,7 +857,7 @@ void gen_trezor_base::load(std::vector<test_event_entry>& events)
   cryptonote::account_base * accounts[] = {TREZOR_ACCOUNT_ORDERING};
   unsigned accounts_num = (sizeof(accounts) / sizeof(accounts[0]));
 
-  for(auto & ev : events)
+  for (auto & ev : events)
   {
     if (typeid(cryptonote::block) == ev.type())
     {
@@ -983,7 +983,7 @@ void gen_trezor_base::add_transactions_to_events(
   CHECK_AND_ASSERT_THROW_MES(m_rct_config.bp_version < 2 || tx_hf >= 10, "HF too low for BPv2: " << (int)tx_hf);
 
   std::list<cryptonote::transaction> tx_list;
-  for(const auto & tx : txs)
+  for (const auto & tx : txs)
   {
     events.push_back(tx);
     tx_list.push_back(tx);
@@ -1005,7 +1005,7 @@ void gen_trezor_base::test_trezor_tx(std::vector<test_event_entry>& events, std:
   tools::wallet2::unsigned_tx_set txs;
   std::vector<cryptonote::transaction> tx_list;
 
-  for(auto &ptx : ptxs) {
+  for (auto &ptx : ptxs) {
     txs.txes.push_back(get_construction_data_with_decrypted_short_payment_id(ptx, *m_trezor));
   }
   txs.transfers = std::make_pair(0, wallet_accessor_test::get_transfers(m_wl_alice.get()));
@@ -1046,7 +1046,7 @@ void gen_trezor_base::test_trezor_tx(std::vector<test_event_entry>& events, std:
   uint64_t sum_in = 0;
   uint64_t sum_out = 0;
 
-  for(size_t txid = 0; txid < exported_txs.ptx.size(); ++txid) {
+  for (size_t txid = 0; txid < exported_txs.ptx.size(); ++txid) {
     auto &c_ptx = exported_txs.ptx[txid];
     auto &c_tx = c_ptx.tx;
     const crypto::hash txhash = cryptonote::get_transaction_hash(c_tx);
@@ -1064,11 +1064,11 @@ void gen_trezor_base::test_trezor_tx(std::vector<test_event_entry>& events, std:
     CHECK_AND_ASSERT_THROW_MES((exp_payment_id.size() == 32) == (enc_payment_id.size() == 32), "Required and built payment ID size mismatch");
     CHECK_AND_ASSERT_THROW_MES(exp_payment_id.size() <= enc_payment_id.size(), "Required and built payment ID size mismatch");
 
-    for(auto &src : c_ptx.construction_data.sources){
+    for (auto &src : c_ptx.construction_data.sources){
       cur_sum_in += src.amount;
     }
 
-    for(auto &dst : c_ptx.construction_data.splitted_dsts){
+    for (auto &dst : c_ptx.construction_data.splitted_dsts){
       cur_sum_out += dst.amount;
     }
 
@@ -1119,7 +1119,7 @@ void gen_trezor_base::test_trezor_tx(std::vector<test_event_entry>& events, std:
         return item.second.m_tx_hash == txhash;
       });
 
-      for(auto &paydet : payments_txid){
+      for (auto &paydet : payments_txid){
         CHECK_AND_ASSERT_THROW_MES(exp_payment_id.empty() || (memcmp(exp_payment_id.data(), paydet.first.data, exp_payment_id.size()) == 0), "Payment ID mismatch");
         num_payment_id_checks_done += 1;
       }
@@ -1153,7 +1153,7 @@ bool gen_trezor_base::verify_tx_key(const ::crypto::secret_key & tx_priv, const 
   if (tx_pub == tx_pub_c)
     return true;
 
-  for(const auto & elem : subs)
+  for (const auto & elem : subs)
   {
     tx_pub_c = rct::rct2pk(rct::scalarmultKey(rct::pk2rct(elem.first), rct::sk2rct(tx_priv)));
     if (tx_pub == tx_pub_c)
@@ -1183,7 +1183,7 @@ void gen_trezor_base::test_get_tx(
   }
 
   subaddresses_t all_subs;
-  for(tools::wallet2 * wlt : wallets)
+  for (tools::wallet2 * wlt : wallets)
   {
     wlt->expand_subaddresses({10, 20});
 
@@ -1191,7 +1191,7 @@ void gen_trezor_base::test_get_tx(
     all_subs.insert(cur_sub.begin(), cur_sub.end());
   }
 
-  for(size_t txid = 0; txid < ptxs.size(); ++txid)
+  for (size_t txid = 0; txid < ptxs.size(); ++txid)
   {
     const auto &c_ptx = ptxs[txid];
     const auto &c_tx = c_ptx.tx;
@@ -1211,7 +1211,7 @@ void gen_trezor_base::test_get_tx(
     CHECK_AND_ASSERT_THROW_MES(verify_tx_key(tx_keys[0], tx_pub, all_subs), "Tx pub mismatch");
     CHECK_AND_ASSERT_THROW_MES(additional_pub_keys.size() == tx_keys.size() - 1, "Invalid additional keys count");
 
-    for(size_t i = 0; i < additional_pub_keys.size(); ++i)
+    for (size_t i = 0; i < additional_pub_keys.size(); ++i)
     {
       CHECK_AND_ASSERT_THROW_MES(verify_tx_key(tx_keys[i + 1], additional_pub_keys[i], all_subs), "Tx pub mismatch");
     }
@@ -1399,7 +1399,7 @@ tsx_builder * tsx_builder::build_tx()
   ptx.construction_data.subaddr_account = m_account;
 
   // Build destinations parse info
-  for(size_t i = 0; i < m_destinations_orig.size(); ++i){
+  for (size_t i = 0; i < m_destinations_orig.size(); ++i){
     auto & cdest = m_destinations_orig[i];
     cryptonote::address_parse_info info = init_addr_parse_info(cdest.addr, cdest.is_subaddress);
     if (m_integrated.find(i) != m_integrated.end()){
@@ -1454,7 +1454,7 @@ tsx_builder * tsx_builder::construct_pending_tx(tools::wallet2::pending_tx &ptx,
 
   ptx.construction_data.subaddr_account = 0;
   ptx.construction_data.subaddr_indices.clear();
-  for(uint32_t i = 0; i < 20; ++i)
+  for (uint32_t i = 0; i < 20; ++i)
     ptx.construction_data.subaddr_indices.insert(i);
 
   return this;
@@ -1523,7 +1523,7 @@ bool gen_trezor_ki_sync::generate(std::vector<test_event_entry>& events)
 
   dev_cold->ki_sync(&wallet_shim, transfers, ski);
   CHECK_AND_ASSERT_THROW_MES(ski.size() == transfers.size(), "Size mismatch");
-  for(size_t i = 0; i < transfers.size(); ++i)
+  for (size_t i = 0; i < transfers.size(); ++i)
   {
     auto & td = transfers[i];
     auto & kip = ski[i];
@@ -1571,7 +1571,7 @@ bool gen_trezor_live_refresh::generate(std::vector<test_event_entry>& events)
   hw::device & sw_device = hw::get_device("default");
 
   dev_cold->live_refresh_start();
-  for(unsigned i=0; i<50; ++i)
+  for (unsigned i=0; i<50; ++i)
   {
     cryptonote::subaddress_index subaddr = {0, i};
 

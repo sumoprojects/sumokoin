@@ -274,7 +274,7 @@ std::string dump_keys(T * buff32)
   char buff[10];
 
   ss << "[";
-  for(int i = 0; i < 32; i++)
+  for (int i = 0; i < 32; i++)
   {
     snprintf(buff, 10, "0x%02x", ((uint8_t)buff32[i] & 0xff));
     ss << buff;
@@ -702,7 +702,7 @@ inline bool replay_events_through_core_plain(cryptonote::core& cr, const std::ve
 
   bool r = true;
   push_core_event_visitor<t_test_class> visitor(cr, events, validator);
-  for(size_t i = 1; i < events.size() && r; ++i)
+  for (size_t i = 1; i < events.size() && r; ++i)
   {
     visitor.event_index(i);
     r = boost::apply_visitor(visitor, events[i]);

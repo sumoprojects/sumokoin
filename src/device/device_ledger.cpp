@@ -1104,7 +1104,7 @@ namespace hw {
         pkey = &tx_pub_key;
         MDEBUG("conceal derivation with main tx pub key");
       } else {
-        for(size_t n=0; n < additional_derivations.size();++n) {
+        for (size_t n=0; n < additional_derivations.size();++n) {
           if (derivation == additional_derivations[n]) {
             pkey = &additional_tx_pub_keys[n];
             MDEBUG("conceal derivation with additionnal tx pub key");

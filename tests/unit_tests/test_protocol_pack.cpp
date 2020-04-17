@@ -40,7 +40,7 @@ TEST(protocol_pack, protocol_pack_command)
   cryptonote::NOTIFY_RESPONSE_CHAIN_ENTRY::request r;
   r.start_height = 1;
   r.total_height = 3;
-  for(int i = 1; i < 10000; i += i*10)
+  for (int i = 1; i < 10000; i += i*10)
   {
     r.m_block_ids.resize(i, crypto::hash{});
     bool res = epee::serialization::store_t_to_binary(r, buff);

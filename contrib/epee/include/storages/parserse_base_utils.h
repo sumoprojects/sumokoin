@@ -308,7 +308,7 @@ namespace misc_utils
       {
         val.clear();
 
-        for(std::string::const_iterator it = star_end_string;it != buf_end;it++)
+        for (std::string::const_iterator it = star_end_string;it != buf_end;it++)
         {
           if (!(lut[(uint8_t)*it] & 4))
           {
@@ -339,7 +339,7 @@ namespace misc_utils
       {
         val.clear();
 
-        for(std::string::const_iterator it = star_end_string;it != buf_end;it++)
+        for (std::string::const_iterator it = star_end_string;it != buf_end;it++)
         {
           if(!isalnum(*it) && *it != '-' && *it != '_')
           {
@@ -358,7 +358,7 @@ namespace misc_utils
       {
         word_end = star_end_string;
 
-        for(std::string::const_iterator it = star_end_string;it != buf_end;it++)
+        for (std::string::const_iterator it = star_end_string;it != buf_end;it++)
         {
           if (isspace(*it))
           {

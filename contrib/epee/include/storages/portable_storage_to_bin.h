@@ -95,7 +95,7 @@ namespace epee
         uint8_t type = contained_type|SERIALIZE_FLAG_ARRAY;
         m_strm.write((const char*)&type, 1);
         pack_varint(m_strm, arr_pod.m_array.size());
-        for(t_pod_type x: arr_pod.m_array)
+        for (t_pod_type x: arr_pod.m_array)
         {
           x = CONVERT_POD(x);
           m_strm.write((const char*)&x, sizeof(t_pod_type));
@@ -119,7 +119,7 @@ namespace epee
         uint8_t type = SERIALIZE_TYPE_STRING|SERIALIZE_FLAG_ARRAY;
         m_strm.write((const char*)&type, 1);
         pack_varint(m_strm, arr_str.m_array.size());
-        for(const std::string& s: arr_str.m_array)
+        for (const std::string& s: arr_str.m_array)
           put_string(m_strm, s);
         return true;
       }
@@ -128,7 +128,7 @@ namespace epee
         uint8_t type = SERIALIZE_TYPE_OBJECT|SERIALIZE_FLAG_ARRAY;
         m_strm.write((const char*)&type, 1);
         pack_varint(m_strm, arr_sec.m_array.size());
-        for(const section& s: arr_sec.m_array)
+        for (const section& s: arr_sec.m_array)
           pack_entry_to_buff(m_strm, s);
         return true;
       }
@@ -137,7 +137,7 @@ namespace epee
         uint8_t type = SERIALIZE_TYPE_ARRAY|SERIALIZE_FLAG_ARRAY;
         m_strm.write((const char*)&type, 1);
         pack_varint(m_strm, arra_ar.m_array.size());
-        for(const array_entry& s: arra_ar.m_array)
+        for (const array_entry& s: arra_ar.m_array)
           pack_entry_to_buff(m_strm, s);
         return true;
       }
@@ -208,7 +208,7 @@ namespace epee
     {
       typedef std::map<std::string, storage_entry>::value_type section_pair;
       pack_varint(strm, sec.m_entries.size());
-      for(const section_pair& se: sec.m_entries)
+      for (const section_pair& se: sec.m_entries)
       {
         CHECK_AND_ASSERT_THROW_MES(se.first.size() < std::numeric_limits<uint8_t>::max(), "storage_entry_name is too long: " << se.first.size() << ", val: " << se.first);
         uint8_t len = static_cast<uint8_t>(se.first.size());

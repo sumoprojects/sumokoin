@@ -143,7 +143,7 @@ namespace nodetool
   template<class t_payload_net_handler>
   void node_server<t_payload_net_handler>::for_each_connection(std::function<bool(typename t_payload_net_handler::connection_context&, peerid_type, uint32_t)> f)
   {
-    for(auto& zone : m_network_zones)
+    for (auto& zone : m_network_zones)
     {
       zone.second.m_net_server.get_config_object().foreach_connection([&](p2p_connection_context& cntx){
         return f(cntx, cntx.peer_id, cntx.support_flags);
@@ -154,7 +154,7 @@ namespace nodetool
   template<class t_payload_net_handler>
   bool node_server<t_payload_net_handler>::for_connection(const boost::uuids::uuid &connection_id, std::function<bool(typename t_payload_net_handler::connection_context&, peerid_type, uint32_t)> f)
   {
-    for(auto& zone : m_network_zones)
+    for (auto& zone : m_network_zones)
     {
       const bool result = zone.second.m_net_server.get_config_object().for_connection(connection_id, [&](p2p_connection_context& cntx){
         return f(cntx, cntx.peer_id, cntx.support_flags);
@@ -237,7 +237,7 @@ namespace nodetool
     // the zone related to the connection, but really make sure everything is
     // swept ...
     std::vector<boost::uuids::uuid> conns;
-    for(auto& zone : m_network_zones)
+    for (auto& zone : m_network_zones)
     {
       zone.second.m_net_server.get_config_object().foreach_connection([&](const p2p_connection_context& cntxt)
       {
@@ -286,7 +286,7 @@ namespace nodetool
     // the zone related to the connection, but really make sure everything is
     // swept ...
     std::vector<boost::uuids::uuid> conns;
-    for(auto& zone : m_network_zones)
+    for (auto& zone : m_network_zones)
     {
       zone.second.m_net_server.get_config_object().foreach_connection([&](const p2p_connection_context& cntxt)
       {
@@ -398,7 +398,7 @@ namespace nodetool
     if (command_line::has_arg(vm, arg_p2p_add_peer))
     {
       std::vector<std::string> perrs = command_line::get_arg(vm, arg_p2p_add_peer);
-      for(const std::string& pr_str: perrs)
+      for (const std::string& pr_str: perrs)
       {
         nodetool::peerlist_entry pe = AUTO_VAL_INIT(pe);
         pe.id = crypto::rand<uint64_t>();
@@ -788,7 +788,7 @@ namespace nodetool
       CHECK_AND_ASSERT_MES(res, false, "Failed to init peerlist.");
     }
 
-    for(const auto& p: m_command_line_peers)
+    for (const auto& p: m_command_line_peers)
       m_network_zones.at(p.adr.get_zone()).m_peerlist.append_with_peer_white(p);
 
 // all peers are now setup
@@ -954,7 +954,7 @@ namespace nodetool
 
     if (!m_offline)
     {
-      for(auto& zone : m_network_zones)
+      for (auto& zone : m_network_zones)
         zone.second.m_net_server.deinit_server();
       // remove UPnP port mapping
       if (m_igd == igd)
@@ -1167,12 +1167,12 @@ namespace nodetool
   template<class t_payload_net_handler>
   bool node_server<t_payload_net_handler>::is_peer_used(const peerlist_entry& peer)
   {
-    for(const auto& zone : m_network_zones)
+    for (const auto& zone : m_network_zones)
       if (zone.second.m_config.m_peer_id == peer.id)
         return true;//dont make connections to ourself
 
     bool used = false;
-    for(auto& zone : m_network_zones)
+    for (auto& zone : m_network_zones)
     {
       zone.second.m_net_server.get_config_object().foreach_connection([&](const p2p_connection_context& cntxt)
       {
@@ -1193,7 +1193,7 @@ namespace nodetool
   template<class t_payload_net_handler>
   bool node_server<t_payload_net_handler>::is_peer_used(const anchor_peerlist_entry& peer)
   {
-    for(auto& zone : m_network_zones) {
+    for (auto& zone : m_network_zones) {
       if (zone.second.m_config.m_peer_id == peer.id) {
           return true;//dont make connections to ourself
       }
@@ -1628,7 +1628,7 @@ namespace nodetool
 
     if (!connect_to_peerlist(m_priority_peers)) return false;
 
-    for(auto& zone : m_network_zones)
+    for (auto& zone : m_network_zones)
     {
       size_t base_expected_white_connections = (zone.second.m_config.m_net_config.max_out_connection_count*P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT)/100;
 
@@ -1755,7 +1755,7 @@ namespace nodetool
   size_t node_server<t_payload_net_handler>::get_outgoing_connections_count()
   {
     size_t count = 0;
-    for(auto& zone : m_network_zones)
+    for (auto& zone : m_network_zones)
       count += get_outgoing_connections_count(zone.second);
     return count;
   }
@@ -1859,7 +1859,7 @@ namespace nodetool
     MDEBUG("STARTED PEERLIST IDLE HANDSHAKE");
     typedef std::list<std::pair<epee::net_utils::connection_context_base, peerid_type> > local_connects_type;
     local_connects_type cncts;
-    for(auto& zone : m_network_zones)
+    for (auto& zone : m_network_zones)
     {
       zone.second.m_net_server.get_config_object().foreach_connection([&](p2p_connection_context& cntxt)
       {
@@ -1925,7 +1925,7 @@ namespace nodetool
       return false;
 
     const epee::net_utils::zone zone = context.m_remote_address.get_zone();
-    for(const auto& peer : peerlist_)
+    for (const auto& peer : peerlist_)
     {
       if (peer.adr.get_zone() != zone)
       {
@@ -1972,7 +1972,7 @@ namespace nodetool
   {
     std::sort(connections.begin(), connections.end());
     auto zone = m_network_zones.begin();
-    for(const auto& c_id: connections)
+    for (const auto& c_id: connections)
     {
       for (;;)
       {
@@ -2462,7 +2462,7 @@ namespace nodetool
   bool node_server<t_payload_net_handler>::connect_to_peerlist(const Container& peers)
   {
     const network_zone& public_zone = m_network_zones.at(epee::net_utils::zone::public_);
-    for(const epee::net_utils::network_address& na: peers)
+    for (const epee::net_utils::network_address& na: peers)
     {
       if (public_zone.m_net_server.is_stop_signal_sent())
         return false;
@@ -2481,7 +2481,7 @@ namespace nodetool
   {
     std::vector<std::string> perrs = command_line::get_arg(vm, arg);
 
-    for(const std::string& pr_str: perrs)
+    for (const std::string& pr_str: perrs)
     {
       const uint16_t default_port = cryptonote::get_config(m_nettype).P2P_DEFAULT_PORT;
       expect<epee::net_utils::network_address> adr = net::get_network_address(pr_str, default_port);

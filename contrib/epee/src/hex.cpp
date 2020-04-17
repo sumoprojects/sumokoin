@@ -106,7 +106,7 @@ namespace epee
         return false;
 
       const unsigned char *src = (const unsigned char *)s.data();
-      for(size_t i = 0; i < s.size(); i += 2)
+      for (size_t i = 0; i < s.size(); i += 2)
       {
         int tmp = *src++;
         tmp = epee::misc_utils::parse::isx[tmp];

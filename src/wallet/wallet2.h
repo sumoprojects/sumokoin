@@ -2070,7 +2070,7 @@ namespace tools
       splitted_dsts.clear();
       dust_dsts.clear();
 
-      for(auto& de: dsts)
+      for (auto& de: dsts)
       {
         cryptonote::decompose_amount_into_digits(de.amount, 0,
           [&](uint64_t chunk) { splitted_dsts.push_back(cryptonote::tx_destination_entry(chunk, de.addr, de.is_subaddress)); },

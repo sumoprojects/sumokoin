@@ -157,7 +157,7 @@ namespace cryptonote
 
     bool mixin_too_low = false;
     bool mixin_too_high = false;
-    for(const auto& in: tx.vin)
+    for (const auto& in: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, txin, false);
       if (txin.key_offsets.size() - 1 < (version <  7 ? DEFAULT_MIXIN : DEFAULT_MIXIN_V2)){
@@ -406,7 +406,7 @@ namespace cryptonote
   //---------------------------------------------------------------------------------
   bool tx_memory_pool::insert_key_images(const transaction_prefix &tx, const crypto::hash &id, relay_method tx_relay)
   {
-    for(const auto& in: tx.vin)
+    for (const auto& in: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, txin, false);
       std::unordered_set<crypto::hash>& kei_image_set = m_spent_key_images[txin.k_image];
@@ -449,7 +449,7 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL(m_transactions_lock);
     CRITICAL_REGION_LOCAL1(m_blockchain);
     // ND: Speedup
-    for(const txin_v& vi: tx.vin)
+    for (const txin_v& vi: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(vi, const txin_to_key, txin, false);
       auto it = m_spent_key_images.find(txin.k_image);
@@ -1064,7 +1064,7 @@ namespace cryptonote
   {
     CRITICAL_REGION_LOCAL(m_transactions_lock);
     CRITICAL_REGION_LOCAL1(m_blockchain);
-    for(const auto& in: tx.vin)
+    for (const auto& in: tx.vin)
     {
       CHECKED_GET_SPECIFIC_VARIANT(in, const txin_to_key, tokey_in, true);//should never fail
       if (have_tx_keyimg_as_spent(tokey_in.k_image))
@@ -1184,7 +1184,7 @@ namespace cryptonote
   //---------------------------------------------------------------------------------
   bool tx_memory_pool::have_key_images(const std::unordered_set<crypto::key_image>& k_images, const transaction_prefix& tx)
   {
-    for(size_t i = 0; i!= tx.vin.size(); i++)
+    for (size_t i = 0; i!= tx.vin.size(); i++)
     {
       CHECKED_GET_SPECIFIC_VARIANT(tx.vin[i], const txin_to_key, itk, false);
       if (k_images.count(itk.k_image))
@@ -1195,7 +1195,7 @@ namespace cryptonote
   //---------------------------------------------------------------------------------
   bool tx_memory_pool::append_key_images(std::unordered_set<crypto::key_image>& k_images, const transaction_prefix& tx)
   {
-    for(size_t i = 0; i!= tx.vin.size(); i++)
+    for (size_t i = 0; i!= tx.vin.size(); i++)
     {
       CHECKED_GET_SPECIFIC_VARIANT(tx.vin[i], const txin_to_key, itk, false);
       auto i_res = k_images.insert(itk.k_image);
@@ -1210,7 +1210,7 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL1(m_blockchain);
     bool changed = false;
     LockedTXN lock(m_blockchain.get_db());
-    for(size_t i = 0; i!= tx.vin.size(); i++)
+    for (size_t i = 0; i!= tx.vin.size(); i++)
     {
       CHECKED_GET_SPECIFIC_VARIANT(tx.vin[i], const txin_to_key, itk, void());
       const key_images_container::const_iterator it = m_spent_key_images.find(itk.k_image);

@@ -1422,7 +1422,7 @@ namespace net_utils
 			if (nIndex < m_nEDataLen)
 			{
 				Raw.Clear();
-				for(DWORD i = nIndex; i < m_nEDataLen; i++)
+				for (DWORD i = nIndex; i < m_nEDataLen; i++)
 				{
 					Raw.nData[i - nIndex] = DecodeTable()[m_pEBuffer[i]];
 					Raw.nSize++;
@@ -1448,7 +1448,7 @@ namespace net_utils
 
 			_DecodeRaw(Data, Decode);
 
-			for(int i = 0; i < 3; i++)
+			for (int i = 0; i < 3; i++)
 			{
 				pBuffer[i] = Data.nData[i];
 				if (pBuffer[i] != 255)
@@ -1465,7 +1465,7 @@ namespace net_utils
 
 			_EncodeRaw(Data, Decode);
 
-			for(int i = 0; i < 4; i++)
+			for (int i = 0; i < 4; i++)
 				pBuffer[i] = Base64Digits()[Data.nData[i]];
 
 			switch(Decode.nSize)
@@ -1548,10 +1548,10 @@ namespace net_utils
 
 			int	i;
 
-			for(i = 0; i < 256; i++)
+			for (i = 0; i < 256; i++)
 				DecodeTable()[i] = -2;
 
-			for(i = 0; i < 64; i++)
+			for (i = 0; i < 64; i++)
 			{
 				DecodeTable()[Base64Digits()[i]]			= i;
 				DecodeTable()[Base64Digits()[i]|0x80]	= i;

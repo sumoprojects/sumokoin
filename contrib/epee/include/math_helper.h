@@ -180,7 +180,7 @@ namespace math_helper
 
 		bool chick(size_t count)
 		{
-			for(size_t s = 0; s != count; s++)
+			for (size_t s = 0; s != count; s++)
 				chick();
 
 			return true;			
@@ -219,11 +219,11 @@ namespace math_helper
 	template<class tlist>
 	void randomize_list(tlist& t_list)
 	{
-		for(typename tlist::iterator  it = t_list.begin();it!=t_list.end();it++)
+		for (typename tlist::iterator  it = t_list.begin();it!=t_list.end();it++)
 		{
 			size_t offset = rand()%t_list.size();
 			typename tlist::iterator  it_2 = t_list.begin();
-			for(size_t local_offset = 0;local_offset!=offset;local_offset++)
+			for (size_t local_offset = 0;local_offset!=offset;local_offset++)
 				it_2++;
 			if (it_2 == it)
 				continue;

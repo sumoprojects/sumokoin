@@ -79,13 +79,13 @@ namespace epee
       t.m_bool = true;
       t.m_str = "ackamdc'kmecemcececmacmecmcm[aicm[oeicm[oeicm[qaicm[qoe";
       t.m_uint = 233242;
-      for(int i = 0; i!=500; i++)
+      for (int i = 0; i!=500; i++)
         t.m_list_of_int.push_back(i);
 
-      for(int i = 0; i!=500; i++)
+      for (int i = 0; i!=500; i++)
         t.m_list_of_str.push_back("ssccd");
 
-      for(int i = 0; i!=5; i++)
+      for (int i = 0; i!=5; i++)
       {
         t.m_list_of_self.push_back(t);
       }

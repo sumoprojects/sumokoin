@@ -4309,7 +4309,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
         epee::wipeable_string spendkey_string;
         cryptonote::blobdata spendkey_data;
         // get N secret spend keys from user
-        for(unsigned int i=0; i<multisig_n; ++i)
+        for (unsigned int i=0; i<multisig_n; ++i)
         {
           spendkey_string = input_secure_line(tr((boost::format(tr("Secret spend key (%u of %u)")) % (i+1) % multisig_m).str().c_str()));
           if (std::cin.eof())
@@ -4328,7 +4328,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
 
         // sum the spend keys together to get the master spend key
         spendkey = multisig_secret_spendkeys[0];
-        for(unsigned int i=1; i<multisig_n; ++i)
+        for (unsigned int i=1; i<multisig_n; ++i)
           sc_add(reinterpret_cast<unsigned char*>(&spendkey), reinterpret_cast<unsigned char*>(&spendkey), reinterpret_cast<unsigned char*>(&multisig_secret_spendkeys[i]));
       }
       // parsing M/N
@@ -5935,7 +5935,7 @@ bool simple_wallet::show_payments(const std::vector<std::string> &args)
     tr("payment") % tr("transaction") % tr("height") % tr("amount") % tr("unlock time") % tr("addr index");
 
   bool payments_found = false;
-  for(std::string arg : args)
+  for (std::string arg : args)
   {
     crypto::hash payment_id;
     if (tools::wallet2::parse_payment_id(arg, payment_id))

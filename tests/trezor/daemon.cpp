@@ -194,7 +194,7 @@ void mock_daemon::stop_and_deinit()
 void mock_daemon::try_init_and_run(boost::optional<unsigned> initial_port)
 {
   const unsigned max_attempts = 3;
-  for(unsigned attempts=0; attempts < max_attempts; ++attempts)
+  for (unsigned attempts=0; attempts < max_attempts; ++attempts)
   {
     if (initial_port)
     {

@@ -216,7 +216,7 @@ namespace nodetool
   bool peerlist_manager::merge_peerlist(const std::vector<peerlist_entry>& outer_bs, const std::function<bool(const peerlist_entry&)> &f)
   {
     CRITICAL_REGION_LOCAL(m_peerlist_lock);
-    for(const peerlist_entry& be:  outer_bs)
+    for (const peerlist_entry& be:  outer_bs)
     {
       if (!f || f(be))
         append_with_peer_gray(be);
@@ -284,7 +284,7 @@ namespace nodetool
     //
     const uint32_t pick_depth = anonymize ? m_peers_white.size() : depth;
     bs_head.reserve(pick_depth);
-    for(const peers_indexed::value_type& vl: boost::adaptors::reverse(by_time_index))
+    for (const peers_indexed::value_type& vl: boost::adaptors::reverse(by_time_index))
     {
       if (cnt++ >= pick_depth)
         break;
@@ -309,7 +309,7 @@ namespace nodetool
   {
     CRITICAL_REGION_LOCAL(m_peerlist_lock);
     peers_indexed::index<by_time>::type& by_time_index = white ? m_peers_white.get<by_time>() : m_peers_gray.get<by_time>();
-    for(const peers_indexed::value_type& vl: boost::adaptors::reverse(by_time_index))
+    for (const peers_indexed::value_type& vl: boost::adaptors::reverse(by_time_index))
       if (!f(vl))
         return false;
     return true;

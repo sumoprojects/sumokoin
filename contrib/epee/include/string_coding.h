@@ -42,7 +42,7 @@ namespace string_encoding
 		/*
 		std::string result;
 		std::locale loc;
-		for(unsigned int i= 0; i < str_from.size(); ++i)
+		for (unsigned int i= 0; i < str_from.size(); ++i)
 		{
 			result += std::use_facet<std::ctype<wchar_t> >(loc).narrow(str_from[i]);
 		}
@@ -72,7 +72,7 @@ namespace string_encoding
 	{
 		std::wstring result;
 		std::locale loc;
-		for(unsigned int i= 0; i < str_from.size(); ++i)
+		for (unsigned int i= 0; i < str_from.size(); ++i)
 		{
 			result += std::use_facet<std::ctype<wchar_t> >(loc).widen(str_from[i]);
 		}
@@ -156,7 +156,7 @@ namespace string_encoding
 				char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
 				char_array_4[3] = char_array_3[2] & 0x3f;
 
-				for(i = 0; (i <4) ; i++)
+				for (i = 0; (i <4) ; i++)
 					ret += base64_chars()[char_array_4[i]];
 				i = 0;
 			}
@@ -164,7 +164,7 @@ namespace string_encoding
 
 		if (i)
 		{
-			for(j = i; j < 3; j++)
+			for (j = i; j < 3; j++)
 				char_array_3[j] = '\0';
 
 			char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;

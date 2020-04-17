@@ -556,7 +556,7 @@ namespace cryptonote
     size_t size = 0, ntxes = 0;
     res.blocks.reserve(bs.size());
     res.output_indices.reserve(bs.size());
-    for(auto& bd: bs)
+    for (auto& bd: bs)
     {
       res.blocks.resize(res.blocks.size()+1);
       res.blocks.back().pruned = req.prune;
@@ -794,7 +794,7 @@ namespace cryptonote
     const bool request_has_rpc_origin = ctx != NULL;
     
     std::vector<crypto::hash> vh;
-    for(const auto& tx_hex_str: req.txs_hashes)
+    for (const auto& tx_hex_str: req.txs_hashes)
     {
       blobdata b;
       if(!string_tools::parse_hexstr_to_binbuff(tx_hex_str, b))
@@ -892,7 +892,7 @@ namespace cryptonote
 
     std::vector<std::string>::const_iterator txhi = req.txs_hashes.begin();
     std::vector<crypto::hash>::const_iterator vhi = vh.begin();
-    for(auto& tx: txs)
+    for (auto& tx: txs)
     {
       res.txs.push_back(COMMAND_RPC_GET_TRANSACTIONS::entry());
       COMMAND_RPC_GET_TRANSACTIONS::entry &e = res.txs.back();
@@ -1005,7 +1005,7 @@ namespace cryptonote
       }
     }
 
-    for(const auto& miss_tx: missed_txs)
+    for (const auto& miss_tx: missed_txs)
     {
       res.missed_tx.push_back(string_tools::pod_to_hex(miss_tx));
     }
@@ -1211,7 +1211,7 @@ namespace cryptonote
     const bool request_has_rpc_origin = ctx != NULL;
 
     std::vector<crypto::key_image> key_images;
-    for(const auto& ki_hex_str: req.key_images)
+    for (const auto& ki_hex_str: req.key_images)
     {
       blobdata b;
       if(!string_tools::parse_hexstr_to_binbuff(ki_hex_str, b))
@@ -1991,7 +1991,7 @@ namespace cryptonote
     submit_req.push_back(std::string{});
     res.height = m_core.get_blockchain_storage().get_current_blockchain_height();
 
-    for(size_t i = 0; i < req.amount_of_blocks; i++)
+    for (size_t i = 0; i < req.amount_of_blocks; i++)
     {
       bool r = on_getblocktemplate(template_req, template_res, error_resp, ctx);
       res.status = template_res.status;
@@ -2035,7 +2035,7 @@ namespace cryptonote
   uint64_t core_rpc_server::get_block_reward(const block& blk)
   {
     uint64_t reward = 0;
-    for(const tx_out& out: blk.miner_tx.vout)
+    for (const tx_out& out: blk.miner_tx.vout)
     {
       reward += out.amount;
     }

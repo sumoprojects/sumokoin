@@ -218,7 +218,7 @@ bool transactions_flow_test(std::string& working_folder,
   };
   crypto::key_image lst_sent_ki = AUTO_VAL_INIT(lst_sent_ki);
   std::unordered_map<crypto::hash, tx_test_entry> txs;
-  for(i = 0; i != transactions_count; i++)
+  for (i = 0; i != transactions_count; i++)
   {
     uint64_t amount_to_tx = (amount_to_transfer - transfered_money) > transfer_size ? transfer_size: (amount_to_transfer - transfered_money);
     while(w1.unlocked_balance(0, true) < amount_to_tx + TEST_FEE)

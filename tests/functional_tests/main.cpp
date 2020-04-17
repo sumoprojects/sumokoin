@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
     size_t transactions_per_second = command_line::get_arg(vm, arg_tx_per_second);
     size_t repeat_count = command_line::get_arg(vm, arg_test_repeat_count);
 
-    for(size_t i = 0; i != repeat_count; i++)
+    for (size_t i = 0; i != repeat_count; i++)
       if(!transactions_flow_test(working_folder, path_source_wallet, path_target_wallet, daemon_addr_a, daemon_addr_b, amount_to_transfer, mix_in_factor, transactions_count, transactions_per_second))
         break;
 

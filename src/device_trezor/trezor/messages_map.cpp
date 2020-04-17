@@ -80,7 +80,7 @@ namespace trezor
 #endif
 
     google::protobuf::Descriptor const * desc = nullptr;
-    for(const string &text : PACKAGES){
+    for (const string &text : PACKAGES){
       desc = google::protobuf::DescriptorPool::generated_pool()
           ->FindMessageTypeByName(text + msg_name);
       if (desc != nullptr){

@@ -681,7 +681,7 @@ namespace net_utils
 		}
 
 		//add additional fields, if it is
-		for(fields_list::const_iterator it = response.m_additional_fields.begin(); it!=response.m_additional_fields.end(); it++)
+		for (fields_list::const_iterator it = response.m_additional_fields.begin(); it!=response.m_additional_fields.end(); it++)
 			buf += it->first + ": " + it->second + "\r\n";
 
 		buf+="\r\n";
@@ -735,7 +735,7 @@ namespace net_utils
 	template<class t_connection_context>
   bool simple_http_connection_handler<t_connection_context>::slash_to_back_slash(std::string& str)
 	{
-		for(std::string::iterator it = str.begin(); it!=str.end(); it++)
+		for (std::string::iterator it = str.begin(); it!=str.end(); it++)
 			if('/' == *it)
 				*it = '\\';
 		return true;

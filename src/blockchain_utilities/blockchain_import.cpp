@@ -168,10 +168,10 @@ int check_flush(cryptonote::core &core, std::vector<block_complete_entry> &block
   }
 
   size_t blockidx = 0;
-  for(const block_complete_entry& block_entry: blocks)
+  for (const block_complete_entry& block_entry: blocks)
   {
     // process transactions
-    for(auto& tx_blob: block_entry.txs)
+    for (auto& tx_blob: block_entry.txs)
     {
       tx_verification_context tvc = AUTO_VAL_INIT(tvc);
       core.handle_incoming_tx(tx_blob, tvc, relay_method::block, true);

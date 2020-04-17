@@ -372,7 +372,7 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 		::GetSystemInfo(&si);
 		threads_count = si.dwNumberOfProcessors + 2;
 	}
-	for(int i = 0; i != threads_count; i++)
+	for (int i = 0; i != threads_count; i++)
 	{
 		boost::thread(boost::bind(&cp_server_impl::worker_thread_member, this));
 		//HANDLE h_thread = threads_helper::create_thread(worker_thread, this);
@@ -438,7 +438,7 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 	}
 	LOG_PRINT("Closing connections("<< m_connections.size() << ") and waiting...", LOG_LEVEL_2);
 	m_connections_lock.lock();
-	for(connections_container::iterator it = m_connections.begin(); it != m_connections.end(); it++)
+	for (connections_container::iterator it = m_connections.begin(); it != m_connections.end(); it++)
 	{
 		::shutdown(it->second->m_sock, SD_BOTH);
 		::closesocket(it->second->m_sock);
@@ -454,7 +454,7 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 
 
 	LOG_PRINT("Stopping worker threads("<< m_worker_thread_counter << ").", LOG_LEVEL_2);
-	for(int i = 0; i<m_worker_thread_counter; i++)
+	for (int i = 0; i<m_worker_thread_counter; i++)
 	{
 		::PostQueuedCompletionStatus(m_completion_port, 0, 0, 0);
 	}

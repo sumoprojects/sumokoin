@@ -147,7 +147,7 @@ namespace ki {
                       const std::vector<tools::wallet2::transfer_details> & transfers,
                       std::vector<MoneroTransferDetails> & res)
   {
-    for(auto & td : transfers){
+    for (auto & td : transfers){
       ::crypto::public_key tx_pub_key = wallet->get_tx_pub_key_from_received_outs(td);
       const std::vector<::crypto::public_key> additional_tx_pub_keys = cryptonote::get_additional_tx_pub_keys_from_extra(td.m_tx);
 
@@ -157,7 +157,7 @@ namespace ki {
       cres.set_out_key(key_to_string(boost::get<cryptonote::txout_to_key>(td.m_tx.vout[td.m_internal_output_index].target).key));
       cres.set_tx_pub_key(key_to_string(tx_pub_key));
       cres.set_internal_output_index(td.m_internal_output_index);
-      for(auto & aux : additional_tx_pub_keys){
+      for (auto & aux : additional_tx_pub_keys){
         cres.add_additional_tx_pub_keys(key_to_string(aux));
       }
     }
@@ -196,7 +196,7 @@ namespace ki {
     uint8_t final_hash[32];
     keccak_init(&kck);
 
-    for(auto &cur : mtds){
+    for (auto &cur : mtds){
       auto hash = compute_hash(cur);
       keccak_update(&kck, reinterpret_cast<const uint8_t *>(hash.data()), hash.size());
     }
@@ -216,7 +216,7 @@ namespace ki {
     for (auto& x: sub_indices){
       auto subs = req->add_subs();
       subs->set_account(x.first);
-      for(auto minor : x.second){
+      for (auto minor : x.second){
         subs->add_minor_indices(minor);
       }
     }
@@ -284,7 +284,7 @@ namespace tx {
   }
 
   void translate_src_entry(MoneroTransactionSourceEntry * dst, const cryptonote::tx_source_entry * src){
-    for(auto & cur : src->outputs){
+    for (auto & cur : src->outputs){
       auto out = dst->add_outputs();
       out->set_idx(cur.first);
       translate_rct_key(out->mutable_key(), &(cur.second));
@@ -292,7 +292,7 @@ namespace tx {
 
     dst->set_real_output(src->real_output);
     dst->set_real_out_tx_key(key_to_string(src->real_out_tx_key));
-    for(auto & cur : src->real_out_additional_tx_keys){
+    for (auto & cur : src->real_out_additional_tx_keys){
       dst->add_real_out_additional_tx_keys(key_to_string(cur));
     }
 
@@ -520,7 +520,7 @@ namespace tx {
     assign_to_repeatable(rsig_data->mutable_grouping(), m_ct.grouping_vct.begin(), m_ct.grouping_vct.end());
 
     translate_dst_entry(tsx_data.mutable_change_dts(), &(tx.change_dts));
-    for(auto & cur : tx.splitted_dsts){
+    for (auto & cur : tx.splitted_dsts){
       auto dst = tsx_data.mutable_outputs()->Add();
       translate_dst_entry(dst, &cur);
     }
@@ -528,10 +528,10 @@ namespace tx {
     compute_integrated_indices(&tsx_data);
 
     int64_t fee = 0;
-    for(auto & cur_in : tx.sources){
+    for (auto & cur_in : tx.sources){
       fee += cur_in.amount;
     }
-    for(auto & cur_out : tx.splitted_dsts){
+    for (auto & cur_out : tx.splitted_dsts){
       fee -= cur_out.amount;
     }
     if (fee < 0){
@@ -677,7 +677,7 @@ namespace tx {
     }
 
     m_ct.rsig_gamma.reserve(num_outputs());
-    for(size_t c=0; c < num_outputs(); ++c){
+    for (size_t c=0; c < num_outputs(); ++c){
       rct::key cmask{};
       memcpy(cmask.bytes, mask.data() + c * 32, 32);
       m_ct.rsig_gamma.emplace_back(cmask);
@@ -780,7 +780,7 @@ namespace tx {
     rct::keyV masks;
     CHECK_AND_ASSERT_THROW_MES(m_ct.cur_output_idx + 1 >= batch_size, "Invalid index for batching");
 
-    for(size_t i = 0; i < batch_size; ++i){
+    for (size_t i = 0; i < batch_size; ++i){
       const size_t bidx = 1 + m_ct.cur_output_idx - batch_size + i;
       CHECK_AND_ASSERT_THROW_MES(bidx < m_ct.tx_data.splitted_dsts.size(), "Invalid gamma index");
       CHECK_AND_ASSERT_THROW_MES(bidx < m_ct.rsig_gamma.size(), "Invalid gamma index");
@@ -848,7 +848,7 @@ namespace tx {
     auto extra = ack->extra();
     auto extra_data = extra.data();
     m_ct.tx.extra.reserve(extra.size());
-    for(size_t i = 0; i < extra.size(); ++i){
+    for (size_t i = 0; i < extra.size(); ++i){
       m_ct.tx.extra.push_back(static_cast<uint8_t>(extra_data[i]));
     }
 
@@ -881,12 +881,12 @@ namespace tx {
     }
 
     CHECK_AND_ASSERT_THROW_MES(m_ct.tx_out_pk.size() == m_ct.tx_out_ecdh.size(), "Invalid vector sizes");
-    for(size_t i = 0; i < m_ct.tx_out_ecdh.size(); ++i){
+    for (size_t i = 0; i < m_ct.tx_out_ecdh.size(); ++i){
       m_ct.rv->outPk.push_back(m_ct.tx_out_pk[i]);
       m_ct.rv->ecdhInfo.push_back(m_ct.tx_out_ecdh[i]);
     }
 
-    for(size_t i = 0; i < m_ct.tx_out_rsigs.size(); ++i){
+    for (size_t i = 0; i < m_ct.tx_out_rsigs.size(); ++i){
       if (is_bulletproof()){
         m_ct.rv->p.bulletproofs.push_back(boost::get<rct::Bulletproof>(m_ct.tx_out_rsigs[i]));
       } else {
@@ -960,7 +960,7 @@ namespace tx {
   void Signer::step_final_ack(std::shared_ptr<const messages::monero::MoneroTransactionFinalAck> ack){
     if (m_multisig){
       auto & cout_key = ack->cout_key();
-      for(auto & cur : m_ct.couts){
+      for (auto & cur : m_ct.couts){
         if (cur.size() != crypto::chacha::IV_SIZE + 32){
           throw std::invalid_argument("Encrypted cout has invalid length");
         }
@@ -1077,7 +1077,7 @@ namespace tx {
     CHECK_AND_ASSERT_THROW_MES(keys_len % 32 == 0, "Invalid size");
     tx_keys.resize(keys_len / 32);
 
-    for(unsigned i = 0; i < keys_len / 32; ++i)
+    for (unsigned i = 0; i < keys_len / 32; ++i)
     {
       memcpy(tx_keys[i].data, plaintext.get() + 32 * i, 32);
     }

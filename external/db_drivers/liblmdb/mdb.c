@@ -3470,7 +3470,7 @@ mdb_freelist_save(MDB_txn *txn)
 			unsigned y;
 			for (y=1; dl[y].mptr && y <= dl[0].mid; y++);
 			if (y <= dl[0].mid) {
-				for(x=y, y++;;) {
+				for (x=y, y++;;) {
 					while (!dl[y].mptr && y <= dl[0].mid) y++;
 					if (y > dl[0].mid) break;
 					dl[x++] = dl[y++];

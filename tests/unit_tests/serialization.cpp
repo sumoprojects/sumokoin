@@ -1140,7 +1140,7 @@ TEST(Serialization, difficulty_type)
 {
   std::vector<cryptonote::difficulty_type> v_original;
 
-  for(int i = 0; i != 100; i++)
+  for (int i = 0; i != 100; i++)
   {
     v_original.push_back(cryptonote::difficulty_type("117868131154734361989189100"));
     if (v_original.size() > 1)

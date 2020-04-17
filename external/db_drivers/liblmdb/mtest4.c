@@ -43,7 +43,7 @@ int main(int argc,char * argv[])
 	count = 510;
 	values = (int *)malloc(count*sizeof(int));
 
-	for(i = 0;i<count;i++) {
+	for (i = 0;i<count;i++) {
 		values[i] = i*5;
 	}
 

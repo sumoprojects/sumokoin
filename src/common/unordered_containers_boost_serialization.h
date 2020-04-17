@@ -43,7 +43,7 @@ namespace boost
     {
       size_t s = x.size();
       a << s;
-      for(auto& v: x)
+      for (auto& v: x)
       {
         a << v.first;
         a << v.second;
@@ -56,7 +56,7 @@ namespace boost
       x.clear();
       size_t s = 0;
       a >> s;
-      for(size_t i = 0; i != s; i++)
+      for (size_t i = 0; i != s; i++)
       {
         h_key k;
         hval v;
@@ -72,7 +72,7 @@ namespace boost
     {
       size_t s = x.size();
       a << s;
-      for(auto& v: x)
+      for (auto& v: x)
       {
         a << v.first;
         a << v.second;
@@ -85,7 +85,7 @@ namespace boost
       x.clear();
       size_t s = 0;
       a >> s;
-      for(size_t i = 0; i != s; i++)
+      for (size_t i = 0; i != s; i++)
       {
         h_key k;
         hval v;
@@ -101,7 +101,7 @@ namespace boost
     {
       size_t s = x.size();
       a << s;
-      for(auto& v: x)
+      for (auto& v: x)
       {
         a << v;
       }
@@ -113,7 +113,7 @@ namespace boost
       x.clear();
       size_t s = 0;
       a >> s;
-      for(size_t i = 0; i != s; i++)
+      for (size_t i = 0; i != s; i++)
       {
         hval v;
         a >> v;

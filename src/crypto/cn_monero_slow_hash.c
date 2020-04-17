@@ -641,7 +641,7 @@ STATIC INLINE void aes_pseudo_round(const uint8_t *in, uint8_t *out,
     __m128i d;
     int i;
 
-    for(i = 0; i < nblocks; i++)
+    for (i = 0; i < nblocks; i++)
     {
         d = _mm_loadu_si128(R128(in + i * AES_BLOCK_SIZE));
         d = _mm_aesenc_si128(d, *R128(&k[0]));
@@ -680,7 +680,7 @@ STATIC INLINE void aes_pseudo_round_xor(const uint8_t *in, uint8_t *out,
     __m128i d;
     int i;
 
-    for(i = 0; i < nblocks; i++)
+    for (i = 0; i < nblocks; i++)
     {
         d = _mm_loadu_si128(R128(in + i * AES_BLOCK_SIZE));
         d = _mm_xor_si128(d, *R128(x++));
@@ -917,7 +917,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     if (useAes)
     {
         aes_expand_key(state.hs.b, expandedKey);
-        for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
+        for (i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
         {
             aes_pseudo_round(text, text, expandedKey, INIT_SIZE_BLK);
             memcpy(&local_hp_state[i * INIT_SIZE_BYTE], text, INIT_SIZE_BYTE);
@@ -927,9 +927,9 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     {
         aes_ctx = (oaes_ctx *) oaes_alloc();
         oaes_key_import_data(aes_ctx, state.hs.b, AES_KEY_SIZE);
-        for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
+        for (i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
         {
-            for(j = 0; j < INIT_SIZE_BLK; j++)
+            for (j = 0; j < INIT_SIZE_BLK; j++)
                 aesb_pseudo_round(&text[AES_BLOCK_SIZE * j], &text[AES_BLOCK_SIZE * j], aes_ctx->key->exp_data);
 
             memcpy(&local_hp_state[i * INIT_SIZE_BYTE], text, INIT_SIZE_BYTE);
@@ -952,7 +952,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     // the useAes test is only performed once, not every iteration.
     if (useAes)
     {
-        for(i = 0; i < ITER / 2; i++)
+        for (i = 0; i < ITER / 2; i++)
         {
             pre_aes();
             _c = _mm_aesenc_si128(_c, _a);
@@ -961,7 +961,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     }
     else
     {
-        for(i = 0; i < ITER / 2; i++)
+        for (i = 0; i < ITER / 2; i++)
         {
             pre_aes();
             aesb_single_round((uint8_t *) &_c, (uint8_t *) &_c, (uint8_t *) &_a);
@@ -977,7 +977,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     if (useAes)
     {
         aes_expand_key(&state.hs.b[32], expandedKey);
-        for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
+        for (i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
         {
             // add the xor to the pseudo round
             aes_pseudo_round_xor(text, text, expandedKey, &local_hp_state[i * INIT_SIZE_BYTE], INIT_SIZE_BLK);
@@ -986,9 +986,9 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     else
     {
         oaes_key_import_data(aes_ctx, &state.hs.b[32], AES_KEY_SIZE);
-        for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
+        for (i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
         {
-            for(j = 0; j < INIT_SIZE_BLK; j++)
+            for (j = 0; j < INIT_SIZE_BLK; j++)
             {
                 xor_blocks(&text[j * AES_BLOCK_SIZE], &local_hp_state[i * INIT_SIZE_BYTE + j * AES_BLOCK_SIZE]);
                 aesb_pseudo_round(&text[AES_BLOCK_SIZE * j], &text[AES_BLOCK_SIZE * j], aes_ctx->key->exp_data);
@@ -1289,7 +1289,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
      */
 
     aes_expand_key(state.hs.b, expandedKey);
-    for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
+    for (i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
     {
         aes_pseudo_round(text, text, expandedKey, INIT_SIZE_BLK);
         memcpy(&local_hp_state[i * INIT_SIZE_BYTE], text, INIT_SIZE_BYTE);
@@ -1308,7 +1308,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     _b = vld1q_u8((const uint8_t *)b);
     _b1 = vld1q_u8(((const uint8_t *)b) + AES_BLOCK_SIZE);
 
-    for(i = 0; i < ITER / 2; i++)
+    for (i = 0; i < ITER / 2; i++)
     {
         pre_aes();
         _c = vaeseq_u8(_c, zero);
@@ -1324,7 +1324,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     memcpy(text, state.init, INIT_SIZE_BYTE);
 
     aes_expand_key(&state.hs.b[32], expandedKey);
-    for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
+    for (i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
     {
         // add the xor to the pseudo round
         aes_pseudo_round_xor(text, text, expandedKey, &local_hp_state[i * INIT_SIZE_BYTE], INIT_SIZE_BLK);
@@ -1505,9 +1505,9 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
 
     // use aligned data
     memcpy(expandedKey, aes_ctx->key->exp_data, aes_ctx->key->exp_data_len);
-    for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
+    for (i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
     {
-        for(j = 0; j < INIT_SIZE_BLK; j++)
+        for (j = 0; j < INIT_SIZE_BLK; j++)
             aesb_pseudo_round(&text[AES_BLOCK_SIZE * j], &text[AES_BLOCK_SIZE * j], expandedKey);
         memcpy(&long_state[i * INIT_SIZE_BYTE], text, INIT_SIZE_BYTE);
     }
@@ -1517,7 +1517,7 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     U64(b)[0] = U64(&state.k[16])[0] ^ U64(&state.k[48])[0];
     U64(b)[1] = U64(&state.k[16])[1] ^ U64(&state.k[48])[1];
 
-    for(i = 0; i < ITER / 2; i++)
+    for (i = 0; i < ITER / 2; i++)
     {
       #define MASK ((uint32_t)(((MEMORY / AES_BLOCK_SIZE) - 1) << 4))
       #define state_index(x) ((*(uint32_t *) x) & MASK)
@@ -1559,9 +1559,9 @@ void cn_monero_slow_hash(const void *data, size_t length, char *hash, int varian
     memcpy(text, state.init, INIT_SIZE_BYTE);
     oaes_key_import_data(aes_ctx, &state.hs.b[32], AES_KEY_SIZE);
     memcpy(expandedKey, aes_ctx->key->exp_data, aes_ctx->key->exp_data_len);
-    for(i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
+    for (i = 0; i < MEMORY / INIT_SIZE_BYTE; i++)
     {
-        for(j = 0; j < INIT_SIZE_BLK; j++)
+        for (j = 0; j < INIT_SIZE_BLK; j++)
         {
             xor_blocks(&text[j * AES_BLOCK_SIZE], &long_state[i * INIT_SIZE_BYTE + j * AES_BLOCK_SIZE]);
             aesb_pseudo_round(&text[AES_BLOCK_SIZE * j], &text[AES_BLOCK_SIZE * j], expandedKey);

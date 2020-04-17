@@ -445,7 +445,7 @@ namespace cryptonote
       m_core.resume_mine();
       return 1;
     }
-    for(auto tx_blob_it = arg.b.txs.begin(); tx_blob_it!=arg.b.txs.end();tx_blob_it++)
+    for (auto tx_blob_it = arg.b.txs.begin(); tx_blob_it!=arg.b.txs.end();tx_blob_it++)
     {
       cryptonote::tx_verification_context tvc = AUTO_VAL_INIT(tvc);
       m_core.handle_incoming_tx(*tx_blob_it, tvc, relay_method::block, true);
@@ -546,7 +546,7 @@ namespace cryptonote
       transaction tx;
       crypto::hash tx_hash;
 
-      for(auto& tx_blob: arg.b.txs)
+      for (auto& tx_blob: arg.b.txs)
       {
         if (parse_and_validate_tx_from_blob(tx_blob.blob, tx))
         {
@@ -663,7 +663,7 @@ namespace cryptonote
       }
 
       size_t tx_idx = 0;
-      for(auto& tx_hash: new_block.tx_hashes)
+      for (auto& tx_hash: new_block.tx_hashes)
       {
         cryptonote::blobdata txblob;
         if (m_core.get_pool_transaction(tx_hash, txblob, relay_category::broadcasted))
@@ -809,7 +809,7 @@ namespace cryptonote
     fluffy_response.b.block = t_serializable_object_to_blob(b);
     fluffy_response.current_blockchain_height = arg.current_blockchain_height;
     std::vector<bool> seen(b.tx_hashes.size(), false);
-    for(auto& tx_idx: arg.missing_tx_indices)
+    for (auto& tx_idx: arg.missing_tx_indices)
     {
       if (tx_idx < b.tx_hashes.size())
       {
@@ -863,7 +863,7 @@ namespace cryptonote
       return 1;
     }
 
-    for(auto& tx: txs)
+    for (auto& tx: txs)
     {
       fluffy_response.b.txs.push_back({t_serializable_object_to_blob(tx), crypto::null_hash});
     }
@@ -1053,7 +1053,7 @@ namespace cryptonote
     const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
     uint64_t start_height = std::numeric_limits<uint64_t>::max();
     cryptonote::block b;
-    for(const block_complete_entry& block_entry: arg.blocks)
+    for (const block_complete_entry& block_entry: arg.blocks)
     {
       if (m_stopping)
       {
@@ -1324,7 +1324,7 @@ namespace cryptonote
 
           uint64_t block_process_time_full = 0, transactions_process_time_full = 0;
           size_t num_txs = 0, blockidx = 0;
-          for(const block_complete_entry& block_entry: blocks)
+          for (const block_complete_entry& block_entry: blocks)
           {
             if (m_stopping)
             {

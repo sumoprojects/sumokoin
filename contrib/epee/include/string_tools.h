@@ -228,7 +228,7 @@ POP_WARNINGS
 	//----------------------------------------------------------------------------
 	inline bool trim_left(std::string& str)
 	{
-		for(std::string::iterator it = str.begin(); it!= str.end() && isspace(static_cast<unsigned char>(*it));)
+		for (std::string::iterator it = str.begin(); it!= str.end() && isspace(static_cast<unsigned char>(*it));)
 			str.erase(str.begin());
 
 		return true;
@@ -237,7 +237,7 @@ POP_WARNINGS
 	inline bool trim_right(std::string& str)
 	{
 
-		for(std::string::reverse_iterator it = str.rbegin(); it!= str.rend() && isspace(static_cast<unsigned char>(*it));)
+		for (std::string::reverse_iterator it = str.rbegin(); it!= str.rend() && isspace(static_cast<unsigned char>(*it));)
 			str.erase( --((it++).base()));
 
 		return true;
