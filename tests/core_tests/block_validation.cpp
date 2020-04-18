@@ -175,7 +175,7 @@ bool gen_block_invalid_nonce::generate(std::vector<test_event_entry>& events) co
     return false;
 
   // Create invalid nonce
-  difficulty_type diffic = next_difficulty(timestamps, commulative_difficulties,DIFFICULTY_TARGET);
+  difficulty_type diffic = next_difficulty(timestamps, commulative_difficulties,3);
   assert(1 < diffic);
   const block& blk_last = boost::get<block>(events.back());
   uint64_t timestamp = blk_last.timestamp;
@@ -637,6 +637,21 @@ bool gen_block_invalid_binary_format::check_all_blocks_purged(cryptonote::core& 
 
   CHECK_EQ(1, c.get_pool_transactions_count());
   CHECK_EQ(m_corrupt_blocks_begin_idx - 2, c.get_current_blockchain_height());
+
+  return true;
+}
+
+bool gen_block_late_v1_coinbase_tx::generate(std::vector<test_event_entry>& events) const
+{
+  BLOCK_VALIDATION_INIT_GENERATE();
+
+  block blk_1;
+  generator.construct_block_manually(blk_1, blk_0, miner_account,
+      test_generator::bf_major_ver | test_generator::bf_minor_ver,
+      9, 9);
+  events.push_back(blk_1);
+
+  DO_CALLBACK(events, "check_block_purged");
 
   return true;
 }

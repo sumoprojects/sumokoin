@@ -1145,8 +1145,8 @@ namespace cryptonote
       return block_sync_size;
     if (get_current_blockchain_height() <= LAST_CHECKPOINT)
     return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
-    else 
-    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4;    
+    else
+    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4;
   }
   //-----------------------------------------------------------------------------------------------
   bool core::are_key_images_spent_in_pool(const std::vector<crypto::key_image>& key_im, std::vector<bool> &spent) const
@@ -1168,18 +1168,18 @@ namespace cryptonote
       std::vector<transaction> txs;
       std::vector<crypto::hash> missed_txs;
       uint64_t coinbase_amount = get_outs_money_amount(b.miner_tx);
-      this->get_transactions(b.tx_hashes, txs, missed_txs);      
+      this->get_transactions(b.tx_hashes, txs, missed_txs);
       uint64_t tx_fee_amount = 0;
       for(const auto& tx: txs)
       {
         tx_fee_amount += get_tx_fee(tx);
       }
-      
+
       emission_amount += coinbase_amount - tx_fee_amount;
       total_fee_amount += tx_fee_amount;
       return true;
       });
-      
+
       // subtract burned coins
       if (start_offset <= config::EXCHANGE_FUND_RELEASE_HEIGHT && end >= config::EXCHANGE_FUND_RELEASE_HEIGHT)
         emission_amount -= config::EXCHANGE_BURNED_AMOUNT;
@@ -1276,6 +1276,7 @@ namespace cryptonote
             break;
           case relay_method::block:
           case relay_method::fluff:
+          case relay_method::stem:
             public_req.txs.push_back(std::move(std::get<1>(tx)));
             break;
         }
@@ -1287,9 +1288,9 @@ namespace cryptonote
          re-relaying public and private _should_ be acceptable here. */
       const boost::uuids::uuid source = boost::uuids::nil_uuid();
       if (!public_req.txs.empty())
-        get_protocol()->relay_transactions(public_req, source, epee::net_utils::zone::public_);
+        get_protocol()->relay_transactions(public_req, source, epee::net_utils::zone::public_, relay_method::fluff);
       if (!private_req.txs.empty())
-        get_protocol()->relay_transactions(private_req, source, epee::net_utils::zone::invalid);
+        get_protocol()->relay_transactions(private_req, source, epee::net_utils::zone::invalid, relay_method::local);
     }
     return true;
   }
@@ -1576,7 +1577,7 @@ namespace cryptonote
   bool core::get_pool_transaction(const crypto::hash &id, cryptonote::blobdata& tx, relay_category tx_category) const
   {
     return m_mempool.get_transaction(id, tx, tx_category);
-  }  
+  }
   //-----------------------------------------------------------------------------------------------
   bool core::pool_has_tx(const crypto::hash &id) const
   {
@@ -1667,13 +1668,13 @@ namespace cryptonote
     hours = minutes / 60;
     if((get_blockchain_storage().get_current_blockchain_height() >= m_target_blockchain_height) && (m_target_blockchain_height > 0))
     {
-     MGINFO_GREEN(ENDL << "Sumokoin node is on idle and fully synchronized | Height: " << get_blockchain_storage().get_current_blockchain_height() 
-       << " | Uptime: " << int(hours) << " hours " << int(minutes%60) << " minutes " 
+     MGINFO_GREEN(ENDL << "Sumokoin node is on idle and fully synchronized | Height: " << get_blockchain_storage().get_current_blockchain_height()
+       << " | Uptime: " << int(hours) << " hours " << int(minutes%60) << " minutes "
        << int(seconds%60) << " seconds" << ENDL);
     }
    return true;
   }
-  //----------------------------------------------------------------------------------------------- 
+  //-----------------------------------------------------------------------------------------------
   bool core::check_fork_time()
   {
     if (m_nettype == FAKECHAIN)
