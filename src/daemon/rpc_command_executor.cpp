@@ -650,6 +650,10 @@ bool t_rpc_command_executor::show_status() {
       bootstrap_msg += " was used before";
     }
   }
+  if (bootstrap_msg.empty())	
+  {
+    bootstrap_msg = "no bootstrapping";
+  }
   uint64_t chainsize = (ires.database_size)/(1024*1024);
   std::string os_version = tools::get_os_version_string();
   std::string win = "Windows";
