@@ -29,7 +29,6 @@
 #pragma once
 #include <boost/lexical_cast.hpp>
 #include <boost/regex.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <string>
 #include <utility>
 
@@ -94,7 +93,7 @@ namespace net_utils
 			return std::string();
 		}
 
-		static inline void add_field(std::string& out, const boost::string_ref name, const boost::string_ref value)
+		static inline void add_field(std::string& out, const std::string_view name, const std::string_view value)
 		{
 			out.append(name.data(), name.size()).append(": ");
 			out.append(value.data(), value.size()).append("\r\n");
