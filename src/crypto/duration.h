@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -25,39 +25,46 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
 
-#include "p2p/net_node_common.h"
-#include "cryptonote_protocol/cryptonote_protocol_defs.h"
-#include "cryptonote_basic/connection_context.h"
-namespace cryptonote
+#include <chrono>
+#include "crypto/crypto.h"
+
+namespace crypto
 {
-  /************************************************************************/
-  /*                                                                      */
-  /************************************************************************/
-  struct i_cryptonote_protocol
+  //! Generate poisson distributed values in discrete `D` time units.
+  template<typename D>
+  struct random_poisson_duration
   {
-    virtual bool relay_block(NOTIFY_NEW_BLOCK::request& arg, cryptonote_connection_context& exclude_context)=0;
-    virtual bool relay_transactions(NOTIFY_NEW_TRANSACTIONS::request& arg, const boost::uuids::uuid& source, epee::net_utils::zone zone, relay_method tx_relay)=0;
-    //virtual bool request_objects(NOTIFY_REQUEST_GET_OBJECTS::request& arg, cryptonote_connection_context& context)=0;
-  };
+    using result_type = D;                 //!< std::chrono::duration time unit precision
+    using rep = typename result_type::rep; //!< Type used to represent duration value
 
-  /************************************************************************/
-  /*                                                                      */
-  /************************************************************************/
-  struct cryptonote_protocol_stub: public i_cryptonote_protocol
-  {
-    virtual bool relay_block(NOTIFY_NEW_BLOCK::request& arg, cryptonote_connection_context& exclude_context)
+    //! \param average for generated durations
+    explicit random_poisson_duration(result_type average)
+      : dist(average.count() < 0 ? 0 : average.count())
+    {}
+
+    //! Generate a crypto-secure random duration
+    result_type operator()()
     {
-      return false;
-    }
-    virtual bool relay_transactions(NOTIFY_NEW_TRANSACTIONS::request& arg, const boost::uuids::uuid& source, epee::net_utils::zone zone, relay_method tx_relay)
-    {
-      return false;
+      crypto::random_device rand{};
+      return result_type{dist(rand)};
     }
 
+  private:
+    std::poisson_distribution<rep> dist;
   };
+
+    /* A custom duration is used for subsecond precision because of the
+       variance. If 5000 milliseconds is given, 95% of the values fall between
+       4859ms-5141ms in 1ms increments (not enough time variance). Providing 1/4
+       seconds would yield 95% of the values between 3s-7.25s in 1/4s
+       increments. */
+
+  //! Generate random durations with 1 second precision
+  using random_poisson_seconds = random_poisson_duration<std::chrono::seconds>;
+  //! Generate random duration with 1/4 second precision
+  using random_poisson_subseconds =
+    random_poisson_duration<std::chrono::duration<std::chrono::milliseconds::rep, std::ratio<1, 4>>>;
 }
