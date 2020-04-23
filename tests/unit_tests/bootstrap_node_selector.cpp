@@ -44,12 +44,12 @@ protected:
       "white_node_1:18089", true
     },
     {
-      "white_node_2:18081", true
+      "white_node_2:19734", true
     }
   };
   const std::map<std::string, bool> gray_nodes = {
     {
-      "gray_node_1:18081", false
+      "gray_node_1:19734", false
     },
     {
       "gray_node_2:18089", false
