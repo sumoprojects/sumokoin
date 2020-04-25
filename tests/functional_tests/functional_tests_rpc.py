@@ -34,8 +34,8 @@ try:
 except:
   tests = DEFAULT_TESTS
 
-N_sumokoinDS = 3
-N_WALLETS = 7
+N_sumokoinDS = 2
+N_WALLETS = 4
 WALLET_DIRECTORY = builddir + "/functional-tests-directory"
 DIFFICULTY = 10
 
@@ -43,17 +43,9 @@ sumokoind_base = [builddir + "/bin/sumokoind", "--regtest", "--fixed-difficulty"
 sumokoind_extra = [
   [],
   ["--rpc-payment-address", "Sumoo1aLd1yKkerxdjbXggMf3mdy5m9tZeWpYU913LSmZuUdMjJnoa67vp2WB7sV2ZHCBZbh2MekDK2emfWCxZZ997WpRfimvjq", "--rpc-payment-difficulty", str(DIFFICULTY), "--rpc-payment-credits", "5000", "--data-dir", builddir + "/functional-tests-directory/sumokoind1"],
-  ["--rpc-restricted-bind-port", "18482", "--data-dir", builddir + "/functional-tests-directory/sumokoind2"]
 ]
-wallet_base = [builddir + "/bin/sumo-wallet-rpc", "--wallet-dir", WALLET_DIRECTORY, "--rpc-bind-port", "wallet_port", "--disable-rpc-login", "--rpc-ssl", "disabled", "--daemon-ssl", "disabled", "--log-level", "1"]
+wallet_base = [builddir + "/bin/sumo-wallet-rpc", "--wallet-dir", WALLET_DIRECTORY, "--rpc-bind-port", "wallet_port", "--disable-rpc-login", "--rpc-ssl", "disabled", "--daemon-ssl", "disabled", "--daemon-port", "19733", "--log-level", "1"]
 wallet_extra = [
-  ["--daemon-port", "19733"],
-  ["--daemon-port", "19733"],
-  ["--daemon-port", "19733"],
-  ["--daemon-port", "19733"],
-  ["--daemon-port", "19735"],
-  ["--daemon-port", "19735"],
-  ["--daemon-port", "19735"]
 ]
 
 command_lines = []
