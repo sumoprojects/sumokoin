@@ -5471,13 +5471,24 @@ void simple_wallet::on_new_block(uint64_t height, const cryptonote::block& block
 //----------------------------------------------------------------------------------------------------
 void simple_wallet::on_money_received(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& tx, uint64_t amount, const cryptonote::subaddress_index& subaddr_index, uint64_t unlock_time)
 {
+  uint64_t blocks_locked = unlock_time - height;
+  
   if (m_locked)
     return;
-  message_writer(console_color_green, false) << "\r" <<
-    tr("Height ") << height << ", " <<
-    tr("txid ") << txid << ", " <<
-    tr("received ") << print_money(amount) << ", " <<
-    tr("idx ") << subaddr_index;
+  message_writer(console_color_green, true) << "\r\n" << tr("Incoming transaction");
+  message_writer(console_color_white, true) << tr("Coins received: ") << print_money(amount) << "\n" 
+                                            << tr("Height: ") << height << ", "
+                                            << tr("txid ") << txid << ", "
+                                            << tr("idx ") << subaddr_index;
+	
+  if (unlock_time && !cryptonote::is_coinbase(tx))
+    message_writer() << tr("LOCKED TRANSACTION: This transaction is locked for ") << blocks_locked << tr(" blocks (unlock height: ") 
+                     << unlock_time << tr(")\n") << tr("See details with: show_transfer ") + epee::string_tools::pod_to_hex(txid);
+
+  if (m_auto_refresh_refreshing)
+    m_cmd_binder.print_prompt();
+  else
+    m_refresh_progress_reporter.update(height, true);
 
   const uint64_t warn_height = m_wallet->nettype() == TESTNET ? 164100 : m_wallet->nettype() == STAGENET ? 50000 : 350000;
   if (height >= warn_height)
@@ -5508,14 +5519,6 @@ void simple_wallet::on_money_received(uint64_t height, const crypto::hash &txid,
       message_writer(console_color_red, false) <<
         tr("WARNING: this transaction uses an unencrypted payment ID: these are obsolete and ignored. Use subaddresses instead.");
   }
-  uint64_t blocks_locked = unlock_time - height;	
-  if (unlock_time && !cryptonote::is_coinbase(tx))
-    message_writer() << tr("NOTE: This transaction is locked for ") << blocks_locked << tr(" blocks (unlock height: ") << unlock_time << tr(")\n") 
-                     << tr("See details with: show_transfer ") + epee::string_tools::pod_to_hex(txid);
-  if (m_auto_refresh_refreshing)
-    m_cmd_binder.print_prompt();
-  else
-    m_refresh_progress_reporter.update(height, true);
 }
 //----------------------------------------------------------------------------------------------------
 void simple_wallet::on_unconfirmed_money_received(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& tx, uint64_t amount, const cryptonote::subaddress_index& subaddr_index)
@@ -5529,11 +5532,11 @@ void simple_wallet::on_money_spent(uint64_t height, const crypto::hash &txid, co
 {
   if (m_locked)
     return;
-  message_writer(console_color_magenta, false) << "\r" <<
-    tr("Height ") << height << ", " <<
-    tr("txid ") << txid << ", " <<
-    tr("spent ") << print_money(amount) << ", " <<
-    tr("idx ") << subaddr_index;
+  message_writer(console_color_magenta, true) << "\r\n" << tr("Outgoing transaction");
+  message_writer(console_color_white, true) << tr("Coins spent: ") << "-" << print_money(amount) << "\n" 
+                                            << tr("Height: ") << height << ", "
+                                            << tr("txid ") << txid << ", "
+                                            << tr("idx ") << subaddr_index;
   if (m_auto_refresh_refreshing)
     m_cmd_binder.print_prompt();
   else
