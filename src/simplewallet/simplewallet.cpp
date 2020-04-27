@@ -70,6 +70,7 @@
 #include "multisig/multisig.h"
 #include "wallet/wallet_args.h"
 #include "version.h"
+#include "cryptonote_config.h"
 #include <stdexcept>
 #include "wallet/message_store.h"
 
@@ -9412,6 +9413,11 @@ bool simple_wallet::print_address(const std::vector<std::string> &args/* = std::
       fail_msg_writer() << tr(" Subaddress index selected (minor index: ") << local_args[1] << (") already exists");
       return true;
     }
+    if (epee::string_tools::get_xtype_from_string(major, local_args[0]) && epee::string_tools::get_xtype_from_string(minor, local_args[1]) && minor > SUBADDRESS_LOOKAHEAD_MINOR)
+    {
+      fail_msg_writer() << tr(" Please select a minor index lower or equal to ") << SUBADDRESS_LOOKAHEAD_MINOR;
+      return true;
+    }	  
     m_wallet->create_one_off_subaddress({major, minor});
     success_msg_writer() << boost::format(tr("Address at %u %u: %s")) % major % minor % m_wallet->get_subaddress_as_str({major, minor});
   }
