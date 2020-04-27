@@ -179,6 +179,9 @@
 #define MAX_MIXIN                                       240
 #define DEFAULT_MIXIN_V2                                48
 
+#define SUBADDRESS_LOOKAHEAD_MAJOR                      50
+#define SUBADDRESS_LOOKAHEAD_MINOR                      200
+
 #define TRANSACTION_WEIGHT_LIMIT                        ((uint64_t) ((CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 110 / 100) - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE))
 #define BLOCK_SIZE_GROWTH_FAVORED_ZONE                  ((uint64_t) (CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 4))
 
