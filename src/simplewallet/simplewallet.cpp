@@ -5474,14 +5474,14 @@ void simple_wallet::on_money_received(uint64_t height, const crypto::hash &txid,
   
   if (m_locked)
     return;
-  message_writer(console_color_green, true) << "\r\n" << tr("Incoming transaction");
+  message_writer(console_color_green, true) << "\r" << tr("Incoming transaction                ");
   message_writer(console_color_white, true) << tr("Coins received: ") << print_money(amount) << "\n" 
                                             << tr("Height: ") << height << ", "
                                             << tr("txid ") << txid << ", "
                                             << tr("idx ") << subaddr_index;
 	
   if (unlock_time && !cryptonote::is_coinbase(tx))
-    message_writer() << tr("LOCKED TRANSACTION: This transaction is locked for ") << blocks_locked << tr(" blocks (unlock height: ") 
+    message_writer(console_color_white, true) << tr("LOCKED TRANSACTION: This transaction is locked for ") << blocks_locked << tr(" blocks (unlock height: ") 
                      << unlock_time << tr(")\n") << tr("See details with: show_transfer ") + epee::string_tools::pod_to_hex(txid);
 
   if (m_auto_refresh_refreshing)
@@ -5531,7 +5531,7 @@ void simple_wallet::on_money_spent(uint64_t height, const crypto::hash &txid, co
 {
   if (m_locked)
     return;
-  message_writer(console_color_magenta, true) << "\r\n" << tr("Outgoing transaction");
+  message_writer(console_color_magenta, true) << "\r" << tr("Outgoing transaction                ");
   message_writer(console_color_white, true) << tr("Coins spent: ") << "-" << print_money(amount) << "\n" 
                                             << tr("Height: ") << height << ", "
                                             << tr("txid ") << txid << ", "
