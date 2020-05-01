@@ -93,9 +93,13 @@ set(unit_tests_sources
   ringdb.cpp
   wipeable_string.cpp
   is_hdd.cpp
+<<<<<<< HEAD
   aligned.cpp
   rpc_version_str.cpp
   zmq_rpc.cpp)
+=======
+  aligned.cpp)
+>>>>>>> 5367939d... [ZMQ JSON-RPC] Various Improvements (almost restructured)
 
 set(unit_tests_headers
   unit_tests_utils.h)
