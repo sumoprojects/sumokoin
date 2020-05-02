@@ -41,6 +41,12 @@ if (NOT FREEBSD)
   set(CMAKE_C_FLAGS "-Wno-format-truncation")
 endif()
 
+set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+set (CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fPIC")
+set (CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fPIC")
+set (CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fPIC")
+set (CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -fPIC")
+
 message(STATUS "Using in-tree miniupnpc")
 add_subdirectory(miniupnp/miniupnpc)
 set_property(TARGET libminiupnpc-static PROPERTY FOLDER "external")
