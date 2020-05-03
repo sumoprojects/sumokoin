@@ -5574,6 +5574,19 @@ boost::optional<epee::wipeable_string> simple_wallet::on_get_password(const char
   return pwd_container->password();
 }
 //----------------------------------------------------------------------------------------------------
+boost::optional<std::string> simple_wallet::on_get_message(const char *info)
+{
+  if (m_locked)
+    return boost::none;
+
+  PAUSE_READLINE();
+  std::string msg = tr("Message: ");
+  if (info && *info)
+    msg += std::string(info);
+  message_writer(console_color_white, true) << msg.c_str();
+  return msg;
+}
+//----------------------------------------------------------------------------------------------------
 void simple_wallet::on_device_button_request(uint64_t code)
 {
   message_writer(console_color_white, false) << tr("Device requires attention");
