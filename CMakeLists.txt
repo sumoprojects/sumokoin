@@ -445,14 +445,14 @@ add_definitions(-DAUTO_INITIALIZE_EASYLOGGINGPP)
 # Generate header for embedded translations
 # Generate header for embedded translations, use target toolchain if depends, otherwise use the
 # lrelease and lupdate binaries from the host
-include(ExternalProject)
-ExternalProject_Add(generate_translations_header
-  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/translations"
-  BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/translations"
-  STAMP_DIR ${LRELEASE_PATH}
-  CMAKE_ARGS -DLRELEASE_PATH=${LRELEASE_PATH}
-  INSTALL_COMMAND cmake -E echo "")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/translations")
+# include(ExternalProject)
+# ExternalProject_Add(generate_translations_header
+#  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/translations"
+#  BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/translations"
+#  STAMP_DIR ${LRELEASE_PATH}
+#  CMAKE_ARGS -DLRELEASE_PATH=${LRELEASE_PATH}
+#  INSTALL_COMMAND cmake -E echo "")
+# include_directories("${CMAKE_CURRENT_BINARY_DIR}/translations")
 add_subdirectory(external)
 
 # Final setup for libunbound
