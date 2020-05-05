@@ -196,7 +196,7 @@ if(NOT MANUAL_SUBMODULES)
         message(FATAL_ERROR "Submodule '${relative_path}' is not up-to-date. Please update all submodules with\ngit submodule update --init --force\nor run cmake with -DMANUAL_SUBMODULES=1\n")
       endif()
     endfunction ()
-    
+
     message(STATUS "Checking submodules")
     check_submodule(external/miniupnp)
     check_submodule(external/unbound)
@@ -445,14 +445,14 @@ add_definitions(-DAUTO_INITIALIZE_EASYLOGGINGPP)
 # Generate header for embedded translations
 # Generate header for embedded translations, use target toolchain if depends, otherwise use the
 # lrelease and lupdate binaries from the host
-include(ExternalProject)
-ExternalProject_Add(generate_translations_header
-  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/translations"
-  BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/translations"
-  STAMP_DIR ${LRELEASE_PATH}
-  CMAKE_ARGS -DLRELEASE_PATH=${LRELEASE_PATH}
-  INSTALL_COMMAND cmake -E echo "")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/translations")
+# include(ExternalProject)
+# ExternalProject_Add(generate_translations_header
+#  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/translations"
+#  BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/translations"
+#  STAMP_DIR ${LRELEASE_PATH}
+#  CMAKE_ARGS -DLRELEASE_PATH=${LRELEASE_PATH}
+#  INSTALL_COMMAND cmake -E echo "")
+# include_directories("${CMAKE_CURRENT_BINARY_DIR}/translations")
 add_subdirectory(external)
 
 # Final setup for libunbound
@@ -471,7 +471,7 @@ include_directories(${LIBUNWIND_INCLUDE})
 link_directories(${LIBUNWIND_LIBRARY_DIRS})
 
 # Final setup for hid
-if (HIDAPI_FOUND) 
+if (HIDAPI_FOUND)
   message(STATUS "Using HIDAPI include dir at ${HIDAPI_INCLUDE_DIR}")
   add_definitions(-DHAVE_HIDAPI)
   include_directories(${HIDAPI_INCLUDE_DIR})
@@ -567,7 +567,7 @@ else()
     set(WARNINGS "${WARNINGS} -Wlogical-op -Wno-error=maybe-uninitialized -Wno-unknown-warning -Wno-error=cpp")
   endif()
   if(MINGW)
-    set(WARNINGS "${WARNINGS} -Wno-misleading-indentation -Wno-maybe-uninitialized -Wno-error=unused-value -Wno-error=unused-but-set-variable")
+    set(WARNINGS "${WARNINGS} -Wno-misleading-indentation -Wno-unused-function -Wno-maybe-uninitialized -Wno-error=unused-value -Wno-error=unused-but-set-variable")
     set(MINGW_FLAG "${MINGW_FLAG} -DWIN32_LEAN_AND_MEAN")
     set(Boost_THREADAPI win32)
     include_directories(SYSTEM src/platform/mingw)
@@ -766,7 +766,7 @@ else()
   endif(ARM)
 
   if(ANDROID AND NOT BUILD_GUI_DEPS STREQUAL "ON" OR IOS)
-    #From Android 5: "only position independent executables (PIE) are supported" 
+    #From Android 5: "only position independent executables (PIE) are supported"
     message(STATUS "Enabling PIE executable")
     set(PIC_FLAG "")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
@@ -838,6 +838,28 @@ else()
   endif()
 endif()
 
+if (STATIC AND NOT (APPLE OR FREEBSD OR OPENBSD OR DRAGONFLY))
+  find_program(CCACHE_PROG ccache)
+  if (CCACHE_PROG)
+      message("ccache was found...launching it")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROG}")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK    "${CCACHE_PROG}")
+  else()
+      message("ccache was NOT found")
+  endif()
+endif()
+
+if (NOT STATIC)
+  find_program(CCACHE_PROG ccache)
+  if (CCACHE_PROG)
+      message("ccache was found...launching it")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROG}")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK    "${CCACHE_PROG}")
+  else()
+      message("ccache was NOT found")
+  endif()
+endif()
+
 if (${BOOST_IGNORE_SYSTEM_PATHS} STREQUAL "ON")
   set(Boost_NO_SYSTEM_PATHS TRUE)
 endif()
@@ -852,13 +874,13 @@ if(STATIC)
   set(Boost_USE_STATIC_LIBS ON)
   set(Boost_USE_STATIC_RUNTIME ON)
 endif()
-find_package(Boost 1.58 QUIET REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options locale)
+find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options locale)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 set(CMAKE_FIND_LIBRARY_SUFFIXES ${OLD_LIB_SUFFIXES})
 if(NOT Boost_FOUND)
   die("Could not find Boost libraries, please make sure you have installed Boost or libboost-all-dev (>=1.58) or the equivalent")
 elseif(Boost_FOUND)
-  message(STATUS "Found Boost Version: ${Boost_VERSION}")
   if (Boost_VERSION VERSION_LESS 10 AND Boost_VERSION VERSION_LESS 1.62.0 AND NOT (OPENSSL_VERSION VERSION_LESS 1.1))
     set(BOOST_BEFORE_1_62 true)
   endif()
@@ -872,7 +894,6 @@ elseif(Boost_FOUND)
   endif()
 endif()
 
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 if(MINGW)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wa,-mbig-obj")
   set(EXTRA_LIBRARIES mswsock;ws2_32;iphlpapi;crypt32;bcrypt)

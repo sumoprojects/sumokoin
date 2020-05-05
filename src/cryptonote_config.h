@@ -1,22 +1,22 @@
 // Copyright (c) 2017-2019, Sumokoin Project
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -26,7 +26,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
@@ -39,7 +39,7 @@
 
 #define CRYPTONOTE_MAX_BLOCK_NUMBER                     500000000
 #define CRYPTONOTE_MAX_BLOCK_WEIGHT                     500000000  // block header blob limit, never used!
-#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE	    196608 //size of block (bytes) that is the maximum that miners will produce
+#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE      196608 //size of block (bytes) that is the maximum that miners will produce
 #define CRYPTONOTE_MAX_TX_SIZE                          1000000000
 #define CRYPTONOTE_MAX_TX_PER_BLOCK                     0x10000000
 #define CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER          0
@@ -48,7 +48,7 @@
 #define CURRENT_BLOCK_MINOR_VERSION                     0
 
 #define CURRENT_TRANSACTION_VERSION                     2
-#define MIN_TRANSACTION_VERSION			  2
+#define MIN_TRANSACTION_VERSION                         2
 #define CRYPTONOTE_HEAVY_BLOCK_VERSION                  3
 #define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT              60*60*2
 #define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
@@ -90,7 +90,7 @@
 #define DIFFICULTY_CUT                                  60   // timestamps to cut after sorting
 #define DIFFICULTY_BLOCKS_COUNT                         DIFFICULTY_WINDOW + DIFFICULTY_LAG
 
-#define DIFFICULTY_WINDOW_V2							              17
+#define DIFFICULTY_WINDOW_V2                            17
 #define DIFFICULTY_CUT_V2                               6
 #define DIFFICULTY_BLOCKS_COUNT_V2                      DIFFICULTY_WINDOW_V2 + DIFFICULTY_CUT_V2*2
 
@@ -107,12 +107,17 @@
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              50     //by default, blocks count in blocks downloading
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4           1      //by default, blocks count in blocks downloading at the end of the chain
 
-#define LAST_CHECKPOINT				  375000
+#define LAST_CHECKPOINT                                 405000
 
-#define CRYPTONOTE_MEMPOOL_TX_LIVETIME                    (86400*3) //seconds, three days
-#define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME     604800 //seconds, one week
+#define CRYPTONOTE_MEMPOOL_TX_LIVETIME                  (86400*3) //seconds, three days
+#define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME   604800 //seconds, one week
 
-#define CRYPTONOTE_DANDELIONPP_FLUSH_AVERAGE 5 // seconds
+#define CRYPTONOTE_DANDELIONPP_STEMS                    2 // number of outgoing stem connections per epoch
+#define CRYPTONOTE_DANDELIONPP_FLUFF_PROBABILITY        10 // out of 100
+#define CRYPTONOTE_DANDELIONPP_MIN_EPOCH                10 // minutes
+#define CRYPTONOTE_DANDELIONPP_EPOCH_RANGE              30 // seconds
+#define CRYPTONOTE_DANDELIONPP_FLUSH_AVERAGE            5 // seconds average for poisson distributed fluff flush
+#define CRYPTONOTE_DANDELIONPP_EMBARGO_AVERAGE          173 // seconds (see tx_pool.cpp for more info)
 
 // see src/cryptonote_protocol/levin_notify.cpp
 #define CRYPTONOTE_NOISE_MIN_EPOCH                      5      // minutes
@@ -155,17 +160,14 @@
 
 #define RPC_IP_FAILS_BEFORE_BLOCK                       3
 
-#define ALLOW_DEBUG_COMMANDS
+#define CRYPTONOTE_NAME                                 "sumokoin"
+#define CRYPTONOTE_POOLDATA_FILENAME                    "poolstate.bin"
+#define CRYPTONOTE_BLOCKCHAINDATA_FILENAME              "data.mdb"
+#define CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME         "lock.mdb"
+#define P2P_NET_DATA_FILENAME                           "p2pstate.bin"
+#define RPC_PAYMENTS_DATA_FILENAME                      "rpcpayments.bin"
+#define MINER_CONFIG_FILE_NAME                          "miner_conf.json"
 
-#define CRYPTONOTE_NAME                         "sumokoin"
-#define CRYPTONOTE_POOLDATA_FILENAME            "poolstate.bin"
-#define CRYPTONOTE_BLOCKCHAINDATA_FILENAME      "data.mdb"
-#define CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME "lock.mdb"
-#define P2P_NET_DATA_FILENAME                   "p2pstate.bin"
-#define RPC_PAYMENTS_DATA_FILENAME              "rpcpayments.bin"
-#define MINER_CONFIG_FILE_NAME                  "miner_conf.json"
-
-#define THREAD_STACK_SIZE                       5 * 1024 * 1024
 
 // coin emission change interval/speed configs
 #define COIN_EMISSION_MONTH_INTERVAL                    6  // months to change emission speed
@@ -174,32 +176,32 @@
 #define PEAK_COIN_EMISSION_HEIGHT                       ((uint64_t) (((12 * 30.4375 * 24 * 3600)/DIFFICULTY_TARGET) * PEAK_COIN_EMISSION_YEAR)) // = (# of heights emmitted per year) * PEAK_COIN_EMISSION_YEAR
 
 #define DEFAULT_MIXIN                                   12     // default & minimum mixin allowed
-#define MAX_MIXIN                                       240 
-#define DEFAULT_MIXIN_V2                                48   
+#define MAX_MIXIN                                       240
+#define DEFAULT_MIXIN_V2                                48
 
 #define TRANSACTION_WEIGHT_LIMIT                        ((uint64_t) ((CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 110 / 100) - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE))
 #define BLOCK_SIZE_GROWTH_FAVORED_ZONE                  ((uint64_t) (CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 4))
 
 
-#define HF_VERSION_DYNAMIC_FEE                  1
-#define HF_VERSION_PER_BYTE_FEE                 7
-#define HF_VERSION_BP                           7   // Bulletproof HF
-#define HF_VERSION_SMALLER_BP                   7
-#define HF_VERSION_LONG_TERM_BLOCK_WEIGHT       8
-#define HF_VERSION_MIN_2_OUTPUTS                9
-#define HF_VERSION_ENFORCE_MIN_AGE              9
+#define HF_VERSION_DYNAMIC_FEE                            1
+#define HF_VERSION_PER_BYTE_FEE                           7
+#define HF_VERSION_BP                                     7   // Bulletproof HF
+#define HF_VERSION_SMALLER_BP                             7
+#define HF_VERSION_LONG_TERM_BLOCK_WEIGHT                 8
+#define HF_VERSION_MIN_2_OUTPUTS                          9
+#define HF_VERSION_ENFORCE_MIN_AGE                        9
 #define HF_VERSION_EFFECTIVE_SHORT_TERM_MEDIAN_IN_PENALTY 9
 
-#define PER_KB_FEE_QUANTIZATION_DECIMALS        6
-#define HASH_OF_HASHES_STEP                     512
-#define BULLETPROOF_MAX_OUTPUTS                 16
-#define DEFAULT_TXPOOL_MAX_WEIGHT               259200000ull // 3 days at 240000, in bytes
+#define PER_KB_FEE_QUANTIZATION_DECIMALS                 6
+#define HASH_OF_HASHES_STEP                              512
+#define BULLETPROOF_MAX_OUTPUTS                          16
+#define DEFAULT_TXPOOL_MAX_WEIGHT                        259200000ull // 3 days at 240000, in bytes
 
-#define CRYPTONOTE_PRUNING_STRIPE_SIZE          4096 // the smaller, the smoother the increase
-#define CRYPTONOTE_PRUNING_LOG_STRIPES          3 // the higher, the more space saved
-#define CRYPTONOTE_PRUNING_TIP_BLOCKS           5500 // the smaller, the more space saved
+#define CRYPTONOTE_PRUNING_STRIPE_SIZE                   4096 // the smaller, the smoother the increase
+#define CRYPTONOTE_PRUNING_LOG_STRIPES                   3 // the higher, the more space saved
+#define CRYPTONOTE_PRUNING_TIP_BLOCKS                    5500 // the smaller, the more space saved
 
-#define RPC_CREDITS_PER_HASH_SCALE ((float)(1<<24))
+#define RPC_CREDITS_PER_HASH_SCALE                       ((float)(1<<24))
 
 // New constants are intended to go here
 namespace config
@@ -208,7 +210,6 @@ namespace config
   uint8_t const FEE_CALCULATION_MAX_RETRIES = 10;
   uint64_t const DEFAULT_DUST_THRESHOLD = ((uint64_t)10000000); // pow(10, 7)
   uint64_t const BASE_REWARD_CLAMP_THRESHOLD = ((uint64_t)100000); // pow(10, 5)
-  std::string const P2P_REMOTE_DEBUG_TRUSTED_PUB_KEY = "0000000000000000000000000000000000000000000000000000000000000000";
 
   uint64_t const CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX = 0x2bb39a;  // Sumo
   uint64_t const CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX = 0x29339a; //Sumi
@@ -222,7 +223,18 @@ namespace config
     } }; // Bender's nightmare
   std::string const GENESIS_TX = "023c01ff0001808098d0daf1d00f028be379aa57a70fa19c0ee5765fdc3d2aae0b1034158f4963e157d9042c24fbec21013402fc7071230f1f86f33099119105a7b1f64a898526060ab871e685059c223100";
   uint32_t const GENESIS_NONCE = 10000;
-  
+
+  // Hash domain separators
+  const char HASH_KEY_BULLETPROOF_EXPONENT[] = "bulletproof";
+  const char HASH_KEY_RINGDB[] = "ringdsb";
+  const char HASH_KEY_SUBADDRESS[] = "SubAddr";
+  const unsigned char HASH_KEY_ENCRYPTED_PAYMENT_ID = 0x8d;
+  const unsigned char HASH_KEY_WALLET = 0x8c;
+  const unsigned char HASH_KEY_WALLET_CACHE = 0x8d;
+  const unsigned char HASH_KEY_RPC_PAYMENT_NONCE = 0x58;
+  const unsigned char HASH_KEY_MEMORY = 'k';
+  const unsigned char HASH_KEY_MULTISIG[] = {'M', 'u', 'l', 't' , 'i', 's', 'i', 'g', 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
   // Funding for exchange burned coins
   static constexpr const char* EXCHANGE_FUND_ADDRESS = "Sumoo2y7AAteNGJ5yepUUFX3taqDRfM5eYHmCc1qnhwx6cJp3htcjTbKWH7NxkcADcT82pRwns9Us7NdCmuw3gx8bnzYGg14L2o";
   // aa0d3ec96e05fd154235fdcff4c2ebce79f49f4ce76f0aeabeb4a40cf64cc30b
@@ -231,7 +243,7 @@ namespace config
   static constexpr uint64_t EXCHANGE_BURNED_AMOUNT = 1044138500000000;   // 1,044,138.5 coins burned
   static constexpr uint64_t EXCHANGE_FUND_AMOUNT = EXCHANGE_BURNED_AMOUNT; // fund amount = burned coins
   static constexpr uint64_t EXCHANGE_FUND_RELEASE_HEIGHT = 199800;  // equal v6 hardfork
-    
+
   namespace testnet
   {
     uint64_t const CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX = 0x37751a; // Suto

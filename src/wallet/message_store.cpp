@@ -48,7 +48,7 @@
 namespace mms
 {
 
-message_store::message_store()
+message_store::message_store(std::unique_ptr<epee::net_utils::http::abstract_http_client> http_client) : m_transporter(std::move(http_client))
 {
   m_active = false;
   m_auto_send = false;
@@ -724,7 +724,7 @@ void message_store::read_from_file(const multisig_wallet_state &state, const std
   {
     // Simply do nothing if the file is not there; allows e.g. easy recovery
     // from problems with the MMS by deleting the file
-    MERROR("No message store file found: " << filename);
+    MINFO("No message store file found: " << filename);
     return;
   }
 

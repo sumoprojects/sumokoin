@@ -21,7 +21,7 @@ Sumokoin, therefore, is a new Monero without its legacy, a _truely fungible_ cry
 
 ## Coin Supply & Emission
 
-- **Total supply**: **88,888,888** coins in first 20 years, then **263,000** coins each year for inflation. 
+- **Total supply**: **88,888,888** coins in first 20 years, then **263,000** coins each year for inflation.
 About 10% (~8.8 million) was premined to reserve for future development, i.e. **80 million coins available** for community mining.
 - **Coin symbol**: **SUMO**
 - **Coin Units**:
@@ -29,7 +29,7 @@ About 10% (~8.8 million) was premined to reserve for future development, i.e. **
   + 1 Sumokun = 0.000001 **SUMO** (10<sup>-6</sup>)
   + 1 Sumosan = 0.001 **SUMO** (10<sup>-3</sup>)
 - **Hash algorithm**: CryptoNight R (cnR, CNv4) (Proof-Of-Work)
-- **Emission scheme**: Sumokoin's block reward changes _every 6-months_ as the following "Camel" distribution* (inspired by _real-world mining production_ like of crude oil, coal etc. that is often slow at first, 
+- **Emission scheme**: Sumokoin's block reward changes _every 6-months_ as the following "Camel" distribution* (inspired by _real-world mining production_ like of crude oil, coal etc. that is often slow at first,
 accelerated in the next few years before declined and depleted). However, the emission path of Sumokoin is generally not far apart from what of Bitcoin (view charts below).
 
 ![](https://i.imgur.com/muvKFKg.jpg)
@@ -106,7 +106,7 @@ Install all dependencies at once on macOS with the provided Brewfile:
 ``` brew update && brew bundle --file=contrib/brew/Brewfile ```
 
 FreeBSD one liner for required to build dependencies
-```pkg install git gmake cmake pkgconf boost-libs libzmq libsodium```
+```pkg install git gmake cmake pkgconf boost-libs libzmq4 libsodium```
 
 ### Cloning the repository
 
@@ -129,8 +129,8 @@ invokes cmake commands as needed.
 
     \- On Ubuntu, essential dependencies can be installed with the following command:
 
-    	sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev
-    
+    	sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev libusb-dev libprotobuf-dev protobuf-compiler
+
 * Change to the root of the source code directory and build:
 
         ```bash
@@ -322,7 +322,7 @@ application.
     ```
 
 * If you would like a specific [version/tag](https://github.com/sumoprojects/sumokoin/tags), do a git checkout for that version. eg. 'v0.6.1.0'. If you don't care about the version and just want binaries from master, skip this step:
-	
+
     ```bash
     git checkout v0.6.1.0
     ```
@@ -357,9 +357,8 @@ application.
 
 ### On FreeBSD:
 
-The project can be built from scratch by following instructions for Linux above(but use `gmake` instead of `make`). If you are running Sumokoin in a jail you need to add the flag: `allow.sysvipc=1` to your jail configuration, otherwise lmdb will throw the error message: `Failed to open lmdb environment: Function not implemented`.
-
-We expect to add Sumokoin into the ports tree in the near future, which will aid in managing installations using ports or packages.
+The project can be built from scratch by following instructions for Linux above(but use `gmake` instead of `make`).
+If you are running Sumokoin in a jail, you need to add `sysvsem="new"` to your jail configuration, otherwise lmdb will throw the error message: `Failed to open lmdb environment: Function not implemented`.
 
 ### On OpenBSD:
 
@@ -412,7 +411,7 @@ You can also cross-compile static binaries on Linux for Windows and macOS with t
 * ```make depends target=x86_64-w64-mingw32``` for 64-bit windows binaries.
   * Requires: `python3 g++-mingw-w64-x86-64 wine1.6 bc`
 * ```make depends target=x86_64-apple-darwin11``` for macOS binaries.
-  * Requires: `cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev` and `MacOSX10.11.sdk` (download and extract it to `contrib/depends/SDKs`)
+  * Requires: `cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python-pip` , `MacOSX10.11.sdk` (download and extract it to `contrib/depends/SDKs`) and `pip install setuptools`
 * ```make depends target=i686-linux-gnu``` for 32-bit linux binaries.
   * Requires: `g++-multilib bc`
 * ```make depends target=i686-w64-mingw32``` for 32-bit windows binaries.
@@ -529,7 +528,7 @@ Run the build.
 Once it stalls, enter the following command:
 
 ```bash
-gdb /path/to/sumokoind `pidof sumokoind` 
+gdb /path/to/sumokoind `pidof sumokoind`
 ```
 
 Type `thread apply all bt` within gdb in order to obtain the stack trace

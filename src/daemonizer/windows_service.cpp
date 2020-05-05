@@ -32,6 +32,8 @@
 #undef UNICODE
 #undef _UNICODE
 
+#include <winsock2.h>
+#include <windows.h>
 #include "common/scoped_message_writer.h"
 #include "daemonizer/windows_service.h"
 #include "string_tools.h"
@@ -41,7 +43,6 @@
 #include <memory>
 #include <shellapi.h>
 #include <thread>
-#include <windows.h>
 
 namespace windows {
 

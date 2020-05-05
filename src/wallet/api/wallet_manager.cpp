@@ -93,13 +93,14 @@ Wallet *WalletManagerImpl::recoveryWallet(const std::string &path,
                                                 const std::string &mnemonic,
                                                 NetworkType nettype,
                                                 uint64_t restoreHeight,
-                                                uint64_t kdf_rounds)
+                                                uint64_t kdf_rounds,
+                                                const std::string &seed_offset/* = {}*/)
 {
     WalletImpl * wallet = new WalletImpl(nettype, kdf_rounds);
     if(restoreHeight > 0){
         wallet->setRefreshFromBlockHeight(restoreHeight);
     }
-    wallet->recover(path, password, mnemonic);
+    wallet->recover(path, password, mnemonic, seed_offset);
     return wallet;
 }
 
@@ -341,22 +342,30 @@ std::string WalletManagerImpl::resolveOpenAlias(const std::string &address, bool
     return addresses.front();
 }
 
-std::tuple<bool, std::string, std::string, std::string, std::string> WalletManager::checkUpdates(const std::string &software, std::string subdir)
+std::tuple<bool, std::string, std::string, std::string, std::string> WalletManager::checkUpdates(
+    const std::string &software,
+    std::string subdir,
+    const char *buildtag/* = nullptr*/,
+    const char *current_version/* = nullptr*/)
 {
+    if (buildtag == nullptr)
+    {
 #ifdef BUILD_TAG
-    static const char buildtag[] = BOOST_PP_STRINGIZE(BUILD_TAG);
+        static const char buildtag_default[] = BOOST_PP_STRINGIZE(BUILD_TAG);
 #else
-    static const char buildtag[] = "source";
-    // Override the subdir string when built from source
-    subdir = "source";
+        static const char buildtag_default[] = "source";
+        // Override the subdir string when built from source
+        subdir = "source";
 #endif
+        buildtag = buildtag_default;
+    }
 
     std::string version, hash;
     MDEBUG("Checking for a new " << software << " version for " << buildtag);
     if (!tools::check_updates(software, buildtag, version, hash))
       return std::make_tuple(false, "", "", "", "");
 
-    if (tools::vercmp(version.c_str(), SUMOKOIN_VERSION) > 0)
+    if (tools::vercmp(version.c_str(), current_version != nullptr ? current_version : SUMOKOIN_VERSION) > 0)
     {
       std::string user_url = tools::get_update_url(software, subdir, buildtag, version, true);
       std::string auto_url = tools::get_update_url(software, subdir, buildtag, version, false);

@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -30,7 +30,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include "common/command_line.h"
 #include "common/i18n.h"
 #include "hex.h"
@@ -51,7 +51,7 @@ namespace cryptonote
         const std::vector<std::string> ssl_allowed_fingerprints = command_line::get_arg(vm, arg.rpc_ssl_allowed_fingerprints);
 
         std::vector<std::vector<uint8_t>> allowed_fingerprints{ ssl_allowed_fingerprints.size() };
-        std::transform(ssl_allowed_fingerprints.begin(), ssl_allowed_fingerprints.end(), allowed_fingerprints.begin(), epee::from_hex::vector);
+        std::transform(ssl_allowed_fingerprints.begin(), ssl_allowed_fingerprints.end(), allowed_fingerprints.begin(), epee::from_hex_locale::to_vector);
         for (const auto &fpr: allowed_fingerprints)
         {
           if (fpr.size() != SSL_FINGERPRINT_SIZE)
@@ -133,7 +133,7 @@ namespace cryptonote
   {
     const descriptors arg{};
     rpc_args config{};
-    
+
     config.bind_ip = command_line::get_arg(vm, arg.rpc_bind_ip);
     config.bind_ipv6_address = command_line::get_arg(vm, arg.rpc_bind_ipv6_address);
     config.use_ipv6 = command_line::get_arg(vm, arg.rpc_use_ipv6);
@@ -221,7 +221,7 @@ namespace cryptonote
 
       std::vector<std::string> access_control_origins;
       boost::split(access_control_origins, access_control_origins_input, boost::is_any_of(","));
-      std::for_each(access_control_origins.begin(), access_control_origins.end(), boost::bind(&boost::trim<std::string>, _1, std::locale::classic()));
+      std::for_each(access_control_origins.begin(), access_control_origins.end(), boost::bind(&boost::trim<std::string>, boost::placeholders::_1, std::locale::classic()));
       config.access_control_origins = std::move(access_control_origins);
     }
 

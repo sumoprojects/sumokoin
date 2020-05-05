@@ -725,7 +725,7 @@ bool WalletImpl::recover(const std::string &path, const std::string &seed)
     return recover(path, "", seed);
 }
 
-bool WalletImpl::recover(const std::string &path, const std::string &password, const std::string &seed)
+bool WalletImpl::recover(const std::string &path, const std::string &password, const std::string &seed, const std::string &seed_offset/* = {}*/)
 {
     clearStatus();
     m_errorString.clear();
@@ -742,6 +742,10 @@ bool WalletImpl::recover(const std::string &path, const std::string &password, c
     if (!crypto::ElectrumWords::words_to_bytes(seed, recovery_key, old_language)) {
         setStatusError(tr("Electrum-style word list failed verification"));
         return false;
+    }
+    if (!seed_offset.empty())
+    {
+        recovery_key = cryptonote::decrypt_key(recovery_key, seed_offset);
     }
 
     if (old_language == crypto::ElectrumWords::old_language_name)
@@ -1669,6 +1673,26 @@ PendingTransaction *WalletImpl::createSweepUnmixableTransaction()
 void WalletImpl::disposeTransaction(PendingTransaction *t)
 {
     delete t;
+}
+
+uint64_t WalletImpl::estimateTransactionFee(const std::vector<std::pair<std::string, uint64_t>> &destinations,
+                                            PendingTransaction::Priority priority) const
+{
+    const size_t pubkey_size = 33; // public key byte length + 1 "network" byte 
+    const size_t encrypted_paymentid_size = 11;
+    const size_t extra_size = pubkey_size + encrypted_paymentid_size;
+
+    return m_wallet->estimate_fee(
+        m_wallet->use_fork_rules(HF_VERSION_PER_BYTE_FEE, 0),
+        m_wallet->use_fork_rules(1, 0),
+        1,
+        m_wallet->get_min_ring_size() - 1,
+        destinations.size() + 1,
+        extra_size,
+        m_wallet->use_fork_rules(7, 0),
+        m_wallet->get_base_fee(),
+        m_wallet->get_fee_multiplier(m_wallet->adjust_priority(static_cast<uint32_t>(priority))),
+        m_wallet->get_fee_quantization_mask());
 }
 
 TransactionHistory *WalletImpl::history()

@@ -50,6 +50,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "NetBSD")
 endif()
 
 set(UPNP_LIBRARIES "libminiupnpc-static" PARENT_SCOPE)
+set(CMAKE_C_FLAGS "-Wno-implicit-function-declaration")
 
 find_package(Unbound)
 

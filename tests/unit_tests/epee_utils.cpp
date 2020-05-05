@@ -45,6 +45,7 @@
 #include "boost/archive/portable_binary_iarchive.hpp"
 #include "boost/archive/portable_binary_oarchive.hpp"
 #include "byte_slice.h"
+#include "crypto/crypto.h"
 #include "hex.h"
 #include "net/net_utils_base.h"
 #include "net/local_ip.h"
@@ -68,7 +69,7 @@ namespace
       unsigned(std::is_assignable<Destination, Source&>());
     EXPECT_TRUE(count == 6 || count == 0) <<
       "Mismatch on construction results - " << count << " were true";
-    return count == 6; 
+    return count == 6;
   }
 
   // This is probably stressing the compiler more than the implementation ...
@@ -273,7 +274,7 @@ TEST(Span, Nullptr)
     EXPECT_EQ(0, data.size_bytes());
   };
   check_empty({});
-  check_empty(nullptr); 
+  check_empty(nullptr);
 }
 
 TEST(Span, Writing)
@@ -823,14 +824,14 @@ TEST(ToHex, String)
 
 }
 
-TEST(FromHex, String)
+TEST(HexLocale, String)
 {
     // the source data to encode and decode
     std::vector<uint8_t> source{{ 0x00, 0xFF, 0x0F, 0xF0 }};
 
     // encode and decode the data
     auto hex = epee::to_hex::string({ source.data(), source.size() });
-    auto decoded = epee::from_hex::vector(hex);
+    auto decoded = epee::from_hex_locale::to_vector(hex);
 
     // encoded should be twice the size and should decode to the exact same data
     EXPECT_EQ(source.size() * 2, hex.size());
@@ -839,10 +840,10 @@ TEST(FromHex, String)
     // we will now create a padded hex string, we want to explicitly allow
     // decoding it this way also, ignoring spaces and colons between the numbers
     hex.assign("00:ff 0f:f0");
-    EXPECT_EQ(source, epee::from_hex::vector(hex));
+    EXPECT_EQ(source, epee::from_hex_locale::to_vector(hex));
 
     hex.append("f0");
-    EXPECT_EQ(source, epee::from_hex::vector(boost::string_ref{hex.data(), hex.size() - 2}));
+    EXPECT_EQ(source, epee::from_hex_locale::to_vector(boost::string_ref{hex.data(), hex.size() - 2}));
 }
 
 TEST(ToHex, Array)
@@ -850,6 +851,17 @@ TEST(ToHex, Array)
   EXPECT_EQ(
     (std::array<char, 8>{{'f', 'f', 'a', 'b', '0', '1', '0', '0'}}),
     (epee::to_hex::array(std::array<unsigned char, 4>{{0xFF, 0xAB, 0x01, 0x00}}))
+  );
+}
+
+TEST(ToHex, ArrayFromPod)
+{
+  std::array<char, 64> expected{{'5', 'f', '2', 'b', '0', '1'}};
+  std::fill(expected.begin() + 6, expected.end(), '0');
+
+  EXPECT_EQ(
+    expected,
+    (epee::to_hex::array(crypto::ec_point{{0x5F, 0x2B, 0x01, 0x00}}))
   );
 }
 
@@ -891,6 +903,46 @@ TEST(ToHex, Formatted)
   expected.append("<").append(std_to_hex(all_bytes)).append(">");
   epee::to_hex::formatted(out, epee::to_span(all_bytes));
   EXPECT_EQ(expected, out.str());
+}
+
+TEST(FromHex, ToString)
+{
+  static constexpr const char hex[] = u8"deadbeeffY";
+  static constexpr const char binary[] = {
+    char(0xde), char(0xad), char(0xbe), char(0xef), 0x00
+  };
+
+  std::string out{};
+  EXPECT_FALSE(epee::from_hex::to_string(out, hex));
+
+  boost::string_ref portion{hex};
+  portion.remove_suffix(1);
+  EXPECT_FALSE(epee::from_hex::to_string(out, portion));
+
+  portion.remove_suffix(1);
+  EXPECT_TRUE(epee::from_hex::to_string(out, portion));
+  EXPECT_EQ(std::string{binary}, out);
+}
+
+TEST(FromHex, ToBuffer)
+{
+  static constexpr const char hex[] = u8"deadbeeffY";
+  static constexpr const std::uint8_t binary[] = {0xde, 0xad, 0xbe, 0xef};
+
+  std::vector<std::uint8_t> out{};
+  out.resize(sizeof(binary));
+  EXPECT_FALSE(epee::from_hex::to_buffer(epee::to_mut_span(out), hex));
+
+  boost::string_ref portion{hex};
+  portion.remove_suffix(1);
+  EXPECT_FALSE(epee::from_hex::to_buffer(epee::to_mut_span(out), portion));
+
+  portion.remove_suffix(1);
+  EXPECT_FALSE(epee::from_hex::to_buffer({out.data(), out.size() - 1}, portion));
+
+  EXPECT_TRUE(epee::from_hex::to_buffer(epee::to_mut_span(out), portion));
+  const std::vector<std::uint8_t> expected{std::begin(binary), std::end(binary)};
+  EXPECT_EQ(expected, out);
 }
 
 TEST(StringTools, BuffToHex)
