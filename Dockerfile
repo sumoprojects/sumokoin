@@ -151,20 +151,6 @@ RUN set -ex \
     && make \
     && make install
 
-# Protobuf
-ARG PROTOBUF_VERSION=v3.7.1
-ARG PROTOBUF_HASH=6973c3a5041636c1d8dc5f7f6c8c1f3c15bc63d6
-RUN set -ex \
-    && git clone https://github.com/protocolbuffers/protobuf -b ${PROTOBUF_VERSION} \
-    && cd protobuf \
-    && test `git rev-parse HEAD` = ${PROTOBUF_HASH} || exit 1 \
-    && git submodule update --init --recursive \
-    && ./autogen.sh \
-    && ./configure --enable-static --disable-shared \
-    && make \
-    && make install \
-    && ldconfig
-
 WORKDIR /src
 COPY . .
 
