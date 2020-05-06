@@ -48,6 +48,7 @@
 #include <boost/format.hpp>
 #include <boost/regex.hpp>
 #include <boost/range/adaptor/transformed.hpp>
+#include <boost/thread/thread.hpp>
 #include "include_base_utils.h"
 #include "console_handler.h"
 #include "common/i18n.h"
@@ -6273,7 +6274,7 @@ void simple_wallet::check_for_inactivity_lock(bool user)
       std::cout << setw(18) << "";
       for (const auto msg : s) {
       std::cout << msg << std::flush;
-      std::this_thread::sleep_for(std::chrono::milliseconds(130));
+      boost::this_thread::sleep_for(boost::chrono::milliseconds(130));
     }
 
     tools::msg_writer() << "" << std::endl;
