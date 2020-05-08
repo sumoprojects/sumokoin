@@ -37,11 +37,8 @@
 #ifndef INCLUDED_network_throttle_hpp
 #define INCLUDED_network_throttle_hpp
 
-#include <boost/asio.hpp>
 #include <string>
 #include <vector>
-#include <boost/noncopyable.hpp>
-#include <boost/shared_ptr.hpp>
 #include <atomic>
 
 #include <boost/asio.hpp>
@@ -63,7 +60,6 @@
 #include <boost/utility/value_init.hpp>
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/thread/thread.hpp> 
 #include "misc_language.h"
 #include "pragma_comp_defs.h"
 #include <sstream>

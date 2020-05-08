@@ -38,12 +38,9 @@
 
 #include <string>
 #include <vector>
-#include <boost/noncopyable.hpp>
-#include <boost/shared_ptr.hpp>
 #include <atomic>
 #include <cassert>
 #include <map>
-#include <memory>
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
