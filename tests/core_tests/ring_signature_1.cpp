@@ -28,7 +28,7 @@
 // 
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#include "chaingen.h"
+// #include "chaingen.h" // already #included in ring_signature_1.h
 #include "ring_signature_1.h"
 
 using namespace epee;

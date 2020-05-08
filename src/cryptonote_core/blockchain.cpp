@@ -38,7 +38,7 @@
 #include "cryptonote_basic/cryptonote_basic_impl.h"
 #include "tx_pool.h"
 #include "blockchain.h"
-#include "blockchain_db/blockchain_db.h"
+// #include "blockchain_db/blockchain_db.h" // already #included in cryptonote_core/blockchain.h 
 #include "cryptonote_basic/cryptonote_boost_serialization.h"
 #include "cryptonote_config.h"
 #include "cryptonote_basic/miner.h"
@@ -50,7 +50,7 @@
 #include "common/threadpool.h"
 #include "common/boost_serialization_helper.h"
 #include "warnings.h"
-#include "crypto/hash.h"
+// #include "crypto/hash.h" // already #included in cryptonote_core/blockchain.h
 #include "cryptonote_core.h"
 #include "ringct/rctSigs.h"
 #include "common/perf_timer.h"

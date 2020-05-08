@@ -36,8 +36,8 @@
 #include "serialization/string.h"
 #include "cryptonote_format_utils.h"
 #include "cryptonote_config.h"
-#include "crypto/crypto.h"
-#include "crypto/hash.h"
+// #include "crypto/crypto.h" // already #included in cryptonote_basic/cryptonote_format_utils.h
+// #include "crypto/hash.h" // already #included in cryptonote_basic/cryptonote_format_utils.h
 #include "ringct/rctSigs.h"
 
 using namespace epee;

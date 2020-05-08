@@ -37,7 +37,7 @@
 #include <boost/math/special_functions/round.hpp>
 
 #include "int-util.h"
-#include "crypto/hash.h"
+// #include "crypto/hash.h" // already #included in cryptonote_basic/difficulty.h
 #include "cryptonote_config.h"
 #include "difficulty.h"
 #include "misc_language.h"

@@ -28,10 +28,10 @@
 
 #include <unordered_set>
 #include "include_base_utils.h"
-#include "crypto/crypto.h"
+// #include "crypto/crypto.h" // already #included in multisig/multisig.h
 #include "ringct/rctOps.h"
 #include "cryptonote_basic/account.h"
-#include "cryptonote_basic/cryptonote_format_utils.h"
+// #include "cryptonote_basic/cryptonote_format_utils.h" // already #included in multisig/multisig.h
 #include "multisig.h"
 #include "cryptonote_config.h"
 
