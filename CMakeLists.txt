@@ -46,17 +46,6 @@ endif()
 cmake_minimum_required(VERSION 2.8.7)
 message(STATUS "CMake version ${CMAKE_VERSION}")
 
-if(NOT CMAKE_SYSTEM_NAME MATCHES "kFreeBSD.*|FreeBSD")
-  find_program(CCACHE_PROG ccache)
-  if (CCACHE_PROG)
-      message("ccache was found...launching it")
-      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROG}")
-      set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK    "${CCACHE_PROG}")
-  else()
-      message("ccache was NOT found")
-  endif()
-endif()
-
 project(sumokoin)
 
 enable_language(C ASM)
@@ -209,10 +198,8 @@ if(NOT MANUAL_SUBMODULES)
     endfunction ()
 
     message(STATUS "Checking submodules")
-    check_submodule(external/miniupnp)
     check_submodule(external/unbound)
     check_submodule(external/rapidjson)
-    check_submodule(external/trezor-common)
   endif()
 endif()
 
@@ -456,14 +443,14 @@ add_definitions(-DAUTO_INITIALIZE_EASYLOGGINGPP)
 # Generate header for embedded translations
 # Generate header for embedded translations, use target toolchain if depends, otherwise use the
 # lrelease and lupdate binaries from the host
-include(ExternalProject)
-ExternalProject_Add(generate_translations_header
-  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/translations"
-  BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/translations"
-  STAMP_DIR ${LRELEASE_PATH}
-  CMAKE_ARGS -DLRELEASE_PATH=${LRELEASE_PATH}
-  INSTALL_COMMAND cmake -E echo "")
-include_directories("${CMAKE_CURRENT_BINARY_DIR}/translations")
+# include(ExternalProject)
+# ExternalProject_Add(generate_translations_header
+#  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/translations"
+#  BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/translations"
+#  STAMP_DIR ${LRELEASE_PATH}
+#  CMAKE_ARGS -DLRELEASE_PATH=${LRELEASE_PATH}
+#  INSTALL_COMMAND cmake -E echo "")
+# include_directories("${CMAKE_CURRENT_BINARY_DIR}/translations")
 add_subdirectory(external)
 
 # Final setup for libunbound
@@ -490,9 +477,6 @@ if (HIDAPI_FOUND)
 else (HIDAPI_FOUND)
   message(STATUS "Could not find HIDAPI")
 endif()
-
-# Trezor support check
-include(CheckTrezor)
 
 if(MSVC)
   add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN /DGTEST_HAS_TR1_TUPLE=0 /FIinline_c.h /D__SSE4_1__")
@@ -578,7 +562,7 @@ else()
     set(WARNINGS "${WARNINGS} -Wlogical-op -Wno-error=maybe-uninitialized -Wno-unknown-warning -Wno-error=cpp")
   endif()
   if(MINGW)
-    set(WARNINGS "${WARNINGS} -Wno-misleading-indentation -Wno-maybe-uninitialized -Wno-error=unused-value -Wno-error=unused-but-set-variable")
+    set(WARNINGS "${WARNINGS} -Wno-misleading-indentation -Wno-unused-function -Wno-maybe-uninitialized -Wno-error=unused-value -Wno-error=unused-but-set-variable")
     set(MINGW_FLAG "${MINGW_FLAG} -DWIN32_LEAN_AND_MEAN")
     set(Boost_THREADAPI win32)
     include_directories(SYSTEM src/platform/mingw)
@@ -589,6 +573,9 @@ else()
       add_definitions(-DWINVER=0x0501 -D_WIN32_WINNT=0x0501)
     endif()
   endif()
+  if(ARM7)
+    set(WARNINGS "${WARNINGS} -Wno-psabi -Wno-maybe-uninitialized")
+  endif() 
   set(C_WARNINGS "-Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes")
   set(CXX_WARNINGS "-Wno-reorder -Wno-missing-field-initializers")
   try_compile(STATIC_ASSERT_RES "${CMAKE_CURRENT_BINARY_DIR}/static-assert" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/test-static-assert.c" COMPILE_DEFINITIONS "-std=c11")
@@ -846,6 +833,28 @@ else()
       set(STATIC_FLAGS "-static-libgcc -static-libstdc++")
     endif()
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${STATIC_FLAGS} ")
+  endif()
+endif()
+
+if (STATIC AND NOT (APPLE OR FREEBSD OR OPENBSD OR DRAGONFLY))
+  find_program(CCACHE_PROG ccache)
+  if (CCACHE_PROG)
+      message("ccache was found...launching it")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROG}")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK    "${CCACHE_PROG}")
+  else()
+      message("ccache was NOT found")
+  endif()
+endif()
+
+if (NOT STATIC)
+  find_program(CCACHE_PROG ccache)
+  if (CCACHE_PROG)
+      message("ccache was found...launching it")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROG}")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK    "${CCACHE_PROG}")
+  else()
+      message("ccache was NOT found")
   endif()
 endif()
 
