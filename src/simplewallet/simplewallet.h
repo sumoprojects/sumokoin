@@ -354,6 +354,7 @@ namespace cryptonote
     virtual void on_money_spent(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& in_tx, uint64_t amount, const cryptonote::transaction& spend_tx, const cryptonote::subaddress_index& subaddr_index);
     virtual void on_skip_transaction(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& tx);
     virtual boost::optional<epee::wipeable_string> on_get_password(const char *reason);
+    virtual boost::optional<std::string> on_get_message(const char *info);
     virtual void on_device_button_request(uint64_t code);
     virtual boost::optional<epee::wipeable_string> on_device_pin_request();
     virtual boost::optional<epee::wipeable_string> on_device_passphrase_request(bool on_device);

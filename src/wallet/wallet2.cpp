@@ -1788,11 +1788,23 @@ void wallet2::scan_output(const cryptonote::transaction &tx, bool miner_tx, cons
     CRITICAL_REGION_LOCAL(password_lock);
     if (!m_encrypt_keys_after_refresh)
     {
-      boost::optional<epee::wipeable_string> pwd = m_callback->on_get_password(pool ? "output found in pool" : "output received");
-      THROW_WALLET_EXCEPTION_IF(!pwd, error::password_needed, tr("Password is needed to compute key image for incoming SUMO"));
-      THROW_WALLET_EXCEPTION_IF(!verify_password(*pwd), error::password_needed, tr("Invalid password: password is needed to compute key image for incoming SUMO"));
-      decrypt_keys(*pwd);
-      m_encrypt_keys_after_refresh = *pwd;
+      if (pool)
+      {
+        boost::optional<epee::wipeable_string> pwd = m_callback->on_get_password("pending output in pool");
+        THROW_WALLET_EXCEPTION_IF(!pwd, error::password_needed, tr("Password is needed to compute key image for incoming SUMO in pool"));
+        THROW_WALLET_EXCEPTION_IF(!verify_password(*pwd), error::password_needed, tr("Invalid password: password is needed to compute key image for incoming SUMO"));
+        decrypt_keys(*pwd);
+        m_callback->on_get_message("incoming tx found in pool\nuse 'show_transfers pool' for details");
+        m_encrypt_keys_after_refresh = *pwd;
+      }
+      else
+      {
+        boost::optional<epee::wipeable_string> pwd = m_callback->on_get_password("output received in wallet");
+        THROW_WALLET_EXCEPTION_IF(!pwd, error::password_needed, tr("Password is needed to compute key image for incoming SUMO"));
+        THROW_WALLET_EXCEPTION_IF(!verify_password(*pwd), error::password_needed, tr("Invalid password: password is needed to compute key image for incoming SUMO"));
+        decrypt_keys(*pwd);
+        m_encrypt_keys_after_refresh = *pwd;
+      }
     }
   }
 
