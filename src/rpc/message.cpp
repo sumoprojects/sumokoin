@@ -1,21 +1,21 @@
 // Copyright (c) 2016-2019, The Monero Project
-//
+// 
 // All rights reserved.
-//
+// 
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-//
+// 
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-//
+// 
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-//
+// 
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-//
+// 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -62,7 +62,7 @@ const rapidjson::Value& get_method_field(const rapidjson::Value& src)
 }
 }
 
-void Message::toJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+void Message::toJson(rapidjson::Writer<epee::byte_stream>& dest) const
 {
   dest.StartObject();
   INSERT_INTO_JSON_OBJECT(dest, status, status);
@@ -151,9 +151,9 @@ cryptonote::rpc::error FullMessage::getError()
 
 epee::byte_slice FullMessage::getRequest(const std::string& request, const Message& message, const unsigned id)
 {
-  rapidjson::StringBuffer buffer;
+  epee::byte_stream buffer;
   {
-    rapidjson::Writer<rapidjson::StringBuffer> dest{buffer};
+    rapidjson::Writer<epee::byte_stream> dest{buffer};
 
     dest.StartObject();
     INSERT_INTO_JSON_OBJECT(dest, jsonrpc, (boost::string_ref{"2.0", 3}));
@@ -172,15 +172,15 @@ epee::byte_slice FullMessage::getRequest(const std::string& request, const Messa
     if (!dest.IsComplete())
       throw std::logic_error{"Invalid JSON tree generated"};
   }
-  return epee::byte_slice{{buffer.GetString(), buffer.GetSize()}};
+  return epee::byte_slice{std::move(buffer)};
 }
 
 
 epee::byte_slice FullMessage::getResponse(const Message& message, const rapidjson::Value& id)
 {
-  rapidjson::StringBuffer buffer;
+  epee::byte_stream buffer;
   {
-    rapidjson::Writer<rapidjson::StringBuffer> dest{buffer};
+    rapidjson::Writer<epee::byte_stream> dest{buffer};
 
     dest.StartObject();
     INSERT_INTO_JSON_OBJECT(dest, jsonrpc, (boost::string_ref{"2.0", 3}));
@@ -207,7 +207,7 @@ epee::byte_slice FullMessage::getResponse(const Message& message, const rapidjso
     if (!dest.IsComplete())
       throw std::logic_error{"Invalid JSON tree generated"};
   }
-  return epee::byte_slice{{buffer.GetString(), buffer.GetSize()}};
+  return epee::byte_slice{std::move(buffer)};
 }
 
 // convenience functions for bad input
