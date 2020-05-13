@@ -193,5 +193,3 @@ class connection_basic { // not-templated base class for rapid developmet of som
 } // nameserver
 
 #endif
-
-
