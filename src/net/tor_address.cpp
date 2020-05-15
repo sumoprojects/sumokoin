@@ -35,7 +35,7 @@
 #include <cstring>
 #include <limits>
 
-#include "net/error.h"
+// #include "net/error.h" // already #included in net/tor_address.h
 #include "serialization/keyvalue_serialization.h"
 #include "storages/portable_storage.h"
 #include "string_tools.h"

@@ -46,7 +46,7 @@ using namespace epee;
 #include "cryptonote_basic/cryptonote_format_utils.h"
 #include "cryptonote_basic/account.h"
 #include "multisig/multisig.h"
-#include "wallet_rpc_server_commands_defs.h"
+// #include "wallet_rpc_server_commands_defs.h" // already #included in /wallet/wallet_rpc_server.h
 #include "misc_language.h"
 #include "string_coding.h"
 #include "string_tools.h"

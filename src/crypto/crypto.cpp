@@ -41,7 +41,7 @@
 #include "common/varint.h"
 #include "warnings.h"
 #include "crypto.h"
-#include "hash.h"
+// #include "hash.h" //included in crypto/crypto.h
 
 namespace {
   static void local_abort(const char *msg)

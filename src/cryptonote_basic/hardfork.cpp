@@ -29,7 +29,7 @@
 #include <algorithm>
 #include <cstdio>
 
-#include "cryptonote_basic/cryptonote_basic.h"
+// #include "cryptonote_basic/cryptonote_basic.h" // already #included in cryptonote_basic/hardfork.h
 #include "blockchain_db/blockchain_db.h"
 #include "hardfork.h"
 

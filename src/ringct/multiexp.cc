@@ -28,7 +28,7 @@
 //
 // Adapted from Python code by Sarang Noether
 
-#include "misc_log_ex.h"
+// #include "misc_log_ex.h" // already #included in ringct/multiexp.h
 #include "common/perf_timer.h"
 extern "C"
 {

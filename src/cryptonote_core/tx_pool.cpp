@@ -40,13 +40,13 @@
 #include "cryptonote_config.h"
 #include "blockchain.h"
 #include "blockchain_db/locked_txn.h"
-#include "blockchain_db/blockchain_db.h"
+// #include "blockchain_db/blockchain_db.h" // already #included in cryptonote_core/tx_pool.h
 #include "common/boost_serialization_helper.h"
 #include "int-util.h"
 #include "misc_language.h"
 #include "warnings.h"
 #include "common/perf_timer.h"
-#include "crypto/hash.h"
+// #include "crypto/hash.h" // already #included in cryptonote_core/tx_pool.h
 #include "crypto/duration.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
