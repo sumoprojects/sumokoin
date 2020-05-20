@@ -54,6 +54,6 @@ namespace serialization {
       bool success = ::serialization::serialize(oar, v);
       blob = ostr.str();
       return success && ostr.good();
-    };
+    }
 
 }

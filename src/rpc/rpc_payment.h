@@ -142,5 +142,5 @@ namespace cryptonote
   };
 }
 
-BOOST_CLASS_VERSION(cryptonote::rpc_payment, 0);
-BOOST_CLASS_VERSION(cryptonote::rpc_payment::client_info, 0);
+BOOST_CLASS_VERSION(cryptonote::rpc_payment, 0)
+BOOST_CLASS_VERSION(cryptonote::rpc_payment::client_info, 0)

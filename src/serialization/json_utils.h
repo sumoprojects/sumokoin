@@ -42,6 +42,6 @@ std::string dump_json(T &v)
   json_archive<true> oar(ostr);
   assert(serialization::serialize(oar, v));
   return ostr.str();
-};
+}
 
 } // namespace serialization

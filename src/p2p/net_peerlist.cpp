@@ -290,6 +290,6 @@ namespace nodetool
   }
 }
 
-BOOST_CLASS_VERSION(nodetool::peerlist_types, nodetool::CURRENT_PEERLIST_STORAGE_ARCHIVE_VER);
-BOOST_CLASS_VERSION(nodetool::peerlist_join, nodetool::CURRENT_PEERLIST_STORAGE_ARCHIVE_VER);
+BOOST_CLASS_VERSION(nodetool::peerlist_types, nodetool::CURRENT_PEERLIST_STORAGE_ARCHIVE_VER)
+BOOST_CLASS_VERSION(nodetool::peerlist_join, nodetool::CURRENT_PEERLIST_STORAGE_ARCHIVE_VER)
 

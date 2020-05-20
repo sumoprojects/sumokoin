@@ -1011,7 +1011,7 @@ gamma_picker::gamma_picker(const std::vector<uint64_t> &rct_offsets, double shap
   num_rct_outputs = *(end - 1);
   THROW_WALLET_EXCEPTION_IF(num_rct_outputs == 0, error::wallet_internal_error, "No rct outputs");
   average_output_time = DIFFICULTY_TARGET * blocks_to_consider / outputs_to_consider; // this assumes constant target over the whole rct range
-};
+}
 
 gamma_picker::gamma_picker(const std::vector<uint64_t> &rct_offsets): gamma_picker(rct_offsets, GAMMA_SHAPE, GAMMA_SCALE) {}
 
@@ -1034,7 +1034,7 @@ uint64_t gamma_picker::pick()
     return std::numeric_limits<uint64_t>::max(); // bad pick
   MTRACE("Picking 1/" << n_rct << " in block " << index);
   return first_rct + crypto::rand_idx(n_rct);
-};
+}
 
 boost::mutex wallet_keys_unlocker::lockers_lock;
 unsigned int wallet_keys_unlocker::lockers = 0;

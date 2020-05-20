@@ -105,7 +105,7 @@ namespace hw {
       void disconnect();
       void release();
     };
-  };
-};
+  }
+}
 
 #endif //#if defined(HAVE_HIDAPI) 
