@@ -1304,7 +1304,7 @@ namespace cryptonote
     cryptonote::transaction tx{};
     for (std::size_t i = 0; i < tx_blobs.size(); ++i)
     {
-      cryptonote::transaction tx{};		
+      cryptonote::transaction tx{};
       if (!parse_and_validate_tx_from_blob(tx_blobs[i], tx, tx_hashes[i]))
       {
         LOG_ERROR("Failed to parse relayed transaction");
@@ -1649,7 +1649,6 @@ namespace cryptonote
       m_starter_message_showed = true;
     }
 
-    m_fork_moaner.do_call(boost::bind(&core::check_fork_time, this));
     m_txpool_auto_relayer.do_call(boost::bind(&core::relay_txpool_transactions, this));
     m_check_updates_interval.do_call(boost::bind(&core::check_updates, this));
     m_check_disk_space_interval.do_call(boost::bind(&core::check_disk_space, this));
@@ -1675,29 +1674,6 @@ namespace cryptonote
        << int(seconds%60) << " seconds" << ENDL);
     }
    return true;
-  }
-  //-----------------------------------------------------------------------------------------------
-  bool core::check_fork_time()
-  {
-    if (m_nettype == FAKECHAIN)
-      return true;
-
-    HardFork::State state = m_blockchain_storage.get_hard_fork_state();
-    el::Level level;
-    switch (state) {
-      case HardFork::LikelyForked:
-        level = el::Level::Warning;
-        MCLOG_RED(level, "global", "**********************************************************************");
-        MCLOG_RED(level, "global", "Last scheduled hard fork is too far in the past.");
-        MCLOG_RED(level, "global", "We are most likely forked from the network. Daemon update needed now.");
-        MCLOG_RED(level, "global", "**********************************************************************");
-        break;
-      case HardFork::UpdateNeeded:
-        break;
-      default:
-        break;
-    }
-    return true;
   }
   //-----------------------------------------------------------------------------------------------
   uint8_t core::get_ideal_hard_fork_version() const
