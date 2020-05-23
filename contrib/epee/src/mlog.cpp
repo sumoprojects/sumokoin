@@ -475,7 +475,7 @@ void reset_console_color() {
 static void mlog(el::Level level, const char *category, const char *format, va_list ap)
 {
   int size = 0;
-  char *p = NULL;
+  char *p;
   va_list apc;
 
   /* Determine required size */
