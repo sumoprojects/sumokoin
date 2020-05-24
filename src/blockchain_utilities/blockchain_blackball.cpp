@@ -1317,7 +1317,7 @@ int main(int argc, char* argv[])
     uint64_t prev_height = 0;
     for_all_transactions(inputs[0], start_idx, n_txes, [&](bool last_tx, uint64_t height, const cryptonote::transaction_prefix &tx)->bool
     {
-      if (height != prev_height)
+      if (height != prev_height && outs_total != 0)
       {
         if (height % 100 == 0) std::cout << "\r" << height << ": " << (100.0f * outs_spent / outs_total) << "% ( " << outs_spent << " / " << outs_total << " )       \r" << std::flush;
         if (height % STAT_WINDOW == 0)
