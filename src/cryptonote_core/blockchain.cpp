@@ -325,9 +325,9 @@ bool Blockchain::init(BlockchainDB* db, const network_type nettype, bool offline
     if (m_nettype ==  FAKECHAIN || m_nettype == STAGENET)
       m_hardfork = new HardFork(*db, 1, 0);
     else if (m_nettype == TESTNET)
-      m_hardfork = new HardFork(*db, 1, testnet_hard_fork_version_1_till);
+      m_hardfork = new HardFork(*db, 1, 0);
     else
-      m_hardfork = new HardFork(*db, 1, mainnet_hard_fork_version_1_till);
+      m_hardfork = new HardFork(*db, 1, 0);
   }
   if (m_nettype == FAKECHAIN)
   {
