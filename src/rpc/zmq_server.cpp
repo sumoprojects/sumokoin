@@ -28,29 +28,18 @@
 
 #include "zmq_server.h"
 
-#include <chrono>
-#include <cstdint>
-#include <system_error>
-
 namespace cryptonote
 {
-
-namespace
-{
-  constexpr const int num_zmq_threads = 1;
-  constexpr const std::int64_t max_message_size = 10 * 1024 * 1024; // 10 MiB
-  constexpr const std::chrono::seconds linger_timeout{2}; // wait period for pending out messages
-}
 
 namespace rpc
 {
 
 ZmqServer::ZmqServer(RpcHandler& h) :
     handler(h),
-    context(zmq_init(num_zmq_threads))
+    stop_signal(false),
+    running(false),
+    context(DEFAULT_NUM_ZMQ_THREADS) // TODO: make this configurable
 {
-    if (!context)
-        MONERO_ZMQ_THROW("Unable to create ZMQ context");
 }
 
 ZmqServer::~ZmqServer()
@@ -59,88 +48,70 @@ ZmqServer::~ZmqServer()
 
 void ZmqServer::serve()
 {
-  try
+  while(1)
   {
-    // socket must close before `zmq_term` will exit.
-    const net::zmq::socket socket = std::move(rep_socket);
-    if (!socket)
+    try
     {
-      MERROR("ZMQ RPC server reply socket is null");
-      return;
-    }
+      zmq::message_t message;
 
-    while (1)
+      if (!rep_socket)
+      {
+        throw std::runtime_error("ZMQ RPC server reply socket is null");
+      }
+      while (rep_socket->recv(&message, 0))
+      {
+        std::string message_string(reinterpret_cast<const char *>(message.data()), message.size());
+
+        MDEBUG(std::string("Received RPC request: \"") + message_string + "\"");
+
+        std::string response = handler.handle(message_string);
+
+        zmq::message_t reply(response.size());
+        memcpy((void *) reply.data(), response.c_str(), response.size());
+
+        rep_socket->send(reply);
+        MDEBUG(std::string("Sent RPC reply: \"") + response + "\"");
+
+      }
+    }
+    catch (const boost::thread_interrupted& e)
     {
-      const std::string message = MONERO_UNWRAP(net::zmq::receive(socket.get()));
-      MDEBUG("Received RPC request: \"" << message << "\"");
-      const std::string& response = handler.handle(message);
-
-      MONERO_UNWRAP(net::zmq::send(epee::strspan<std::uint8_t>(response), socket.get()));
-      MDEBUG("Sent RPC reply: \"" << response << "\"");
+      MDEBUG("ZMQ Server thread interrupted.");
     }
-  }
-  catch (const std::system_error& e)
-  {
-    if (e.code() != net::zmq::make_error_code(ETERM))
-      MERROR("ZMQ RPC Server Error: " << e.what());
-  }
-  catch (const std::exception& e)
-  {
-    MERROR("ZMQ RPC Server Error: " << e.what());
-  }
-  catch (...)
-  {
-    MERROR("Unknown error in ZMQ RPC server");
+    catch (const zmq::error_t& e)
+    {
+      MERROR(std::string("ZMQ error: ") + e.what());
+    }
+    boost::this_thread::interruption_point();
   }
 }
 
-bool ZmqServer::addIPCSocket(const boost::string_ref address, const boost::string_ref port)
+bool ZmqServer::addIPCSocket(std::string address, std::string port)
 {
   MERROR("ZmqServer::addIPCSocket not yet implemented!");
   return false;
 }
 
-bool ZmqServer::addTCPSocket(boost::string_ref address, boost::string_ref port)
+bool ZmqServer::addTCPSocket(std::string address, std::string port)
 {
-  if (!context)
+  try
   {
-    MERROR("ZMQ RPC Server already shutdown");
-    return false;
+    std::string addr_prefix("tcp://");
+
+    rep_socket.reset(new zmq::socket_t(context, ZMQ_REP));
+
+    rep_socket->setsockopt(ZMQ_RCVTIMEO, &DEFAULT_RPC_RECV_TIMEOUT_MS, sizeof(DEFAULT_RPC_RECV_TIMEOUT_MS));
+
+    if (address.empty())
+      address = "*";
+    if (port.empty())
+      port = "*";
+    std::string bind_address = addr_prefix + address + std::string(":") + port;
+    rep_socket->bind(bind_address.c_str());
   }
-
-  rep_socket.reset(zmq_socket(context.get(), ZMQ_REP));
-  if (!rep_socket)
+  catch (const std::exception& e)
   {
-    MONERO_LOG_ZMQ_ERROR("ZMQ RPC Server socket create failed");
-    return false;
-  }
-
-  if (zmq_setsockopt(rep_socket.get(), ZMQ_MAXMSGSIZE, std::addressof(max_message_size), sizeof(max_message_size)) != 0)
-  {
-    MONERO_LOG_ZMQ_ERROR("Failed to set maximum incoming message size");
-    return false;
-  }
-
-  static constexpr const int linger_value = std::chrono::milliseconds{linger_timeout}.count();
-  if (zmq_setsockopt(rep_socket.get(), ZMQ_LINGER, std::addressof(linger_value), sizeof(linger_value)) != 0)
-  {
-    MONERO_LOG_ZMQ_ERROR("Failed to set linger timeout");
-    return false;
-  }
-
-  if (address.empty())
-    address = "*";
-  if (port.empty())
-    port = "*";
-
-  std::string bind_address = "tcp://";
-  bind_address.append(address.data(), address.size());
-  bind_address += ":";
-  bind_address.append(port.data(), port.size());
-
-  if (zmq_bind(rep_socket.get(), bind_address.c_str()) < 0)
-  {
-    MONERO_LOG_ZMQ_ERROR("ZMQ RPC Server bind failed");
+    MERROR(std::string("Error creating ZMQ Socket: ") + e.what());
     return false;
   }
   return true;
@@ -148,16 +119,22 @@ bool ZmqServer::addTCPSocket(boost::string_ref address, boost::string_ref port)
 
 void ZmqServer::run()
 {
+  running = true;
   run_thread = boost::thread(boost::bind(&ZmqServer::serve, this));
 }
 
-void ZmqServer::stop()
+void ZmqServer::stop() 
 {
-  if (!run_thread.joinable())
-    return;
+  if (!running) return;
 
-  context.reset(); // destroying context terminates all calls
+  stop_signal = true;
+
+  run_thread.interrupt();
   run_thread.join();
+
+  running = false;
+
+  return;
 }
 
 
