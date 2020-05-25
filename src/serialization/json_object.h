@@ -30,10 +30,6 @@
 
 #include <boost/utility/string_ref.hpp>
 #include <cstring>
-<<<<<<< HEAD
-=======
-#include "string_tools.h" // out of order because windows.h GetObject macro conflicts with GenericValue<..>::GetObject()
->>>>>>> 5367939d... [ZMQ JSON-RPC] Various Improvements (almost restructured)
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
@@ -123,11 +119,8 @@ inline constexpr bool is_to_hex()
   return std::is_pod<Type>() && !std::is_integral<Type>();
 }
 
-<<<<<<< HEAD
 void read_hex(const rapidjson::Value& val, epee::span<std::uint8_t> dest);
 
-=======
->>>>>>> 5367939d... [ZMQ JSON-RPC] Various Improvements (almost restructured)
 // POD to json key
 template <class Type>
 inline typename std::enable_if<is_to_hex<Type>()>::type toJsonKey(rapidjson::Writer<rapidjson::StringBuffer>& dest, const Type& pod)

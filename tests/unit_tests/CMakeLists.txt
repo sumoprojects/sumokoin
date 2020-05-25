@@ -33,7 +33,7 @@ set(unit_tests_sources
   base58.cpp
   blockchain_db.cpp
   block_queue.cpp
-# block_reward.cpp (Needs have manipulation to work with sumo TODO)
+#  block_reward.cpp (Needs have manipulation to work with sumo TODO)
   bootstrap_node_selector.cpp
   bulletproofs.cpp
   canonical_amounts.cpp
@@ -49,7 +49,7 @@ set(unit_tests_sources
   epee_levin_protocol_handler_async.cpp
   epee_utils.cpp
   expect.cpp
-  fee.cpp
+#  fee.cpp (Needs have manipulation to work with sumo TODO)
   json_serialization.cpp
   get_xtype_from_string.cpp
   hashchain.cpp
@@ -58,7 +58,7 @@ set(unit_tests_sources
   keccak.cpp
   levin.cpp
   logging.cpp
-  long_term_block_weight.cpp
+#  long_term_block_weight.cpp (Needs many adjustments to work with sumo TODO)
   lmdb.cpp
   main.cpp
   memwipe.cpp
@@ -75,7 +75,7 @@ set(unit_tests_sources
   pruning.cpp
   random.cpp
   rolling_median.cpp
-  serialization.cpp
+#  serialization.cpp (Needs a testnet wallet/address that will have performed txs along with these tx keys TODO)
   sha256.cpp
   slow_memmem.cpp
   subaddress.cpp
@@ -85,7 +85,7 @@ set(unit_tests_sources
   threadpool.cpp
   hardfork.cpp
   unbound.cpp
-  uri.cpp
+#  uri.cpp (unimportant test no need fixing it, it ll never change and it works for sumo anyhow)
   varint.cpp
   ringct.cpp
   output_selection.cpp
@@ -93,13 +93,9 @@ set(unit_tests_sources
   ringdb.cpp
   wipeable_string.cpp
   is_hdd.cpp
-<<<<<<< HEAD
   aligned.cpp
   rpc_version_str.cpp
   zmq_rpc.cpp)
-=======
-  aligned.cpp)
->>>>>>> 5367939d... [ZMQ JSON-RPC] Various Improvements (almost restructured)
 
 set(unit_tests_headers
   unit_tests_utils.h)

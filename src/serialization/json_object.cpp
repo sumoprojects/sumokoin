@@ -113,7 +113,6 @@ namespace
   }
 }
 
-<<<<<<< HEAD
 void read_hex(const rapidjson::Value& val, epee::span<std::uint8_t> dest)
 {
   if (!val.IsString())
@@ -134,15 +133,6 @@ void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const rapidjs
 
 void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const boost::string_ref i)
 {
-=======
-void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const rapidjson::Value& src)
-{
-  src.Accept(dest);
-}
-
-void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const boost::string_ref i)
-{
->>>>>>> 5367939d... [ZMQ JSON-RPC] Various Improvements (almost restructured)
   dest.String(i.data(), i.size());
 }
 
