@@ -144,7 +144,7 @@
 #define P2P_DEFAULT_PING_CONNECTION_TIMEOUT             5000       //5 seconds
 #define P2P_DEFAULT_INVOKE_TIMEOUT                      60*2*1000  //2 minutes
 #define P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT            5000       //5 seconds
-#define P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT       70
+#define P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT       75
 #define P2P_DEFAULT_ANCHOR_CONNECTIONS_COUNT            4
 #define P2P_DEFAULT_SYNC_SEARCH_CONNECTIONS_COUNT       2
 #define P2P_DEFAULT_LIMIT_RATE_UP                       2048       // kB/s
