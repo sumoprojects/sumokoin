@@ -70,7 +70,7 @@ namespace
       unsigned(std::is_assignable<Destination, Source&>());
     EXPECT_TRUE(count == 6 || count == 0) <<
       "Mismatch on construction results - " << count << " were true";
-    return count == 6; 
+    return count == 6;
   }
 
   // This is probably stressing the compiler more than the implementation ...
@@ -275,7 +275,7 @@ TEST(Span, Nullptr)
     EXPECT_EQ(0, data.size_bytes());
   };
   check_empty({});
-  check_empty(nullptr); 
+  check_empty(nullptr);
 }
 
 TEST(Span, Writing)
@@ -385,6 +385,29 @@ TEST(ByteSlice, Construction)
   EXPECT_FALSE(std::is_copy_constructible<epee::byte_slice>());
   EXPECT_TRUE(std::is_move_assignable<epee::byte_slice>());
   EXPECT_FALSE(std::is_copy_assignable<epee::byte_slice>());
+}
+
+TEST(ByteSlice, DataReturnedMatches)
+{
+  for (int i = 64; i > 0; i--)
+  {
+    std::string sso_string(i, 'a');
+    std::string original = sso_string;
+    epee::byte_slice slice{std::move(sso_string)};
+
+    EXPECT_EQ(slice.size(), original.size());
+    EXPECT_EQ(memcmp(slice.data(), original.data(), original.size()), 0);
+  }
+
+  for (int i = 64; i > 0; i--)
+  {
+    std::vector<uint8_t> sso_vector(i, 'a');
+    std::vector<uint8_t> original = sso_vector;
+    epee::byte_slice slice{std::move(sso_vector)};
+
+    EXPECT_EQ(slice.size(), original.size());
+    EXPECT_EQ(memcmp(slice.data(), original.data(), original.size()), 0);
+  }
 }
 
 TEST(ByteSlice, NoExcept)
