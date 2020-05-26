@@ -1735,9 +1735,8 @@ namespace cryptonote
   bool core_rpc_server::on_stop_daemon(const COMMAND_RPC_STOP_DAEMON::request& req, COMMAND_RPC_STOP_DAEMON::response& res, const connection_context *ctx)
   {
     RPC_TRACKER(stop_daemon);
-    // FIXME: replace back to original m_p2p.send_stop_signal() after
-    // investigating why that isn't working quite right.
     m_p2p.send_stop_signal();
+    m_core.stop();
     res.status = CORE_RPC_STATUS_OK;
     return true;
   }
