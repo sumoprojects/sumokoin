@@ -70,7 +70,7 @@ namespace
       unsigned(std::is_assignable<Destination, Source&>());
     EXPECT_TRUE(count == 6 || count == 0) <<
       "Mismatch on construction results - " << count << " were true";
-    return count == 6; 
+    return count == 6;
   }
 
   // This is probably stressing the compiler more than the implementation ...
@@ -275,7 +275,7 @@ TEST(Span, Nullptr)
     EXPECT_EQ(0, data.size_bytes());
   };
   check_empty({});
-  check_empty(nullptr); 
+  check_empty(nullptr);
 }
 
 TEST(Span, Writing)
@@ -385,6 +385,29 @@ TEST(ByteSlice, Construction)
   EXPECT_FALSE(std::is_copy_constructible<epee::byte_slice>());
   EXPECT_TRUE(std::is_move_assignable<epee::byte_slice>());
   EXPECT_FALSE(std::is_copy_assignable<epee::byte_slice>());
+}
+
+TEST(ByteSlice, DataReturnedMatches)
+{
+  for (int i = 64; i > 0; i--)
+  {
+    std::string sso_string(i, 'a');
+    std::string original = sso_string;
+    epee::byte_slice slice{std::move(sso_string)};
+
+    EXPECT_EQ(slice.size(), original.size());
+    EXPECT_EQ(memcmp(slice.data(), original.data(), original.size()), 0);
+  }
+
+  for (int i = 64; i > 0; i--)
+  {
+    std::vector<uint8_t> sso_vector(i, 'a');
+    std::vector<uint8_t> original = sso_vector;
+    epee::byte_slice slice{std::move(sso_vector)};
+
+    EXPECT_EQ(slice.size(), original.size());
+    EXPECT_EQ(memcmp(slice.data(), original.data(), original.size()), 0);
+  }
 }
 
 TEST(ByteSlice, NoExcept)
@@ -667,6 +690,23 @@ TEST(ByteSlice, TakeSlice)
   EXPECT_TRUE(boost::range::equal(base_string, slice));
 
   const epee::span<const std::uint8_t> original = epee::to_span(slice);
+  const epee::byte_slice empty_slice = slice.take_slice(0);
+  EXPECT_EQ(original.begin(), slice.begin());
+  EXPECT_EQ(slice.begin(), slice.cbegin());
+  EXPECT_EQ(original.end(), slice.end());
+  EXPECT_EQ(slice.end(), slice.cend());
+
+  EXPECT_EQ(nullptr, empty_slice.begin());
+  EXPECT_EQ(nullptr, empty_slice.cbegin());
+  EXPECT_EQ(nullptr, empty_slice.end());
+  EXPECT_EQ(nullptr, empty_slice.cend());
+  EXPECT_EQ(nullptr, empty_slice.data());
+  EXPECT_TRUE(empty_slice.empty());
+  EXPECT_EQ(0u, empty_slice.size());
+
+  EXPECT_FALSE(slice.empty());
+  EXPECT_EQ(slice.cbegin(), slice.data());
+  
   const epee::byte_slice slice2 = slice.take_slice(remove_size);
 
   EXPECT_EQ(original.begin() + remove_size, slice.begin());
@@ -1061,6 +1101,20 @@ TEST(ByteStream, ToByteSlice)
   EXPECT_EQ(nullptr, stream.data());
   EXPECT_EQ(nullptr, stream.tellp());
   EXPECT_TRUE(equal(source, slice));
+
+  stream = epee::byte_stream{};
+  stream.reserve(1);
+  EXPECT_NE(nullptr, stream.data());
+  EXPECT_NE(nullptr, stream.tellp());
+
+  const epee::byte_slice empty_slice{std::move(stream)};
+  EXPECT_TRUE(empty_slice.empty());
+  EXPECT_EQ(0u, empty_slice.size());
+  EXPECT_EQ(nullptr, empty_slice.begin());
+  EXPECT_EQ(nullptr, empty_slice.cbegin());
+  EXPECT_EQ(nullptr, empty_slice.end());
+  EXPECT_EQ(nullptr, empty_slice.cend());
+  EXPECT_EQ(nullptr, empty_slice.data());
 }
 
 TEST(ToHex, String)

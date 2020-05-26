@@ -103,9 +103,8 @@
 #define DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN             DIFFICULTY_TARGET //just alias; used by tests
 
 #define BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT          10000  //by default, blocks ids count in synchronizing
-#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_PRE_V4       100    //by default, blocks count in blocks downloading
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              50     //by default, blocks count in blocks downloading
-#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4           1      //by default, blocks count in blocks downloading at the end of the chain
+#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_END          1      //by default, blocks count in blocks downloading at the end of the chain
 
 #define LAST_CHECKPOINT                                 405000
 
@@ -144,7 +143,7 @@
 #define P2P_DEFAULT_PING_CONNECTION_TIMEOUT             5000       //5 seconds
 #define P2P_DEFAULT_INVOKE_TIMEOUT                      60*2*1000  //2 minutes
 #define P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT            5000       //5 seconds
-#define P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT       70
+#define P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT       75
 #define P2P_DEFAULT_ANCHOR_CONNECTIONS_COUNT            4
 #define P2P_DEFAULT_SYNC_SEARCH_CONNECTIONS_COUNT       2
 #define P2P_DEFAULT_LIMIT_RATE_UP                       2048       // kB/s

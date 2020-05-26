@@ -133,10 +133,13 @@ namespace epee
 
   template<typename T>
   byte_slice::byte_slice(const adapt_buffer, T&& buffer)
-    : storage_(nullptr), portion_(to_byte_span(to_span(buffer)))
+    : storage_(nullptr), portion_(nullptr)
   {
     if (!buffer.empty())
+    {
       storage_ = allocate_slice<adapted_byte_slice<T>>(0, std::move(buffer));
+      portion_ = to_byte_span(to_span(static_cast<adapted_byte_slice<T> *>(storage_.get())->buffer));
+    }
   }
 
   byte_slice::byte_slice(std::initializer_list<span<const std::uint8_t>> sources)
@@ -173,9 +176,14 @@ namespace epee
   byte_slice::byte_slice(byte_stream&& stream) noexcept
     : storage_(nullptr), portion_(stream.data(), stream.size())
   {
-    std::uint8_t* const data = stream.take_buffer().release() - sizeof(raw_byte_slice);
-    new (data) raw_byte_slice{};
-    storage_.reset(reinterpret_cast<raw_byte_slice*>(data));
+    if (stream.size())
+    {
+      std::uint8_t* const data = stream.take_buffer().release() - sizeof(raw_byte_slice);
+      new (data) raw_byte_slice{};
+      storage_.reset(reinterpret_cast<raw_byte_slice*>(data));
+    }
+    else
+      portion_ = nullptr;
   }
 
   byte_slice::byte_slice(byte_slice&& source) noexcept
@@ -205,14 +213,16 @@ namespace epee
   byte_slice byte_slice::take_slice(const std::size_t max_bytes) noexcept
   {
     byte_slice out{};
-    std::uint8_t const* const ptr = data();
-    out.portion_ = {ptr, portion_.remove_prefix(max_bytes)};
+    if (max_bytes)
+    {
+      std::uint8_t const* const ptr = data();
+      out.portion_ = {ptr, portion_.remove_prefix(max_bytes)};
 
-    if (portion_.empty())
-      out.storage_ = std::move(storage_); // no atomic inc/dec
-    else
-      out = {storage_.get(), out.portion_};
-
+      if (portion_.empty())
+        out.storage_ = std::move(storage_); // no atomic inc/dec
+      else
+        out = {storage_.get(), out.portion_};
+    }
     return out;
   }
 

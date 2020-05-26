@@ -1452,7 +1452,7 @@ namespace nodetool
       }
 
       std::deque<size_t> filtered;
-      const size_t limit = use_white_list ? 20 : std::numeric_limits<size_t>::max();
+      const size_t limit = use_white_list ? 30 : std::numeric_limits<size_t>::max();
       for (int step = 0; step < 2; ++step)
       {
         bool skip_duplicate_class_B = step == 0;

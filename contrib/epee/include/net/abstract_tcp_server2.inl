@@ -32,7 +32,7 @@
 
 
 
-
+#include <boost/bind.hpp>
 #include <boost/foreach.hpp>
 #include <boost/uuid/random_generator.hpp>
 #include <boost/chrono.hpp>
@@ -158,7 +158,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     }
     else
     {
-      const boost::asio::ip::address_v6 ip_{remote_ep.address().to_v6()};
+      const auto ip_ = remote_ep.address().to_v6();
       return start(is_income, is_multithreaded, ipv6_network_address{ip_, remote_ep.port()});
     }
     CATCH_ENTRY_L0("connection<t_protocol_handler>::start()", false);
@@ -366,9 +366,10 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 				
 				delay *= 0.5;
 				long int ms = (long int)(delay * 100);
-					if (ms > 0) {
-					reset_timer(boost::posix_time::milliseconds(ms + 1), true);
-					boost::this_thread::sleep_for(boost::chrono::milliseconds(ms));
+				if (ms > 0)
+		                {
+				  reset_timer(boost::posix_time::milliseconds(ms + 1), true);
+				  boost::this_thread::sleep_for(boost::chrono::milliseconds(ms));
 				}
 			} while(delay > 0);
 		} // any form of sleeping
