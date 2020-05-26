@@ -264,14 +264,14 @@ namespace cryptonote
     m_blockchain_storage.set_enforce_dns_checkpoints(enforce_dns);
   }
   //-----------------------------------------------------------------------------------------------
-  bool core::update_checkpoints()
+  bool core::update_checkpoints(const bool skip_dns /* = false */)
   {
     if (m_nettype != MAINNET || m_disable_dns_checkpoints) return true;
 
     if (m_checkpoints_updating.test_and_set()) return true;
 
     bool res = true;
-    if (time(NULL) - m_last_dns_checkpoints_update >= 3600)
+    if (!skip_dns && time(NULL) - m_last_dns_checkpoints_update >= 3600)
     {
       res = m_blockchain_storage.update_checkpoints(m_checkpoints_path, true);
       m_last_dns_checkpoints_update = time(NULL);
@@ -429,9 +429,9 @@ namespace cryptonote
     return m_blockchain_storage.get_split_transactions_blobs(txs_ids, txs, missed_txs);
   }
   //-----------------------------------------------------------------------------------------------
-  bool core::get_txpool_backlog(std::vector<tx_backlog_entry>& backlog) const
+  bool core::get_txpool_backlog(std::vector<tx_backlog_entry>& backlog, bool include_sensitive_txes) const
   {
-    m_mempool.get_transaction_backlog(backlog);
+    m_mempool.get_transaction_backlog(backlog, include_sensitive_txes);
     return true;
   }
   //-----------------------------------------------------------------------------------------------
@@ -668,7 +668,8 @@ namespace cryptonote
 
     // load json & DNS checkpoints, and verify them
     // with respect to what blocks we already have
-    CHECK_AND_ASSERT_MES(update_checkpoints(), false, "One or more checkpoints loaded from json or dns conflicted with existing checkpoints.");
+    const bool skip_dns_checkpoints = !command_line::get_arg(vm, arg_dns_checkpoints);
+    CHECK_AND_ASSERT_MES(update_checkpoints(skip_dns_checkpoints), false, "One or more checkpoints loaded from json or dns conflicted with existing checkpoints.");
 
    // DNS versions checking
     if (check_updates_string == "disabled")
@@ -1156,8 +1157,8 @@ namespace cryptonote
       return block_sync_size;
     if (get_current_blockchain_height() <= ((95 * m_target_blockchain_height) / 100))
     return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
-    else 
-    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4;    
+    else
+    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4;
   }
   //-----------------------------------------------------------------------------------------------
   bool core::are_key_images_spent_in_pool(const std::vector<crypto::key_image>& key_im, std::vector<bool> &spent) const
@@ -1179,18 +1180,18 @@ namespace cryptonote
       std::vector<transaction> txs;
       std::vector<crypto::hash> missed_txs;
       uint64_t coinbase_amount = get_outs_money_amount(b.miner_tx);
-      this->get_transactions(b.tx_hashes, txs, missed_txs);      
+      this->get_transactions(b.tx_hashes, txs, missed_txs);
       uint64_t tx_fee_amount = 0;
       for(const auto& tx: txs)
       {
         tx_fee_amount += get_tx_fee(tx);
       }
-      
+
       emission_amount += coinbase_amount - tx_fee_amount;
       total_fee_amount += tx_fee_amount;
       return true;
       });
-      
+
       // subtract burned coins
       if (start_offset <= config::EXCHANGE_FUND_RELEASE_HEIGHT && end >= config::EXCHANGE_FUND_RELEASE_HEIGHT)
         emission_amount -= config::EXCHANGE_BURNED_AMOUNT;
@@ -1287,6 +1288,7 @@ namespace cryptonote
             break;
           case relay_method::block:
           case relay_method::fluff:
+          case relay_method::stem:
             public_req.txs.push_back(std::move(std::get<1>(tx)));
             break;
         }
@@ -1298,9 +1300,9 @@ namespace cryptonote
          re-relaying public and private _should_ be acceptable here. */
       const boost::uuids::uuid source = boost::uuids::nil_uuid();
       if (!public_req.txs.empty())
-        get_protocol()->relay_transactions(public_req, source, epee::net_utils::zone::public_);
+        get_protocol()->relay_transactions(public_req, source, epee::net_utils::zone::public_, relay_method::fluff);
       if (!private_req.txs.empty())
-        get_protocol()->relay_transactions(private_req, source, epee::net_utils::zone::invalid);
+        get_protocol()->relay_transactions(private_req, source, epee::net_utils::zone::invalid, relay_method::local);
     }
     return true;
   }
@@ -1546,9 +1548,9 @@ namespace cryptonote
     return m_blockchain_storage.get_db().get_block_cumulative_difficulty(height);
   }
   //-----------------------------------------------------------------------------------------------
-  size_t core::get_pool_transactions_count() const
+  size_t core::get_pool_transactions_count(bool include_sensitive_txes) const
   {
-    return m_mempool.get_transactions_count();
+    return m_mempool.get_transactions_count(include_sensitive_txes);
   }
   //-----------------------------------------------------------------------------------------------
   bool core::have_block(const crypto::hash& id) const
@@ -1587,7 +1589,7 @@ namespace cryptonote
   bool core::get_pool_transaction(const crypto::hash &id, cryptonote::blobdata& tx, relay_category tx_category) const
   {
     return m_mempool.get_transaction(id, tx, tx_category);
-  }  
+  }
   //-----------------------------------------------------------------------------------------------
   bool core::pool_has_tx(const crypto::hash &id) const
   {
@@ -1678,13 +1680,13 @@ namespace cryptonote
     hours = minutes / 60;
     if((get_blockchain_storage().get_current_blockchain_height() >= m_target_blockchain_height) && (m_target_blockchain_height > 0))
     {
-     MGINFO_GREEN(ENDL << "Sumokoin node is on idle and fully synchronized | Height: " << get_blockchain_storage().get_current_blockchain_height() 
-       << " | Uptime: " << int(hours) << " hours " << int(minutes%60) << " minutes " 
+     MGINFO_GREEN(ENDL << "Sumokoin node is on idle and fully synchronized | Height: " << get_blockchain_storage().get_current_blockchain_height()
+       << " | Uptime: " << int(hours) << " hours " << int(minutes%60) << " minutes "
        << int(seconds%60) << " seconds" << ENDL);
     }
    return true;
   }
-  //----------------------------------------------------------------------------------------------- 
+  //-----------------------------------------------------------------------------------------------
   bool core::check_fork_time()
   {
     if (m_nettype == FAKECHAIN)
@@ -1927,7 +1929,7 @@ namespace cryptonote
       MDEBUG("blocks in the last " << seconds[n] / 60 << " minutes: " << b << " (probability " << p << ")");
       if (p < threshold)
       {
-        MWARNING("There were " << b << (b == max_blocks_checked ? " or more" : "") << " blocks in the last " << seconds[n] / 60 << " minutes, there might be large hash rate changes, or we might be partitioned, cut off from the Sumokoin network or under attack. Or it could be just sheer bad luck.");
+        MWARNING("There were " << b << (b == max_blocks_checked ? " or more" : "") << " blocks in the last " << seconds[n] / 60 << " minutes, there might be large hash rate changes, or we might be partitioned, cut off from the Sumokoin network or under attack, or your computer's time is off. Or it could be just sheer bad luck.");
 
         std::shared_ptr<tools::Notify> block_rate_notify = m_block_rate_notify;
         if (block_rate_notify)
@@ -1955,6 +1957,12 @@ namespace cryptonote
   {
     m_blockchain_storage.flush_invalid_blocks();
   }
+  //-----------------------------------------------------------------------------------------------
+  bool core::get_txpool_complement(const std::vector<crypto::hash> &hashes, std::vector<cryptonote::blobdata> &txes)
+  {
+    return m_mempool.get_complement(hashes, txes);
+  }
+  //-----------------------------------------------------------------------------------------------
   bool core::update_blockchain_pruning()
   {
     return m_blockchain_storage.update_blockchain_pruning();

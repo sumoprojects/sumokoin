@@ -191,7 +191,7 @@ namespace cryptonote
       * @note see Blockchain::cleanup_handle_incoming_blocks
       */
      bool cleanup_handle_incoming_blocks(bool force_sync = false);
-     	     	
+
      /**
       * @brief check the size of a block against the current maximum
       *
@@ -470,11 +470,12 @@ namespace cryptonote
 
      /**
       * @copydoc tx_memory_pool::get_txpool_backlog
+      * @param include_sensitive_txes include private transactions
       *
       * @note see tx_memory_pool::get_txpool_backlog
       */
-     bool get_txpool_backlog(std::vector<tx_backlog_entry>& backlog) const;
-     
+     bool get_txpool_backlog(std::vector<tx_backlog_entry>& backlog, bool include_sensitive_txes = false) const;
+
      /**
       * @copydoc tx_memory_pool::get_transactions
       * @param include_sensitive_txes include private transactions
@@ -515,10 +516,11 @@ namespace cryptonote
 
      /**
       * @copydoc tx_memory_pool::get_transactions_count
+      * @param include_sensitive_txes include private transactions
       *
       * @note see tx_memory_pool::get_transactions_count
       */
-     size_t get_pool_transactions_count() const;
+     size_t get_pool_transactions_count(bool include_sensitive_txes = false) const;
 
      /**
       * @copydoc Blockchain::get_total_transactions
@@ -707,7 +709,7 @@ namespace cryptonote
       *
       * @note see Blockchain::update_checkpoints()
       */
-     bool update_checkpoints();
+     bool update_checkpoints(const bool skip_dns = false);
 
      /**
       * @brief tells the daemon to wind down operations and stop running
@@ -766,12 +768,12 @@ namespace cryptonote
       * @return the number of blocks to sync in one go
       */
      std::pair<uint64_t, uint64_t> get_coinbase_tx_sum(const uint64_t start_offset, const size_t count);
-     
+
      /**
       * @brief get the network type we're on
       *
       * @return which network are we on?
-      */     
+      */
      network_type get_nettype() const { return m_nettype; };
 
      /**
@@ -863,6 +865,15 @@ namespace cryptonote
       * @brief flushes the invalid block cache
       */
      void flush_invalid_blocks();
+
+     /**
+      * @brief returns the set of transactions in the txpool which are not in the argument
+      *
+      * @param hashes hashes of transactions to exclude from the result
+      *
+      * @return true iff success, false otherwise
+      */
+     bool get_txpool_complement(const std::vector<crypto::hash> &hashes, std::vector<cryptonote::blobdata> &txes);
 
    private:
 
@@ -1029,9 +1040,9 @@ namespace cryptonote
       * @return true on success, false otherwise
       */
      bool check_block_rate();
-     
+
      /**
-      * @brief checks sync status 
+      * @brief checks sync status
       *
       * @return true on synchronized, false otherwise
       */

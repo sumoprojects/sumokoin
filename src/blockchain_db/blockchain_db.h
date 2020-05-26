@@ -160,7 +160,7 @@ struct txpool_tx_meta_t
   uint64_t max_used_block_height;
   uint64_t last_failed_height;
   uint64_t receive_time;
-  uint64_t last_relayed_time;
+  uint64_t last_relayed_time; //!< If Dandelion++ stem, randomized embargo timestamp. Otherwise, last relayed timestmap.
   // 112 bytes
   uint8_t kept_by_block;
   uint8_t relayed;
@@ -168,12 +168,16 @@ struct txpool_tx_meta_t
   uint8_t double_spend_seen: 1;
   uint8_t pruned: 1;
   uint8_t is_local: 1;
-  uint8_t bf_padding: 5;
+  uint8_t dandelionpp_stem : 1;
+  uint8_t bf_padding: 4;
 
   uint8_t padding[76]; // till 192 bytes
 
   void set_relay_method(relay_method method) noexcept;
   relay_method get_relay_method() const noexcept;
+
+  //! \return True if `get_relay_method()` now returns `method`.
+  bool upgrade_relay_method(relay_method method) noexcept;
 
   //! See `relay_category` description
   bool matches(const relay_category category) const noexcept
@@ -440,7 +444,7 @@ private:
   /**
    * @brief remove data about a transaction
    *
-   * The subclass implementing this will remove the transaction data 
+   * The subclass implementing this will remove the transaction data
    * for the passed transaction.  The data to be removed was added in
    * add_transaction_data().  Additionally, current subclasses have behavior
    * which requires the transaction itself as a parameter here.  Future
@@ -1275,6 +1279,41 @@ public:
   virtual bool get_pruned_tx_blob(const crypto::hash& h, cryptonote::blobdata &tx) const = 0;
 
   /**
+   * @brief fetches a number of pruned transaction blob from the given hash, in canonical blockchain order
+   *
+   * The subclass should return the pruned transactions stored from the one with the given
+   * hash.
+   *
+   * If the first transaction does not exist, the subclass should return false.
+   * If the first transaction exists, but there are fewer transactions starting with it
+   * than requested, the subclass should return false.
+   *
+   * @param h the hash to look for
+   *
+   * @return true iff the transactions were found
+   */
+  virtual bool get_pruned_tx_blobs_from(const crypto::hash& h, size_t count, std::vector<cryptonote::blobdata> &bd) const = 0;
+
+  /**
+   * @brief fetches a variable number of blocks and transactions from the given height, in canonical blockchain order
+   *
+   * The subclass should return the blocks and transactions stored from the one with the given
+   * height. The number of blocks returned is variable, based on the max_size passed.
+   *
+   * @param start_height the height of the first block
+   * @param min_count the minimum number of blocks to return, if they exist
+   * @param max_count the maximum number of blocks to return
+   * @param max_size the maximum size of block/transaction data to return (will be exceeded by one blocks's worth at most, if min_count is met)
+   * @param blocks the returned block/transaction data
+   * @param pruned whether to return full or pruned tx data
+   * @param skip_coinbase whether to return or skip coinbase transactions (they're in blocks regardless)
+   * @param get_miner_tx_hash whether to calculate and return the miner (coinbase) tx hash
+   *
+   * @return true iff the blocks and transactions were found
+   */
+  virtual bool get_blocks_from(uint64_t start_height, size_t min_count, size_t max_count, size_t max_size, std::vector<std::pair<std::pair<cryptonote::blobdata, crypto::hash>, std::vector<std::pair<crypto::hash, cryptonote::blobdata>>>>& blocks, bool pruned, bool skip_coinbase, bool get_miner_tx_hash) const = 0;
+
+  /**
    * @brief fetches the prunable transaction blob with the given hash
    *
    * The subclass should return the prunable transaction stored which has the given
@@ -1436,7 +1475,7 @@ public:
    * @param outputs return-by-reference a list of outputs' metadata
    */
   virtual void get_output_key(const epee::span<const uint64_t> &amounts, const std::vector<uint64_t> &offsets, std::vector<output_data_t> &outputs, bool allow_partial = false) const = 0;
-  
+
   /*
    * FIXME: Need to check with git blame and ask what this does to
    * document it

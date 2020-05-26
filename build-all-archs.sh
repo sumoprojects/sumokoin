@@ -70,7 +70,7 @@ for arch in ${archs[@]}; do
        $extra_cmake_flags \
       ../..
 
-    make -j6 wallet_api
+    make -j2 wallet_api
     find . -path ./lib -prune -o -name '*.a' -exec cp '{}' lib \;
 
     TARGET_LIB_DIR=/opt/android/build/monero/$arch/lib

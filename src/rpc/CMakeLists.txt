@@ -26,8 +26,6 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-include_directories(SYSTEM ${ZMQ_INCLUDE_PATH})
-
 set(rpc_base_sources
   rpc_args.cpp
   rpc_payment_signature.cpp
@@ -35,6 +33,7 @@ set(rpc_base_sources
 
 set(rpc_sources
   bootstrap_daemon.cpp
+  bootstrap_node_selector.cpp
   core_rpc_server.cpp
   rpc_payment.cpp
   rpc_version_str.cpp

@@ -31,6 +31,12 @@
 #include "cryptonote_config.h"
 #include "common/util.h"
 
+#ifdef __APPLE__
+#define THREAD_STACK_SIZE 5 * 1024 * 1024
+#else
+#define THREAD_STACK_SIZE 10 * 1024 * 1024
+#endif
+
 static __thread int depth = 0;
 static __thread bool is_leaf = false;
 
@@ -71,6 +77,7 @@ void threadpool::recycle() {
 }
 
 void threadpool::create(unsigned int max_threads) {
+  const boost::unique_lock<boost::mutex> lock(mutex);
   boost::thread::attributes attrs;
   attrs.set_stack_size(THREAD_STACK_SIZE);
   max = max_threads ? max_threads : tools::get_max_concurrency();

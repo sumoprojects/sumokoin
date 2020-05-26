@@ -136,8 +136,8 @@ namespace cryptonote
   {
     std::map< uint64_t, crypto::hash >::const_iterator highest = 
         std::max_element( m_points.begin(), m_points.end(),
-                         ( boost::bind(&std::map< uint64_t, crypto::hash >::value_type::first, _1) < 
-                           boost::bind(&std::map< uint64_t, crypto::hash >::value_type::first, _2 ) ) );
+                         ( boost::bind(&std::map< uint64_t, crypto::hash >::value_type::first, boost::placeholders::_1) < 
+                           boost::bind(&std::map< uint64_t, crypto::hash >::value_type::first, boost::placeholders::_2 ) ) );
     return highest->first;
   }
   //---------------------------------------------------------------------------
@@ -193,6 +193,7 @@ namespace cryptonote
     ADD_CHECKPOINT(350000, "d3675de05fed5f6633288adb07ac4982b4c891be6347d9f6edfac9b21dbbd721"); // v9 fork
     ADD_CHECKPOINT(375000, "405fdfcd94e6acecd0f282f41c0983c1b3437dce84e566f763f2fd683da02ea3");
     ADD_CHECKPOINT(394000, "86462c05c540b2df7ac39a8e5d85dc08d191b5cbc1ea59c8e5966bdd2bd28f31");
+    ADD_CHECKPOINT(405000, "aaf7f8ceb403c3110dbb9256dd10f888524fed90159065400f52e663c1c3733f");	  	  
     return true;
   }
 

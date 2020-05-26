@@ -1057,7 +1057,7 @@ static OAES_RET oaes_encrypt_block(
 	}
 #endif // OAES_DEBUG
 
-	// for round = 1 step 1 to Nrâ€“1
+	// for round = 1 step 1 to Nr–1
 	for( _i = 1; _i < _ctx->key->num_keys - 1; _i++ )
 	{
 		// SubBytes(state)
