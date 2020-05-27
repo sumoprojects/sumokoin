@@ -83,7 +83,7 @@ void tree_hash(const char (*hashes)[HASH_SIZE], size_t count, char *root_hash) {
 
     size_t cnt = tree_hash_cnt( count );
 
-    char *ints = calloc(cnt, HASH_SIZE);  // zero out as extra protection for using uninitialized mem
+    char *ints = calloc(cnt, 2 * HASH_SIZE);  // zero out as extra protection for using uninitialized mem
     assert(ints);
 
     memcpy(ints, hashes, (2 * cnt - count) * HASH_SIZE);
