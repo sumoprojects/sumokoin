@@ -1531,10 +1531,15 @@ namespace cryptonote
               }
               return true;
             });
+#ifdef _WIN32
+            MGINFO_YELLOW("Synced " << current_blockchain_height << "/" << target_blockchain_height
+                                    << progress_message << timing_message << " syncing with " << n_syncing << " remote nodes" << std::flush);
+#else
             MGINFO_YELLOW("\033[0K" << "Synced " << current_blockchain_height << "/" << target_blockchain_height << "\033[1;32m"
-              << " [" << std::string(comp_perc / 2, '=') << (comp_perc < 100 ? ">" : "") << std::string(100 / 2 - comp_perc / 2, ' ') << "]" << "\033[1;33m"
-              << progress_message << timing_message << " syncing with " << "\033[1;32m" << n_syncing << "\033[1;33m"
-              << " remote nodes" << "\033[0m" << std::flush << "\033[F");
+                                    << " [" << std::string(comp_perc / 2, '=') << (comp_perc < 100 ? ">" : "") << std::string(100 / 2 - comp_perc / 2, ' ') << "]" << "\033[1;33m"
+                                    << progress_message << timing_message << " syncing with " << "\033[1;32m" << n_syncing << "\033[1;33m"
+                                    << " remote nodes" << "\033[0m" << std::flush << "\033[F");
+#endif
             if (previous_stripe != current_stripe)
               notify_new_stripe(context, current_stripe);
           }
