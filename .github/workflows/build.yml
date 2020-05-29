@@ -10,8 +10,8 @@ jobs:
       with:
         submodules: recursive
     - name: update brew and install dependencies
-      run: brew update && brew install boost hidapi zmq libpgm miniupnpc ldns expat libunwind-headers protobuf
-    - name: build
+      run: brew update && brew install boost hidapi zmq libpgm miniupnpc ldns expat libunwind-headers protobuf ccache
+    - name: build sumokoin
       run: make -j2
 
   build-windows:
@@ -21,20 +21,20 @@ jobs:
       with:
         submodules: recursive
     - uses: numworks/setup-msys2@v1
-    - name: update bash and pacman 
+    - name: update bash and pacman
       run: msys2do pacman --needed --noconfirm -S bash pacman
-    - name: kill gpg-agent
-      run: taskkill /F /IM gpg-agent.exe
-    - name: kill dirmngr
-      run: taskkill /F /IM dirmngr.exe 
+    - name: kill gpg-agent & dirmngr
+      run: |
+        taskkill /F /IM gpg-agent.exe
+        taskkill /F /IM dirmngr.exe
     - name: update packages
       run: msys2do pacman --noconfirm -Suu
     - name: install sumokoin dependencies
       run: msys2do pacman -S --noconfirm mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb git
-    - name: build
+    - name: build sumokoin
       run: msys2do make release-static-win64 -j2
 
-  build-ubuntu:
+  build-ubuntu-bionic:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -46,13 +46,142 @@ jobs:
       run: |
         echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
         echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom      
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
     - name: update apt
       run: sudo apt update
     - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev
-    - name: build
-      run: make -j2
+      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
+    - name: build sumokoin
+      run: make -j3
+
+  build-ubuntu-bionic-static:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: remove bundled boost
+      run: sudo rm -rf /usr/local/share/boost
+    - name: set apt conf
+      run: |
+        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: update apt
+      run: sudo apt update
+    - name: install sumokoin dependencies
+      run: sudo apt -y install build-essential cmake miniupnpc libunbound-dev graphviz doxygen pkg-config libssl-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libudev-dev ccache libtool autoconf automake python libtinfo5
+    - name: build boost 1_67
+      run: |
+        curl -s -L -o  boost_1_67_0.tar.bz2 https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.bz2/download
+        tar -xvf boost_1_67_0.tar.bz2
+        rm -f /usr/boost_1_67_0.tar.bz2
+        cd boost_1_67_0
+        sudo ./bootstrap.sh
+        sudo ./b2 install -j3
+        cd ..      
+    - name: build zmq
+      run: |
+        git clone https://github.com/zeromq/libzmq.git
+        cd libzmq
+        sudo ./autogen.sh
+        sudo ./configure
+        sudo make -j3
+        sudo make install
+        sudo ldconfig
+        cd ..
+    - name: build libunwind
+      run: |
+        git clone https://github.com/libunwind/libunwind
+        cd libunwind
+        sudo ./autogen.sh
+        sudo ./configure
+        sudo make -j3
+        sudo make install
+        cd ..
+    - name: build sumokoin
+      run: make release-static -j3
+
+  build-ubuntu-xenial:
+    runs-on: ubuntu-16.04
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: remove bundled boost
+      run: sudo rm -rf /usr/local/share/boost
+    - name: set apt conf
+      run: |
+        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: update apt
+      run: sudo apt update
+    - name: install sumokoin dependencies
+      run: sudo apt -y install build-essential libssl-dev cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
+    - name: manually install default xenial openssl workaround
+      run: |
+        sudo wget https://github.com/openssl/openssl/archive/OpenSSL_1_0_2g.tar.gz
+        sudo tar -xf OpenSSL_1_0_2g.tar.gz
+        cd openssl-OpenSSL_1_0_2g
+        sudo ./config 
+        sudo make -j 3
+        sudo make install -j 3
+        sudo ldconfig 
+        cd /home/runner/work/sumokoin/sumokoin
+    - name: build sumokoin
+      run: |
+        cmake -DOPENSSL_ROOT_DIR="/usr/local/ssl/"  
+        make -j3
+
+  build-ubuntu-xenial-static:
+    runs-on: ubuntu-16.04
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: remove bundled boost
+      run: |
+        sudo rm -rf /usr/local/share/boost
+    - name: set apt conf
+      run: |
+        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: update apt
+      run: sudo apt update
+    - name: install sumokoin dependencies
+      run: sudo apt -y install build-essential libssl-dev cmake miniupnpc libunbound-dev graphviz doxygen pkg-config libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libudev-dev ccache libtool autoconf automake python libtinfo5
+    - name: build boost 1_67
+      run: |
+        curl -s -L -o  boost_1_67_0.tar.bz2 https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.bz2/download
+        tar -xvf boost_1_67_0.tar.bz2
+        rm -f /usr/boost_1_67_0.tar.bz2
+        cd boost_1_67_0
+        sudo ./bootstrap.sh
+        sudo ./b2 install -j3
+        cd ..
+    - name: build zmq
+      run: |
+        git clone https://github.com/zeromq/libzmq.git
+        cd libzmq
+        sudo ./autogen.sh
+        sudo ./configure
+        sudo make -j3
+        sudo make install
+        sudo ldconfig
+        cd ..
+    - name: build libunwind
+      run: |
+        git clone https://github.com/libunwind/libunwind
+        cd libunwind
+        sudo ./autogen.sh
+        sudo ./configure
+        sudo make -j3
+        sudo make install
+        cd ..
+    - name: build sumokoin
+      run: make release-static -j3
 
   libwallet-ubuntu:
     runs-on: ubuntu-latest
@@ -66,16 +195,16 @@ jobs:
       run: |
         echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
         echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom      
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
     - name: update apt
       run: sudo apt update
     - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev
-    - name: build
+      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
+    - name: build sumokoin
       run: cmake -DBUILD_GUI_DEPS=ON && make -j2
 
   test-ubuntu:
-    needs: build-ubuntu
+    needs: build-ubuntu-bionic
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -87,7 +216,7 @@ jobs:
       run: |
         echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
         echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom      
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
     - name: update apt
       run: sudo apt update
     - name: install sumokoin dependencies
