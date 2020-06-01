@@ -1,9 +1,9 @@
 package=native_cmake
-$(package)_version=3.14.0
-$(package)_version_dot=v3.14
+$(package)_version=3.17.3
+$(package)_version_dot=v3.17.3
 $(package)_download_path=https://cmake.org/files/$($(package)_version_dot)/
 $(package)_file_name=cmake-$($(package)_version).tar.gz
-$(package)_sha256_hash=aa76ba67b3c2af1946701f847073f4652af5cbd9f141f221c97af99127e75502
+$(package)_sha256_hash=0bd60d512275dc9f6ef2a2865426a184642ceb3761794e6b65bff233b91d8c40
 
 define $(package)_set_vars
 $(package)_config_opts=
