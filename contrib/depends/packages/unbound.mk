@@ -1,8 +1,8 @@
 package=unbound
-$(package)_version=1.6.8
+$(package)_version=1.10.1
 $(package)_download_path=https://www.unbound.net/downloads/
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=e3b428e33f56a45417107448418865fe08d58e0e7fea199b855515f60884dd49
+$(package)_sha256_hash=b73677c21a71cf92f15cc8cfe76a3d875e40f65b6150081c39620b286582d536
 $(package)_dependencies=openssl expat ldns
 
 define $(package)_set_vars
