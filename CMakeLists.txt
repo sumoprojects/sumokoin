@@ -198,7 +198,6 @@ if(NOT MANUAL_SUBMODULES)
     endfunction ()
 
     message(STATUS "Checking submodules")
-    check_submodule(external/unbound)
     check_submodule(external/rapidjson)
   endif()
 endif()
