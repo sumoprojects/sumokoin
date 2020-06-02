@@ -43,6 +43,8 @@ namespace tools
     wint_t cp = 0;
     int bytes = 1;
     char wbuf[8], *wptr;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
     while (avail--)
     {
       if ((*ptr & 0x80) == 0)
@@ -109,6 +111,7 @@ namespace tools
       cp = 0;
       bytes = 1;
     }
+#pragma GCC diagnostic pop
     return sc;
   }
 }
