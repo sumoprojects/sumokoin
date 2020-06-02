@@ -44,7 +44,6 @@ const hardfork_t mainnet_hard_forks[] = {
   { 9, 350000, 0, 1574120819 }, // abt 6h47' Nov 19, 2019
 };
 const size_t num_mainnet_hard_forks = sizeof(mainnet_hard_forks) / sizeof(mainnet_hard_forks[0]);
-const uint64_t mainnet_hard_fork_version_1_till = (uint64_t)-1;
 
 const hardfork_t testnet_hard_forks[] = {
   { 1, 1, 0, 1482806500 },
@@ -58,7 +57,6 @@ const hardfork_t testnet_hard_forks[] = {
   { 9, 164100, 0, 1572592223 },
 };
 const size_t num_testnet_hard_forks = sizeof(testnet_hard_forks) / sizeof(testnet_hard_forks[0]);
-const uint64_t testnet_hard_fork_version_1_till = (uint64_t)-1;;
 
 const hardfork_t stagenet_hard_forks[] = {
   { 1, 1, 0, 1482806500 },
