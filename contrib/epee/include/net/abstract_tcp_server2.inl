@@ -771,7 +771,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     }
     if (m_was_shutdown)
     {
-      MERROR("Setting timer on a shut down object");
+      MWARNING("Setting timer on a shut down object");
       return;
     }
     if (add)
