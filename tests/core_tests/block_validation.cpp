@@ -28,7 +28,7 @@
 // 
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#include "chaingen.h"
+// #include "chaingen.h" // already #included in block_validation.h
 #include "block_validation.h"
 
 using namespace epee;

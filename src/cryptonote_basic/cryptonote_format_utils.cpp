@@ -36,8 +36,8 @@
 #include "serialization/string.h"
 #include "cryptonote_format_utils.h"
 #include "cryptonote_config.h"
-#include "crypto/crypto.h"
-#include "crypto/hash.h"
+// #include "crypto/crypto.h" // already #included in cryptonote_basic/cryptonote_format_utils.h
+// #include "crypto/hash.h" // already #included in cryptonote_basic/cryptonote_format_utils.h
 #include "ringct/rctSigs.h"
 
 using namespace epee;
@@ -161,6 +161,8 @@ namespace cryptonote
     if (tx.version >= 2 && !is_coinbase(tx))
     {
       rct::rctSig &rv = tx.rct_signatures;
+      if (rv.type == rct::RCTTypeNull)
+        return true;
       if (rv.outPk.size() != tx.vout.size())
       {
         LOG_PRINT_L1("Failed to parse transaction from blob, bad outPk size in tx " << get_transaction_hash(tx));

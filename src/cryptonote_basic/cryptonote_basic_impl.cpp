@@ -40,7 +40,7 @@ using namespace epee;
 #include "cryptonote_config.h"
 #include "misc_language.h"
 #include "common/base58.h"
-#include "crypto/hash.h"
+// #include "crypto/hash.h" // already #included in cryptonote_basic/cryptonote_basic_impl.h
 #include "int-util.h"
 #include "common/dns_utils.h"
 

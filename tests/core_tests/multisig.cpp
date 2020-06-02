@@ -32,7 +32,7 @@
 #include "cryptonote_basic/cryptonote_basic.h"
 #include "multisig/multisig.h"
 #include "common/apply_permutation.h"
-#include "chaingen.h"
+// #include "chaingen.h" //already #included in multisig.h
 #include "multisig.h"
 #include "device/device.hpp"
 using namespace epee;

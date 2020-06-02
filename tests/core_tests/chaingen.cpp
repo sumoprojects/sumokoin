@@ -37,15 +37,15 @@
 #include <sstream>
 #include <fstream>
 
-#include "include_base_utils.h"
+// #include "include_base_utils.h" // already #included in chaingen.h
 
 #include "console_handler.h"
 
 #include "p2p/net_node.h"
-#include "cryptonote_basic/cryptonote_basic.h"
-#include "cryptonote_basic/cryptonote_basic_impl.h"
-#include "cryptonote_basic/cryptonote_format_utils.h"
-#include "cryptonote_basic/miner.h"
+// #include "cryptonote_basic/cryptonote_basic.h" // already #included in chaingen.h
+// #include "cryptonote_basic/cryptonote_basic_impl.h" // already #included in chaingen.h
+// #include "cryptonote_basic/cryptonote_format_utils.h" // already #included in chaingen.h
+// #include "cryptonote_basic/miner.h" // already #included in chaingen.h
 
 #include "chaingen.h"
 #include "device/device.hpp"

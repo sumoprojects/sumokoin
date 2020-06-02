@@ -1081,7 +1081,7 @@ typedef struct MDB_node {
 /** @} */
 	unsigned short	mn_flags;		/**< @ref mdb_node */
 	unsigned short	mn_ksize;		/**< key size */
-	char		mn_data[1];			/**< key and data are appended here */
+	char		mn_data[8];		/**< key and data are appended here */
 } MDB_node;
 
 	/** Size of the node header, excluding dynamic data at the end */

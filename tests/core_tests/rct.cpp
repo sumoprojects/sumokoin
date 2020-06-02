@@ -29,7 +29,7 @@
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include "ringct/rctSigs.h"
-#include "chaingen.h"
+// #include "chaingen.h" // already #Sincluded in rct.h
 #include "rct.h"
 #include "device/device.hpp"
 

@@ -28,7 +28,7 @@
 // 
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#include "chaingen.h"
+// #include "chaingen.h" // already #included in chain_switch_1.h
 #include "chain_switch_1.h"
 
 using namespace epee;

@@ -60,9 +60,9 @@ static size_t query_page_size()
 #else
 #if defined __GNUC__ && !defined _WIN32
 #warning Missing query_page_size implementation
-#endif
-#endif
   return 0;
+#endif
+#endif
 }
 
 static void do_lock(void *ptr, size_t len)
