@@ -30,7 +30,7 @@
 #include "string_coding.h"
 #include <boost/format.hpp>
 #include "wallet_errors.h"
-#include "net/http_client.h"
+// #include "net/http_client.h" already #included in /wallet/message_transporter.h
 #include "net/net_parse_helpers.h"
 #include <algorithm>
 

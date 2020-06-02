@@ -36,7 +36,7 @@
 #include "common/util.h"
 #include "common/updates.h"
 #include "version.h"
-#include "net/http_client.h"
+// #include "net/http_client.h" // already #included in wallet/api/wallet_manager.h
 #include <boost/filesystem.hpp>
 #include <boost/regex.hpp>
 

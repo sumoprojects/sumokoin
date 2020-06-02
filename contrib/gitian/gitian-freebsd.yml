@@ -26,10 +26,8 @@ packages:
 - "python"
 - "cmake"
 - "ccache"
-- "protobuf-compiler"
 - "libdbus-1-dev"
 - "libharfbuzz-dev"
-- "libprotobuf-dev"
 - "python3-zmq"
 remotes:
 - "url": "https://github.com/sumoprojects/sumokoin.git"

@@ -6,6 +6,19 @@ Portions Copyright (c) 2014-2020, The Monero Project
 
 Portions Copyright (c) 2012-2013, The Cryptonote developers
 
+## Table of Contents
+  - [Development resources](#development-resources)
+  - [Introduction](#introduction)
+  - [Coin Supply & Emission](#coin-supply-&-emission)
+  - [About this project](#about-this-project)
+  - [License](#license)
+  - [Compiling Sumokoin from source](#compiling-sumokoin-from-source)
+    - [Dependencies](#dependencies)
+  - [Using Tor](#using-tor)
+  - [Pruning](#Pruning)
+  - [Debugging](#Debugging)
+  - [Known issues](#known-issues)
+  
 ## Development Resources
 
 - Web: [www.sumokoin.org](https://www.sumokoin.org)
@@ -19,7 +32,7 @@ Sumokoin (スモコイン in Japanese) is a fork from Monero, one of the most re
 
 Sumokoin, therefore, is a new Monero without its legacy, a _truely fungible_ cryptocurrency among just a few ones in the market.
 
-## Coin Supply & Emission
+## Coin Supply & Emission<a name="coin-supply-&-emission" />
 
 - **Total supply**: **88,888,888** coins in first 20 years, then **263,000** coins each year for inflation.
 About 10% (~8.8 million) was premined to reserve for future development, i.e. **80 million coins available** for community mining.
@@ -90,7 +103,6 @@ library archives (`.a`).
 | lrelease     | ?             | NO       | `qttools5-dev-tools` | `qt5-tools`  | `qt5-linguist`      | YES      | Translations    |
 | libhidapi    | ?             | NO       | `libhidapi-dev`      | `hidapi`     | `hidapi-devel`      | YES      | Hardware wallet |
 | libusb       | ?             | NO       | `libusb-dev`         | `libusb`     | `libusb-devel`      | YES      | Hardware wallet |
-| libprotobuf  | ?             | NO       | `libprotobuf-dev`    | `protobuf`   | `protobuf-devel`    | YES      | Hardware wallet |
 | protoc       | ?             | NO       | `protobuf-compiler`  | `protobuf`   | `protobuf-compiler` | YES      | Hardware wallet |
 
 
@@ -100,7 +112,7 @@ build the library binary manually. This can be done with the following command `
 
 Install all dependencies at once on Debian/Ubuntu:
 
-``` sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev libusb-dev libprotobuf-dev protobuf-compiler ```
+``` sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev libusb-dev ```
 
 Install all dependencies at once on macOS with the provided Brewfile:
 ``` brew update && brew bundle --file=contrib/brew/Brewfile ```
@@ -129,7 +141,7 @@ invokes cmake commands as needed.
 
     \- On Ubuntu, essential dependencies can be installed with the following command:
 
-    	sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev libusb-dev libprotobuf-dev protobuf-compiler
+    	sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev libusb-dev
 
 * Change to the root of the source code directory and build:
 
@@ -512,6 +524,17 @@ allow inbound connections. Full example:
     DNS_PUBLIC=tcp torsocks ./sumokoind --p2p-bind-ip 127.0.0.1 --no-igd --rpc-bind-ip 127.0.0.1 \
         --data-dir /home/amnesia/Persistent/your/directory/to/the/blockchain
 ```
+
+## Pruning
+
+As of May 2020, the full Sumokoin blockchain file is on about 25 GB. One can store a pruned blockchain, which is almost **one
+third** in size from the full blockchain size.
+A pruned blockchain can only serve part of the historical chain data to other peers, but is otherwise identical in
+functionality to the full blockchain.
+To use a pruned blockchain, it is best to start the initial sync with --pruned-blockchain. However, it is also possible
+to prune an existing blockchain using the sumo-blockchain-prune tool or using the --pruned-blockchain sumokoind option
+with an existing chain. If an existing chain exists, pruning will temporarily require disk space to store both the full
+and pruned blockchains.
 
 # Debugging
 

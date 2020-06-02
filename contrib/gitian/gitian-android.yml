@@ -25,10 +25,8 @@ packages:
 - "python"
 - "cmake"
 - "ccache"
-- "protobuf-compiler"
 - "libdbus-1-dev"
 - "libharfbuzz-dev"
-- "libprotobuf-dev"
 - "python3-zmq"
 - "unzip"
 remotes:

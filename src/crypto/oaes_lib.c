@@ -468,17 +468,31 @@ OAES_RET oaes_sprintf(
 #ifdef OAES_HAVE_ISAAC
 static void oaes_get_seed( char buf[RANDSIZ + 1] )
 {
-	struct timeval timer;
+#if defined(__MINGW32__) || defined(__MINGW64__)
+	struct timeb timer;
+	struct tm *gmTimer;
+	char * _test = NULL;
+
+	ftime (&timer);
+	gmTimer = gmtime( &timer.time );
+	_test = (char *) calloc( sizeof( char ), timer.millitm );
+	sprintf( buf, "%04d%02d%02d%02d%02d%02d%03d%p%d",
+		gmTimer->tm_year + 1900, gmTimer->tm_mon + 1, gmTimer->tm_mday,
+		gmTimer->tm_hour, gmTimer->tm_min, gmTimer->tm_sec, timer.millitm,
+		_test + timer.millitm, GETPID() );
+#else
+	struct timeval now;
 	struct tm *gmTimer;
 	char * _test = NULL;
 	
-	gettimeofday(&timer, NULL);
-	gmTimer = gmtime( &timer.tv_sec );
-	_test = (char *) calloc( sizeof( char ), timer.tv_usec/1000 );
+	gettimeofday(&now, NULL);
+	gmTimer = gmtime(&now.tv_sec);
+	_test = (char *) calloc( sizeof( char ), now.tv_usec/1000 );
 	sprintf( buf, "%04d%02d%02d%02d%02d%02d%03d%p%d",
 		gmTimer->tm_year + 1900, gmTimer->tm_mon + 1, gmTimer->tm_mday,
-		gmTimer->tm_hour, gmTimer->tm_min, gmTimer->tm_sec, timer.tv_usec/1000,
-		_test + timer.tv_usec/1000, GETPID() );
+		gmTimer->tm_hour, gmTimer->tm_min, gmTimer->tm_sec, now.tv_usec/1000,
+		_test + now.tv_usec/1000, GETPID() );
+#endif
 		
 	if( _test )
 		free( _test );
@@ -486,17 +500,31 @@ static void oaes_get_seed( char buf[RANDSIZ + 1] )
 #else
 static uint32_t oaes_get_seed(void)
 {
-	struct timeval timer;
+#if defined(__MINGW32__) || defined(__MINGW64__)
+	struct timeb timer;
+	struct tm *gmTimer;
+	char * _test = NULL;
+	uint32_t _ret = 0;
+
+	ftime (&timer);
+	gmTimer = gmtime( &timer.time );
+	_test = (char *) calloc( sizeof( char ), timer.millitm );
+	_ret = gmTimer->tm_year + 1900 + gmTimer->tm_mon + 1 + gmTimer->tm_mday +
+			gmTimer->tm_hour + gmTimer->tm_min + gmTimer->tm_sec + timer.millitm +
+			(uintptr_t) ( _test + timer.millitm ) + GETPID();
+#else
+	struct timeval now;
 	struct tm *gmTimer;
 	char * _test = NULL;
 	uint32_t _ret = 0;
 	
-	gettimeofday(&timer, NULL);
-	gmTimer = gmtime( &timer.tv_sec );
-	_test = (char *) calloc( sizeof( char ), timer.tv_usec/1000 );
+	gettimeofday(&now, NULL);
+	gmTimer = gmtime( &now.tv_sec );
+	_test = (char *) calloc( sizeof( char ), now.tv_usec/1000 );
 	_ret = gmTimer->tm_year + 1900 + gmTimer->tm_mon + 1 + gmTimer->tm_mday +
-			gmTimer->tm_hour + gmTimer->tm_min + gmTimer->tm_sec + timer.tv_usec/1000 +
-			(uintptr_t) ( _test + timer.tv_usec/1000 ) + GETPID();
+			gmTimer->tm_hour + gmTimer->tm_min + gmTimer->tm_sec + now.tv_usec/1000 +
+			(uintptr_t) ( _test + now.tv_usec/1000 ) + GETPID();
+#endif
 	if( _test )
 		free( _test );
 	

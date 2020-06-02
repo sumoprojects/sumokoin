@@ -32,7 +32,7 @@
 #include "address_book.h"
 #include "wallet.h"
 #include "crypto/hash.h"
-#include "wallet/wallet2.h"
+// #include "wallet/wallet2.h" // // already #included in wallet/api/address_book.h
 #include "common_defines.h"
 
 #include <vector>
