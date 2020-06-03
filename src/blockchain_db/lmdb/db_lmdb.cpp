@@ -669,11 +669,7 @@ void BlockchainLMDB::check_and_resize_for_batch(uint64_t batch_num_blocks, uint6
   // size-based check
   if (need_resize(threshold_size))
   {
-#ifdef _WIN32
     MGINFO("[batch] DB resize needed");
-#else
-    MGINFO("\033[K[batch] DB resize needed\033[0m");
-#endif
     do_resize(increase_size);
   }
 }
