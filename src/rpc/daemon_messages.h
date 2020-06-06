@@ -115,16 +115,30 @@ BEGIN_RPC_MESSAGE_CLASS(GetHashesFast);
 END_RPC_MESSAGE_CLASS;
 
 
-BEGIN_RPC_MESSAGE_CLASS(GetTransactions);
-  BEGIN_RPC_MESSAGE_REQUEST;
-    RPC_MESSAGE_MEMBER(std::vector<crypto::hash>, tx_hashes);
-  END_RPC_MESSAGE_REQUEST;
-  BEGIN_RPC_MESSAGE_RESPONSE;
+class GetTransactions
+{
+  public:
+    class Request final : public Message 
+    { 
+      public: 
+        Request() { } 
+        ~Request() { } 
+        void doToJson(rapidjson::Writer<epee::byte_stream>& dest) const override final; 
+        void fromJson(const rapidjson::Value& val) override final;
+    std::vector<crypto::hash> tx_hashes = {};
+     };
+      class Response final : public Message 
+    { 
+      public: 
+        Response() { } 
+        ~Response() { } 
+        void doToJson(rapidjson::Writer<epee::byte_stream>& dest) const override final; 
+        void fromJson(const rapidjson::Value& val) override final;
     using txes_map = std::unordered_map<crypto::hash, transaction_info>;
-    RPC_MESSAGE_MEMBER(txes_map, txs);
-    RPC_MESSAGE_MEMBER(std::vector<crypto::hash>, missed_hashes);
-  END_RPC_MESSAGE_RESPONSE;
-END_RPC_MESSAGE_CLASS;
+    txes_map txs = txes_map{};
+    std::vector<crypto::hash> missed_hashes = {};
+   };
+};
 
 
 BEGIN_RPC_MESSAGE_CLASS(KeyImagesSpent);
@@ -314,14 +328,28 @@ BEGIN_RPC_MESSAGE_CLASS(SetLogLevel);
   END_RPC_MESSAGE_RESPONSE;
 END_RPC_MESSAGE_CLASS;
 
-BEGIN_RPC_MESSAGE_CLASS(GetTransactionPool);
-    BEGIN_RPC_MESSAGE_REQUEST;
-    END_RPC_MESSAGE_REQUEST;
-  BEGIN_RPC_MESSAGE_RESPONSE;
-    RPC_MESSAGE_MEMBER(std::vector<cryptonote::rpc::tx_in_pool>, transactions);
-    RPC_MESSAGE_MEMBER(key_images_with_tx_hashes, key_images);
-  END_RPC_MESSAGE_RESPONSE;
-END_RPC_MESSAGE_CLASS;
+class GetTransactionPool
+{ 
+  public: 
+    class Request final : public Message 
+    { 
+      public: 
+        Request() { } 
+        ~Request() { } 
+        void doToJson(rapidjson::Writer<epee::byte_stream>& dest) const override final; 
+        void fromJson(const rapidjson::Value& val) override final;
+    };
+    class Response final : public Message 
+    { 
+      public: 
+        Response() { } 
+        ~Response() { } 
+        void doToJson(rapidjson::Writer<epee::byte_stream>& dest) const override final; 
+        void fromJson(const rapidjson::Value& val) override final;
+    std::vector<cryptonote::rpc::tx_in_pool> transactions = {};
+    key_images_with_tx_hashes key_images = key_images_with_tx_hashes{};
+    };
+};
 
 BEGIN_RPC_MESSAGE_CLASS(GetConnections);
   BEGIN_RPC_MESSAGE_REQUEST;
