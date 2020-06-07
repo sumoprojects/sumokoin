@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script will install the essential Sumokoin dependencies for building on Debian/Ubuntu systems
-# Copyright (c) 2017-2019, Sumokoin Project
+# Copyright (c) 2017-2020, Sumokoin Project
 
 sudo apt update 
 
