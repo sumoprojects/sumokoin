@@ -534,8 +534,8 @@ allow inbound connections. Full example:
 
 ## Pruning
 
-As of May 2020, the full Sumokoin blockchain file is on about 25 GB. One can store a pruned blockchain, which is almost **one
-third** in size from the full blockchain size.
+As of June 2020, the full Sumokoin blockchain file is on about 22 GB. One can store a pruned blockchain, which is **less than one
+fourth** in size from the full blockchain size (June 2020 4.6 GB).
 A pruned blockchain can only serve part of the historical chain data to other peers, but is otherwise identical in
 functionality to the full blockchain.
 To use a pruned blockchain, it is best to start the initial sync with --pruned-blockchain. However, it is also possible
