@@ -1,4 +1,4 @@
-name: continuous-integration/gh-actions/cli
+name: Continuous_Integration_Testing
 
 on: [push, pull_request]
 
@@ -13,26 +13,22 @@ jobs:
       run: brew update && brew install boost hidapi zmq libpgm miniupnpc ldns expat libunwind-headers protobuf ccache
     - name: build sumokoin
       run: make -j2
-
+      
   build-windows:
     runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
-    - uses: numworks/setup-msys2@v1
-    - name: update bash and pacman
-      run: msys2do pacman --needed --noconfirm -S bash pacman
-    - name: kill gpg-agent & dirmngr
-      run: |
-        taskkill /F /IM gpg-agent.exe
-        taskkill /F /IM dirmngr.exe
-    - name: update packages
-      run: msys2do pacman --noconfirm -Suu
-    - name: install sumokoin dependencies
-      run: msys2do pacman -S --noconfirm mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb git
+    - uses: eine/setup-msys2@v1
+      with:
+        update: true
+        install: mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb git
     - name: build sumokoin
-      run: msys2do make release-static-win64 -j2
+      run: make release-static-win64 -j2
 
   build-ubuntu-bionic:
     runs-on: ubuntu-latest
