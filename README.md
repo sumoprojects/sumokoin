@@ -8,6 +8,7 @@ Portions Copyright (c) 2012-2013, The Cryptonote developers
 
 ## Table of Contents
   - [Development resources](#development-resources)
+  - [Coverage](#coverage)
   - [Introduction](#introduction)
   - [Coin Supply & Emission](#coin-supply-&-emission)
   - [About this project](#about-this-project)
@@ -25,6 +26,12 @@ Portions Copyright (c) 2012-2013, The Cryptonote developers
 - Mail: [contact@sumokoin.org](mailto:contact@sumokoin.org)
 
 Please note that code is developed on the [dev branch](https://github.com/sumoprojects/sumokoin/tree/dev), if you want to check out the latest updates, before they are merged on main branch, please refer there. Master branch will always point to a version that we consider stable, so you can download the code by simply typing `git clone https://github.com/sumoprojects/sumokoin.git`
+
+## Coverage
+
+| Type         |    Status |
+|--------------|-----------|
+|Workflows     | [![WorkFlow Status](https://github.com/sumoprojects/sumokoin/workflows/Continuous_Integration_Testing/badge.svg)](https://github.com/sumoprojects/sumokoin/actions)
 
 ## Introduction
 
@@ -527,8 +534,8 @@ allow inbound connections. Full example:
 
 ## Pruning
 
-As of May 2020, the full Sumokoin blockchain file is on about 25 GB. One can store a pruned blockchain, which is almost **one
-third** in size from the full blockchain size.
+As of June 2020, the full Sumokoin blockchain file is on about 22 GB. One can store a pruned blockchain, which is **less than one
+fourth** in size from the full blockchain size (June 2020 4.6 GB).
 A pruned blockchain can only serve part of the historical chain data to other peers, but is otherwise identical in
 functionality to the full blockchain.
 To use a pruned blockchain, it is best to start the initial sync with --pruned-blockchain. However, it is also possible
