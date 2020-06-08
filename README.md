@@ -8,6 +8,7 @@ Portions Copyright (c) 2012-2013, The Cryptonote developers
 
 ## Table of Contents
   - [Development resources](#development-resources)
+  - [Coverage](#coverage)
   - [Introduction](#introduction)
   - [Coin Supply & Emission](#coin-supply-&-emission)
   - [About this project](#about-this-project)
@@ -25,6 +26,12 @@ Portions Copyright (c) 2012-2013, The Cryptonote developers
 - Mail: [contact@sumokoin.org](mailto:contact@sumokoin.org)
 
 Please note that code is developed on the [dev branch](https://github.com/sumoprojects/sumokoin/tree/dev), if you want to check out the latest updates, before they are merged on main branch, please refer there. Master branch will always point to a version that we consider stable, so you can download the code by simply typing `git clone https://github.com/sumoprojects/sumokoin.git`
+
+## Coverage
+
+| Type         |    Status |
+|--------------|-----------|
+|Workflows     | [![WorkFlow Status](https://github.com/sumoprojects/sumokoin/workflows/Continuous_Integration_Testing/badge.svg)](https://github.com/sumoprojects/sumokoin/actions)
 
 ## Introduction
 
