@@ -2268,9 +2268,17 @@ skip:
     {
       MGINFO_YELLOW(ENDL << "**********************************************************************" << ENDL
         << "You are now synchronized with the network. You may now start sumo-wallet-cli." << ENDL
-        << ENDL
+        << ENDL 
         << "Use the \"help\" command to see the list of available commands." << ENDL
-        << "**********************************************************************");
+        << ENDL
+        << "Your current database size is " << m_core.get_blockchain_storage().get_db().get_database_size() / (1024 * 1024) << " MB" << ENDL
+        << "Your free space remaining is " << m_core.get_free_space() / (1024 * 1024) << " MB" << ENDL);
+      if ((m_core.get_free_space() / (1024 * 1024 * 1024)) > 22)
+       {
+         MGINFO_YELLOW(ENDL << "Consider pruning your blockchain by using 'sumo-blockchain-prune' from the blockchain_utilities folder" << ENDL
+           << "Pruning will decrease its size down to approximately " <<  (((m_core.get_blockchain_storage().get_db().get_database_size()) / (45 / 10)) / (1024 * 1024 * 1024)) << " GB");
+       }
+      MGINFO_YELLOW("**********************************************************************");
       m_sync_timer.pause();
       if (ELPP->vRegistry()->allowed(el::Level::Info, "sync-info"))
       {
