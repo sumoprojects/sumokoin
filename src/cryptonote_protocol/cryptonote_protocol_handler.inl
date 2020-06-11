@@ -2,7 +2,7 @@
 /// @author rfree (current maintainer/user in monero.cc project - most of code is from CryptoNote)
 /// @brief This is the original cryptonote protocol network-events handler, modified by us
 
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -798,7 +798,7 @@ namespace cryptonote
       drop_connection(context, false, false);
       return 1;
     }
-    
+
     std::vector<std::pair<cryptonote::blobdata, block>> local_blocks;
     std::vector<cryptonote::blobdata> local_txs;
 
@@ -890,7 +890,7 @@ namespace cryptonote
   {
     MLOG_P2P_MESSAGE("Received NOTIFY_GET_TXPOOL_COMPLEMENT (" << arg.hashes.size() << " txes)");
     if(context.m_state != cryptonote_connection_context::state_normal)
-      return 1;    
+      return 1;
 
     std::vector<std::pair<cryptonote::blobdata, block>> local_blocks;
     std::vector<cryptonote::blobdata> local_txs;
@@ -998,7 +998,7 @@ namespace cryptonote
       LOG_ERROR_CCONTEXT("Requested objects before handshake, dropping connection");
       drop_connection(context, false, false);
       return 1;
-    }    
+    }
     MLOG_P2P_MESSAGE("Received NOTIFY_REQUEST_GET_OBJECTS (" << arg.blocks.size() << " blocks)");
     if (arg.blocks.size() > CURRENCY_PROTOCOL_MAX_OBJECT_REQUEST_COUNT)
       {
@@ -1531,15 +1531,8 @@ namespace cryptonote
               }
               return true;
             });
-#ifdef _WIN32
             MGINFO_YELLOW("Synced " << current_blockchain_height << "/" << target_blockchain_height
                                     << progress_message << timing_message << " syncing with " << n_syncing << " remote nodes" << std::flush);
-#else
-            MGINFO_YELLOW("\033[0K" << "Synced " << current_blockchain_height << "/" << target_blockchain_height << "\033[1;32m"
-                                    << " [" << std::string(comp_perc / 2, '=') << (comp_perc < 100 ? ">" : "") << std::string(100 / 2 - comp_perc / 2, ' ') << "]" << "\033[1;33m"
-                                    << progress_message << timing_message << " syncing with " << "\033[1;32m" << n_syncing << "\033[1;33m"
-                                    << " remote nodes" << "\033[0m" << std::flush << "\033[F");
-#endif
             if (previous_stripe != current_stripe)
               notify_new_stripe(context, current_stripe);
           }
@@ -1695,7 +1688,7 @@ skip:
       LOG_ERROR_CCONTEXT("Requested chain before handshake, dropping connection");
       drop_connection(context, false, false);
       return 1;
-    }    
+    }
     NOTIFY_RESPONSE_CHAIN_ENTRY::request r;
     if(!m_core.find_blockchain_supplement(arg.block_ids, !arg.prune, r))
     {
@@ -1888,7 +1881,7 @@ skip:
     // don't request pre-bulletprooof pruned blocks, we can't reconstruct their weight (yet)
     static const uint64_t bp_fork_height = m_core.get_earliest_ideal_height_for_version(7);
     if (first_block_height + nblocks - 1 < bp_fork_height)
-      return false;    
+      return false;
     // assumes the span size is less or equal to the stripe size
     bool full_data_needed = tools::get_pruning_stripe(first_block_height, context.m_remote_blockchain_height, CRYPTONOTE_PRUNING_LOG_STRIPES) == local_stripe
         || tools::get_pruning_stripe(first_block_height + nblocks - 1, context.m_remote_blockchain_height, CRYPTONOTE_PRUNING_LOG_STRIPES) == local_stripe;
@@ -2270,6 +2263,7 @@ skip:
   template<class t_core>
   bool t_cryptonote_protocol_handler<t_core>::on_connection_synchronized()
   {
+    uint64_t free_space = m_core.get_free_space();
     bool val_expected = false;
     if(!m_core.is_within_compiled_block_hash_area(m_core.get_current_blockchain_height()) && m_synchronized.compare_exchange_strong(val_expected, true))
     {
@@ -2277,7 +2271,14 @@ skip:
         << "You are now synchronized with the network. You may now start sumo-wallet-cli." << ENDL
         << ENDL
         << "Use the \"help\" command to see the list of available commands." << ENDL
-        << "**********************************************************************");
+        << ENDL
+        << "Your free disk space remaining is " << free_space / (1024 * 1024) << " MB" << ENDL);
+      if ((free_space / (1024 * 1024 * 1024)) < 1)
+       {
+         MGINFO_YELLOW(ENDL << " You are low on available disk space, consider pruning your blockchain by using 'sumo-blockchain-prune' from the blockchain_utilities folder" << ENDL
+                            << " Pruning will reduce your chain's size to less than one fourth of its current size" << ENDL);
+       }
+      MGINFO_YELLOW("**********************************************************************");
       m_sync_timer.pause();
       if (ELPP->vRegistry()->allowed(el::Level::Info, "sync-info"))
       {

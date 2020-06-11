@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
+# Copyright (c) 2014-2020, The Monero Project
 #
 # All rights reserved.
 #
@@ -198,7 +198,6 @@ if(NOT MANUAL_SUBMODULES)
     endfunction ()
 
     message(STATUS "Checking submodules")
-    check_submodule(external/unbound)
     check_submodule(external/rapidjson)
   endif()
 endif()

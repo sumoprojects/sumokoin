@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2019, The Monero Project
+// Copyright (c) 2016-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -66,11 +66,7 @@ class classname \
 #define END_RPC_MESSAGE_RESPONSE };
 #define END_RPC_MESSAGE_CLASS };
 
-// NOTE: when using a type with multiple template parameters,
-// replace any comma in the template specifier with the macro
-// above, or the preprocessor will eat the comma in a bad way.
 #define RPC_MESSAGE_MEMBER(type, name) type name = {}
-
 
 namespace cryptonote
 {
