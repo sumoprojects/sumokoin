@@ -63,6 +63,7 @@ static size_t query_page_size()
   return 0;
 #endif
 #endif
+  return 0;  
 }
 
 static void do_lock(void *ptr, size_t len)
