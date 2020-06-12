@@ -4202,14 +4202,6 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
       CHECK_AND_ASSERT_MES(r, false, tr("account creation failed"));
       password = *r;
       welcome = true;
-      std::string mnemonic_language = get_mnemonic_language();
-      m_wallet->set_seed_language(mnemonic_language);
-      m_wallet->rewrite(m_wallet_file, password);
-
-      // Display the seed
-      epee::wipeable_string seed;
-      m_wallet->get_seed(seed);
-      print_seed(seed);
     }
 
     // Asks user for all the data required to merge secret keys from multisig wallets into one master wallet, which then gets full control of the multisig wallet. The resulting wallet will be the same as any other regular wallet.
