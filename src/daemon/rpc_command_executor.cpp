@@ -670,7 +670,6 @@ bool t_rpc_command_executor::show_status() {
       % (unsigned int)fmod(uptime, 60.0)
     ;
   }
-  std::string hf_status = (hfres.state == cryptonote::HardFork::Ready ? "up to date" : hfres.state == cryptonote::HardFork::UpdateNeeded ? "update needed" : "out of date, likely forked");
   std::string hf_next = get_fork_extra_info(hfres.earliest_height, net_height, ires.target);
   if (hf_next.empty())
   {
@@ -682,7 +681,7 @@ bool t_rpc_command_executor::show_status() {
   std::cout << "-------------" << std::endl;
   std::cout << "Network: \033[0m" << "\033[32;1m" << network_type << "\033[0m" << " " <<
    	         "\033[1mVersion: \033[0m" << "\033[32;1m" << SUMOKOIN_RELEASE_NAME << " " << SUMOKOIN_VERSION << "\033[0m" << "  " <<
-  	         "\033[1mHardfork Version: \033[0m" << "\033[32;1m" << (unsigned)hfres.version << " " << hf_status << "\033[0m"  << "  " <<
+  	         "\033[1mHardfork Version: \033[0m" << "\033[32;1m" << (unsigned)hfres.version << "\033[0m"  << "  " <<
   	         "\033[1mNext hardfork: \033[0m" << "\033[32;1m" << hf_next << "\033[0m" << std::endl;
   std::cout << "\033[1m---------------" << std::endl;
   std::cout << "BLOCKCHAIN INFO" << std::endl;
