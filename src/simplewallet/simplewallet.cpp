@@ -275,6 +275,7 @@ namespace
   const char* USAGE_THAW("thaw <key_image>");
   const char* USAGE_FROZEN("frozen <key_image>");
   const char* USAGE_LOCK("lock");
+  const char* USAGE_DISABLE_LOCK("disable_lock");
   const char* USAGE_NET_STATS("net_stats");
   const char* USAGE_PUBLIC_NODES("public_nodes");
   const char* USAGE_WELCOME("welcome");
@@ -2943,6 +2944,16 @@ bool simple_wallet::set_inactivity_lock_timeout(const std::vector<std::string> &
   return true;
 }
 
+bool simple_wallet::disable_lock(const std::vector<std::string> &args)
+{
+#ifdef _WIN32
+  tools::fail_msg_writer() << tr("Automatic wallet lock due to inactivity is disabled on Windows"); 
+  return true;
+#endif
+  m_wallet->inactivity_lock_timeout(-1);
+  return true;
+}
+
 bool simple_wallet::set_setup_background_mining(const std::vector<std::string> &args/* = std::vector<std::string>()*/)
 {
   const auto pwd_container = get_and_verify_password();
@@ -3551,6 +3562,10 @@ simple_wallet::simple_wallet()
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::lock, BOOST_PLACEHOLDERS::_1),
                            tr(USAGE_LOCK),
                            tr("Lock the wallet console, requiring the wallet password to continue"));
+  m_cmd_binder.set_handler("disable_lock",
+                           boost::bind(&simple_wallet::on_command, this, &simple_wallet::disable_lock, BOOST_PLACEHOLDERS::_1),
+                           tr(USAGE_DISABLE_LOCK),
+                           tr("Disable automatic locking of wallet due to inactivity"));
   m_cmd_binder.set_handler("net_stats",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::net_stats, BOOST_PLACEHOLDERS::_1),
                            tr(USAGE_NET_STATS),
