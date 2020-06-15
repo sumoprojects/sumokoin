@@ -4759,7 +4759,7 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
 
   // convert rng value to electrum-style word list
   epee::wipeable_string electrum_words;
-
+  auto timenow =  chrono::system_clock::to_time_t(chrono::system_clock::now());
   crypto::ElectrumWords::bytes_to_words(recovery_val, electrum_words, mnemonic_language);
   const std::string vkey = epee::string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_view_secret_key);
   message_writer(console_color_cyan, true) <<
@@ -4779,10 +4779,14 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
     show_seed(electrum_words);
   }
   message_writer(console_color_red, true) << "\n" << tr("NOTE: the above 26 words can be used to recover access to your wallet. "
-    "Write them down and store them somewhere safe and secure. Please do not store them in "
+    "Write them down and store them somewhere safe and secure.\nPlease do not store them in "
     "your email or on file storage services outside of your immediate control.");
-
-   message_writer(console_color_green, true) << "Press ENTER to Continue";
+  if (!m_restoring)
+    {
+      message_writer(console_color_green, true) << "\n" << "Seed words generated at: " << ctime(&timenow);
+      message_writer(console_color_yellow, true) << tr("When restoring from seed words you may use the date above to avoid needlessly scanning the entire blockchain.") << "\n";
+    }
+  message_writer(console_color_green, true) << "Press ENTER to Continue";
    cin.ignore();
 
   return password;
