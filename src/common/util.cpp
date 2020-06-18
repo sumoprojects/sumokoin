@@ -58,24 +58,20 @@
 
 #include "include_base_utils.h"
 #include "file_io_utils.h"
-#include "wipeable_string.h"
 #include "misc_os_dependent.h"
 using namespace epee;
 
 #include "crypto/crypto.h"
 #include "util.h"
-#include "stack_trace.h"
-#include "memwipe.h"
 #include "cryptonote_config.h"
 #include "net/http_client.h"                        // epee::net_utils::...
-#include "readline_buffer.h"
 
 #ifdef WIN32
 #ifndef STRSAFE_NO_DEPRECATE
 #define STRSAFE_NO_DEPRECATE
 #endif
-  #include <windows.h>
-  #include <shlobj.h>
+
+#include <shlobj.h>
   #include <strsafe.h>
 #else 
   #include <sys/file.h>
@@ -86,7 +82,6 @@ using namespace epee;
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/format.hpp>
-#include <openssl/sha.h>
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "util"

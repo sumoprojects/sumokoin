@@ -37,12 +37,7 @@
 #include "common/scoped_message_writer.h"
 #include "daemonizer/windows_service.h"
 #include "string_tools.h"
-#include <chrono>
-#include <iostream>
-#include <utility>
-#include <memory>
 #include <shellapi.h>
-#include <thread>
 
 namespace windows {
 

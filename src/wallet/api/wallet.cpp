@@ -37,17 +37,13 @@
 #include "subaddress.h"
 #include "subaddress_account.h"
 #include "common_defines.h"
-#include "common/util.h"
 
 #include "mnemonics/electrum-words.h"
 #include "mnemonics/english.h"
 #include <boost/format.hpp>
-#include <sstream>
-#include <unordered_map>
 
 #ifdef WIN32
 #include <boost/locale.hpp>
-#include <boost/filesystem.hpp>
 #endif
 
 using namespace std;

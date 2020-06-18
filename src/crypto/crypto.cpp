@@ -30,18 +30,13 @@
 
 #include <unistd.h>
 #include <cassert>
-#include <cstddef>
 #include <cstdint>
-#include <cstdlib>
-#include <cstring>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "common/varint.h"
 #include "warnings.h"
 #include "crypto.h"
-// #include "hash.h" //included in crypto/crypto.h
 
 namespace {
   static void local_abort(const char *msg)
@@ -66,7 +61,6 @@ namespace crypto {
 
   extern "C" {
 #include "crypto-ops.h"
-#include "random.h"
   }
 
   const crypto::public_key null_pkey = crypto::public_key{};

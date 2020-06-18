@@ -32,17 +32,7 @@
 #include "cryptonote_config.h"
 #include "wallet_rpc_helpers.h"
 #include "wallet2.h"
-#include "cryptonote_basic/cryptonote_format_utils.h"
-#include "rpc/core_rpc_server_commands_defs.h"
 #include "rpc/rpc_payment_signature.h"
-#include "misc_language.h"
-#include "cryptonote_basic/cryptonote_basic_impl.h"
-#include "int-util.h"
-#include "crypto/crypto.h"
-#include "crypto/hash.h"
-#include "cryptonote_basic/blobdatatype.h"
-#include "common/i18n.h"
-#include "common/util.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "wallet.wallet2.rpc_payments"

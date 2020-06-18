@@ -38,7 +38,6 @@
  */
 
 #include <string>
-#include <cstdint>
 #include <vector>
 #include <unordered_map>
 #include "wipeable_string.h"
@@ -60,7 +59,6 @@
 #include "esperanto.h"
 #include "lojban.h"
 #include "english_old.h"
-#include "language_base.h"
 #include "singleton.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY

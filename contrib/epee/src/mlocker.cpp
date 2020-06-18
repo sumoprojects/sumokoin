@@ -38,8 +38,6 @@
 #include "syncobj.h"
 #include "mlocker.h"
 
-#include <atomic>
-
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "mlocker"
 

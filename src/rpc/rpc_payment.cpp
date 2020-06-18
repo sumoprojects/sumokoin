@@ -39,7 +39,6 @@
 #include "common/unordered_containers_boost_serialization.h"
 #include "cryptonote_basic/cryptonote_boost_serialization.h"
 #include "cryptonote_basic/cryptonote_format_utils.h"
-#include "cryptonote_basic/difficulty.h"
 #include "core_rpc_server_error_codes.h"
 #include "rpc_payment.h"
 

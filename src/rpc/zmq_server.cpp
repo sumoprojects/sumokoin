@@ -28,12 +28,7 @@
 
 #include "zmq_server.h"
 
-#include <boost/utility/string_ref.hpp>
 #include <chrono>
-#include <cstdint>
-#include <system_error>
-
-#include "byte_slice.h"
 
 namespace cryptonote
 {

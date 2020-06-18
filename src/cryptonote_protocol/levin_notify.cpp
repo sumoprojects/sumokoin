@@ -29,9 +29,7 @@
 #include "levin_notify.h"
 
 #include <boost/asio/steady_timer.hpp>
-#include <boost/system/system_error.hpp>
 #include <boost/uuid/uuid_io.hpp>
-#include <chrono>
 #include <deque>
 #include <stdexcept>
 #include <utility>

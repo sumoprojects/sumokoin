@@ -35,20 +35,12 @@
 #include <boost/optional/optional.hpp>
 #include <boost/thread/future.hpp>
 #include <boost/utility/string_ref.hpp>
-#include <chrono>
-#include <utility>
 
 #include "common/command_line.h"
 #include "cryptonote_core/cryptonote_core.h"
-#include "cryptonote_protocol/cryptonote_protocol_defs.h"
 #include "net_node.h"
-#include "net/net_utils_base.h"
 #include "net/socks.h"
 #include "net/parse.h"
-#include "net/tor_address.h"
-#include "net/i2p_address.h"
-#include "p2p/p2p_protocol_defs.h"
-#include "string_tools.h"
 
 namespace
 {

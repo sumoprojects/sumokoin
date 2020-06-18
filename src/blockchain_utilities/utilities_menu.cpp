@@ -27,9 +27,6 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <iostream>
-#include <cstdlib>
-#include <string>
-#include <unistd.h>
 #include <sstream>
 
 using namespace std;  

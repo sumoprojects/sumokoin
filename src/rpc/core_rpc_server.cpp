@@ -28,33 +28,19 @@
 //
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#include <boost/preprocessor/stringize.hpp>
 #include <boost/uuid/nil_generator.hpp>
 #include "include_base_utils.h"
 #include "string_tools.h"
 using namespace epee;
 
 #include "core_rpc_server.h"
-#include "common/command_line.h"
 #include "common/updates.h"
-#include "common/download.h"
-#include "common/util.h"
-#include "common/perf_timer.h"
-#include "int-util.h"
-#include "cryptonote_basic/cryptonote_format_utils.h"
-#include "cryptonote_basic/account.h"
-#include "cryptonote_basic/cryptonote_basic_impl.h"
 #include "cryptonote_core/tx_sanity_check.h"
-#include "misc_language.h"
 #include "net/parse.h"
-#include "storages/http_abstract_invoke.h"
-#include "crypto/hash.h"
 #include "rpc/rpc_args.h"
-#include "rpc/rpc_handler.h"
 #include "rpc/rpc_payment_costs.h"
 #include "rpc/rpc_payment_signature.h"
 #include "core_rpc_server_error_codes.h"
-#include "p2p/net_node.h"
 #include "version.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY

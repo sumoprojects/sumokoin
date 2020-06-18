@@ -28,11 +28,8 @@
 
 #include "bootstrap_file.h"
 #include "blocksdat_file.h"
-#include "common/command_line.h"
 #include "cryptonote_core/tx_pool.h"
 #include "cryptonote_core/cryptonote_core.h"
-#include "blockchain_db/blockchain_db.h"
-#include "version.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "bcutil"

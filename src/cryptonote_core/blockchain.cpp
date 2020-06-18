@@ -30,7 +30,6 @@
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include <algorithm>
-#include <cstdio>
 #include <boost/filesystem.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 
@@ -38,24 +37,14 @@
 #include "cryptonote_basic/cryptonote_basic_impl.h"
 #include "tx_pool.h"
 #include "blockchain.h"
-// #include "blockchain_db/blockchain_db.h" // already #included in cryptonote_core/blockchain.h 
 #include "cryptonote_basic/cryptonote_boost_serialization.h"
-#include "cryptonote_config.h"
 #include "cryptonote_basic/miner.h"
-#include "hardforks/hardforks.h"
-#include "misc_language.h"
 #include "profile_tools.h"
 #include "file_io_utils.h"
 #include "int-util.h"
 #include "common/threadpool.h"
-#include "common/boost_serialization_helper.h"
-#include "warnings.h"
-// #include "crypto/hash.h" // already #included in cryptonote_core/blockchain.h
 #include "cryptonote_core.h"
-#include "ringct/rctSigs.h"
-#include "common/perf_timer.h"
 #include "common/notify.h"
-#include "common/varint.h"
 #include "common/pruning.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
