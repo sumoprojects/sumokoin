@@ -469,13 +469,6 @@ class Daemon(object):
         }
         return self.rpc.send_request('/in_peers', in_peers)
 
-    def update(self, command, path = None):
-        update = {
-            'command': command,
-            'path': path,
-        }
-        return self.rpc.send_request('/update', update)
-
     def get_block_count(self):
         get_block_count = {
             'method': 'get_block_count',

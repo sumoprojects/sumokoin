@@ -767,16 +767,6 @@ namespace cryptonote
      network_type get_nettype() const { return m_nettype; };
 
      /**
-      * @brief check whether an update is known to be available or not
-      *
-      * This does not actually trigger a check, but returns the result
-      * of the last check
-      *
-      * @return whether an update is known to be available or not
-      */
-     bool is_update_available() const { return m_update_available; }
-
-     /**
       * @brief get whether fluffy blocks are enabled
       *
       * @return whether fluffy blocks are enabled
@@ -999,13 +989,6 @@ namespace cryptonote
      bool relay_txpool_transactions();
 
      /**
-      * @brief checks DNS versions
-      *
-      * @return true on success, false otherwise
-      */
-     bool check_updates();
-
-     /**
       * @brief checks free disk space
       *
       * @return true on success, false otherwise
@@ -1047,7 +1030,6 @@ namespace cryptonote
      epee::math_helper::once_a_time_seconds<60*60*12, false> m_store_blockchain_interval; //!< interval for manual storing of Blockchain, if enabled
      epee::math_helper::once_a_time_seconds<60*60*2, true> m_fork_moaner; //!< interval for checking HardFork status
      epee::math_helper::once_a_time_seconds<60*2, false> m_txpool_auto_relayer; //!< interval for checking re-relaying txpool transactions
-     epee::math_helper::once_a_time_seconds<60*60*12, true> m_check_updates_interval; //!< interval for checking for new versions
      epee::math_helper::once_a_time_seconds<60*10, true> m_check_disk_space_interval; //!< interval for checking for disk space
      epee::math_helper::once_a_time_seconds<90, false> m_block_rate_interval; //!< interval for checking block rate
      epee::math_helper::once_a_time_seconds<60*60*5, true> m_blockchain_pruning_interval; //!< interval for incremental blockchain pruning
@@ -1058,8 +1040,6 @@ namespace cryptonote
      uint64_t m_target_blockchain_height; //!< blockchain height target
 
      network_type m_nettype; //!< which network are we on?
-
-     std::atomic<bool> m_update_available;
 
      std::string m_checkpoints_path; //!< path to json checkpoints file
      time_t m_last_dns_checkpoints_update; //!< time when dns checkpoints were last updated
@@ -1074,17 +1054,6 @@ namespace cryptonote
 
      std::unordered_set<crypto::hash> bad_semantics_txes[2];
      boost::mutex bad_semantics_txes_lock;
-
-     enum {
-       UPDATES_DISABLED,
-       UPDATES_NOTIFY,
-       UPDATES_DOWNLOAD,
-       UPDATES_UPDATE,
-     } check_updates_level;
-
-     tools::download_async_handle m_update_download;
-     size_t m_last_update_length;
-     boost::mutex m_update_mutex;
 
      bool m_fluffy_blocks_enabled;
      bool m_offline;

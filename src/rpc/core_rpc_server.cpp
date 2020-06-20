@@ -36,7 +36,6 @@ using namespace epee;
 
 #include "core_rpc_server.h"
 #include "common/command_line.h"
-#include "common/updates.h"
 #include "common/download.h"
 #include "common/util.h"
 #include "common/perf_timer.h"
@@ -2840,111 +2839,6 @@ namespace cryptonote
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-/*
-  bool core_rpc_server::on_update(const COMMAND_RPC_UPDATE::request& req, COMMAND_RPC_UPDATE::response& res, const connection_context *ctx)
-  {
-    RPC_TRACKER(update);
-
-    res.update = false;
-    if (m_core.offline())
-    {
-      res.status = "Daemon is running offline";
-      return true;
-    }
-
-    static const char software[] = "sumokoin";
-#ifdef BUILD_TAG
-    static const char buildtag[] = BOOST_PP_STRINGIZE(BUILD_TAG);
-    static const char subdir[] = "cli";
-#else
-    static const char buildtag[] = "source";
-    static const char subdir[] = "source";
-#endif
-
-    if (req.command != "check" && req.command != "download" && req.command != "update")
-    {
-      res.status = std::string("unknown command: '") + req.command + "'";
-      return true;
-    }
-
-    std::string version, hash;
-    if (!tools::check_updates(software, buildtag, version, hash))
-    {
-      res.status = "Error checking for updates";
-      return true;
-    }
-    if (tools::vercmp(version.c_str(), SUMOKOIN_VERSION) <= 0)
-    {
-      res.update = false;
-      res.status = CORE_RPC_STATUS_OK;
-      return true;
-    }
-    res.update = true;
-    res.version = version;
-    res.user_uri = tools::get_update_url(software, subdir, buildtag, version, true);
-    res.auto_uri = tools::get_update_url(software, subdir, buildtag, version, false);
-    res.hash = hash;
-    if (req.command == "check")
-    {
-      res.status = CORE_RPC_STATUS_OK;
-      return true;
-    }
-
-    boost::filesystem::path path;
-    if (req.path.empty())
-    {
-      std::string filename;
-      const char *slash = strrchr(res.auto_uri.c_str(), '/');
-      if (slash)
-        filename = slash + 1;
-      else
-        filename = std::string(software) + "-update-" + version;
-      path = epee::string_tools::get_current_module_folder();
-      path /= filename;
-    }
-    else
-    {
-      path = req.path;
-    }
-
-    crypto::hash file_hash;
-    if (!tools::sha256sum(path.string(), file_hash) || (hash != epee::string_tools::pod_to_hex(file_hash)))
-    {
-      MDEBUG("We don't have that file already, downloading");
-      if (!tools::download(path.string(), res.auto_uri))
-      {
-        MERROR("Failed to download " << res.auto_uri);
-        return false;
-      }
-      if (!tools::sha256sum(path.string(), file_hash))
-      {
-        MERROR("Failed to hash " << path);
-        return false;
-      }
-      if (hash != epee::string_tools::pod_to_hex(file_hash))
-      {
-        MERROR("Download from " << res.auto_uri << " does not match the expected hash");
-        return false;
-      }
-      MINFO("New version downloaded to " << path);
-    }
-    else
-    {
-      MDEBUG("We already have " << path << " with expected hash");
-    }
-    res.path = path.string();
-
-    if (req.command == "download")
-    {
-      res.status = CORE_RPC_STATUS_OK;
-      return true;
-    }
-
-    res.status = "'update' not implemented yet";
-    return true;
-  }
-  //------------------------------------------------------------------------------------------------------------------------------
-*/
   bool core_rpc_server::on_pop_blocks(const COMMAND_RPC_POP_BLOCKS::request& req, COMMAND_RPC_POP_BLOCKS::response& res, const connection_context *ctx)
   {
     RPC_TRACKER(pop_blocks);

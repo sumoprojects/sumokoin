@@ -43,7 +43,6 @@ set(common_sources
   pruning.cpp
   spawn.cpp
   threadpool.cpp
-  updates.cpp
   aligned.c
   timings.cc
   combinator.cpp)
@@ -83,7 +82,6 @@ set(common_private_headers
   spawn.h
   stack_trace.h
   threadpool.h
-  updates.h
   aligned.h
   timings.h
   combinator.h
