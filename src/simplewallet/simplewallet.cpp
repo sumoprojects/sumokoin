@@ -275,6 +275,7 @@ namespace
   const char* USAGE_THAW("thaw <key_image>");
   const char* USAGE_FROZEN("frozen <key_image>");
   const char* USAGE_LOCK("lock");
+  const char* USAGE_DISABLE_LOCK("disable_lock");
   const char* USAGE_NET_STATS("net_stats");
   const char* USAGE_PUBLIC_NODES("public_nodes");
   const char* USAGE_WELCOME("welcome");
@@ -2943,6 +2944,16 @@ bool simple_wallet::set_inactivity_lock_timeout(const std::vector<std::string> &
   return true;
 }
 
+bool simple_wallet::disable_lock(const std::vector<std::string> &args)
+{
+#ifdef _WIN32
+  tools::fail_msg_writer() << tr("Automatic wallet lock due to inactivity is disabled on Windows"); 
+  return true;
+#endif
+  m_wallet->inactivity_lock_timeout(-1);
+  return true;
+}
+
 bool simple_wallet::set_setup_background_mining(const std::vector<std::string> &args/* = std::vector<std::string>()*/)
 {
   const auto pwd_container = get_and_verify_password();
@@ -3551,6 +3562,10 @@ simple_wallet::simple_wallet()
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::lock, BOOST_PLACEHOLDERS::_1),
                            tr(USAGE_LOCK),
                            tr("Lock the wallet console, requiring the wallet password to continue"));
+  m_cmd_binder.set_handler("disable_lock",
+                           boost::bind(&simple_wallet::on_command, this, &simple_wallet::disable_lock, BOOST_PLACEHOLDERS::_1),
+                           tr(USAGE_DISABLE_LOCK),
+                           tr("Disable automatic locking of wallet due to inactivity"));
   m_cmd_binder.set_handler("net_stats",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::net_stats, BOOST_PLACEHOLDERS::_1),
                            tr(USAGE_NET_STATS),
@@ -4202,14 +4217,6 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
       CHECK_AND_ASSERT_MES(r, false, tr("account creation failed"));
       password = *r;
       welcome = true;
-      std::string mnemonic_language = get_mnemonic_language();
-      m_wallet->set_seed_language(mnemonic_language);
-      m_wallet->rewrite(m_wallet_file, password);
-
-      // Display the seed
-      epee::wipeable_string seed;
-      m_wallet->get_seed(seed);
-      print_seed(seed);
     }
 
     // Asks user for all the data required to merge secret keys from multisig wallets into one master wallet, which then gets full control of the multisig wallet. The resulting wallet will be the same as any other regular wallet.
@@ -4759,7 +4766,7 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
 
   // convert rng value to electrum-style word list
   epee::wipeable_string electrum_words;
-
+  auto timenow =  chrono::system_clock::to_time_t(chrono::system_clock::now());
   crypto::ElectrumWords::bytes_to_words(recovery_val, electrum_words, mnemonic_language);
   const std::string vkey = epee::string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_view_secret_key);
   message_writer(console_color_cyan, true) <<
@@ -4779,10 +4786,14 @@ boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::pr
     show_seed(electrum_words);
   }
   message_writer(console_color_red, true) << "\n" << tr("NOTE: the above 26 words can be used to recover access to your wallet. "
-    "Write them down and store them somewhere safe and secure. Please do not store them in "
+    "Write them down and store them somewhere safe and secure.\nPlease do not store them in "
     "your email or on file storage services outside of your immediate control.");
-
-   message_writer(console_color_green, true) << "Press ENTER to Continue";
+  if (!m_restoring)
+    {
+      message_writer(console_color_green, true) << "\n" << "Seed words generated at: " << ctime(&timenow);
+      message_writer(console_color_yellow, true) << tr("When restoring from seed words you may use the date above to avoid needlessly scanning the entire blockchain.") << "\n";
+    }
+  message_writer(console_color_green, true) << "Press ENTER to Continue";
    cin.ignore();
 
   return password;
@@ -10336,8 +10347,8 @@ int main(int argc, char* argv[])
 
   boost::optional<po::variables_map> vm;
   bool should_terminate = false;
-  for (int i = 0; i < 40; ++i)
-  std::cout << "\n";
+
+  tools::clear_screen();
   message_writer(console_color_cyan, true) << "" << std::endl <<
 		             "         	           " << "   	     " << "	  ___                        _         _              " << std::endl <<
                              "         	           " << "   	     " << "	/ ___| _   _ _ __ ___   ___ | | _____ (_)_ __         " << std::endl <<

@@ -471,7 +471,14 @@ void reset_console_color() {
 }
 
 }
-
+// when did it became so hard to suppress a warning in clang?
+#if __GNUC__ && defined( __has_warning )
+#if __has_warning( "-Wuninitialized" )
+#define SUPPRESS
+#pragma GCC diagnostic push //GCC due to emulation
+#pragma GCC diagnostic ignored "-Wuninitialized" //GCC due to emulation
+#endif
+#endif
 static void mlog(el::Level level, const char *category, const char *format, va_list ap)
 {
   int size = 0;
@@ -500,6 +507,10 @@ static void mlog(el::Level level, const char *category, const char *format, va_l
   MCLOG(level, category, el::Color::Default, p);
   free(p);
 }
+#ifdef SUPPRESS
+#undef SUPPRESS
+#pragma GCC diagnostic pop //GCC due to emulation
+#endif
 
 void mfatal(const char *category, const char *fmt, ...) { va_list ap; va_start(ap, fmt); mlog(el::Level::Fatal, category, fmt, ap); va_end(ap); }
 void merror(const char *category, const char *fmt, ...) { va_list ap; va_start(ap, fmt); mlog(el::Level::Error, category, fmt, ap); va_end(ap); }
