@@ -27,20 +27,13 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "net/http_auth.h"
 
-#include <array>
 #include <boost/algorithm/string/find_iterator.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/fusion/adapted/std_tuple.hpp>
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
 #include <boost/fusion/algorithm/iteration/iter_fold.hpp>
 #include <boost/fusion/algorithm/query/any.hpp>
-#include <boost/fusion/iterator/distance.hpp>
-#include <boost/fusion/iterator/value_of.hpp>
-#include <boost/fusion/sequence/intrinsic/begin.hpp>
-#include <boost/fusion/sequence/intrinsic/size.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/range/algorithm/find_if.hpp>
-#include <boost/range/iterator_range_core.hpp>
 #include <boost/range/join.hpp>
 #include <boost/spirit/include/karma_generate.hpp>
 #include <boost/spirit/include/karma_uint.hpp>
@@ -60,13 +53,6 @@
 #include <boost/spirit/include/qi_string.hpp>
 #include <boost/spirit/include/qi_symbols.hpp>
 #include <boost/spirit/include/qi_uint.hpp>
-#include <cassert>
-#include <iterator>
-#include <limits>
-#include <tuple>
-#include <type_traits>
-
-#include "hex.h"
 #include "md5_l.h"
 #include "string_coding.h"
 

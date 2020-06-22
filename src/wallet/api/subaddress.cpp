@@ -28,11 +28,7 @@
 
 #include "subaddress.h"
 #include "wallet.h"
-#include "crypto/hash.h"
 // #include "wallet/wallet2.h" // already #included in /wallet/api/subaddress.h
-#include "common_defines.h"
-
-#include <vector>
 
 namespace Monero {
   

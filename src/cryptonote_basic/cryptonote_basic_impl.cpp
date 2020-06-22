@@ -35,10 +35,7 @@ using namespace epee;
 #include "cryptonote_basic_impl.h"
 #include "string_tools.h"
 #include "serialization/binary_utils.h"
-#include "serialization/container.h"
 #include "cryptonote_format_utils.h"
-#include "cryptonote_config.h"
-#include "misc_language.h"
 #include "common/base58.h"
 // #include "crypto/hash.h" // already #included in cryptonote_basic/cryptonote_basic_impl.h
 #include "int-util.h"

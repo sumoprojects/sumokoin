@@ -28,8 +28,6 @@
 
 #include "net/levin_base.h"
 
-#include "int-util.h"
-
 namespace epee
 {
 namespace levin

@@ -26,8 +26,6 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "value_stream.h"
 
-#include <stdexcept>
-
 #include "common/expect.h"
 #include "lmdb/error.h"
 #include "lmdb/util.h"

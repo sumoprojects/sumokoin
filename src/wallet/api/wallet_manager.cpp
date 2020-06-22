@@ -31,14 +31,10 @@
 
 #include "wallet_manager.h"
 #include "wallet.h"
-#include "common_defines.h"
 #include "common/dns_utils.h"
-#include "common/util.h"
 #include "common/updates.h"
 #include "version.h"
 // #include "net/http_client.h" // already #included in wallet/api/wallet_manager.h
-#include <boost/filesystem.hpp>
-#include <boost/regex.hpp>
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "WalletAPI"

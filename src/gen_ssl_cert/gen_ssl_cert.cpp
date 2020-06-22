@@ -35,11 +35,9 @@
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include <openssl/ssl.h>
-#include <openssl/pem.h>
 #include "include_base_utils.h"
 #include "file_io_utils.h"
 #include "net/net_ssl.h"
-#include "crypto/crypto.h"
 #include "common/util.h"
 #include "common/i18n.h"
 #include "common/command_line.h"

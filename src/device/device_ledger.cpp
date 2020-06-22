@@ -29,13 +29,8 @@
 
 #include "version.h"
 #include "device_ledger.hpp"
-#include "ringct/rctOps.h"
-#include "cryptonote_basic/account.h"
 #include "cryptonote_basic/subaddress_index.h"
 #include "cryptonote_core/cryptonote_tx_utils.h"
-
-#include <boost/thread/locks.hpp> 
-#include <boost/thread/lock_guard.hpp>
 
 namespace hw {
 

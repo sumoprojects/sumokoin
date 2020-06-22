@@ -37,23 +37,9 @@ using namespace epee;
 
 #include <unordered_set>
 #include "cryptonote_core.h"
-#include "common/util.h"
 #include "common/updates.h"
-#include "common/download.h"
 #include "common/threadpool.h"
-#include "common/command_line.h"
-#include "warnings.h"
-#include "crypto/crypto.h"
-#include "cryptonote_config.h"
-#include "misc_language.h"
-#include "file_io_utils.h"
-#include <csignal>
-#include "checkpoints/checkpoints.h"
-#include "ringct/rctTypes.h"
-#include "blockchain_db/blockchain_db.h"
-#include "ringct/rctSigs.h"
 #include "common/notify.h"
-#include "hardforks/hardforks.h"
 #include "version.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY

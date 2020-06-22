@@ -1,6 +1,5 @@
 #include <string.h>
 #include <errno.h>
-#include <time.h>
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include "misc_log_ex.h"

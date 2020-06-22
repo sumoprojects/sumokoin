@@ -30,13 +30,11 @@
 // check local first (in the event of static or in-source compilation of libunbound)
 #include "unbound.h"
 
-#include <stdlib.h>
 #include "include_base_utils.h"
 #include "common/threadpool.h"
 #include "crypto/crypto.h"
-#include <boost/thread/mutex.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/optional.hpp>
+
 using namespace epee;
 
 #undef MONERO_DEFAULT_LOG_CATEGORY

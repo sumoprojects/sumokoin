@@ -28,8 +28,6 @@
 
 #include "error.h"
 
-#include <string>
-
 namespace
 {
     struct net_category : std::error_category

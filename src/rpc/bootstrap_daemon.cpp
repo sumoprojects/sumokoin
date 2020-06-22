@@ -1,12 +1,7 @@
 #include "bootstrap_daemon.h"
 
-#include <stdexcept>
-
-#include <boost/thread/locks.hpp>
-
 #include "crypto/crypto.h"
 #include "cryptonote_core/cryptonote_core.h"
-#include "misc_log_ex.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "daemon.rpc.bootstrap_daemon"
