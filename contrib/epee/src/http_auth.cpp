@@ -53,6 +53,7 @@
 #include <boost/spirit/include/qi_string.hpp>
 #include <boost/spirit/include/qi_symbols.hpp>
 #include <boost/spirit/include/qi_uint.hpp>
+
 #include "md5_l.h"
 #include "string_coding.h"
 
@@ -200,7 +201,7 @@ namespace
   >;
 
   template<typename T>
-  quoted_result<T> quoted(const T& arg)
+  quoted_result<T> quotes(const T& arg)
   {
     return boost::range::join(boost::range::join(ceref(u8"\""), arg), ceref(u8"\""));
   }
@@ -228,13 +229,13 @@ namespace
   {
     str.append(u8"Digest ");
     add_first_field(str, u8"algorithm", algorithm);
-    add_field(str, u8"nonce", quoted(user.server.nonce));
-    add_field(str, u8"realm", quoted(user.server.realm));
-    add_field(str, u8"response", quoted(response));
-    add_field(str, u8"uri", quoted(uri));
-    add_field(str, u8"username", quoted(user.credentials.username));
+    add_field(str, u8"nonce", quotes(user.server.nonce));
+    add_field(str, u8"realm", quotes(user.server.realm));
+    add_field(str, u8"response", quotes(response));
+    add_field(str, u8"uri", quotes(uri));
+    add_field(str, u8"username", quotes(user.credentials.username));
     if (!user.server.opaque.empty())
-      add_field(str, u8"opaque", quoted(user.server.opaque));
+      add_field(str, u8"opaque", quotes(user.server.opaque));
   }
 
   //! Implements superseded algorithm specified in RFC 2069
@@ -660,8 +661,8 @@ namespace
           Digest::name, (i == 0 ? boost::string_ref{} : sess_algo)
         );
         add_field(out, u8"algorithm", algorithm);
-        add_field(out, u8"realm", quoted(auth_realm));
-        add_field(out, u8"nonce", quoted(nonce));
+        add_field(out, u8"realm", quotes(auth_realm));
+        add_field(out, u8"nonce", quotes(nonce));
         add_field(out, u8"stale", is_stale ? ceref("true") : ceref("false"));
         
         fields.push_back(std::make_pair(std::string(server_auth_field), std::move(out)));
