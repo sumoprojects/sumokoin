@@ -893,6 +893,9 @@ endif()
 
 if(MINGW)
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wa,-mbig-obj")
+  if(POLICY CMP0075)
+    cmake_policy(SET CMP0075 NEW) # cmake >= 3.12
+  endif()
   set(EXTRA_LIBRARIES mswsock;ws2_32;iphlpapi;crypt32;bcrypt)
   if(DEPENDS)
     set(ICU_LIBRARIES icuio icui18n icuuc icudata icutu iconv)
