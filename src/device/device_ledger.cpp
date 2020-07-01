@@ -27,6 +27,8 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+#include <mutex>
+#include <thread>
 #include "version.h"
 #include "device_ledger.hpp"
 #include "cryptonote_basic/subaddress_index.h"
