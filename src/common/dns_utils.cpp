@@ -144,7 +144,6 @@ static const char *get_record_name(int record_type)
   }
 }
 
-// fuck it, I'm tired of dealing with getnameinfo()/inet_ntop/etc
 boost::optional<std::string> ipv4_to_string(const char* src, size_t len)
 {
   if (len < 4)
@@ -448,9 +447,9 @@ std::string address_from_txt_record(const std::string& s)
   return {};
 }
 /**
- * @brief gets a monero address from the TXT record of a DNS entry
+ * @brief gets a sumokoin address from the TXT record of a DNS entry
  *
- * gets the monero address from the TXT record of the DNS entry associated
+ * gets the sumokoin address from the TXT record of the DNS entry associated
  * with <url>.  If this lookup fails, or the TXT record does not contain an
  * XMR address in the correct format, returns an empty string.  <dnssec_valid>
  * will be set true or false according to whether or not the DNS query passes
@@ -459,7 +458,7 @@ std::string address_from_txt_record(const std::string& s)
  * @param url the url to look up
  * @param dnssec_valid return-by-reference for DNSSEC status of query
  *
- * @return a monero address (as a string) or an empty string
+ * @return a sumokoin address (as a string) or an empty string
  */
 std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec_valid)
 {
@@ -476,7 +475,7 @@ std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec
   }
   else dnssec_valid = false;
 
-  // for each txt record, try to find a monero address in it.
+  // for each txt record, try to find a sumokoin address in it.
   for (auto& rec : records)
   {
     std::string addr = address_from_txt_record(rec);
