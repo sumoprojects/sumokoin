@@ -151,7 +151,7 @@ namespace math_helper
 	template<class t_timing>
 	timing_guard_base* create_timing_guard(t_timing&  timing){return new timing_guard<t_timing>(timing);}
 
-#define BEGIN_TIMING_ZONE(timing_var) {		boost::shared_ptr<math_helper::timing_guard_base> local_timing_guard_ptr(math_helper::create_timing_guard(timing_var));
+#define BEGIN_TIMING_ZONE(timing_var) {		std::shared_ptr<math_helper::timing_guard_base> local_timing_guard_ptr(math_helper::create_timing_guard(timing_var));
 #define END_TIMING_ZONE()			  }
 #endif
 
