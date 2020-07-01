@@ -34,7 +34,7 @@
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem/operations.hpp>
-#include <boost/optional/optional.hpp>
+#include <optional>
 #include <boost/thread/thread.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include <atomic>
@@ -2859,7 +2859,7 @@ namespace nodetool
   }
 
   template<typename t_payload_net_handler>
-  boost::optional<p2p_connection_context_t<typename t_payload_net_handler::connection_context>>
+  std::optional<p2p_connection_context_t<typename t_payload_net_handler::connection_context>>
   node_server<t_payload_net_handler>::socks_connect(network_zone& zone, const epee::net_utils::network_address& remote, epee::net_utils::ssl_support_t ssl_support)
   {
     auto result = socks_connect_internal(zone.m_net_server.get_stop_signal(), zone.m_net_server.get_io_service(), zone.m_proxy_address, remote);
@@ -2869,16 +2869,16 @@ namespace nodetool
       if (zone.m_net_server.add_connection(context, std::move(*result), remote, ssl_support))
         return {std::move(context)};
     }
-    return boost::none;
+    return std::nullopt;
   }
 
   template<typename t_payload_net_handler>
-  boost::optional<p2p_connection_context_t<typename t_payload_net_handler::connection_context>>
+  std::optional<p2p_connection_context_t<typename t_payload_net_handler::connection_context>>
   node_server<t_payload_net_handler>::public_connect(network_zone& zone, epee::net_utils::network_address const& na, epee::net_utils::ssl_support_t ssl_support)
   {
     bool is_ipv4 = na.get_type_id() == epee::net_utils::ipv4_network_address::get_type_id();
     bool is_ipv6 = na.get_type_id() == epee::net_utils::ipv6_network_address::get_type_id();
-    CHECK_AND_ASSERT_MES(is_ipv4 || is_ipv6, boost::none,
+    CHECK_AND_ASSERT_MES(is_ipv4 || is_ipv6, std::nullopt,
       "Only IPv4 or IPv6 addresses are supported here");
 
     std::string address;
@@ -2899,7 +2899,7 @@ namespace nodetool
     else
     {
       LOG_ERROR("Only IPv4 or IPv6 addresses are supported here");
-      return boost::none;
+      return std::nullopt;
     }
 
     typename net_server::t_connection_context con{};
@@ -2909,6 +2909,6 @@ namespace nodetool
 
     if (res)
       return {std::move(con)};
-    return boost::none;
+    return std::nullopt;
   }
 }

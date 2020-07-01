@@ -28,7 +28,7 @@
 //
 #pragma once
 
-#include <boost/optional/optional.hpp>
+#include <optional>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <string>
@@ -73,18 +73,18 @@ namespace cryptonote
     static const char* tr(const char* str);
     static void init_options(boost::program_options::options_description& desc, const bool any_cert_option = false);
 
-    //! \return Arguments specified by user, or `boost::none` if error
-    static boost::optional<rpc_args> process(const boost::program_options::variables_map& vm, const bool any_cert_option = false);
+    //! \return Arguments specified by user, or `std::nullopt` if error
+    static std::optional<rpc_args> process(const boost::program_options::variables_map& vm, const bool any_cert_option = false);
 
-    //! \return SSL arguments specified by user, or `boost::none` if error
-    static boost::optional<epee::net_utils::ssl_options_t> process_ssl(const boost::program_options::variables_map& vm, const bool any_cert_option = false);
+    //! \return SSL arguments specified by user, or `std::nullopt` if error
+    static std::optional<epee::net_utils::ssl_options_t> process_ssl(const boost::program_options::variables_map& vm, const bool any_cert_option = false);
 
     std::string bind_ip;
     std::string bind_ipv6_address;
     bool use_ipv6;
     bool require_ipv4;
     std::vector<std::string> access_control_origins;
-    boost::optional<tools::login> login; // currently `boost::none` if unspecified by user
+    std::optional<tools::login> login; // currently `std::nullopt` if unspecified by user
     epee::net_utils::ssl_options_t ssl_options = epee::net_utils::ssl_support_t::e_ssl_support_enabled;
     bool disable_rpc_ban = false;
   };

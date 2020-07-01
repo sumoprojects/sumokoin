@@ -57,7 +57,7 @@ namespace trezor {
     template<class t_message=messages::debug::DebugLinkState>
     std::shared_ptr<t_message> call(
         const google::protobuf::Message & req,
-        const boost::optional<messages::MessageType> &resp_type = boost::none,
+        const std::optional<messages::MessageType> &resp_type = std::nullopt,
         bool no_wait = false)
     {
       BOOST_STATIC_ASSERT(boost::is_base_of<google::protobuf::Message, t_message>::value);

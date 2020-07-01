@@ -161,9 +161,9 @@ namespace tx {
   void translate_src_entry(MoneroTransactionSourceEntry * dst, const cryptonote::tx_source_entry * src);
   void translate_klrki(MoneroMultisigKLRki * dst, const rct::multisig_kLRki * src);
   void translate_rct_key(MoneroRctKey * dst, const rct::ctkey * src);
-  std::string hash_addr(const MoneroAccountPublicAddress * addr, boost::optional<uint64_t> amount = boost::none, boost::optional<bool> is_subaddr = boost::none);
-  std::string hash_addr(const std::string & spend_key, const std::string & view_key, boost::optional<uint64_t> amount = boost::none, boost::optional<bool> is_subaddr = boost::none);
-  std::string hash_addr(const ::crypto::public_key * spend_key, const ::crypto::public_key * view_key, boost::optional<uint64_t> amount = boost::none, boost::optional<bool> is_subaddr = boost::none);
+  std::string hash_addr(const MoneroAccountPublicAddress * addr, std::optional<uint64_t> amount = std::nullopt, std::optional<bool> is_subaddr = std::nullopt);
+  std::string hash_addr(const std::string & spend_key, const std::string & view_key, std::optional<uint64_t> amount = std::nullopt, std::optional<bool> is_subaddr = std::nullopt);
+  std::string hash_addr(const ::crypto::public_key * spend_key, const ::crypto::public_key * view_key, std::optional<uint64_t> amount = std::nullopt, std::optional<bool> is_subaddr = std::nullopt);
   ::crypto::secret_key compute_enc_key(const ::crypto::secret_key & private_view_key, const std::string & aux, const std::string & salt);
 
   typedef boost::variant<rct::rangeSig, rct::Bulletproof> rsig_v;
