@@ -86,7 +86,7 @@ static bool generate_multisig(uint32_t threshold, uint32_t total, const std::str
   try
   {
     // create M wallets first
-    std::vector<boost::shared_ptr<tools::wallet2>> wallets(total);
+    std::vector<std::shared_ptr<tools::wallet2>> wallets(total);
     for (size_t n = 0; n < total; ++n)
     {
       std::string name = basename + "-" + std::to_string(n + 1);

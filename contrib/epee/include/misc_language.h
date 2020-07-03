@@ -136,7 +136,7 @@ namespace misc_utils
     virtual ~call_befor_die_base(){}
   };
 
-  typedef boost::shared_ptr<call_befor_die_base> auto_scope_leave_caller;
+  typedef std::shared_ptr<call_befor_die_base> auto_scope_leave_caller;
 
 
   template<class t_scope_leave_handler>

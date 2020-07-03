@@ -156,10 +156,10 @@ jobs:
         sudo wget https://github.com/openssl/openssl/archive/OpenSSL_1_0_2g.tar.gz
         sudo tar -xf OpenSSL_1_0_2g.tar.gz
         cd openssl-OpenSSL_1_0_2g
-        sudo ./config
-        sudo make 
+        sudo ./config 
+        sudo make
         sudo make install
-        sudo ldconfig
+        sudo ldconfig 
         cd /home/runner/work/sumokoin/sumokoin
     - name: build sumokoin
       run: |
