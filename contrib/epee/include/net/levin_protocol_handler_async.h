@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,17 +22,16 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 #pragma once
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/interprocess/detail/atomic.hpp>
-#include <boost/smart_ptr/make_shared.hpp>
 
 #include <atomic>
-#include <deque>
+#include <memory>
 
 #include "levin_base.h"
 #include "buffer.h"
@@ -84,7 +83,7 @@ class async_protocol_handler_config
 
 public:
   typedef t_connection_context connection_context;
-  uint64_t m_max_packet_size; 
+  uint64_t m_max_packet_size;
   uint64_t m_invoke_timeout;
 
   int invoke(int command, const epee::span<const uint8_t> in_buff, std::string& buff_out, boost::uuids::uuid connection_id);
@@ -159,7 +158,7 @@ public:
   volatile uint32_t m_wait_count;
   volatile uint32_t m_close_called;
   bucket_head2 m_current_head;
-  net_utils::i_service_endpoint* m_pservice_endpoint; 
+  net_utils::i_service_endpoint* m_pservice_endpoint;
   config_type& m_config;
   t_connection_context& m_connection_context;
 
@@ -266,8 +265,8 @@ public:
     }
   };
   critical_section m_invoke_response_handlers_lock;
-  std::list<boost::shared_ptr<invoke_response_handler_base> > m_invoke_response_handlers;
-  
+  std::list<std::shared_ptr<invoke_response_handler_base> > m_invoke_response_handlers;
+
   template<class callback_t>
   bool add_invoke_response_handler(const callback_t &cb, uint64_t timeout,  async_protocol_handler& con, int command)
   {
@@ -277,19 +276,19 @@ public:
       MERROR("Adding response handler to a released object");
       return false;
     }
-    boost::shared_ptr<invoke_response_handler_base> handler(boost::make_shared<anvoke_handler<callback_t>>(cb, timeout, con, command));
+    std::shared_ptr<invoke_response_handler_base> handler(std::make_shared<anvoke_handler<callback_t>>(cb, timeout, con, command));
     m_invoke_response_handlers.push_back(handler);
     return handler->is_timer_started();
   }
   template<class callback_t> friend struct anvoke_handler;
 public:
-  async_protocol_handler(net_utils::i_service_endpoint* psnd_hndlr, 
-    config_type& config, 
+  async_protocol_handler(net_utils::i_service_endpoint* psnd_hndlr,
+    config_type& config,
     t_connection_context& conn_context):
             m_current_head(bucket_head2()),
-            m_pservice_endpoint(psnd_hndlr), 
-            m_config(config), 
-            m_connection_context(conn_context), 
+            m_pservice_endpoint(psnd_hndlr),
+            m_config(config),
+            m_connection_context(conn_context),
             m_cache_in_buffer(4 * 1024),
             m_state(stream_state_head)
   {
@@ -354,15 +353,15 @@ public:
 
     // Never call callback inside critical section, that can cause deadlock. Callback can be called when
     // invoke_response_handler_base is cancelled
-    std::for_each(local_invoke_response_handlers.begin(), local_invoke_response_handlers.end(), [](const boost::shared_ptr<invoke_response_handler_base>& pinv_resp_hndlr) {
+    std::for_each(local_invoke_response_handlers.begin(), local_invoke_response_handlers.end(), [](const std::shared_ptr<invoke_response_handler_base>& pinv_resp_hndlr) {
       pinv_resp_hndlr->cancel();
     });
 
     return true;
   }
-  
+
   bool close()
-  {    
+  {
     boost::interprocess::ipcdetail::atomic_inc32(&m_close_called);
 
     m_pservice_endpoint->close();
@@ -382,7 +381,7 @@ public:
     m_pservice_endpoint->request_callback();
   }
 
-  void handle_qued_callback()   
+  void handle_qued_callback()
   {
     m_config.m_pcommands_handler->callback(m_connection_context);
   }
@@ -406,7 +405,7 @@ public:
     if(cb > m_config.m_max_packet_size - m_cache_in_buffer.size() - m_fragment_buffer.size())
     {
       MWARNING(m_connection_context << "Maximum packet size exceed!, m_max_packet_size = " << m_config.m_max_packet_size
-                          << ", packet received " << m_cache_in_buffer.size() +  cb 
+                          << ", packet received " << m_cache_in_buffer.size() +  cb
                           << ", connection will be closed.");
       return false;
     }
@@ -428,7 +427,7 @@ public:
             if (!m_invoke_response_handlers.empty())
             {
               //async call scenario
-              boost::shared_ptr<invoke_response_handler_base> response_handler = m_invoke_response_handlers.front();
+              std::shared_ptr<invoke_response_handler_base> response_handler = m_invoke_response_handlers.front();
               response_handler->reset_timer();
               MDEBUG(m_connection_context << "LEVIN_PACKET partial msg received. len=" << cb);
             }
@@ -471,18 +470,18 @@ public:
           bool is_response = (m_oponent_protocol_ver == LEVIN_PROTOCOL_VER_1 && m_current_head.m_flags&LEVIN_PACKET_RESPONSE);
 
           MDEBUG(m_connection_context << "LEVIN_PACKET_RECEIVED. [len=" << m_current_head.m_cb
-            << ", flags" << m_current_head.m_flags 
-            << ", r?=" << m_current_head.m_have_to_return_data 
-            <<", cmd = " << m_current_head.m_command 
+            << ", flags" << m_current_head.m_flags
+            << ", r?=" << m_current_head.m_have_to_return_data
+            <<", cmd = " << m_current_head.m_command
             << ", v=" << m_current_head.m_protocol_version);
 
           if(is_response)
-          {//response to some invoke 
+          {//response to some invoke
 
             epee::critical_region_t<decltype(m_invoke_response_handlers_lock)> invoke_response_handlers_guard(m_invoke_response_handlers_lock);
             if(!m_invoke_response_handlers.empty())
             {//async call scenario
-              boost::shared_ptr<invoke_response_handler_base> response_handler = m_invoke_response_handlers.front();
+              std::shared_ptr<invoke_response_handler_base> response_handler = m_invoke_response_handlers.front();
               bool timer_cancelled = response_handler->cancel_timer();
                // Don't pop handler, to avoid destroying it
               if(timer_cancelled)
@@ -579,8 +578,8 @@ public:
           m_oponent_protocol_ver = m_current_head.m_protocol_version;
           if(m_current_head.m_cb > m_config.m_max_packet_size)
           {
-            LOG_ERROR_CC(m_connection_context, "Maximum packet size exceed!, m_max_packet_size = " << m_config.m_max_packet_size 
-              << ", packet header received " << m_current_head.m_cb 
+            LOG_ERROR_CC(m_connection_context, "Maximum packet size exceed!, m_max_packet_size = " << m_config.m_max_packet_size
+              << ", packet header received " << m_current_head.m_cb
               << ", connection will be closed.");
             return false;
           }
