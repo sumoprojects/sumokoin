@@ -478,7 +478,7 @@ bool cp_server_impl<TProtocol>::add_new_connection(SOCKET new_sock, const networ
 	LOG_PRINT("Add new connection zone: entering lock", LOG_LEVEL_3);
 	m_connections_lock.lock();
 
-	boost::shared_ptr<connection<TProtocol> > ptr;
+	std::shared_ptr<connection<TProtocol> > ptr;
 	ptr.reset(new connection<TProtocol>(m_config));
 
 	connection<TProtocol>& conn = *ptr.get();

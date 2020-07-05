@@ -517,7 +517,7 @@ POP_WARNINGS
     ge_p3 image_unp;
     ge_dsmp image_pre;
     ec_scalar sum, k, h;
-    boost::shared_ptr<rs_comm> buf(reinterpret_cast<rs_comm *>(malloc(rs_comm_size(pubs_count))), free);
+    std::shared_ptr<rs_comm> buf(reinterpret_cast<rs_comm *>(malloc(rs_comm_size(pubs_count))), free);
     if (!buf)
       local_abort("malloc failure");
     assert(sec_index < pubs_count);
@@ -582,7 +582,7 @@ POP_WARNINGS
     ge_p3 image_unp;
     ge_dsmp image_pre;
     ec_scalar sum, h;
-    boost::shared_ptr<rs_comm> buf(reinterpret_cast<rs_comm *>(malloc(rs_comm_size(pubs_count))), free);
+    std::shared_ptr<rs_comm> buf(reinterpret_cast<rs_comm *>(malloc(rs_comm_size(pubs_count))), free);
     if (!buf)
       return false;
 #if !defined(NDEBUG)
