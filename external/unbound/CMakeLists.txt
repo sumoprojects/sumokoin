@@ -34,8 +34,6 @@ find_package(Threads)
 
 include(configure_checks.cmake)
 
-set(CMAKE_C_FLAGS "-Wno-format-truncation")
-
 if (WIN32)
   set(USE_MINI_EVENT 1)
   set(USE_WINSOCK 1)
