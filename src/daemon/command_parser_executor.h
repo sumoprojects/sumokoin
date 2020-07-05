@@ -79,6 +79,8 @@ public:
 
   bool print_connections(const std::vector<std::string>& args);
 
+  bool print_open_rpc(const std::vector<std::string>& args);  
+
   bool print_blockchain_info(const std::vector<std::string>& args);
 
   bool set_log_level(const std::vector<std::string>& args);
