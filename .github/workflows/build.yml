@@ -10,10 +10,10 @@ jobs:
       with:
         submodules: recursive
     - name: update brew and install dependencies
-      run: brew update && brew install boost hidapi zmq libpgm miniupnpc ldns expat libunwind-headers protobuf ccache
+      run: brew update && brew install boost hidapi zmq libpgm miniupnpc ldns expat libunwind-headers protobuf ccache pkg-config
     - name: build sumokoin
       run: make -j2
-      
+
   build-windows:
     runs-on: windows-latest
     defaults:
@@ -95,7 +95,7 @@ jobs:
         cd boost_1_67_0
         sudo ./bootstrap.sh
         sudo ./b2 install -j3
-        cd ..      
+        cd ..
     - name: build zmq
       run: |
         git clone https://github.com/zeromq/libzmq.git
@@ -140,14 +140,14 @@ jobs:
         sudo wget https://github.com/openssl/openssl/archive/OpenSSL_1_0_2g.tar.gz
         sudo tar -xf OpenSSL_1_0_2g.tar.gz
         cd openssl-OpenSSL_1_0_2g
-        sudo ./config 
+        sudo ./config
         sudo make -j 3
         sudo make install -j 3
-        sudo ldconfig 
+        sudo ldconfig
         cd /home/runner/work/sumokoin/sumokoin
     - name: build sumokoin
       run: |
-        cmake -DOPENSSL_ROOT_DIR="/usr/local/ssl/"  
+        cmake -DOPENSSL_ROOT_DIR="/usr/local/ssl/"
         make -j3
 
   build-ubuntu-xenial-static:
