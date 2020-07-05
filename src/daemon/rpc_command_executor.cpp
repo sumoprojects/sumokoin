@@ -643,7 +643,7 @@ bool t_rpc_command_executor::show_status() {
       bootstrap_msg += " was used before";
     }
   }
-  if (bootstrap_msg.empty())	
+  if (bootstrap_msg.empty())
   {
     bootstrap_msg = "no bootstrapping";
   }
@@ -808,6 +808,9 @@ bool t_rpc_command_executor::print_connections() {
     }
   }
 
+  uint32_t incoming_number = 0;
+  uint32_t outgoing_number = 0;
+
   tools::msg_writer() << std::setw(30) << std::left << "Remote Host"
       << std::setw(6) << "Type"
       << std::setw(4) << "SSL"
@@ -825,6 +828,10 @@ bool t_rpc_command_executor::print_connections() {
   {
     std::string rpc_port = info.rpc_port ? std::to_string(info.rpc_port) : "no";
     std::string address = info.incoming ? "INC " : "OUT ";
+    if (info.incoming)
+      ++incoming_number;
+    else
+      ++ outgoing_number;
     address += info.ip + ":" + info.port;
     //std::string in_out = info.incoming ? "INC " : "OUT ";
     tools::msg_writer()
@@ -844,9 +851,10 @@ bool t_rpc_command_executor::print_connections() {
      << std::left << (info.localhost ? "[LOCALHOST]" : "")
      << std::left << (info.local_ip ? "[LAN]" : "");
     //tools::msg_writer() << boost::format("%-25s peer_id: %-25s %s") % address % info.peer_id % in_out;
-
   }
-
+  tools::msg_writer()
+      << "\n" << "Incoming Connections Count: " << incoming_number << " Outgoing Connections Count: " << outgoing_number << " Total Number of Connections: " << (incoming_number + outgoing_number);
+      
   return true;
 }
 
