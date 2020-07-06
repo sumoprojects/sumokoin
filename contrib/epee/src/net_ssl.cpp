@@ -1,21 +1,21 @@
 // Copyright (c) 2018, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -220,7 +220,7 @@ bool create_ec_ssl_certificate(EVP_PKEY *&pkey, X509 *&cert, int type)
   }
   openssl_group group_deleter{group};
 
-  EC_GROUP_set_asn1_flag(group, OPENSSL_EC_NAMED_CURVE); 
+  EC_GROUP_set_asn1_flag(group, OPENSSL_EC_NAMED_CURVE);
   EC_GROUP_set_point_conversion_form(group, POINT_CONVERSION_UNCOMPRESSED);
 
   if (!EC_GROUP_check(group, NULL))
@@ -285,6 +285,15 @@ ssl_options_t::ssl_options_t(std::vector<std::vector<std::uint8_t>> fingerprints
   std::sort(fingerprints_.begin(), fingerprints_.end());
 }
 
+#if (__GNUC__ && defined( __has_warning ))
+#if __has_warning( "-Wimplicit-fallthrough=" )
+#define SUPPRESS
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+#endif
+#endif
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 boost::asio::ssl::context ssl_options_t::create_context() const
 {
   boost::asio::ssl::context ssl_context{boost::asio::ssl::context::sslv23};
@@ -382,7 +391,11 @@ boost::asio::ssl::context ssl_options_t::create_context() const
 
   return ssl_context;
 }
-
+#pragma GCC diagnostic pop
+#ifdef SUPPRESS
+#undef SUPPRESS
+#pragma GCC diagnostic pop
+#endif
 void ssl_authentication_t::use_ssl_certificate(boost::asio::ssl::context &ssl_context) const
 {
   ssl_context.use_private_key_file(private_key_path, boost::asio::ssl::context::pem);
