@@ -139,7 +139,18 @@ jobs:
       run: |
         echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
         echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom     
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: update apt
+      run: |
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt update
+    - name: install sumokoin dependencies
+      run: |
+        sudo apt -y install dpkg-dev libc6-dev make g++-7 gcc libssl-dev cmake miniupnpc libunbound-dev libevent-dev graphviz doxygen libunwind8-dev pkg-config libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
+                        --slave /usr/bin/g++ g++ /usr/bin/g++-7
+        sudo update-alternatives --config gcc                     
     - name: build boost 1_67
       run: |
         curl -s -L -o  boost_1_67_0.tar.bz2 https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.bz2/download
@@ -159,17 +170,6 @@ jobs:
         sudo make install
         sudo ldconfig
         cd /home/runner/work/sumokoin/sumokoin
-    - name: update apt
-      run: |
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
-        sudo apt update
-    - name: install sumokoin dependencies
-      run: |
-        sudo apt -y install dpkg-dev libc6-dev make g++-7 gcc libssl-dev cmake miniupnpc libunbound-dev libevent-dev graphviz doxygen libunwind8-dev pkg-config libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
-                        --slave /usr/bin/g++ g++ /usr/bin/g++-7
-        sudo update-alternatives --config gcc  
     - name: build sumokoin
       run: |
         cmake -DOPENSSL_ROOT_DIR="/usr/local/ssl/"
