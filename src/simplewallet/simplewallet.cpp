@@ -2929,7 +2929,7 @@ bool simple_wallet::set_inactivity_lock_timeout(const std::vector<std::string> &
 bool simple_wallet::disable_lock(const std::vector<std::string> &args)
 {
 #ifdef _WIN32
-  tools::fail_msg_writer() << tr("Automatic wallet lock due to inactivity is disabled on Windows"); 
+  tools::fail_msg_writer() << tr("Automatic wallet lock due to inactivity is disabled on Windows");
   return true;
 #endif
   m_wallet->inactivity_lock_timeout(-1);
@@ -6517,6 +6517,13 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
 
   SCOPED_WALLET_UNLOCK_ON_BAD_PASSWORD(return false;);
 
+  #if __GNUC__ && defined( __has_warning )
+  #if __has_warning( "-Wimplicit-fallthrough=" )
+  #define SUPPRESS
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+  #endif
+  #endif
   try
   {
     // figure out what tx will be necessary
@@ -6548,6 +6555,10 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
       fail_msg_writer() << tr("No outputs found, or daemon is not ready");
       return false;
     }
+    #ifdef SUPPRESS
+    #undef SUPPRESS
+    #pragma GCC diagnostic pop
+    #endif
 
     // if we need to check for backlog, check the worst case tx
     if (m_wallet->confirm_backlog())
