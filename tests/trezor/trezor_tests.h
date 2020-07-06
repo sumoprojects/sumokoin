@@ -162,9 +162,9 @@ public:
   tsx_builder * payment_id(const std::string & payment_id) { m_payment_id = payment_id; return this; }
   tsx_builder * from(tools::wallet2 *from, uint32_t account=0) { m_from = from; m_account=account; return this; }
   tsx_builder * sources(std::vector<cryptonote::tx_source_entry> & sources, std::vector<size_t> & selected_transfers);
-  tsx_builder * compute_sources(boost::optional<size_t> num_utxo=boost::none, boost::optional<uint64_t> min_amount=boost::none, ssize_t offset=-1, int step=1, boost::optional<fnc_accept_tx_source_t> fnc_accept=boost::none);
-  tsx_builder * compute_sources_to_sub(boost::optional<size_t> num_utxo=boost::none, boost::optional<uint64_t> min_amount=boost::none, ssize_t offset=-1, int step=1, boost::optional<fnc_accept_tx_source_t> fnc_accept=boost::none);
-  tsx_builder * compute_sources_to_sub_acc(boost::optional<size_t> num_utxo=boost::none, boost::optional<uint64_t> min_amount=boost::none, ssize_t offset=-1, int step=1, boost::optional<fnc_accept_tx_source_t> fnc_accept=boost::none);
+  tsx_builder * compute_sources(std::optional<size_t> num_utxo=std::nullopt, std::optional<uint64_t> min_amount=std::nullopt, ssize_t offset=-1, int step=1, std::optional<fnc_accept_tx_source_t> fnc_accept=std::nullopt);
+  tsx_builder * compute_sources_to_sub(std::optional<size_t> num_utxo=std::nullopt, std::optional<uint64_t> min_amount=std::nullopt, ssize_t offset=-1, int step=1, std::optional<fnc_accept_tx_source_t> fnc_accept=std::nullopt);
+  tsx_builder * compute_sources_to_sub_acc(std::optional<size_t> num_utxo=std::nullopt, std::optional<uint64_t> min_amount=std::nullopt, ssize_t offset=-1, int step=1, std::optional<fnc_accept_tx_source_t> fnc_accept=std::nullopt);
 
   tsx_builder * destinations(std::vector<cryptonote::tx_destination_entry> &dsts);
   tsx_builder * add_destination(const cryptonote::tx_destination_entry &dst);
@@ -174,7 +174,7 @@ public:
   tsx_builder * rct_config(const rct::RCTConfig & rct_config) {m_rct_config = rct_config; return this; };
 
   tsx_builder * build_tx();
-  tsx_builder * construct_pending_tx(tools::wallet2::pending_tx &ptx, boost::optional<std::vector<uint8_t>> extra = boost::none);
+  tsx_builder * construct_pending_tx(tools::wallet2::pending_tx &ptx, std::optional<std::vector<uint8_t>> extra = std::nullopt);
   tsx_builder * clear_current();
   std::vector<tools::wallet2::pending_tx> build();
   std::vector<cryptonote::address_parse_info> dest_info(){ return m_dsts_info; }

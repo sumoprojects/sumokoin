@@ -35,7 +35,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/program_options/variables_map.hpp>
 #include <boost/program_options/options_description.hpp>
-#include <boost/optional/optional.hpp>
+#include <optional>
 #include "serialization/serialization.h"
 #include "cryptonote_basic/cryptonote_boost_serialization.h"
 #include "cryptonote_basic/account_boost_serialization.h"
@@ -221,9 +221,9 @@ namespace mms
 
     void set_signer(const multisig_wallet_state &state,
                     uint32_t index,
-                    const boost::optional<std::string> &label,
-                    const boost::optional<std::string> &transport_address,
-                    const boost::optional<cryptonote::account_public_address> monero_address);
+                    const std::optional<std::string> &label,
+                    const std::optional<std::string> &transport_address,
+                    const std::optional<cryptonote::account_public_address> monero_address);
 
     const authorized_signer &get_signer(uint32_t index) const;
     bool get_signer_index_by_monero_address(const cryptonote::account_public_address &monero_address, uint32_t &index) const;
