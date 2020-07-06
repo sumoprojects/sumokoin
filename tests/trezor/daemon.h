@@ -137,7 +137,7 @@ public:
   void stop_rpc();
   void init_and_run();
   void stop_and_deinit();
-  void try_init_and_run(boost::optional<unsigned> initial_port=boost::none);
+  void try_init_and_run(std::optional<unsigned> initial_port=std::nullopt);
 
   void mine_blocks(size_t num_blocks, const std::string &miner_address);
   void start_mining(const std::string &miner_address, uint64_t threads_count=1, bool do_background_mining=false, bool ignore_battery=true);

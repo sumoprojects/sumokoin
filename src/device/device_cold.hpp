@@ -31,7 +31,7 @@
 #define MONERO_DEVICE_COLD_H
 
 #include "wallet/wallet2.h"
-#include <boost/optional/optional.hpp>
+#include <optional>
 #include <boost/function.hpp>
 
 
@@ -45,9 +45,9 @@ namespace hw {
   public:
     std::vector<std::string> tx_device_aux;  // device generated aux data
     std::vector<cryptonote::address_parse_info> tx_recipients;  // as entered by user
-    boost::optional<int> bp_version;  // BP version to use
-    boost::optional<unsigned> client_version;  // Signing client version to use (testing)
-    boost::optional<uint8_t> hard_fork;  // hard fork being used for the transaction
+    std::optional<int> bp_version;  // BP version to use
+    std::optional<unsigned> client_version;  // Signing client version to use (testing)
+    std::optional<uint8_t> hard_fork;  // hard fork being used for the transaction
   };
 
   class device_cold {

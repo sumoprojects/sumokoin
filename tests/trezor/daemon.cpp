@@ -137,7 +137,7 @@ void mock_daemon::init()
   if(m_http_client.is_connected())
     m_http_client.disconnect();
 
-  CHECK_AND_ASSERT_THROW_MES(m_http_client.set_server(rpc_addr(), boost::none, epee::net_utils::ssl_support_t::e_ssl_support_disabled), "RPC client init fail");
+  CHECK_AND_ASSERT_THROW_MES(m_http_client.set_server(rpc_addr(), std::nullopt, epee::net_utils::ssl_support_t::e_ssl_support_disabled), "RPC client init fail");
 }
 
 void mock_daemon::deinit()
@@ -191,7 +191,7 @@ void mock_daemon::stop_and_deinit()
   deinit();
 }
 
-void mock_daemon::try_init_and_run(boost::optional<unsigned> initial_port)
+void mock_daemon::try_init_and_run(std::optional<unsigned> initial_port)
 {
   const unsigned max_attempts = 3;
   for(unsigned attempts=0; attempts < max_attempts; ++attempts)
