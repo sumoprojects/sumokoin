@@ -858,6 +858,57 @@ bool t_rpc_command_executor::print_connections() {
   return true;
 }
 
+bool t_rpc_command_executor::print_open_rpc() {
+  cryptonote::COMMAND_RPC_GET_CONNECTIONS::request req;
+  cryptonote::COMMAND_RPC_GET_CONNECTIONS::response res;
+  epee::json_rpc::error error_resp;
+
+  std::string fail_message = "Unsuccessful";
+
+  if (m_is_rpc)
+  {
+    if (!m_rpc_client->json_rpc_request(req, res, "get_connections", fail_message.c_str()))
+    {
+      return true;
+    }
+  }
+  else
+  {
+    if (!m_rpc_server->on_get_connections(req, res, error_resp) || res.status != CORE_RPC_STATUS_OK)
+    {
+      tools::fail_msg_writer() << make_error(fail_message, res.status);
+      return true;
+    }
+  }
+
+  tools::msg_writer() << std::setw(30) << std::left << "Remote Host"
+      << std::setw(4) << "SSL"
+      << std::setw(12) << "RPC Port"
+      << std::setw(18) << "State"
+      << std::setw(8) << "Alive(s)"
+      << std::endl;
+
+  for (auto & info : res.connections)
+  {
+    std::string rpc_port = std::to_string(info.rpc_port);
+    if (rpc_port != "0")
+    {
+      std::string address = info.ip + ":" + info.port;
+        tools::msg_writer()
+          << std::setw(30) << std::left << address
+          << std::setw(4) << (info.ssl ? "yes" : "no")
+          << std::setw(12) << rpc_port
+          << std::setw(18) << info.state
+          << std::setw(8) << info.live_time
+
+          << std::left << (info.localhost ? "[LOCALHOST]" : "")
+          << std::left << (info.local_ip ? "[LAN]" : "");
+    }
+  }
+
+  return true;
+}
+
 bool t_rpc_command_executor::print_net_stats()
 {
   cryptonote::COMMAND_RPC_GET_NET_STATS::request net_stats_req;

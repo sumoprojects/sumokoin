@@ -78,6 +78,11 @@ t_command_server::t_command_server(
     , std::bind(&t_command_parser_executor::print_connections, &m_parser, p::_1)
     , "Print the current connections."
     );
+    m_command_lookup.set_handler(
+        "print_open_cn"
+      , std::bind(&t_command_parser_executor::print_open_rpc, &m_parser, p::_1)
+      , "Print connections with open rpc."
+      );
   m_command_lookup.set_handler(
       "print_net_stats"
     , std::bind(&t_command_parser_executor::print_net_stats, &m_parser, p::_1)
@@ -294,7 +299,7 @@ t_command_server::t_command_server(
     , "update (check|download)"
     , "Check if an update is available, optionally downloads it if there is. Updating is not yet implemented."
     );
-*/    
+*/
     m_command_lookup.set_handler(
       "relay_tx"
     , std::bind(&t_command_parser_executor::relay_tx, &m_parser, p::_1)

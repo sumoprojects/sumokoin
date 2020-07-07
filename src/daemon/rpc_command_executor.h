@@ -89,6 +89,8 @@ public:
 
   bool print_connections();
 
+  bool print_open_rpc();
+
   bool print_blockchain_info(int64_t start_block_index, uint64_t end_block_index);
 
   bool set_log_level(int8_t level);
