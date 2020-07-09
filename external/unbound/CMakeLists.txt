@@ -28,6 +28,10 @@
 
 cmake_minimum_required(VERSION 2.8.7)
 
+if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0")
+  cmake_policy(SET CMP0075 NEW) # cmake >= 3.12
+endif()
+
 project(unbound C)
 
 find_package(Threads)
