@@ -747,6 +747,16 @@ namespace levin
     zone_->flush_txs.cancel();
   }
 
+// suppress "this statement may fall through" warning on gcc (>7.0) and clang, dandelion cases below are supposed to fallthrough
+#if (__GNUC__ && defined( __has_warning ))
+#if __has_warning( "-Wimplicit-fallthrough=" )
+#define SUPPRESS
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+#endif
+#endif
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
   bool notify::send_txs(std::vector<blobdata> txs, const boost::uuids::uuid& source, i_core_events& core, relay_method tx_relay)
   {
     if (txs.empty())
@@ -828,5 +838,10 @@ namespace levin
     }
     return true;
   }
+#pragma GCC diagnostic pop
+#ifdef SUPPRESS
+#undef SUPPRESS
+#pragma GCC diagnostic pop
+#endif
 } // levin
 } // net
