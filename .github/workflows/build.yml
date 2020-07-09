@@ -10,9 +10,18 @@ jobs:
       with:
         submodules: recursive
     - name: update brew and install dependencies
-      run: brew update && brew install boost hidapi zmq libpgm miniupnpc ldns expat libunwind-headers protobuf ccache
+      run: brew update && brew install boost hidapi zmq libpgm ldns expat libunwind-headers protobuf ccache pkg-config 
+    - name: link pkg-config with openssl (find libcrypto)
+      run: |                                  
+        PKG_CONFIG_PATH=/usr/local/opt/openssl@1.1/lib/pkgconfig:"${PKG_CONFIG_PATH}"          
+        export PKG_CONFIG_PATH   
+        mkdir build
+        cd build
+        PKG_CONFIG_PATH=/usr/local/opt/openssl@1.1/lib/pkgconfig cmake ..
     - name: build sumokoin
-      run: make -j2
+      run: |
+        cd build
+        make -j2
 
   build-windows:
     runs-on: windows-latest
@@ -26,7 +35,7 @@ jobs:
     - uses: eine/setup-msys2@v1
       with:
         update: true
-        install: mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb git
+        install: mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-libunwind mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb git
     - name: build sumokoin
       run: make release-static-win64 -j2
 
@@ -46,7 +55,7 @@ jobs:
     - name: update apt
       run: sudo apt update
     - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
+      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev libevent-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
     - name: build sumokoin
       run: make -j3
 
@@ -86,7 +95,7 @@ jobs:
     - name: update apt
       run: sudo apt update
     - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake miniupnpc libunbound-dev graphviz doxygen pkg-config libssl-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libudev-dev ccache libtool autoconf automake python libtinfo5
+      run: sudo apt -y install build-essential cmake miniupnpc libunbound-dev libevent-dev graphviz doxygen pkg-config libssl-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libudev-dev ccache libtool autoconf automake python libtinfo5
     - name: build boost 1_67
       run: |
         curl -s -L -o  boost_1_67_0.tar.bz2 https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.bz2/download
@@ -138,10 +147,10 @@ jobs:
         sudo apt update
     - name: install sumokoin dependencies
       run: |
-        sudo apt -y install dpkg-dev libc6-dev make g++-7 gcc libssl-dev cmake miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
+        sudo apt -y install dpkg-dev libc6-dev make g++-7 gcc libssl-dev cmake miniupnpc libunbound-dev libevent-dev graphviz doxygen libunwind8-dev pkg-config libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
                         --slave /usr/bin/g++ g++ /usr/bin/g++-7
-        sudo update-alternatives --config gcc        
+        sudo update-alternatives --config gcc                     
     - name: build boost 1_67
       run: |
         curl -s -L -o  boost_1_67_0.tar.bz2 https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.bz2/download
@@ -156,10 +165,10 @@ jobs:
         sudo wget https://github.com/openssl/openssl/archive/OpenSSL_1_0_2g.tar.gz
         sudo tar -xf OpenSSL_1_0_2g.tar.gz
         cd openssl-OpenSSL_1_0_2g
-        sudo ./config 
+        sudo ./config
         sudo make
         sudo make install
-        sudo ldconfig 
+        sudo ldconfig
         cd /home/runner/work/sumokoin/sumokoin
     - name: build sumokoin
       run: |
@@ -187,7 +196,7 @@ jobs:
         sudo apt update
     - name: install sumokoin dependencies
       run: |
-         sudo apt -y install dpkg-dev libc6-dev make g++-7 gcc libssl-dev cmake miniupnpc libunbound-dev graphviz doxygen pkg-config libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libudev-dev ccache libtool autoconf automake python libtinfo5
+         sudo apt -y install dpkg-dev libc6-dev make g++-7 gcc libssl-dev cmake miniupnpc libunbound-dev libevent-dev graphviz doxygen pkg-config libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libudev-dev ccache libtool autoconf automake python libtinfo5
          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
                          --slave /usr/bin/g++ g++ /usr/bin/g++-7
          sudo update-alternatives --config gcc
@@ -238,7 +247,7 @@ jobs:
     - name: update apt
       run: sudo apt update
     - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
+      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev libevent-dev graphviz doxygen pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
     - name: build sumokoin
       run: cmake -DBUILD_GUI_DEPS=ON && make -j2
 
@@ -259,7 +268,7 @@ jobs:
     - name: update apt
       run: sudo apt update
     - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev
+      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev libevent-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev
     - name: install requests
       run: pip install requests
     - name: tests
