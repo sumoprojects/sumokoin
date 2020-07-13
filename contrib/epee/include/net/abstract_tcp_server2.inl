@@ -764,30 +764,35 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     }
     MTRACE((add ? "Adding" : "Setting") << " " << ms << " expiry");
     auto self = safe_shared_from_this();
+
     if(!self)
     {
       MERROR("Resetting timer on a dead object");
       return;
     }
-    if (m_was_shutdown)
+
+    if (!m_was_shutdown)
     {
-      MWARNING("Setting timer on a shut down object");
+      if (add)
+      {
+        const auto cur = m_timer.expires_from_now().total_milliseconds();
+        if (cur > 0)
+          ms += (boost::posix_time::milliseconds)cur;
+      }
+      m_timer.expires_from_now(ms);
+      m_timer.async_wait([=](const boost::system::error_code& ec)
+      {
+        if(ec == boost::asio::error::operation_aborted)
+          return;
+        MDEBUG(context << "connection timeout, closing");
+        self->close();
+      });
+    }
+    else
+    {
+      MINFO("Object is shut down, timer not set");
       return;
     }
-    if (add)
-    {
-      const auto cur = m_timer.expires_from_now().total_milliseconds();
-      if (cur > 0)
-        ms += (boost::posix_time::milliseconds)cur;
-    }
-    m_timer.expires_from_now(ms);
-    m_timer.async_wait([=](const boost::system::error_code& ec)
-    {
-      if(ec == boost::asio::error::operation_aborted)
-        return;
-      MDEBUG(context << "connection timeout, closing");
-      self->close();
-    });
   }
   //---------------------------------------------------------------------------------
   template<class t_protocol_handler>
