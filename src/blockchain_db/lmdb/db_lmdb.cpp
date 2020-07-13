@@ -30,16 +30,12 @@
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/circular_buffer.hpp>
-#include <boost/optional.hpp>
-#include <memory>  // std::unique_ptr
-#include <cstring>  // memcpy
 
 #include "string_tools.h"
 #include "file_io_utils.h"
 #include "common/util.h"
 #include "common/pruning.h"
 #include "cryptonote_basic/cryptonote_format_utils.h"
-#include "crypto/crypto.h"
 #include "profile_tools.h"
 #include "ringct/rctOps.h"
 
@@ -577,7 +573,7 @@ void BlockchainLMDB::do_resize(uint64_t increase_size)
 	
   boost::filesystem::path path(m_folder);
   boost::filesystem::space_info si = boost::filesystem::space(path);
-  boost::optional<uint64_t> space_available = si.available;
+  std::optional<uint64_t> space_available = si.available;
 	
   if (space_available)
   {
@@ -1334,7 +1330,7 @@ void BlockchainLMDB::open(const std::string& filename, const int db_flags)
     throw DB_ERROR("Database could not be opened");
   }
 
-  boost::optional<bool> is_hdd_result = tools::is_hdd(filename.c_str());
+  std::optional<bool> is_hdd_result = tools::is_hdd(filename.c_str());
   if (is_hdd_result)
   {
     if (is_hdd_result.value())

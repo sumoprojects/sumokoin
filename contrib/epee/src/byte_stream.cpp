@@ -28,10 +28,6 @@
 
 #include "byte_stream.h"
 
-#include <algorithm>
-#include <limits>
-#include <utility>
-
 #include <iostream>
 
 namespace epee

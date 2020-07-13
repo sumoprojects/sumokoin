@@ -30,18 +30,13 @@
 
 #include <unistd.h>
 #include <cassert>
-#include <cstddef>
 #include <cstdint>
-#include <cstdlib>
-#include <cstring>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/lock_guard.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "common/varint.h"
 #include "warnings.h"
 #include "crypto.h"
-// #include "hash.h" //included in crypto/crypto.h
 
 namespace {
   static void local_abort(const char *msg)
@@ -66,7 +61,6 @@ namespace crypto {
 
   extern "C" {
 #include "crypto-ops.h"
-#include "random.h"
   }
 
   const crypto::public_key null_pkey = crypto::public_key{};
@@ -321,7 +315,7 @@ namespace crypto {
     return sc_isnonzero(&c) == 0;
   }
 
-  void crypto_ops::generate_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const boost::optional<public_key> &B, const public_key &D, const secret_key &r, signature &sig) {
+  void crypto_ops::generate_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const std::optional<public_key> &B, const public_key &D, const secret_key &r, signature &sig) {
     // sanity check
     ge_p3 R_p3;
     ge_p3 A_p3;
@@ -395,7 +389,7 @@ namespace crypto {
     memwipe(&k, sizeof(k));
   }
 
-  bool crypto_ops::check_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const boost::optional<public_key> &B, const public_key &D, const signature &sig) {
+  bool crypto_ops::check_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const std::optional<public_key> &B, const public_key &D, const signature &sig) {
     // sanity check
     ge_p3 R_p3;
     ge_p3 A_p3;
@@ -523,7 +517,7 @@ POP_WARNINGS
     ge_p3 image_unp;
     ge_dsmp image_pre;
     ec_scalar sum, k, h;
-    boost::shared_ptr<rs_comm> buf(reinterpret_cast<rs_comm *>(malloc(rs_comm_size(pubs_count))), free);
+    std::shared_ptr<rs_comm> buf(reinterpret_cast<rs_comm *>(malloc(rs_comm_size(pubs_count))), free);
     if (!buf)
       local_abort("malloc failure");
     assert(sec_index < pubs_count);
@@ -588,7 +582,7 @@ POP_WARNINGS
     ge_p3 image_unp;
     ge_dsmp image_pre;
     ec_scalar sum, h;
-    boost::shared_ptr<rs_comm> buf(reinterpret_cast<rs_comm *>(malloc(rs_comm_size(pubs_count))), free);
+    std::shared_ptr<rs_comm> buf(reinterpret_cast<rs_comm *>(malloc(rs_comm_size(pubs_count))), free);
     if (!buf)
       return false;
 #if !defined(NDEBUG)

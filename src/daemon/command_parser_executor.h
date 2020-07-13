@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include <boost/optional/optional.hpp>
+#include <optional>
 
 #include "daemon/rpc_command_executor.h"
 #include "common/common_fwd.h"
@@ -53,7 +53,7 @@ public:
   t_command_parser_executor(
       uint32_t ip
     , uint16_t port
-    , const boost::optional<tools::login>& login
+    , const std::optional<tools::login>& login
     , const epee::net_utils::ssl_options_t& ssl_options
     , bool is_rpc
     , cryptonote::core_rpc_server* rpc_server = NULL
@@ -78,6 +78,8 @@ public:
   bool show_status(const std::vector<std::string>& args);
 
   bool print_connections(const std::vector<std::string>& args);
+
+  bool print_open_rpc(const std::vector<std::string>& args);  
 
   bool print_blockchain_info(const std::vector<std::string>& args);
 

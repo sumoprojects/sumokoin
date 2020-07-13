@@ -35,7 +35,6 @@
 #include "string_tools.h"
 #include "storages/portable_storage_template_helper.h" // epee json include
 #include "serialization/keyvalue_serialization.h"
-#include <vector>
 
 using namespace epee;
 

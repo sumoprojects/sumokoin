@@ -62,24 +62,24 @@ namespace trezor{
   void DebugLink::input_word(const std::string & word){
     messages::debug::DebugLinkDecision decision;
     decision.set_input(word);
-    call(decision, boost::none, true);
+    call(decision, std::nullopt, true);
   }
 
   void DebugLink::input_button(bool button){
     messages::debug::DebugLinkDecision decision;
     decision.set_yes_no(button);
-    call(decision, boost::none, true);
+    call(decision, std::nullopt, true);
   }
 
   void DebugLink::input_swipe(bool swipe){
     messages::debug::DebugLinkDecision decision;
     decision.set_up_down(swipe);
-    call(decision, boost::none, true);
+    call(decision, std::nullopt, true);
   }
 
   void DebugLink::stop(){
     messages::debug::DebugLinkStop msg;
-    call(msg, boost::none, true);
+    call(msg, std::nullopt, true);
   }
 
 

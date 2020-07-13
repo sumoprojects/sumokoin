@@ -1,4 +1,4 @@
-Sumokoin daemon internationalization
+Sumokoin daemon internationalization (not operational)
 ==================================
 
 The Sumokoin command line tools can be translated in various languages.

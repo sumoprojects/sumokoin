@@ -28,12 +28,6 @@
 
 #include "socks_connect.h"
 
-#include <boost/system/error_code.hpp>
-#include <boost/system/system_error.hpp>
-#include <cstdint>
-#include <memory>
-#include <system_error>
-
 #include "net/error.h"
 #include "net/net_utils_base.h"
 #include "net/socks.h"

@@ -28,18 +28,9 @@
 
 #include "daemon_handler.h"
 
-#include <algorithm>
-#include <cstring>
-#include <stdexcept>
-
-#include <boost/uuid/nil_generator.hpp>
-#include <boost/utility/string_ref.hpp>
 // likely included by daemon_handler.h's includes,
 // but including here for clarity
 // #include "cryptonote_core/cryptonote_core.h"
-#include "cryptonote_basic/cryptonote_format_utils.h"
-#include "cryptonote_basic/blobdatatype.h"
-#include "ringct/rctSigs.h"
 #include "version.h"
 
 namespace cryptonote

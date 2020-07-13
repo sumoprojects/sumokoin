@@ -33,15 +33,11 @@
 #include "common/password.h"
 #include "common/util.h"
 #include "cryptonote_core/cryptonote_core.h"
-#include "cryptonote_basic/miner.h"
 #include "daemon/command_server.h"
 #include "daemon/daemon.h"
 #include "daemon/executor.h"
 #include "daemonizer/daemonizer.h"
-#include "misc_log_ex.h"
 #include "net/parse.h"
-#include "p2p/net_node.h"
-#include "rpc/core_rpc_server.h"
 #include "rpc/rpc_args.h"
 #include "daemon/command_line_args.h"
 #include "version.h"
@@ -296,7 +292,7 @@ int main(int argc, char const * argv[])
         const char *env_rpc_login = nullptr;
         const bool has_rpc_arg = command_line::has_arg(vm, arg.rpc_login);
         const bool use_rpc_env = !has_rpc_arg && (env_rpc_login = getenv("RPC_LOGIN")) != nullptr && strlen(env_rpc_login) > 0;
-        boost::optional<tools::login> login{};
+        std::optional<tools::login> login{};
         if (has_rpc_arg || use_rpc_env)
         {
           login = tools::login::parse(

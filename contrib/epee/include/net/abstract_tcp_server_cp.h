@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 #ifndef _LEVIN_CP_SERVER_H_
@@ -32,7 +32,7 @@
 #include <rpc.h>
 #include <string>
 #include <map>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "misc_log_ex.h"
 //#include "threads_helper.h"
@@ -45,7 +45,7 @@
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "net"
 
-#define LEVIN_DEFAULT_DATA_BUFF_SIZE       2000  
+#define LEVIN_DEFAULT_DATA_BUFF_SIZE       2000
 
 namespace epee
 {
@@ -111,7 +111,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 				m_precv_data->TotalBuffBytes = LEVIN_DEFAULT_DATA_BUFF_SIZE;
 				return true;
 			}
-			
+
 			bool query_shutdown()
 			{
 				if(!::InterlockedCompareExchange(&m_asked_to_shutdown, 1, 0))
@@ -141,7 +141,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 				PROFILE_FUNC("[handle_send]");
 				if(m_psend_data->TotalBuffBytes < cb)
 					resize_send_buff((DWORD)cb);
-				
+
 				ZeroMemory(&m_psend_data->m_overlapped, sizeof(OVERLAPPED));
 				m_psend_data->DataBuf.len = (u_long)cb;//m_psend_data->TotalBuffBytes;
 				m_psend_data->DataBuf.buf = m_psend_data->Buffer;
@@ -155,7 +155,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 					PROFILE_FUNC("[handle_send] ::WSASend");
 					res = ::WSASend(m_sock, &(m_psend_data->DataBuf), 1, &bytes_sent, flags, &(m_psend_data->m_overlapped), NULL);
 				}
-				
+
 				if(res == SOCKET_ERROR )
 				{
 					int err = ::WSAGetLastError();
@@ -204,8 +204,8 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 			io_data_base* m_precv_data;
 			io_data_base* m_psend_data;
 			HANDLE m_completion_port;
-			volatile LONG m_asked_to_shutdown;			
-			volatile LONG m_connection_shutwoned;			
+			volatile LONG m_asked_to_shutdown;
+			volatile LONG m_connection_shutwoned;
 		};
 PRAGMA_WARNING_POP
 
@@ -216,7 +216,7 @@ PRAGMA_WARNING_POP
 		bool shutdown_connection(connection<TProtocol>* pconn);
 
 
-		typedef std::map<SOCKET, boost::shared_ptr<connection<TProtocol> > > connections_container;
+		typedef std::map<SOCKET, std::shared_ptr<connection<TProtocol> > > connections_container;
 		SOCKET m_listen_socket;
 		HANDLE m_completion_port;
 		connections_container m_connections;

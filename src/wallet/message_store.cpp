@@ -27,20 +27,11 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "message_store.h"
-#include <boost/archive/portable_binary_oarchive.hpp>
-#include <boost/archive/portable_binary_iarchive.hpp>
 #include <boost/format.hpp>
-#include <boost/algorithm/string.hpp>
-#include <fstream>
-#include <sstream>
-#include "file_io_utils.h"
 #include "storages/http_abstract_invoke.h"
 #include "wallet_errors.h"
-#include "serialization/binary_utils.h"
 #include "common/base58.h"
-#include "common/util.h"
 #include "common/utf8.h"
-#include "string_tools.h"
 
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
@@ -122,24 +113,24 @@ void message_store::set_options(const std::string &bitmessage_address, const epe
 
 void message_store::set_signer(const multisig_wallet_state &state,
                                uint32_t index,
-                               const boost::optional<std::string> &label,
-                               const boost::optional<std::string> &transport_address,
-                               const boost::optional<cryptonote::account_public_address> monero_address)
+                               const std::optional<std::string> &label,
+                               const std::optional<std::string> &transport_address,
+                               const std::optional<cryptonote::account_public_address> monero_address)
 {
   THROW_WALLET_EXCEPTION_IF(index >= m_num_authorized_signers, tools::error::wallet_internal_error, "Invalid signer index " + std::to_string(index));
   authorized_signer &m = m_signers[index];
   if (label)
   {
-    get_sanitized_text(label.get(), 50, m.label);
+    get_sanitized_text(label.value(), 50, m.label);
   }
   if (transport_address)
   {
-    get_sanitized_text(transport_address.get(), 200, m.transport_address);
+    get_sanitized_text(transport_address.value(), 200, m.transport_address);
   }
   if (monero_address)
   {
     m.monero_address_known = true;
-    m.monero_address = monero_address.get();
+    m.monero_address = monero_address.value();
   }
   // Save to minimize the chance to loose that info
   save(state);

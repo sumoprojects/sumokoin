@@ -1,12 +1,7 @@
 #include "bootstrap_daemon.h"
 
-#include <stdexcept>
-
-#include <boost/thread/locks.hpp>
-
 #include "crypto/crypto.h"
 #include "cryptonote_core/cryptonote_core.h"
-#include "misc_log_ex.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "daemon.rpc.bootstrap_daemon"
@@ -24,7 +19,7 @@ namespace cryptonote
 
   bootstrap_daemon::bootstrap_daemon(
     const std::string &address,
-    boost::optional<epee::net_utils::http::login> credentials,
+    std::optional<epee::net_utils::http::login> credentials,
     bool rpc_payment_enabled)
     : m_selector(nullptr)
     , m_rpc_payment_enabled(rpc_payment_enabled)
@@ -45,19 +40,19 @@ namespace cryptonote
     return host + ":" + m_http_client.get_port();
   }
 
-  boost::optional<uint64_t> bootstrap_daemon::get_height()
+  std::optional<uint64_t> bootstrap_daemon::get_height()
   {
     cryptonote::COMMAND_RPC_GET_HEIGHT::request req;
     cryptonote::COMMAND_RPC_GET_HEIGHT::response res;
 
     if (!invoke_http_json("/getheight", req, res))
     {
-      return boost::none;
+      return std::nullopt;
     }
 
     if (res.status != CORE_RPC_STATUS_OK)
     {
-      return boost::none;
+      return std::nullopt;
     }
 
     return res.height;
@@ -78,7 +73,7 @@ namespace cryptonote
     return success;
   }
 
-  bool bootstrap_daemon::set_server(const std::string &address, const boost::optional<epee::net_utils::http::login> &credentials /* = boost::none */)
+  bool bootstrap_daemon::set_server(const std::string &address, const std::optional<epee::net_utils::http::login> &credentials /* = std::nullopt */)
   {
     if (!m_http_client.set_server(address, credentials))
     {
@@ -98,7 +93,7 @@ namespace cryptonote
       return true;
     }
 
-    boost::optional<bootstrap_node::node_info> node;
+    std::optional<bootstrap_node::node_info> node;
     {
       const boost::unique_lock<boost::mutex> lock(m_selector_mutex);
       node = m_selector->next_node();

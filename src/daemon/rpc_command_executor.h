@@ -61,7 +61,7 @@ public:
   t_rpc_command_executor(
       uint32_t ip
     , uint16_t port
-    , const boost::optional<tools::login>& user
+    , const std::optional<tools::login>& user
     , const epee::net_utils::ssl_options_t& ssl_options
     , bool is_rpc = true
     , cryptonote::core_rpc_server* rpc_server = NULL
@@ -88,6 +88,8 @@ public:
   bool show_status();
 
   bool print_connections();
+
+  bool print_open_rpc();
 
   bool print_blockchain_info(int64_t start_block_index, uint64_t end_block_index);
 

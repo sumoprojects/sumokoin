@@ -31,11 +31,9 @@
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/filesystem.hpp>
 #include "common/util.h"
-#include "misc_log_ex.h"
 #include "misc_language.h"
 #include "wallet_errors.h"
 #include "ringdb.h"
-#include "cryptonote_config.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "wallet.ringdb"

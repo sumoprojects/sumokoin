@@ -28,7 +28,6 @@
 #include "expect.h"
 
 #include <easylogging++.h>
-#include <string>
 
 namespace detail
 {

@@ -94,7 +94,7 @@ P2P anonymity connections. The anonymity network (Tor/i2p) is
 must be the RPC port (typically 19734 for mainnet) instead of the p2p port:
 
 ```
-HiddenServiceDir /var/lib/tor/data/monero
+HiddenServiceDir /var/lib/tor/data/sumokoin
 HiddenServicePort 19734 127.0.0.1:19734
 ```
 

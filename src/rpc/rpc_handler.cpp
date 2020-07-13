@@ -25,7 +25,7 @@ namespace rpc
     }
   }
 
-  boost::optional<output_distribution_data>
+  std::optional<output_distribution_data>
     RpcHandler::get_output_distribution(const std::function<bool(uint64_t, uint64_t, uint64_t, uint64_t&, std::vector<uint64_t>&, uint64_t&)> &f, uint64_t amount, uint64_t from_height, uint64_t to_height, const std::function<crypto::hash(uint64_t)> &get_hash, bool cumulative, uint64_t blockchain_height)
   {
       static struct D
@@ -63,7 +63,7 @@ namespace rpc
             d.cached_to -= 10;
             d.cached_top_hash = hash10;
             d.cached_m10_hash = crypto::null_hash;
-            CHECK_AND_ASSERT_MES(d.cached_distribution.size() >= 10, boost::none, "Cached distribution size does not match cached bounds");
+            CHECK_AND_ASSERT_MES(d.cached_distribution.size() >= 10, std::nullopt, "Cached distribution size does not match cached bounds");
             for (int p = 0; p < 10; ++p)
               d.cached_distribution.pop_back();
             can_extend = true;
@@ -74,7 +74,7 @@ namespace rpc
       {
         std::vector<std::uint64_t> new_distribution;
         if (!f(amount, d.cached_to + 1, to_height, start_height, new_distribution, base))
-          return boost::none;
+          return std::nullopt;
         distribution = d.cached_distribution;
         distribution.reserve(distribution.size() + new_distribution.size());
         for (const auto &e: new_distribution)
@@ -85,7 +85,7 @@ namespace rpc
       else
       {
         if (!f(amount, from_height, to_height, start_height, distribution, base))
-          return boost::none;
+          return std::nullopt;
       }
 
       if (to_height > 0 && to_height >= from_height)

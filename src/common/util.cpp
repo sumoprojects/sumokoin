@@ -58,24 +58,20 @@
 
 #include "include_base_utils.h"
 #include "file_io_utils.h"
-#include "wipeable_string.h"
 #include "misc_os_dependent.h"
 using namespace epee;
 
 #include "crypto/crypto.h"
 #include "util.h"
-#include "stack_trace.h"
-#include "memwipe.h"
 #include "cryptonote_config.h"
 #include "net/http_client.h"                        // epee::net_utils::...
-#include "readline_buffer.h"
 
 #ifdef WIN32
 #ifndef STRSAFE_NO_DEPRECATE
 #define STRSAFE_NO_DEPRECATE
 #endif
-  #include <windows.h>
-  #include <shlobj.h>
+
+#include <shlobj.h>
   #include <strsafe.h>
 #else 
   #include <sys/file.h>
@@ -86,7 +82,6 @@ using namespace epee;
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/format.hpp>
-#include <openssl/sha.h>
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "util"
@@ -825,7 +820,7 @@ std::string get_nix_version_display_string()
 #endif
   }
 
-  boost::optional<bool> is_hdd(const char *file_path)
+  std::optional<bool> is_hdd(const char *file_path)
   {
 #ifdef __GLIBC__
     struct stat st;
@@ -838,7 +833,7 @@ std::string get_nix_version_display_string()
     }
     else
     {
-      return boost::none;
+      return std::nullopt;
     }
     std::string attr_path = prefix + "/queue/rotational";
     std::ifstream f(attr_path, std::ios_base::in);
@@ -848,7 +843,7 @@ std::string get_nix_version_display_string()
       f.open(attr_path, std::ios_base::in);
       if(not f.is_open())
       {
-          return boost::none;
+          return std::nullopt;
       }
     }
     unsigned short val = 0xdead;
@@ -857,9 +852,9 @@ std::string get_nix_version_display_string()
     {
       return (val == 1);
     }
-    return boost::none;
+    return std::nullopt;
 #else
-    return boost::none;
+    return std::nullopt;
 #endif
   }
 
@@ -989,7 +984,7 @@ std::string get_nix_version_display_string()
     return true;
   }
 
-  boost::optional<std::pair<uint32_t, uint32_t>> parse_subaddress_lookahead(const std::string& str)
+  std::optional<std::pair<uint32_t, uint32_t>> parse_subaddress_lookahead(const std::string& str)
   {
     auto pos = str.find(":");
     bool r = pos != std::string::npos;

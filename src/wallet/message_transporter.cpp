@@ -31,8 +31,6 @@
 #include <boost/format.hpp>
 #include "wallet_errors.h"
 // #include "net/http_client.h" already #included in /wallet/message_transporter.h
-#include "net/net_parse_helpers.h"
-#include <algorithm>
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "wallet.mms"
@@ -96,7 +94,7 @@ void message_transporter::set_options(const std::string &bitmessage_address, con
   }
   m_bitmessage_login = bitmessage_login;
 
-  m_http_client->set_server(address_parts.host, std::to_string(address_parts.port), boost::none);
+  m_http_client->set_server(address_parts.host, std::to_string(address_parts.port), std::nullopt);
 }
 
 bool message_transporter::receive_messages(const std::vector<std::string> &destination_transport_addresses,

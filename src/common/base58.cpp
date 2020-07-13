@@ -31,7 +31,6 @@
 #include "base58.h"
 
 #include <assert.h>
-#include <string>
 #include <vector>
 
 #include "crypto/hash.h"

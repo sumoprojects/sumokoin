@@ -948,7 +948,7 @@ inline
 				//soci::session 
 
 				m_db_connections_lock.lock();
-				boost::shared_ptr<ADODB::_ConnectionPtr>& conn_ptr = m_db_connections[::GetCurrentThreadId()];
+				std::shared_ptr<ADODB::_ConnectionPtr>& conn_ptr = m_db_connections[::GetCurrentThreadId()];
 				m_db_connections_lock.unlock();
 				if(!conn_ptr.get())
 				{
@@ -1010,7 +1010,7 @@ inline
 			
 		protected:
 		private:
-			std::map<DWORD, boost::shared_ptr<ADODB::_ConnectionPtr> > m_db_connections;
+			std::map<DWORD, std::shared_ptr<ADODB::_ConnectionPtr> > m_db_connections;
 			critical_section m_db_connections_lock;
 			std::string m_connection_string;
 			std::string m_login;

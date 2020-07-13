@@ -28,11 +28,6 @@
 
 #include "net/zmq.h"
 
-#include <cassert>
-#include <cerrno>
-#include <limits>
-#include <utility>
-
 #include "byte_slice.h"
 
 namespace net

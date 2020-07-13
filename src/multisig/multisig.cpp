@@ -33,7 +33,6 @@
 #include "cryptonote_basic/account.h"
 // #include "cryptonote_basic/cryptonote_format_utils.h" // already #included in multisig/multisig.h
 #include "multisig.h"
-#include "cryptonote_config.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "multisig"

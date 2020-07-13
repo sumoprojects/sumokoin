@@ -26,23 +26,13 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <boost/optional/optional.hpp>
+#include <optional>
 #include <boost/utility/value_init.hpp>
 #include "include_base_utils.h"
 #include "cryptonote_config.h"
 #include "wallet_rpc_helpers.h"
 #include "wallet2.h"
-#include "cryptonote_basic/cryptonote_format_utils.h"
-#include "rpc/core_rpc_server_commands_defs.h"
 #include "rpc/rpc_payment_signature.h"
-#include "misc_language.h"
-#include "cryptonote_basic/cryptonote_basic_impl.h"
-#include "int-util.h"
-#include "crypto/crypto.h"
-#include "crypto/hash.h"
-#include "cryptonote_basic/blobdatatype.h"
-#include "common/i18n.h"
-#include "common/util.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "wallet.wallet2.rpc_payments"
@@ -59,7 +49,7 @@ std::string wallet2::get_client_signature() const
 //----------------------------------------------------------------------------------------------------
 bool wallet2::get_rpc_payment_info(bool mining, bool &payment_required, uint64_t &credits, uint64_t &diff, uint64_t &credits_per_hash_found, cryptonote::blobdata &hashing_blob, uint64_t &height, uint64_t &seed_height, crypto::hash &seed_hash, crypto::hash &next_seed_hash, uint32_t &cookie)
 {
-  boost::optional<std::string> result = m_node_rpc_proxy.get_rpc_payment_info(mining, payment_required, credits, diff, credits_per_hash_found, hashing_blob, height, seed_height, seed_hash, next_seed_hash, cookie);
+  std::optional<std::string> result = m_node_rpc_proxy.get_rpc_payment_info(mining, payment_required, credits, diff, credits_per_hash_found, hashing_blob, height, seed_height, seed_hash, next_seed_hash, cookie);
   credits = m_rpc_payment_state.credits;
   if (result && *result != CORE_RPC_STATUS_OK)
     return false;

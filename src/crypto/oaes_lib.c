@@ -38,13 +38,12 @@
 // OS X, FreeBSD, OpenBSD and NetBSD don't need malloc.h
 #if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__OpenBSD__) \
   && !defined(__DragonFly__) && !defined(__NetBSD__)
- #include <malloc.h>
 #endif
 
 #ifdef WIN32
 #include <process.h>
 #else
-#include <sys/types.h>
+
 #include <unistd.h>
 #endif
 
@@ -54,7 +53,6 @@
 #define GETPID() getpid()
 #endif
 
-#include "oaes_config.h"
 #include "oaes_lib.h"
 
 #ifdef OAES_HAVE_ISAAC

@@ -27,20 +27,13 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "net/http_auth.h"
 
-#include <array>
 #include <boost/algorithm/string/find_iterator.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 #include <boost/fusion/adapted/std_tuple.hpp>
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
 #include <boost/fusion/algorithm/iteration/iter_fold.hpp>
 #include <boost/fusion/algorithm/query/any.hpp>
-#include <boost/fusion/iterator/distance.hpp>
-#include <boost/fusion/iterator/value_of.hpp>
-#include <boost/fusion/sequence/intrinsic/begin.hpp>
-#include <boost/fusion/sequence/intrinsic/size.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/range/algorithm/find_if.hpp>
-#include <boost/range/iterator_range_core.hpp>
 #include <boost/range/join.hpp>
 #include <boost/spirit/include/karma_generate.hpp>
 #include <boost/spirit/include/karma_uint.hpp>
@@ -60,13 +53,7 @@
 #include <boost/spirit/include/qi_string.hpp>
 #include <boost/spirit/include/qi_symbols.hpp>
 #include <boost/spirit/include/qi_uint.hpp>
-#include <cassert>
-#include <iterator>
-#include <limits>
-#include <tuple>
-#include <type_traits>
 
-#include "hex.h"
 #include "md5_l.h"
 #include "string_coding.h"
 
@@ -138,7 +125,7 @@ namespace
 
     template<typename... T>
     std::array<char, 32> operator()(const T&... args) const
-    {      
+    {
       md5::MD5_CTX ctx{};
       md5::MD5Init(std::addressof(ctx));
       boost::fusion::for_each(std::tie(args...), update{ctx});
@@ -214,7 +201,7 @@ namespace
   >;
 
   template<typename T>
-  quoted_result<T> quoted(const T& arg)
+  quoted_result<T> quotes(const T& arg)
   {
     return boost::range::join(boost::range::join(ceref(u8"\""), arg), ceref(u8"\""));
   }
@@ -242,13 +229,13 @@ namespace
   {
     str.append(u8"Digest ");
     add_first_field(str, u8"algorithm", algorithm);
-    add_field(str, u8"nonce", quoted(user.server.nonce));
-    add_field(str, u8"realm", quoted(user.server.realm));
-    add_field(str, u8"response", quoted(response));
-    add_field(str, u8"uri", quoted(uri));
-    add_field(str, u8"username", quoted(user.credentials.username));
+    add_field(str, u8"nonce", quotes(user.server.nonce));
+    add_field(str, u8"realm", quotes(user.server.realm));
+    add_field(str, u8"response", quotes(response));
+    add_field(str, u8"uri", quotes(uri));
+    add_field(str, u8"username", quotes(user.credentials.username));
     if (!user.server.opaque.empty())
-      add_field(str, u8"opaque", quoted(user.server.opaque));
+      add_field(str, u8"opaque", quotes(user.server.opaque));
   }
 
   //! Implements superseded algorithm specified in RFC 2069
@@ -393,7 +380,7 @@ namespace
       , username() {
     }
 
-    static boost::optional<auth_message> parse(const boost::string_ref request)
+    static std::optional<auth_message> parse(const boost::string_ref request)
     {
       struct parser
       {
@@ -470,16 +457,16 @@ namespace
           fields = field_table >> skip_whitespace >> equal_sign >> skip_whitespace;
         }
 
-        boost::optional<auth_message> operator()(const boost::string_ref request) const
-        { 
+        std::optional<auth_message> operator()(const boost::string_ref request) const
+        {
           namespace qi = boost::spirit::qi;
-           
+
           iterator current = request.begin();
           const iterator end = request.end();
 
           if (!qi::parse(current, end, header))
           {
-            return boost::none;
+            return std::nullopt;
           }
 
           auth_message info{};
@@ -490,11 +477,16 @@ namespace
           {
             if (!qi::parse(current, end, fields, field) || !field(*this, current, end, info))
             {
-              return boost::none;
+              return std::nullopt;
             }
             qi::parse(current, end, skip_whitespace);
           } while (qi::parse(current, end, qi::char_(comma) >> skip_whitespace));
-          return boost::make_optional(current == end, info);
+          if (current == end)
+          {
+            return info;
+          }
+          else
+          return std::nullopt;
         }
 
       private:
@@ -564,13 +556,18 @@ namespace
       const boost::string_ref method;
     };
 
-    boost::optional<std::uint32_t> counter() const
+    std::optional<std::uint32_t> counter() const
     {
       namespace qi = boost::spirit::qi;
       using hex = qi::uint_parser<std::uint32_t, 16>;
       std::uint32_t value = 0;
       const bool converted = qi::parse(nc.begin(), nc.end(), hex{}, value);
-      return boost::make_optional(converted, value);
+      if (converted)
+      {
+        return value;
+      }
+      else
+      return std::nullopt;
     }
 
     struct server_parameters
@@ -656,7 +653,7 @@ namespace
     boost::iterator_range<iterator> response;
     boost::iterator_range<iterator> stale;
     boost::iterator_range<iterator> uri;
-    boost::iterator_range<iterator> username; 
+    boost::iterator_range<iterator> username;
   }; // auth_message
 
   struct add_challenge
@@ -674,10 +671,10 @@ namespace
           Digest::name, (i == 0 ? boost::string_ref{} : sess_algo)
         );
         add_field(out, u8"algorithm", algorithm);
-        add_field(out, u8"realm", quoted(auth_realm));
-        add_field(out, u8"nonce", quoted(nonce));
+        add_field(out, u8"realm", quotes(auth_realm));
+        add_field(out, u8"nonce", quotes(nonce));
         add_field(out, u8"stale", is_stale ? ceref("true") : ceref("false"));
-        
+
         fields.push_back(std::make_pair(std::string(server_auth_field), std::move(out)));
       }
     }
@@ -693,13 +690,13 @@ namespace
     rc.m_response_code = 401;
     rc.m_response_comment = u8"Unauthorized";
     rc.m_mime_tipe = u8"text/html";
-    rc.m_body = 
+    rc.m_body =
       u8"<html><head><title>Unauthorized Access</title></head><body><h1>401 Unauthorized</h1></body></html>";
 
     boost::fusion::for_each(
       digest_algorithms, add_challenge{nonce, rc.m_additional_fields, is_stale}
     );
-    
+
     return rc;
   }
 }
@@ -714,7 +711,7 @@ namespace epee
         : user(session{std::move(credentials)}), rng(std::move(r)) {
       }
 
-      boost::optional<http_response_info> http_server_auth::do_get_response(const http_request_info& request)
+      std::optional<http_response_info> http_server_auth::do_get_response(const http_request_info& request)
       {
         assert(user);
         using field = std::pair<std::string, std::string>;
@@ -731,7 +728,7 @@ namespace epee
           switch (auth_message::verify(request.m_http_method_str, auth->second, *user))
           {
           case auth_message::kPass:
-            return boost::none;
+            return std::nullopt;
 
           case auth_message::kStale:
             is_stale = true;
@@ -768,7 +765,7 @@ namespace epee
         return first_auth ? kParseFailure : kBadPassword;
       }
 
-      boost::optional<std::pair<std::string, std::string>> http_client_auth::do_get_auth_field(
+      std::optional<std::pair<std::string, std::string>> http_client_auth::do_get_auth_field(
         const boost::string_ref method, const boost::string_ref uri)
       {
         assert(user);
@@ -777,9 +774,8 @@ namespace epee
           ++(user->counter);
           return std::make_pair(std::string(client_auth_field), user->server.generator(*user, method, uri));
         }
-        return boost::none;
+        return std::nullopt;
       }
     }
   }
 }
-

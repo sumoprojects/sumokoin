@@ -1056,6 +1056,7 @@ namespace cryptonote
     std::vector<uint64_t> m_timestamps;
     std::vector<difficulty_type> m_difficulties;
     uint64_t m_timestamps_and_difficulties_height;
+    bool m_reset_timestamps_and_difficulties_height;
     uint64_t m_long_term_block_weights_window;
     uint64_t m_long_term_effective_median_block_weight;
     mutable crypto::hash m_long_term_block_weights_cache_tip_hash;
@@ -1066,7 +1067,7 @@ namespace cryptonote
     difficulty_type m_difficulty_for_next_block;
 
     boost::asio::io_service m_async_service;
-    boost::thread_group m_async_pool;
+    boost::thread m_async_thread;
     std::unique_ptr<boost::asio::io_service::work> m_async_work_idle;
 
     // some invalid blocks

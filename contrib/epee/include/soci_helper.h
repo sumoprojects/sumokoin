@@ -99,7 +99,7 @@ namespace soci
 			//soci::session 
 
 			m_db_connections_lock.lock();
-      boost::shared_ptr<soci::session>& conn_ptr = m_db_connections[epee::misc_utils::get_thread_string_id()];
+      std::shared_ptr<soci::session>& conn_ptr = m_db_connections[epee::misc_utils::get_thread_string_id()];
 			m_db_connections_lock.unlock();
 			if(!conn_ptr.get())
 			{
@@ -114,7 +114,7 @@ namespace soci
       //soci::session 
 
       m_db_connections_lock.lock();
-      boost::shared_ptr<soci::session>& conn_ptr = m_db_connections[misc_utils::get_thread_string_id()];
+      std::shared_ptr<soci::session>& conn_ptr = m_db_connections[misc_utils::get_thread_string_id()];
       m_db_connections_lock.unlock();
       if(conn_ptr.get())
       {
@@ -134,7 +134,7 @@ namespace soci
 
 	protected:
 	private:
-		std::map<std::string, boost::shared_ptr<soci::session> > m_db_connections;
+		std::map<std::string, std::shared_ptr<soci::session> > m_db_connections;
     epee::critical_section m_db_connections_lock;
 		std::string m_connection_string;
 	};

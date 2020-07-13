@@ -126,7 +126,7 @@ TEST(peerlist_storage, store)
   EXPECT_TRUE(check_empty(peers, {zone::invalid, zone::public_, zone::tor, zone::i2p}));
   {
     std::istringstream stream{buffer};
-    boost::optional<nodetool::peerlist_storage> read_peers =
+    std::optional<nodetool::peerlist_storage> read_peers =
       nodetool::peerlist_storage::open(stream, true);
     ASSERT_TRUE(bool(read_peers));
     peers = std::move(*read_peers);
@@ -194,7 +194,7 @@ TEST(peerlist_storage, store)
 
   {
     std::istringstream stream{buffer};
-    boost::optional<nodetool::peerlist_storage> read_peers =
+    std::optional<nodetool::peerlist_storage> read_peers =
       nodetool::peerlist_storage::open(stream, true);
     ASSERT_TRUE(bool(read_peers));
     peers = std::move(*read_peers);

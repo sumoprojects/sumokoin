@@ -9,21 +9,21 @@ grade: devel
 confinement: strict
 
 apps:
-    monerod:
+    sumokoind:
         daemon: forking
         command: |
           sumokoind-wrapper --detach --data-dir ${SNAP_COMMON} --config-file ${SNAP_USER_DATA}/etc/sumokoind.conf
         plugs:
             - network
             - network-bind
-    monero-wallet-rpc:
+    sumo-wallet-rpc:
         command: |
           sumo-wallet-rpc --log-file ${SNAP_USER_DATA}
         plugs:
             - home
             - network
             - network-bind
-    monero-wallet-cli:
+    sumo-wallet-cli:
         command: |
           sumo-wallet-cli --log-file ${SNAP_USER_DATA}
         plugs:

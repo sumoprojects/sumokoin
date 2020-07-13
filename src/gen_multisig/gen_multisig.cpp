@@ -33,7 +33,6 @@
  * 
  * \brief Generates a set of multisig wallets
  */
-#include <iostream>
 #include <sstream>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
@@ -87,7 +86,7 @@ static bool generate_multisig(uint32_t threshold, uint32_t total, const std::str
   try
   {
     // create M wallets first
-    std::vector<boost::shared_ptr<tools::wallet2>> wallets(total);
+    std::vector<std::shared_ptr<tools::wallet2>> wallets(total);
     for (size_t n = 0; n < total; ++n)
     {
       std::string name = basename + "-" + std::to_string(n + 1);
@@ -174,7 +173,7 @@ int main(int argc, char* argv[])
   command_line::add_arg(desc_params, arg_stagenet);
   command_line::add_arg(desc_params, arg_create_address_file);
 
-  boost::optional<po::variables_map> vm;
+  std::optional<po::variables_map> vm;
   bool should_terminate = false;
   std::tie(vm, should_terminate) = wallet_args::main(
    argc, argv,

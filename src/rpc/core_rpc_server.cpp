@@ -28,33 +28,19 @@
 //
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#include <boost/preprocessor/stringize.hpp>
 #include <boost/uuid/nil_generator.hpp>
 #include "include_base_utils.h"
 #include "string_tools.h"
 using namespace epee;
 
 #include "core_rpc_server.h"
-#include "common/command_line.h"
 #include "common/updates.h"
-#include "common/download.h"
-#include "common/util.h"
-#include "common/perf_timer.h"
-#include "int-util.h"
-#include "cryptonote_basic/cryptonote_format_utils.h"
-#include "cryptonote_basic/account.h"
-#include "cryptonote_basic/cryptonote_basic_impl.h"
 #include "cryptonote_core/tx_sanity_check.h"
-#include "misc_language.h"
 #include "net/parse.h"
-#include "storages/http_abstract_invoke.h"
-#include "crypto/hash.h"
 #include "rpc/rpc_args.h"
-#include "rpc/rpc_handler.h"
 #include "rpc/rpc_payment_costs.h"
 #include "rpc/rpc_payment_signature.h"
 #include "core_rpc_server_error_codes.h"
-#include "p2p/net_node.h"
 #include "version.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
@@ -169,7 +155,7 @@ namespace cryptonote
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::set_bootstrap_daemon(const std::string &address, const std::string &username_password)
   {
-    boost::optional<epee::net_utils::http::login> credentials;
+    std::optional<epee::net_utils::http::login> credentials;
     const auto loc = username_password.find(':');
     if (loc != std::string::npos)
     {
@@ -211,7 +197,7 @@ namespace cryptonote
     return result;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  bool core_rpc_server::set_bootstrap_daemon(const std::string &address, const boost::optional<epee::net_utils::http::login> &credentials)
+  bool core_rpc_server::set_bootstrap_daemon(const std::string &address, const std::optional<epee::net_utils::http::login> &credentials)
   {
     boost::unique_lock<boost::shared_mutex> lock(m_bootstrap_daemon_mutex);
 
@@ -265,25 +251,25 @@ namespace cryptonote
     {
       if (!m_restricted && nettype() != FAKECHAIN)
       {
-        MERROR("RPC payment enabled, but server is not restricted, anyone can adjust their balance to bypass payment");
+        MFATAL("RPC payment enabled, but server is not restricted, anyone can adjust their balance to bypass payment");
         return false;
       }
       cryptonote::address_parse_info info;
       if (!get_account_address_from_str(info, nettype(), address))
       {
-        MERROR("Invalid payment address: " << address);
+        MFATAL("Invalid payment address: " << address);
         return false;
       }
       if (info.is_subaddress)
       {
-        MERROR("Payment address may not be a subaddress: " << address);
+        MFATAL("Payment address may not be a subaddress: " << address);
         return false;
       }
       uint64_t diff = command_line::get_arg(vm, arg_rpc_payment_difficulty);
       uint64_t credits = command_line::get_arg(vm, arg_rpc_payment_credits);
       if (diff == 0 || credits == 0)
       {
-        MERROR("Payments difficulty and/or payments credits are 0, but a payment address was given");
+        MFATAL("Payments difficulty and/or payments credits are 0, but a payment address was given");
         return false;
       }
       m_rpc_payment_allow_free_loopback = command_line::get_arg(vm, arg_rpc_payment_allow_free_loopback);
@@ -303,11 +289,11 @@ namespace cryptonote
     if (!set_bootstrap_daemon(command_line::get_arg(vm, arg_bootstrap_daemon_address),
       command_line::get_arg(vm, arg_bootstrap_daemon_login)))
     {
-      MERROR("Failed to parse bootstrap daemon address");
+      MFATAL("Failed to parse bootstrap daemon address");
       return false;
     }
 
-    boost::optional<epee::net_utils::http::login> http_login{};
+    std::optional<epee::net_utils::http::login> http_login{};
 
     if (rpc_config->login)
       http_login.emplace(std::move(rpc_config->login->username), std::move(rpc_config->login->password).password());
@@ -1714,7 +1700,7 @@ namespace cryptonote
   {
     PERF_TIMER(on_set_bootstrap_daemon);
 
-    boost::optional<epee::net_utils::http::login> credentials;
+    std::optional<epee::net_utils::http::login> credentials;
     if (!req.username.empty() || !req.password.empty())
     {
       credentials = epee::net_utils::http::login(req.username, req.password);
@@ -2122,7 +2108,7 @@ namespace cryptonote
         m_bootstrap_height_check_time = current_time;
       }
 
-      boost::optional<uint64_t> bootstrap_daemon_height = m_bootstrap_daemon->get_height();
+      std::optional<uint64_t> bootstrap_daemon_height = m_bootstrap_daemon->get_height();
       if (!bootstrap_daemon_height)
       {
         MERROR("Failed to fetch bootstrap daemon height");

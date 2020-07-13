@@ -33,16 +33,9 @@
 #include "common/scoped_message_writer.h"
 #include "common/pruning.h"
 #include "daemon/rpc_command_executor.h"
-#include "rpc/core_rpc_server_commands_defs.h"
-#include "cryptonote_core/cryptonote_core.h"
-#include "cryptonote_basic/difficulty.h"
-#include "cryptonote_basic/hardfork.h"
 #include "version.h"
-#include "rpc/rpc_payment_signature.h"
 #include "rpc/rpc_version_str.h"
 #include <boost/format.hpp>
-#include <ctime>
-#include <string>
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "daemon"
@@ -154,7 +147,7 @@ namespace {
 t_rpc_command_executor::t_rpc_command_executor(
     uint32_t ip
   , uint16_t port
-  , const boost::optional<tools::login>& login
+  , const std::optional<tools::login>& login
   , const epee::net_utils::ssl_options_t& ssl_options
   , bool is_rpc
   , cryptonote::core_rpc_server* rpc_server
@@ -163,7 +156,7 @@ t_rpc_command_executor::t_rpc_command_executor(
 {
   if (is_rpc)
   {
-    boost::optional<epee::net_utils::http::login> http_login{};
+    std::optional<epee::net_utils::http::login> http_login{};
     if (login)
       http_login.emplace(login->username, login->password.password());
     m_rpc_client = new tools::t_rpc_client(ip, port, std::move(http_login), ssl_options);
@@ -650,7 +643,7 @@ bool t_rpc_command_executor::show_status() {
       bootstrap_msg += " was used before";
     }
   }
-  if (bootstrap_msg.empty())	
+  if (bootstrap_msg.empty())
   {
     bootstrap_msg = "no bootstrapping";
   }
@@ -815,6 +808,9 @@ bool t_rpc_command_executor::print_connections() {
     }
   }
 
+  uint32_t incoming_number = 0;
+  uint32_t outgoing_number = 0;
+
   tools::msg_writer() << std::setw(30) << std::left << "Remote Host"
       << std::setw(6) << "Type"
       << std::setw(4) << "SSL"
@@ -832,6 +828,10 @@ bool t_rpc_command_executor::print_connections() {
   {
     std::string rpc_port = info.rpc_port ? std::to_string(info.rpc_port) : "no";
     std::string address = info.incoming ? "INC " : "OUT ";
+    if (info.incoming)
+      ++incoming_number;
+    else
+      ++ outgoing_number;
     address += info.ip + ":" + info.port;
     //std::string in_out = info.incoming ? "INC " : "OUT ";
     tools::msg_writer()
@@ -851,7 +851,59 @@ bool t_rpc_command_executor::print_connections() {
      << std::left << (info.localhost ? "[LOCALHOST]" : "")
      << std::left << (info.local_ip ? "[LAN]" : "");
     //tools::msg_writer() << boost::format("%-25s peer_id: %-25s %s") % address % info.peer_id % in_out;
+  }
+  tools::msg_writer()
+      << "\n" << "Incoming Connections Count: " << incoming_number << " Outgoing Connections Count: " << outgoing_number << " Total Number of Connections: " << (incoming_number + outgoing_number);
+      
+  return true;
+}
 
+bool t_rpc_command_executor::print_open_rpc() {
+  cryptonote::COMMAND_RPC_GET_CONNECTIONS::request req;
+  cryptonote::COMMAND_RPC_GET_CONNECTIONS::response res;
+  epee::json_rpc::error error_resp;
+
+  std::string fail_message = "Unsuccessful";
+
+  if (m_is_rpc)
+  {
+    if (!m_rpc_client->json_rpc_request(req, res, "get_connections", fail_message.c_str()))
+    {
+      return true;
+    }
+  }
+  else
+  {
+    if (!m_rpc_server->on_get_connections(req, res, error_resp) || res.status != CORE_RPC_STATUS_OK)
+    {
+      tools::fail_msg_writer() << make_error(fail_message, res.status);
+      return true;
+    }
+  }
+
+  tools::msg_writer() << std::setw(30) << std::left << "Remote Host"
+      << std::setw(4) << "SSL"
+      << std::setw(12) << "RPC Port"
+      << std::setw(18) << "State"
+      << std::setw(8) << "Alive(s)"
+      << std::endl;
+
+  for (auto & info : res.connections)
+  {
+    std::string rpc_port = std::to_string(info.rpc_port);
+    if (rpc_port != "0")
+    {
+      std::string address = info.ip + ":" + info.port;
+        tools::msg_writer()
+          << std::setw(30) << std::left << address
+          << std::setw(4) << (info.ssl ? "yes" : "no")
+          << std::setw(12) << rpc_port
+          << std::setw(18) << info.state
+          << std::setw(8) << info.live_time
+
+          << std::left << (info.localhost ? "[LOCALHOST]" : "")
+          << std::left << (info.local_ip ? "[LAN]" : "");
+    }
   }
 
   return true;
