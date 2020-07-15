@@ -1435,7 +1435,24 @@ namespace cryptonote
     }
     lock.commit();
 
-    expected_reward = best_coinbase;
+//this need updating before block 657450 is reached
+    if (height < 460215)
+    {
+     expected_reward = 42930000000 + best_coinbase;
+    }
+    if (height >= 460215 && height < 525960)
+    {
+     expected_reward = 53890000000 + best_coinbase;
+    }
+    if (height >= 525960 && height < 591705)
+    {
+     expected_reward = 65920000000 + best_coinbase;
+    }
+    if (height >= 591705 && height < 657450)
+    {
+     expected_reward = 53150000000 + best_coinbase;
+    }
+
     LOG_PRINT_L2("Block template filled with " << bl.tx_hashes.size() << " txes, weight "
         << total_weight << "/" << max_total_weight << ", coinbase " << print_money(best_coinbase)
         << " (including " << print_money(fee) << " in fees)");
