@@ -1435,6 +1435,16 @@ namespace cryptonote
     }
     lock.commit();
 
+#if (__GNUC__ && defined( __has_warning ))
+#if __has_warning( "-Wtautological-constant-out-of-range-compare" )
+#define SUPPRESS
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+#endif
+#endif
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
+
 //this need updating before block 657450 is reached
     if (height < 460215)
     {
@@ -1452,6 +1462,12 @@ namespace cryptonote
     {
      expected_reward = 53150000000 + best_coinbase;
     }
+
+#pragma GCC diagnostic pop
+#ifdef SUPPRESS
+#undef SUPPRESS
+#pragma GCC diagnostic pop
+#endif
 
     LOG_PRINT_L2("Block template filled with " << bl.tx_hashes.size() << " txes, weight "
         << total_weight << "/" << max_total_weight << ", coinbase " << print_money(best_coinbase)
