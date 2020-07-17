@@ -106,7 +106,7 @@
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              50     //by default, blocks count in blocks downloading
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_END          1      //by default, blocks count in blocks downloading at the end of the chain
 
-#define LAST_CHECKPOINT                                 420000
+#define LAST_CHECKPOINT                                 435000
 
 #define CRYPTONOTE_MEMPOOL_TX_LIVETIME                  (86400*3) //seconds, three days
 #define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME   604800 //seconds, one week
