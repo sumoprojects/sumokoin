@@ -2929,7 +2929,7 @@ bool simple_wallet::set_inactivity_lock_timeout(const std::vector<std::string> &
 bool simple_wallet::disable_lock(const std::vector<std::string> &args)
 {
 #ifdef _WIN32
-  tools::fail_msg_writer() << tr("Automatic wallet lock due to inactivity is disabled on Windows"); 
+  tools::fail_msg_writer() << tr("Automatic wallet lock due to inactivity is disabled on Windows");
   return true;
 #endif
   m_wallet->inactivity_lock_timeout(-1);
@@ -3103,10 +3103,10 @@ simple_wallet::simple_wallet()
   m_cmd_binder.set_handler("sweep_unmixable",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::sweep_unmixable, BOOST_PLACEHOLDERS::_1),
                            tr("Send all unmixable outputs to yourself with ring_size 1"));
-  m_cmd_binder.set_handler("sweep_all", boost::bind(&simple_wallet::sweep_all, this, BOOST_PLACEHOLDERS::_1),
+  m_cmd_binder.set_handler("sweep_all", boost::bind(&simple_wallet::on_command, this, &simple_wallet::sweep_all, BOOST_PLACEHOLDERS::_1),
                            tr(USAGE_SWEEP_ALL),
                            tr("Send all unlocked balance to an address. If the parameter \"index=<N1>[,<N2>,...]\" or \"index=all\" is specified, the wallet sweeps outputs received by those or all address indices, respectively. If omitted, the wallet randomly chooses an address index to be used. If the parameter \"outputs=<N>\" is specified and  N > 0, wallet splits the transaction into N even outputs."));
-  m_cmd_binder.set_handler("sweep_account", boost::bind(&simple_wallet::sweep_account, this, BOOST_PLACEHOLDERS::_1),
+  m_cmd_binder.set_handler("sweep_account", boost::bind(&simple_wallet::on_command, this, &simple_wallet::sweep_account, BOOST_PLACEHOLDERS::_1),
                            tr(USAGE_SWEEP_ACCOUNT),
                            tr("Send all unlocked balance from a given account to an address. If the parameter \"index=<N1>[,<N2>,...]\" or \"index=all\" is specified, the wallet sweeps outputs received by those or all address indices, respectively. If omitted, the wallet randomly chooses an address index to be used. If the parameter \"outputs=<N>\" is specified and  N > 0, wallet splits the transaction into N even outputs."));
   m_cmd_binder.set_handler("sweep_below",
@@ -3170,7 +3170,7 @@ simple_wallet::simple_wallet()
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::seed, BOOST_PLACEHOLDERS::_1),
                            tr("Display the Electrum-style mnemonic seed"));
   m_cmd_binder.set_handler("restore_height",
-                           boost::bind(&simple_wallet::restore_height, this, BOOST_PLACEHOLDERS::_1),
+                           boost::bind(&simple_wallet::on_command, this, &simple_wallet::restore_height, BOOST_PLACEHOLDERS::_1),
                            tr("Display the restore height"));
   m_cmd_binder.set_handler("set",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::set_variable, BOOST_PLACEHOLDERS::_1),
@@ -3479,7 +3479,7 @@ simple_wallet::simple_wallet()
                                   "auto-send <1|0>\n "
                                   "  Whether to automatically send newly generated messages right away.\n "));
   m_cmd_binder.set_handler("mms send_signer_config",
-                           boost::bind(&simple_wallet::mms, this, BOOST_PLACEHOLDERS::_1),
+                           boost::bind(&simple_wallet::on_command, this, &simple_wallet::mms, BOOST_PLACEHOLDERS::_1),
                            tr(USAGE_MMS_SEND_SIGNER_CONFIG),
                            tr("Send completed signer config to all other authorized signers"));
   m_cmd_binder.set_handler("mms start_auto_config",
@@ -3553,7 +3553,7 @@ simple_wallet::simple_wallet()
                            tr(USAGE_NET_STATS),
                            tr("Prints simple network stats"));
   m_cmd_binder.set_handler("public_nodes",
-                           boost::bind(&simple_wallet::public_nodes, this, BOOST_PLACEHOLDERS::_1),
+                           boost::bind(&simple_wallet::on_command, this, &simple_wallet::public_nodes, BOOST_PLACEHOLDERS::_1),
                            tr(USAGE_PUBLIC_NODES),
                            tr("Lists known public nodes"));
   m_cmd_binder.set_handler("welcome",
@@ -3565,15 +3565,15 @@ simple_wallet::simple_wallet()
                            tr(USAGE_VERSION),
                            tr("Returns version information"));
   m_cmd_binder.set_handler("rpc_payment_info",
-                           boost::bind(&simple_wallet::rpc_payment_info, this, BOOST_PLACEHOLDERS::_1),
+                           boost::bind(&simple_wallet::on_command, this, &simple_wallet::rpc_payment_info, BOOST_PLACEHOLDERS::_1),
                            tr(USAGE_RPC_PAYMENT_INFO),
                            tr("Get info about RPC payments to current node"));
   m_cmd_binder.set_handler("start_mining_for_rpc",
-                           boost::bind(&simple_wallet::start_mining_for_rpc, this, BOOST_PLACEHOLDERS::_1),
+                           boost::bind(&simple_wallet::on_command, this, &simple_wallet::start_mining_for_rpc, BOOST_PLACEHOLDERS::_1),
                            tr(USAGE_START_MINING_FOR_RPC),
                            tr("Start mining to pay for RPC access"));
   m_cmd_binder.set_handler("stop_mining_for_rpc",
-                           boost::bind(&simple_wallet::stop_mining_for_rpc, this, BOOST_PLACEHOLDERS::_1),
+                           boost::bind(&simple_wallet::on_command, this, &simple_wallet::stop_mining_for_rpc, BOOST_PLACEHOLDERS::_1),
                            tr(USAGE_STOP_MINING_FOR_RPC),
                            tr("Stop mining to pay for RPC access"));
   m_cmd_binder.set_handler("help",
