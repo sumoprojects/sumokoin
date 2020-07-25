@@ -357,7 +357,7 @@ namespace cryptonote
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  bool core_rpc_server::add_host_fail(const connection_context *ctx, unsigned int score)
+  bool core_rpc_server::add_host_fail(const connection_context *ctx, uint64_t score)
   {
     if(!ctx || !ctx->m_remote_address.is_blockable() || disable_rpc_ban)
       return false;
