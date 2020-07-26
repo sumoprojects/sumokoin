@@ -1034,6 +1034,7 @@ namespace nodetool
         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
         if (code == LEVIN_ERROR_CONNECTION_TIMEDOUT || code == LEVIN_ERROR_CONNECTION_DESTROYED)
           timeout = true;
+        add_host_fail(context.m_remote_address);  
         return;
       }
       std::string remote_version = rsp.node_data.version.substr(0,12);
