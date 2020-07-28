@@ -607,30 +607,30 @@ namespace nodetool
     std::set<std::string> full_addrs;
     if (nettype == cryptonote::TESTNET)
     {
-      full_addrs.insert("144.217.164.165:29733");
-      full_addrs.insert("217.182.76.94:29733");
-      full_addrs.insert("139.99.40.69:29733");
-      full_addrs.insert("46.105.92.108:29733");
+      SEED_TESTNET_1;
+      SEED_TESTNET_2;
+      SEED_TESTNET_3;
+      SEED_TESTNET_4;
     }
     else if (nettype == cryptonote::STAGENET)
     {
-      full_addrs.insert("144.217.164.165:39733");
-      full_addrs.insert("217.182.76.94:39733");
-      full_addrs.insert("139.99.40.69:39733");
-      full_addrs.insert("46.105.92.108:39733");
+      SEED_STAGENET_1;
+      SEED_STAGENET_2;
+      SEED_STAGENET_3;
+      SEED_STAGENET_4;
     }
     else
     {
-      full_addrs.insert("144.217.164.165:19733"); // Canada
-      full_addrs.insert("217.182.76.94:19733"); // Poland
-      full_addrs.insert("46.105.92.108:19733"); // France
-      full_addrs.insert("139.99.193.21:19733"); // Sydney
-      full_addrs.insert("139.99.40.69:19733"); // Singapore
-      full_addrs.insert("133.18.53.223:19733"); // Japan
-      full_addrs.insert("157.230.187.169:19733"); // NY - explorer
-      full_addrs.insert("157.245.14.220:19733"); // NY
-      full_addrs.insert("134.209.109.190:19733"); // Singapore
-      full_addrs.insert("167.172.44.84:19733"); // Amsterdam
+      SEED_MAINNET_1;
+      SEED_MAINNET_2;
+      SEED_MAINNET_3;
+      SEED_MAINNET_4;
+      SEED_MAINNET_5;
+      SEED_MAINNET_6;
+      SEED_MAINNET_7;
+      SEED_MAINNET_8;
+      SEED_MAINNET_9;
+      SEED_MAINNET_10;
     }
     return full_addrs;
   }
