@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //     * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 //     * Neither the name of the Andrey N. Sabelnikov nor the
 //     names of its contributors may be used to endorse or promote products
 //     derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,10 +22,10 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
-#pragma once 
+#pragma once
 #include "http_base.h"
 #include "jsonrpc_structs.h"
 #include "storages/portable_storage.h"
@@ -42,8 +42,17 @@
   MINFO("HTTP [" << m_conn_context.m_remote_address.host_str() << "] " << query_info.m_http_method_str << " " << query_info.m_URI); \
   response.m_response_code = 200; \
   response.m_response_comment = "Ok"; \
-  if(!handle_http_request_map(query_info, response, m_conn_context)) \
-  {response.m_response_code = 404;response.m_response_comment = "Not found";} \
+  try \
+  { \
+    if(!handle_http_request_map(query_info, response, m_conn_context)) \
+    {response.m_response_code = 404;response.m_response_comment = "Not found";} \
+  } \
+  catch (const std::exception &e) \
+  { \
+    MERROR(m_conn_context << "Exception in handle_http_request_map: " << e.what()); \
+    response.m_response_code = 500; \
+    response.m_response_comment = "Internal Server Error"; \
+  } \
   return true; \
 }
 
@@ -69,9 +78,11 @@
       uint64_t ticks1 = epee::misc_utils::get_tick_count(); \
       boost::value_initialized<command_type::response> resp;\
       MINFO(m_conn_context << "calling " << s_pattern); \
-      if(!callback_f(static_cast<command_type::request&>(req), static_cast<command_type::response&>(resp), &m_conn_context)) \
+      bool res = false; \
+      try { res = callback_f(static_cast<command_type::request&>(req), static_cast<command_type::response&>(resp), &m_conn_context); } \
+      catch (const std::exception &e) { MERROR(m_conn_context << "Failed to " << #callback_f << "(): " << e.what()); } \
+      if (!res) \
       { \
-        MERROR(m_conn_context << "Failed to " << #callback_f << "()"); \
         response_info.m_response_code = 500; \
         response_info.m_response_comment = "Internal Server Error"; \
         return true; \
@@ -97,9 +108,11 @@
       uint64_t ticks1 = misc_utils::get_tick_count(); \
       boost::value_initialized<command_type::response> resp;\
       MINFO(m_conn_context << "calling " << s_pattern); \
-      if(!callback_f(static_cast<command_type::request&>(req), static_cast<command_type::response&>(resp), &m_conn_context)) \
+      bool res = false; \
+      try { res = callback_f(static_cast<command_type::request&>(req), static_cast<command_type::response&>(resp), &m_conn_context); } \
+      catch (const std::exception &e) { MERROR(m_conn_context << "Failed to " << #callback_f << "()"); } \
+      if (!res) \
       { \
-        MERROR(m_conn_context << "Failed to " << #callback_f << "()"); \
         response_info.m_response_code = 500; \
         response_info.m_response_comment = "Internal Server Error"; \
         return true; \
@@ -184,7 +197,10 @@
   fail_resp.jsonrpc = "2.0"; \
   fail_resp.id = req.id; \
   MINFO(m_conn_context << "Calling RPC method " << method_name); \
-  if(!callback_f(req.params, resp.result, fail_resp.error, &m_conn_context)) \
+  bool res = false; \
+  try { res = callback_f(req.params, resp.result, fail_resp.error, &m_conn_context); } \
+  catch (const std::exception &e) { MERROR(m_conn_context << "Failed to " << #callback_f << "(): " << e.what()); } \
+  if (!res) \
   { \
     epee::serialization::store_t_to_json(static_cast<epee::json_rpc::error_response&>(fail_resp), response_info.m_body); \
     return true; \
@@ -203,7 +219,10 @@
   fail_resp.jsonrpc = "2.0"; \
   fail_resp.id = req.id; \
   MINFO(m_conn_context << "calling RPC method " << method_name); \
-  if(!callback_f(req.params, resp.result, fail_resp.error, response_info, &m_conn_context)) \
+  bool res = false; \
+  try { res = callback_f(req.params, resp.result, fail_resp.error, response_info, &m_conn_context); } \
+  catch (const std::exception &e) { MERROR(m_conn_context << "Failed to " << #callback_f << "(): " << e.what()); } \
+  if (!res) \
   { \
     epee::serialization::store_t_to_json(static_cast<epee::json_rpc::error_response&>(fail_resp), response_info.m_body); \
     return true; \
@@ -217,7 +236,10 @@
 { \
   PREPARE_OBJECTS_FROM_JSON(command_type) \
   MINFO(m_conn_context << "calling RPC method " << method_name); \
-  if(!callback_f(req.params, resp.result, &m_conn_context)) \
+  bool res = false; \
+  try { res = callback_f(req.params, resp.result, &m_conn_context); } \
+  catch (const std::exception &e) { MERROR(m_conn_context << "Failed to " << #callback_f << "(): " << e.what()); } \
+  if (!res) \
   { \
     epee::json_rpc::error_response fail_resp = AUTO_VAL_INIT(fail_resp); \
     fail_resp.jsonrpc = "2.0"; \
@@ -240,5 +262,3 @@
   epee::serialization::store_t_to_json(static_cast<epee::json_rpc::error_response&>(rsp), response_info.m_body); \
   return true; \
 }
-
-
