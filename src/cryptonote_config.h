@@ -184,6 +184,7 @@
 #define SEED_TESTNET_2 full_addrs.insert("217.182.76.94:29733")
 #define SEED_TESTNET_3 full_addrs.insert("139.99.40.69:29733")
 #define SEED_TESTNET_4 full_addrs.insert("46.105.92.108:29733")
+#define SEED_TESTNET_5 full_addrs.insert("167.172.44.84:29733") // Testnet Explorer
 // STAGENET
 #define SEED_STAGENET_1 full_addrs.insert("144.217.164.165:39733")
 #define SEED_STAGENET_2 full_addrs.insert("217.182.76.94:39733")
