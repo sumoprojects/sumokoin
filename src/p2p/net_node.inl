@@ -116,6 +116,7 @@ namespace nodetool
     command_line::add_arg(desc, arg_no_sync);
     command_line::add_arg(desc, arg_no_igd);
     command_line::add_arg(desc, arg_igd);
+    command_line::add_arg(desc, arg_same_version);
     command_line::add_arg(desc, arg_out_peers);
     command_line::add_arg(desc, arg_in_peers);
     command_line::add_arg(desc, arg_tos_flag);
@@ -361,6 +362,7 @@ namespace nodetool
     m_allow_local_ip = command_line::get_arg(vm, arg_p2p_allow_local_ip);
     const bool has_no_igd = command_line::get_arg(vm, arg_no_igd);
     const std::string sigd = command_line::get_arg(vm, arg_igd);
+
     if (sigd == "enabled")
     {
       if (has_no_igd)
@@ -447,6 +449,9 @@ namespace nodetool
 
     if(command_line::has_arg(vm, arg_p2p_hide_my_port))
       m_hide_my_port = true;
+
+    if(command_line::has_arg(vm, arg_same_version))
+      m_same_version = true;
 
     if (command_line::has_arg(vm, arg_no_sync))
       m_payload_handler.set_no_sync(true);
@@ -2266,14 +2271,31 @@ namespace nodetool
   int node_server<t_payload_net_handler>::handle_handshake(int command, typename COMMAND_HANDSHAKE::request& arg, typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
   {
     std::string r_version = arg.node_data.version.substr(0,12);
-    if (arg.node_data.version.size() == 0)
+    if(!m_same_version)
     {
-      MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
-    }
+      if (arg.node_data.version.size() == 0)
+      {
+        MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
+      }
 
-    if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
+      if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
+      {
+        MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << r_version);
+      }
+    }
+    else
     {
-      MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << r_version);
+      if (arg.node_data.version.size() == 0)
+      {
+        MGINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier. Blocking!");
+        block_host(context.m_remote_address);
+      }
+
+      if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
+      {
+        MGINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << r_version << " Blocking!");
+        block_host(context.m_remote_address);
+      }
     }
 
     if(arg.node_data.network_id != m_network_id)

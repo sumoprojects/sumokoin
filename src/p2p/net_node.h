@@ -246,6 +246,7 @@ namespace nodetool
         m_allow_local_ip(false),
         m_hide_my_port(false),
         m_igd(no_igd),
+        m_same_version(false),
         m_offline(false),
         is_closing(false),
         m_network_id()
@@ -447,6 +448,7 @@ namespace nodetool
     bool m_allow_local_ip;
     bool m_hide_my_port;
     igd_t m_igd;
+    bool m_same_version;
     bool m_offline;
     bool m_use_ipv6;
     bool m_require_ipv4;
@@ -525,6 +527,7 @@ namespace nodetool
 
     extern const command_line::arg_descriptor<bool>        arg_no_igd;
     extern const command_line::arg_descriptor<std::string> arg_igd;
+    extern const command_line::arg_descriptor<bool>        arg_same_version;
     extern const command_line::arg_descriptor<bool>        arg_offline;
     extern const command_line::arg_descriptor<int64_t>     arg_out_peers;
     extern const command_line::arg_descriptor<int64_t>     arg_in_peers;
@@ -534,6 +537,7 @@ namespace nodetool
     extern const command_line::arg_descriptor<int64_t> arg_limit_rate_down;
     extern const command_line::arg_descriptor<int64_t> arg_limit_rate;
     extern const command_line::arg_descriptor<bool> arg_pad_transactions;
+
 }
 
 POP_WARNINGS
