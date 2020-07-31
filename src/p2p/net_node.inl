@@ -322,15 +322,15 @@ namespace nodetool
   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
-  bool node_server<t_payload_net_handler>::add_host_fail(const epee::net_utils::network_address &address, unsigned int score)
+  bool node_server<t_payload_net_handler>::add_host_fail(const epee::net_utils::network_address &address, uint64_t score)
   {
     if(!address.is_blockable())
       return false;
 
     CRITICAL_REGION_LOCAL(m_host_fails_score_lock);
-    uint64_t fails = m_host_fails_score[address.host_str()] += score;
-    MDEBUG("Host " << address.host_str() << " fail score=" << fails);
-    if(fails > P2P_IP_FAILS_BEFORE_BLOCK)
+    score = ++m_host_fails_score[address.host_str()];
+    MDEBUG("Host " << address.host_str() << " fail score=" << score);
+    if(score > P2P_IP_FAILS_BEFORE_BLOCK)
     {
       auto it = m_host_fails_score.find(address.host_str());
       CHECK_AND_ASSERT_MES(it != m_host_fails_score.end(), false, "internal error");
