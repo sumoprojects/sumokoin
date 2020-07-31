@@ -572,7 +572,7 @@ namespace levin
         assert(zone_->strand.running_in_this_thread());
 
         if (zone_->is_public)
-          MDEBUG("Starting new Dandelion++ epoch: " << (fluffing_ ? "fluff" : "stem"));
+          MGINFO("Starting new Dandelion++ epoch: " << (fluffing_ ? "fluff" : "stem"));
 
         zone_->map = std::move(map_);
         zone_->fluffing = fluffing_;
