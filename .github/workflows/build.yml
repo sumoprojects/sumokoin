@@ -57,7 +57,7 @@ jobs:
          Invoke-Expression ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/sumogr/PageFile/master/SetPageFileSize.ps1'))
       shell: powershell
     - name: build sumokoin
-      run: make debug-static-win64 -j3
+      run: make debug-static-win64
 
   build-ubuntu-bionic:
     runs-on: ubuntu-latest
