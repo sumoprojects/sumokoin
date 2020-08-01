@@ -204,12 +204,10 @@ class Daemon(object):
         }
         return self.rpc.send_request("/pop_blocks", pop_blocks)
 
-    def start_mining(self, miner_address, threads_count = 0, do_background_mining = False, ignore_battery = False):
+    def start_mining(self, miner_address, threads_count = 0):
         start_mining = {
             'miner_address' : miner_address,
-            'threads_count' : threads_count,
-            'do_background_mining' : do_background_mining,
-            'ignore_battery' : ignore_battery,
+            'threads_count' : threads_count
         }
         return self.rpc.send_request('/start_mining', start_mining)
 

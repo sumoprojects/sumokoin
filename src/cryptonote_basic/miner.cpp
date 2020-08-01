@@ -41,35 +41,6 @@
 #include "string_coding.h"
 #include "string_tools.h"
 #include "storages/portable_storage_template_helper.h"
-#include "boost/logic/tribool.hpp"
-
-#ifdef __APPLE__
-  #include <sys/times.h>
-  #include <IOKit/IOKitLib.h>
-  #include <IOKit/ps/IOPSKeys.h>
-  #include <IOKit/ps/IOPowerSources.h>
-  #include <mach/mach_host.h>
-  #include <AvailabilityMacros.h>
-  #include <TargetConditionals.h>
-#elif defined(__linux__)
-  #include <unistd.h>
-  #include <sys/resource.h>
-  #include <sys/times.h>
-  #include <time.h>
-#elif defined(__FreeBSD__)
-  #include <devstat.h>
-  #include <errno.h>
-  #include <fcntl.h>
-#if defined(__amd64__) || defined(__i386__) || defined(__x86_64__)
-  #include <machine/apm_bios.h>
-#endif
-  #include <stdio.h>
-  #include <sys/resource.h>
-  #include <sys/sysctl.h>
-  #include <sys/times.h>
-  #include <sys/types.h>
-  #include <unistd.h>
-#endif
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "miner"
@@ -98,11 +69,6 @@ namespace cryptonote
     const command_line::arg_descriptor<std::string> arg_extra_messages =  {"extra-messages-file", "Specify file for extra messages to include into coinbase transactions", "", true};
     const command_line::arg_descriptor<std::string> arg_start_mining =    {"start-mining", "Specify wallet address to mining for", "", true};
     const command_line::arg_descriptor<uint32_t>      arg_mining_threads =  {"mining-threads", "Specify mining threads count", 0, true};
-    const command_line::arg_descriptor<bool>        arg_bg_mining_enable =  {"bg-mining-enable", "enable background mining", true, true};
-    const command_line::arg_descriptor<bool>        arg_bg_mining_ignore_battery =  {"bg-mining-ignore-battery", "if true, assumes plugged in when unable to query system power status", false, true};    
-    const command_line::arg_descriptor<uint64_t>    arg_bg_mining_min_idle_interval_seconds =  {"bg-mining-min-idle-interval", "Specify min lookback interval in seconds for determining idle state", miner::BACKGROUND_MINING_DEFAULT_MIN_IDLE_INTERVAL_IN_SECONDS, true};
-    const command_line::arg_descriptor<uint16_t>     arg_bg_mining_idle_threshold_percentage =  {"bg-mining-idle-threshold", "Specify minimum avg idle percentage over lookback interval", miner::BACKGROUND_MINING_DEFAULT_IDLE_THRESHOLD_PERCENTAGE, true};
-    const command_line::arg_descriptor<uint16_t>     arg_bg_mining_miner_target_percentage =  {"bg-mining-miner-target", "Specify maximum percentage cpu use by miner(s)", miner::BACKGROUND_MINING_DEFAULT_MINING_TARGET_PERCENTAGE, true};
   }
 
 
@@ -124,11 +90,6 @@ namespace cryptonote
     m_do_print_hashrate(false),
     m_do_mining(false),
     m_current_hash_rate(0),
-    m_is_background_mining_enabled(false),
-    m_min_idle_seconds(BACKGROUND_MINING_DEFAULT_MIN_IDLE_INTERVAL_IN_SECONDS),
-    m_idle_threshold(BACKGROUND_MINING_DEFAULT_IDLE_THRESHOLD_PERCENTAGE),
-    m_mining_target(BACKGROUND_MINING_DEFAULT_MINING_TARGET_PERCENTAGE),
-    m_miner_extra_sleep(BACKGROUND_MINING_DEFAULT_MINER_EXTRA_SLEEP_MILLIS),
     m_block_reward(0)
   {
     m_attrs.set_stack_size(THREAD_STACK_SIZE);
@@ -288,11 +249,6 @@ namespace cryptonote
     command_line::add_arg(desc, arg_extra_messages);
     command_line::add_arg(desc, arg_start_mining);
     command_line::add_arg(desc, arg_mining_threads);
-    command_line::add_arg(desc, arg_bg_mining_enable);
-    command_line::add_arg(desc, arg_bg_mining_ignore_battery);    
-    command_line::add_arg(desc, arg_bg_mining_min_idle_interval_seconds);
-    command_line::add_arg(desc, arg_bg_mining_idle_threshold_percentage);
-    command_line::add_arg(desc, arg_bg_mining_miner_target_percentage);
   }
   //-----------------------------------------------------------------------------------------------------
   bool miner::init(const boost::program_options::variables_map& vm, network_type nettype)
@@ -338,19 +294,6 @@ namespace cryptonote
       }
     }
 
-    // Background mining parameters
-    // Let init set all parameters even if background mining is not enabled, they can start later with params set
-    if(command_line::has_arg(vm, arg_bg_mining_enable))
-      set_is_background_mining_enabled( command_line::get_arg(vm, arg_bg_mining_enable) );
-    if(command_line::has_arg(vm, arg_bg_mining_ignore_battery))
-      set_ignore_battery( command_line::get_arg(vm, arg_bg_mining_ignore_battery) );      
-    if(command_line::has_arg(vm, arg_bg_mining_min_idle_interval_seconds))
-      set_min_idle_seconds( command_line::get_arg(vm, arg_bg_mining_min_idle_interval_seconds) );
-    if(command_line::has_arg(vm, arg_bg_mining_idle_threshold_percentage))
-      set_idle_threshold( command_line::get_arg(vm, arg_bg_mining_idle_threshold_percentage) );
-    if(command_line::has_arg(vm, arg_bg_mining_miner_target_percentage))
-      set_mining_target( command_line::get_arg(vm, arg_bg_mining_miner_target_percentage) );
-
     return true;
   }
   //-----------------------------------------------------------------------------------------------------
@@ -368,7 +311,7 @@ namespace cryptonote
     return m_threads_total;
   }
   //-----------------------------------------------------------------------------------------------------
-  bool miner::start(const account_public_address& adr, size_t threads_count, bool do_background, bool ignore_battery)
+  bool miner::start(const account_public_address& adr, size_t threads_count)
   {
     m_block_reward = 0;
     m_mine_address = adr;
@@ -397,9 +340,7 @@ namespace cryptonote
 
     boost::interprocess::ipcdetail::atomic_write32(&m_stop, 0);
     boost::interprocess::ipcdetail::atomic_write32(&m_thread_index, 0);
-    set_is_background_mining_enabled(do_background);
-    set_ignore_battery(ignore_battery);
-    
+
     for(size_t i = 0; i != m_threads_total; i++)
     {
       m_threads.push_back(boost::thread(m_attrs, boost::bind(&miner::worker_thread, this)));
@@ -409,17 +350,6 @@ namespace cryptonote
       MINFO("Mining has started, autodetecting optimal number of threads, good luck!" );
     else
       MINFO("Mining has started with " << threads_count << " threads, good luck!" );
-
-    if( get_is_background_mining_enabled() )
-    {
-      m_background_mining_thread = boost::thread(m_attrs, boost::bind(&miner::background_worker_thread, this));
-      LOG_PRINT_L0("Background mining controller thread started" );
-    }
-
-    if(get_ignore_battery())
-    {
-      MINFO("Ignoring battery");
-    }
 
     return true;
   }
@@ -453,20 +383,6 @@ namespace cryptonote
 
     send_stop_signal();
 
-    // In case background mining was active and the miner threads are waiting
-    // on the background miner to signal start. 
-    while (m_threads_active > 0)
-    {
-      m_is_background_mining_started_cond.notify_all();
-      misc_utils::sleep_no_w(100);
-    }
-
-    // The background mining thread could be sleeping for a long time, so we
-    // interrupt it just in case
-    m_background_mining_thread.interrupt();
-    m_background_mining_thread.join();
-    m_is_background_mining_enabled = false;
-
     MINFO("Mining has been stopped, " << m_threads.size() << " finished" );
     m_threads.clear();
     m_threads_autodetect.clear();
@@ -494,7 +410,7 @@ namespace cryptonote
   {
     if(m_do_mining)
     {
-      start(m_mine_address, m_threads_total, get_is_background_mining_enabled(), get_ignore_battery());
+      start(m_mine_address, m_threads_total);
     }
   }
   //-----------------------------------------------------------------------------------------------------
@@ -539,19 +455,6 @@ namespace cryptonote
       {
         misc_utils::sleep_no_w(100);
         continue;
-      }
-      else if( m_is_background_mining_enabled )
-      {
-        misc_utils::sleep_no_w(m_miner_extra_sleep);
-        while( !m_is_background_mining_started )
-        {
-          MGINFO("background mining is enabled, but not started, waiting until start triggers");
-          boost::unique_lock<boost::mutex> started_lock( m_is_background_mining_started_mutex );        
-          m_is_background_mining_started_cond.wait( started_lock );
-          if( m_stop ) break;
-        }
-        
-        if( m_stop ) continue;         
       }
 
       if(local_template_ver != m_template_no)
@@ -600,543 +503,5 @@ namespace cryptonote
     MGINFO("Miner thread stopped ["<< th_local_index << "]");
     --m_threads_active;
     return true;
-  }
-  //-----------------------------------------------------------------------------------------------------
-  bool miner::get_is_background_mining_enabled() const
-  {
-    return m_is_background_mining_enabled;
-  }
-  //-----------------------------------------------------------------------------------------------------
-  bool miner::get_ignore_battery() const
-  {
-    return m_ignore_battery;
-  }  
-  //-----------------------------------------------------------------------------------------------------
-  /**
-  * This has differing behaviour depending on if mining has been started/etc.
-  * Note: add documentation
-  */
-  bool miner::set_is_background_mining_enabled(bool is_background_mining_enabled)
-  {
-    m_is_background_mining_enabled = is_background_mining_enabled;
-    // Extra logic will be required if we make this function public in the future
-    // and allow toggling smart mining without start/stop
-    //m_is_background_mining_enabled_cond.notify_one();
-    return true;
-  }
-  //-----------------------------------------------------------------------------------------------------
-  void miner::set_ignore_battery(bool ignore_battery)
-  {
-    m_ignore_battery = ignore_battery;
-  }
-  //-----------------------------------------------------------------------------------------------------
-  uint64_t miner::get_min_idle_seconds() const
-  {
-    return m_min_idle_seconds;
-  }
-  //-----------------------------------------------------------------------------------------------------
-  bool miner::set_min_idle_seconds(uint64_t min_idle_seconds)
-  {
-    if(min_idle_seconds > BACKGROUND_MINING_MAX_MIN_IDLE_INTERVAL_IN_SECONDS) return false;
-    if(min_idle_seconds < BACKGROUND_MINING_MIN_MIN_IDLE_INTERVAL_IN_SECONDS) return false;
-    m_min_idle_seconds = min_idle_seconds;
-    return true;
-  }
-  //-----------------------------------------------------------------------------------------------------
-  uint8_t miner::get_idle_threshold() const
-  {
-    return m_idle_threshold;
-  }
-  //-----------------------------------------------------------------------------------------------------
-  bool miner::set_idle_threshold(uint8_t idle_threshold)
-  {
-    if(idle_threshold > BACKGROUND_MINING_MAX_IDLE_THRESHOLD_PERCENTAGE) return false;
-    if(idle_threshold < BACKGROUND_MINING_MIN_IDLE_THRESHOLD_PERCENTAGE) return false;
-    m_idle_threshold = idle_threshold;
-    return true;
-  }
-  //-----------------------------------------------------------------------------------------------------
-  uint8_t miner::get_mining_target() const
-  {
-    return m_mining_target;
-  }
-  //-----------------------------------------------------------------------------------------------------
-  bool miner::set_mining_target(uint8_t mining_target)
-  {
-    if(mining_target > BACKGROUND_MINING_MAX_MINING_TARGET_PERCENTAGE) return false;
-    if(mining_target < BACKGROUND_MINING_MIN_MINING_TARGET_PERCENTAGE) return false;
-    m_mining_target = mining_target;
-    return true;
-  }
-  //-----------------------------------------------------------------------------------------------------
-  bool miner::background_worker_thread()
-  {
-    uint64_t prev_total_time, current_total_time;
-    uint64_t prev_idle_time, current_idle_time;
-    uint64_t previous_process_time = 0, current_process_time = 0;
-    m_is_background_mining_started = false;
-
-    if(!get_system_times(prev_total_time, prev_idle_time))
-    {
-      LOG_ERROR("get_system_times call failed, background mining will NOT work!");
-      return false;
-    }
-    
-    while(!m_stop)
-    {
-        
-      try
-      {
-        // Commenting out the below since we're going with privatizing the bg mining enabled
-        // function, but I'll leave the code/comments here for anyone that wants to modify the
-        // patch in the future
-        // -------------------------------------------------------------------------------------
-        // All of this might be overkill if we just enforced some simple requirements
-        // about changing this variable before/after the miner starts, but I envision
-        // in the future a checkbox that you can tick on/off for background mining after
-        // you've clicked "start mining". There's still an issue here where if background
-        // mining is disabled when start is called, this thread is never created, and so
-        // enabling after does nothing, something I have to fix in the future. However,
-        // this should take care of the case where mining is started with bg-enabled, 
-        // and then the user decides to un-check background mining, and just do
-        // regular full-speed mining. I might just be over-doing it and thinking up 
-        // non-existant use-cases, so if the consensus is to simplify, we can remove all this fluff.
-        /*
-        while( !m_is_background_mining_enabled )
-        {
-          MGINFO("background mining is disabled, waiting until enabled!");
-          boost::unique_lock<boost::mutex> enabled_lock( m_is_background_mining_enabled_mutex );        
-          m_is_background_mining_enabled_cond.wait( enabled_lock );
-        } 
-        */       
-        
-        // If we're already mining, then sleep for the miner monitor interval.
-        // If we're NOT mining, then sleep for the idle monitor interval
-        uint64_t sleep_for_seconds = BACKGROUND_MINING_MINER_MONITOR_INVERVAL_IN_SECONDS;
-        if( !m_is_background_mining_started ) sleep_for_seconds = get_min_idle_seconds();
-        boost::this_thread::sleep_for(boost::chrono::seconds(sleep_for_seconds));
-      }
-      catch(const boost::thread_interrupted&)
-      {
-        MDEBUG("background miner thread interrupted ");
-        continue; // if interrupted because stop called, loop should end ..
-      }
-
-      bool on_ac_power = m_ignore_battery;
-      if(!m_ignore_battery)
-      {
-        boost::tribool battery_powered(on_battery_power());
-        if(!indeterminate( battery_powered ))
-        {
-          on_ac_power = !(bool)battery_powered;
-        }
-      }
-
-      if( m_is_background_mining_started )
-      {
-        // figure out if we need to stop, and monitor mining usage
-        
-        // If we get here, then previous values are initialized.
-        // Let's get some current data for comparison.
-
-        if(!get_system_times(current_total_time, current_idle_time))
-        {
-          MERROR("get_system_times call failed");
-          continue;
-        }
-
-        if(!get_process_time(current_process_time))
-        {
-          MERROR("get_process_time call failed!");
-          continue;
-        }
-
-        uint64_t total_diff = (current_total_time - prev_total_time);
-        uint64_t idle_diff = (current_idle_time - prev_idle_time);
-        uint64_t process_diff = (current_process_time - previous_process_time);
-        uint8_t idle_percentage = get_percent_of_total(idle_diff, total_diff);
-        uint8_t process_percentage = get_percent_of_total(process_diff, total_diff);
-
-        MDEBUG("idle percentage is " << unsigned(idle_percentage) << "\%, miner percentage is " << unsigned(process_percentage) << "\%, ac power : " << on_ac_power);
-        if( idle_percentage + process_percentage < get_idle_threshold() || !on_ac_power )
-        {
-          MINFO("cpu is " << unsigned(idle_percentage) << "% idle, idle threshold is " << unsigned(get_idle_threshold()) << "\%, ac power : " << on_ac_power << ", background mining stopping, thanks for your contribution!");
-          m_is_background_mining_started = false;
-
-          // reset process times
-          previous_process_time = 0;
-          current_process_time = 0;
-        }
-        else
-        {
-          previous_process_time = current_process_time;
-
-          // adjust the miner extra sleep variable
-          int64_t miner_extra_sleep_change = (-1 * (get_mining_target() - process_percentage) );
-          int64_t new_miner_extra_sleep = m_miner_extra_sleep + miner_extra_sleep_change;
-          // if you start the miner with few threads on a multicore system, this could
-          // fall below zero because all the time functions aggregate across all processors.
-          // I'm just hard limiting to 5 millis min sleep here, other options?
-          m_miner_extra_sleep = std::max( new_miner_extra_sleep , (int64_t)5 );
-          MDEBUG("m_miner_extra_sleep " << m_miner_extra_sleep);
-        }
-        
-        prev_total_time = current_total_time;
-        prev_idle_time = current_idle_time;
-      }
-      else if( on_ac_power )
-      {
-        // figure out if we need to start
-
-        if(!get_system_times(current_total_time, current_idle_time))
-        {
-          MERROR("get_system_times call failed");
-          continue;
-        }
-
-        uint64_t total_diff = (current_total_time - prev_total_time);
-        uint64_t idle_diff = (current_idle_time - prev_idle_time);
-        uint8_t idle_percentage = get_percent_of_total(idle_diff, total_diff);
-
-        MDEBUG("idle percentage is " << unsigned(idle_percentage));
-        if( idle_percentage >= get_idle_threshold() && on_ac_power )
-        {
-          MINFO("cpu is " << unsigned(idle_percentage) << "% idle, idle threshold is " << unsigned(get_idle_threshold()) << "\%, ac power : " << on_ac_power << ", background mining started, good luck!");
-          m_is_background_mining_started = true;
-          m_is_background_mining_started_cond.notify_all();
-
-          // Wait for a little mining to happen ..
-          boost::this_thread::sleep_for(boost::chrono::seconds( 1 ));
-
-          // Starting data ...
-          if(!get_process_time(previous_process_time))
-          {
-            m_is_background_mining_started = false;
-            MERROR("get_process_time call failed!");
-          }
-        }
-
-        prev_total_time = current_total_time;
-        prev_idle_time = current_idle_time;
-      }
-    }
-
-    return true;
-  }
-  //-----------------------------------------------------------------------------------------------------
-  bool miner::get_system_times(uint64_t& total_time, uint64_t& idle_time)
-  {
-    #ifdef _WIN32
-
-    	FILETIME idleTime;
-    	FILETIME kernelTime;
-    	FILETIME userTime;
-    	if ( GetSystemTimes( &idleTime, &kernelTime, &userTime ) != -1 )
-    	{
-        total_time =
-          ( (((uint64_t)(kernelTime.dwHighDateTime)) << 32) | ((uint64_t)kernelTime.dwLowDateTime) )
-          + ( (((uint64_t)(userTime.dwHighDateTime)) << 32) | ((uint64_t)userTime.dwLowDateTime) );
-
-        idle_time = ( (((uint64_t)(idleTime.dwHighDateTime)) << 32) | ((uint64_t)idleTime.dwLowDateTime) );
-
-        return true;
-    	}
-
-    #elif defined(__linux__)
-
-      const std::string STAT_FILE_PATH = "/proc/stat";
-
-      if( !epee::file_io_utils::is_file_exist(STAT_FILE_PATH) )
-      {
-        LOG_ERROR("'" << STAT_FILE_PATH << "' file does not exist");
-        return false;
-      }
-
-      std::ifstream stat_file_stream(STAT_FILE_PATH);
-      if( stat_file_stream.fail() )
-      {
-        LOG_ERROR("failed to open '" << STAT_FILE_PATH << "'");
-        return false;
-      }
-
-      std::string line;
-      std::getline(stat_file_stream, line);
-      std::istringstream stat_file_iss(line);
-      stat_file_iss.ignore(65536, ' '); // skip cpu label ...
-      uint64_t utime, ntime, stime, itime;
-      if( !(stat_file_iss >> utime && stat_file_iss >> ntime && stat_file_iss >> stime && stat_file_iss >> itime) )
-      {
-        LOG_ERROR("failed to read '" << STAT_FILE_PATH << "'");
-        return false;
-      }
-
-      idle_time = itime;
-      total_time = utime + ntime + stime + itime;
-
-      return true;
-
-    #elif defined(__APPLE__)
-
-      mach_msg_type_number_t count;
-      kern_return_t status;
-      host_cpu_load_info_data_t stats;      
-      count = HOST_CPU_LOAD_INFO_COUNT;
-      status = host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, (host_info_t)&stats, &count);
-      if(status != KERN_SUCCESS)
-      {
-        return false;
-      }
-
-      idle_time = stats.cpu_ticks[CPU_STATE_IDLE];
-      total_time = idle_time + stats.cpu_ticks[CPU_STATE_USER] + stats.cpu_ticks[CPU_STATE_SYSTEM];
-      
-      return true;
-
-    #elif defined(__FreeBSD__)
-
-      struct statinfo s;
-      size_t n = sizeof(s.cp_time);
-      if( sysctlbyname("kern.cp_time", s.cp_time, &n, NULL, 0) == -1 )
-      {
-        LOG_ERROR("sysctlbyname(\"kern.cp_time\"): " << strerror(errno));
-        return false;
-      }
-      if( n != sizeof(s.cp_time) )
-      {
-        LOG_ERROR("sysctlbyname(\"kern.cp_time\") output is unexpectedly "
-          << n << " bytes instead of the expected " << sizeof(s.cp_time)
-          << " bytes.");
-        return false;
-      }
-
-      idle_time = s.cp_time[CP_IDLE];
-      total_time =
-        s.cp_time[CP_USER] +
-        s.cp_time[CP_NICE] +
-        s.cp_time[CP_SYS] +
-        s.cp_time[CP_INTR] +
-        s.cp_time[CP_IDLE];
-
-      return true;
-
-    #endif
-
-    return false; // unsupported system
-  }
-  //-----------------------------------------------------------------------------------------------------
-  bool miner::get_process_time(uint64_t& total_time)
-  {
-    #ifdef _WIN32
-
-      FILETIME createTime;
-      FILETIME exitTime;
-      FILETIME kernelTime;
-      FILETIME userTime;
-      if ( GetProcessTimes( GetCurrentProcess(), &createTime, &exitTime, &kernelTime, &userTime ) != -1 )
-      {
-        total_time =
-          ( (((uint64_t)(kernelTime.dwHighDateTime)) << 32) | ((uint64_t)kernelTime.dwLowDateTime) )
-          + ( (((uint64_t)(userTime.dwHighDateTime)) << 32) | ((uint64_t)userTime.dwLowDateTime) );
-
-        return true;
-      }
-
-    #elif (defined(__linux__) && defined(_SC_CLK_TCK)) || defined(__APPLE__) || defined(__FreeBSD__)
-
-      struct tms tms;
-      if ( times(&tms) != (clock_t)-1 )
-      {
-    		total_time = tms.tms_utime + tms.tms_stime;
-        return true;
-      }
-
-    #endif
-
-    return false; // unsupported system
-  }
-  //-----------------------------------------------------------------------------------------------------  
-  uint8_t miner::get_percent_of_total(uint64_t other, uint64_t total)
-  {
-    return (uint8_t)( ceil( (other * 1.f / total * 1.f) * 100) );    
-  }
-  //-----------------------------------------------------------------------------------------------------    
-  boost::logic::tribool miner::on_battery_power()
-  {
-    #ifdef _WIN32
-
-      SYSTEM_POWER_STATUS power_status;
-    	if ( GetSystemPowerStatus( &power_status ) != 0 )
-    	{
-        return boost::logic::tribool(power_status.ACLineStatus != 1);
-    	}
-
-    #elif defined(__APPLE__) 
-      
-      #if TARGET_OS_MAC && (!defined(MAC_OS_X_VERSION_MIN_REQUIRED) || MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7)
-        return boost::logic::tribool(IOPSGetTimeRemainingEstimate() != kIOPSTimeRemainingUnlimited);
-      #else
-        // iOS or OSX <10.7
-        return boost::logic::tribool(boost::logic::indeterminate);
-      #endif
-
-    #elif defined(__linux__)
-
-      // Use the power_supply class http://lxr.linux.no/#linux+v4.10.1/Documentation/power/power_supply_class.txt
-      std::string power_supply_class_path = "/sys/class/power_supply";
-
-      boost::tribool on_battery = boost::logic::tribool(boost::logic::indeterminate);
-      if (boost::filesystem::is_directory(power_supply_class_path))
-      {
-        const boost::filesystem::directory_iterator end_itr;
-        for (boost::filesystem::directory_iterator iter(power_supply_class_path); iter != end_itr; ++iter)
-        {
-          const boost::filesystem::path& power_supply_path = iter->path();
-          if (boost::filesystem::is_directory(power_supply_path))
-          {
-            boost::filesystem::path power_supply_type_path = power_supply_path / "type";
-            if (boost::filesystem::is_regular_file(power_supply_type_path))
-            {
-              std::ifstream power_supply_type_stream(power_supply_type_path.string());
-              if (power_supply_type_stream.fail())
-              {
-                LOG_PRINT_L0("Unable to read from " << power_supply_type_path << " to check power supply type");
-                continue;
-              }
-
-              std::string power_supply_type;
-              std::getline(power_supply_type_stream, power_supply_type);
-
-              // If there is an AC adapter that's present and online we can break early
-              if (boost::starts_with(power_supply_type, "Mains"))
-              {
-                boost::filesystem::path power_supply_online_path = power_supply_path / "online";
-                if (boost::filesystem::is_regular_file(power_supply_online_path))
-                {
-                  std::ifstream power_supply_online_stream(power_supply_online_path.string());
-                  if (power_supply_online_stream.fail())
-                  {
-                    LOG_PRINT_L0("Unable to read from " << power_supply_online_path << " to check ac power supply status");
-                    continue;
-                  }
-
-                  if (power_supply_online_stream.get() == '1')
-                  {
-                    return boost::logic::tribool(false);
-                  }
-                }
-              }
-              else if (boost::starts_with(power_supply_type, "Battery") && boost::logic::indeterminate(on_battery))
-              {
-                boost::filesystem::path power_supply_status_path = power_supply_path / "status";
-                if (boost::filesystem::is_regular_file(power_supply_status_path))
-                {
-                  std::ifstream power_supply_status_stream(power_supply_status_path.string());
-                  if (power_supply_status_stream.fail())
-                  {
-                    LOG_PRINT_L0("Unable to read from " << power_supply_status_path << " to check battery power supply status");
-                    continue;
-                  }
-
-                  // Possible status are Charging, Full, Discharging, Not Charging, and Unknown
-                  // We are only need to handle negative states right now
-                  std::string power_supply_status;
-                  std::getline(power_supply_status_stream, power_supply_status);
-                  if (boost::starts_with(power_supply_status, "Charging") || boost::starts_with(power_supply_status, "Full"))
-                  {
-                    on_battery = boost::logic::tribool(false);
-                  }
-
-                  if (boost::starts_with(power_supply_status, "Discharging"))
-                  {
-                    on_battery = boost::logic::tribool(true);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      if (boost::logic::indeterminate(on_battery))
-      {
-        static bool error_shown = false;
-        if (!error_shown)
-        {
-          LOG_ERROR("couldn't query power status from " << power_supply_class_path);
-          error_shown = true;
-        }
-      }
-      return on_battery;
-
-    #elif defined(__FreeBSD__)
-      int ac;
-      size_t n = sizeof(ac);
-      if( sysctlbyname("hw.acpi.acline", &ac, &n, NULL, 0) == -1 )
-      {
-        if( errno != ENOENT )
-        {
-          LOG_ERROR("Cannot query battery status: "
-            << "sysctlbyname(\"hw.acpi.acline\"): " << strerror(errno));
-          return boost::logic::tribool(boost::logic::indeterminate);
-        }
-
-        // If sysctl fails with ENOENT, then try querying /dev/apm.
-
-        static const char* dev_apm = "/dev/apm";
-        const int fd = open(dev_apm, O_RDONLY);
-        if( fd == -1 ) {
-          LOG_ERROR("Cannot query battery status: "
-            << "open(): " << dev_apm << ": " << strerror(errno));
-          return boost::logic::tribool(boost::logic::indeterminate);
-        }
-
-#if defined(__amd64__) || defined(__i386__) || defined(__x86_64__)
-        apm_info info;
-        if( ioctl(fd, APMIO_GETINFO, &info) == -1 ) {
-          close(fd);
-          LOG_ERROR("Cannot query battery status: "
-            << "ioctl(" << dev_apm << ", APMIO_GETINFO): " << strerror(errno));
-          return boost::logic::tribool(boost::logic::indeterminate);
-        }
-
-        close(fd);
-
-        // See apm(8).
-        switch( info.ai_acline )
-        {
-        case 0: // off-line
-        case 2: // backup power
-          return boost::logic::tribool(true);
-        case 1: // on-line
-          return boost::logic::tribool(false);
-        }
-        switch( info.ai_batt_stat )
-        {
-        case 0: // high
-        case 1: // low
-        case 2: // critical
-          return boost::logic::tribool(true);
-        case 3: // charging
-          return boost::logic::tribool(false);
-        }
-
-        LOG_ERROR("Cannot query battery status: "
-          << "sysctl hw.acpi.acline is not available and /dev/apm returns "
-          << "unexpected ac-line status (" << info.ai_acline << ") and "
-          << "battery status (" << info.ai_batt_stat << ").");
-        return boost::logic::tribool(boost::logic::indeterminate);
-      }
-      if( n != sizeof(ac) )
-      {
-        LOG_ERROR("sysctlbyname(\"hw.acpi.acline\") output is unexpectedly "
-          << n << " bytes instead of the expected " << sizeof(ac) << " bytes.");
-        return boost::logic::tribool(boost::logic::indeterminate);
-#endif
-      }
-      return boost::logic::tribool(ac == 0);
-    #endif
-    
-    LOG_ERROR("couldn't query power status");
-    return boost::logic::tribool(boost::logic::indeterminate);
   }
 }

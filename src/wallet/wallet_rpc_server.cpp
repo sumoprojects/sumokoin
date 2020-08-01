@@ -1,22 +1,22 @@
 // Copyright (c) 2017-2020, Sumokoin Project
 // Copyright (c) 2014-2020, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -26,7 +26,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 #include <boost/format.hpp>
 #include <boost/asio/ip/address.hpp>
@@ -233,8 +233,6 @@ namespace tools
     m_auto_refresh_period = DEFAULT_AUTO_REFRESH_PERIOD;
     m_last_auto_refresh_time = boost::posix_time::min_date_time;
 
-    check_background_mining();
-
     m_net_server.set_threads_prefix("RPC");
     auto rng = [](size_t len, uint8_t *ptr) { return crypto::rand(len, ptr); };
     return epee::http_server_impl_base<wallet_rpc_server, connection_context>::init(
@@ -243,60 +241,6 @@ namespace tools
       std::move(rpc_config->access_control_origins), std::move(http_login),
       std::move(rpc_config->ssl_options)
     );
-  }
-  //------------------------------------------------------------------------------------------------------------------------------
-  void wallet_rpc_server::check_background_mining()
-  {
-    if (!m_wallet)
-      return;
-
-    tools::wallet2::BackgroundMiningSetupType setup = m_wallet->setup_background_mining();
-    if (setup == tools::wallet2::BackgroundMiningNo)
-    {
-      MLOG_RED(el::Level::Warning, "Background mining not enabled. Run \"set setup-background-mining 1\" in sumo-wallet-cli to change.");
-      return;
-    }
-
-    if (!m_wallet->is_trusted_daemon())
-    {
-      MDEBUG("Using an untrusted daemon, skipping background mining check");
-      return;
-    }
-
-    cryptonote::COMMAND_RPC_MINING_STATUS::request req;
-    cryptonote::COMMAND_RPC_MINING_STATUS::response res;
-    bool r = m_wallet->invoke_http_json("/mining_status", req, res);
-    if (!r || res.status != CORE_RPC_STATUS_OK)
-    {
-      MERROR("Failed to query mining status: " << (r ? res.status : "No connection to daemon"));
-      return;
-    }
-    if (res.active || res.is_background_mining_enabled)
-      return;
-
-    if (setup == tools::wallet2::BackgroundMiningMaybe)
-    {
-      MINFO("The daemon is not set up to background mine.");
-      MINFO("With background mining enabled, the daemon will mine when idle and not on batttery.");
-      MINFO("Enabling this supports the network you are using, and makes you eligible for receiving new SUMO");
-      MINFO("Set setup-background-mining to 1 in sumo-wallet-cli to change.");
-      return;
-    }
-
-    cryptonote::COMMAND_RPC_START_MINING::request req2;
-    cryptonote::COMMAND_RPC_START_MINING::response res2;
-    req2.miner_address = m_wallet->get_account().get_public_address_str(m_wallet->nettype());
-    req2.threads_count = 1;
-    req2.do_background_mining = true;
-    req2.ignore_battery = false;
-    r = m_wallet->invoke_http_json("/start_mining", req2, res);
-    if (!r || res2.status != CORE_RPC_STATUS_OK)
-    {
-      MERROR("Failed to setup background mining: " << (r ? res.status : "No connection to daemon"));
-      return;
-    }
-
-    MINFO("Background mining enabled. The daemon will mine when idle and not on batttery.");
   }
   //------------------------------------------------------------------------------------------------------------------------------
   bool wallet_rpc_server::not_open(epee::json_rpc::error& er)
@@ -2992,11 +2936,9 @@ namespace tools
       return false;
     }
 
-    cryptonote::COMMAND_RPC_START_MINING::request daemon_req = AUTO_VAL_INIT(daemon_req); 
+    cryptonote::COMMAND_RPC_START_MINING::request daemon_req = AUTO_VAL_INIT(daemon_req);
     daemon_req.miner_address = m_wallet->get_account().get_public_address_str(m_wallet->nettype());
     daemon_req.threads_count        = req.threads_count;
-    daemon_req.do_background_mining = req.do_background_mining;
-    daemon_req.ignore_battery       = req.ignore_battery;
 
     cryptonote::COMMAND_RPC_START_MINING::response daemon_res;
     bool r = m_wallet->invoke_http_json("/start_mining", daemon_req, daemon_res);
@@ -4205,7 +4147,7 @@ namespace tools
       er.message = "Command unavailable in restricted mode.";
       return false;
     }
-   
+
     std::vector<std::vector<uint8_t>> ssl_allowed_fingerprints;
     ssl_allowed_fingerprints.reserve(req.ssl_allowed_fingerprints.size());
     for (const std::string &fp: req.ssl_allowed_fingerprints)

@@ -26,16 +26,6 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-if(APPLE)
-  if(DEPENDS)
-    list(APPEND EXTRA_LIBRARIES "-framework Foundation -framework ApplicationServices -framework AppKit -framework IOKit")
-  else()
-    find_library(IOKIT_LIBRARY IOKit)
-    mark_as_advanced(IOKIT_LIBRARY)
-    list(APPEND EXTRA_LIBRARIES ${IOKIT_LIBRARY})
-  endif()
-endif()
-
 set(cryptonote_basic_sources
   account.cpp
   cryptonote_basic_impl.cpp

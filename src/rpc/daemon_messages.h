@@ -180,8 +180,6 @@ BEGIN_RPC_MESSAGE_CLASS(StartMining);
   BEGIN_RPC_MESSAGE_REQUEST;
     RPC_MESSAGE_MEMBER(std::string, miner_address);
     RPC_MESSAGE_MEMBER(uint64_t, threads_count);
-    RPC_MESSAGE_MEMBER(bool, do_background_mining);
-    RPC_MESSAGE_MEMBER(bool, ignore_battery);
   END_RPC_MESSAGE_REQUEST;
   BEGIN_RPC_MESSAGE_RESPONSE;
   END_RPC_MESSAGE_RESPONSE;
@@ -210,7 +208,6 @@ BEGIN_RPC_MESSAGE_CLASS(MiningStatus);
     RPC_MESSAGE_MEMBER(uint64_t, speed);
     RPC_MESSAGE_MEMBER(uint64_t, threads_count);
     RPC_MESSAGE_MEMBER(std::string, address);
-    RPC_MESSAGE_MEMBER(bool, is_background_mining_enabled);
   END_RPC_MESSAGE_RESPONSE;
 END_RPC_MESSAGE_CLASS;
 

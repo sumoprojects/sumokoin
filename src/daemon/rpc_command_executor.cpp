@@ -697,7 +697,7 @@ bool t_rpc_command_executor::show_status() {
   std::cout << "\033[1m-----------" << std::endl;
   std::cout << "MINING INFO" << std::endl;
   std::cout << "-----------\033[0m" << std::endl;
-  std::cout << "\033[1mMining status: \033[0m" << "\033[32;1m" << (!has_mining_info ? "mining info unavailable" : mining_busy ? "syncing" : mres.active ? ( ( mres.is_background_mining_enabled ? "smart " : "" ) + std::string("mining at ") + get_mining_speed(mres.speed)) : "not mining") << "\033[0m" << "  " <<
+  std::cout << "\033[1mMining status: \033[0m" << "\033[32;1m" << (!has_mining_info ? "mining info unavailable" : mining_busy ? "syncing" : mres.active ? ( std::string("mining at ") + get_mining_speed(mres.speed)) : "not mining") << "\033[0m" << "  " <<
                "\033[1mMining Threads: \033[0m" << "\033[32;1m" << mres.threads_count << "\033[0m" << "  " <<
                "\033[1mPoW algorithm: \033[0m" << "\033[32;1m" << mres.pow_algorithm << "\033[0m" << std::endl;
   std::cout << "\033[1m-----------" << std::endl;
@@ -758,18 +758,9 @@ bool t_rpc_command_executor::mining_status() {
   }
 
   tools::msg_writer() << "PoW algorithm: " << mres.pow_algorithm;
-  if (mres.active || mres.is_background_mining_enabled)
+  if (mres.active)
   {
     tools::msg_writer() << "Mining address: " << mres.address;
-  }
-
-  if (mres.is_background_mining_enabled)
-  {
-    tools::msg_writer() << "Smart mining enabled:";
-    tools::msg_writer() << "  Target: " << (unsigned)mres.bg_target << "% CPU";
-    tools::msg_writer() << "  Idle threshold: " << (unsigned)mres.bg_idle_threshold << "% CPU";
-    tools::msg_writer() << "  Min idle time: " << (unsigned)mres.bg_min_idle_seconds << " seconds";
-    tools::msg_writer() << "  Ignore battery: " << (mres.bg_ignore_battery ? "yes" : "no");
   }
 
   if (!mining_busy && mres.active && mres.speed > 0 && mres.block_target > 0 && mres.difficulty > 0)
@@ -854,7 +845,7 @@ bool t_rpc_command_executor::print_connections() {
   }
   tools::msg_writer()
       << "\n" << "Incoming Connections Count: " << incoming_number << " Outgoing Connections Count: " << outgoing_number << " Total Number of Connections: " << (incoming_number + outgoing_number);
-      
+
   return true;
 }
 
@@ -1570,13 +1561,11 @@ bool t_rpc_command_executor::print_transaction_pool_stats() {
   return true;
 }
 
-bool t_rpc_command_executor::start_mining(cryptonote::account_public_address address, uint64_t num_threads, cryptonote::network_type nettype, bool do_background_mining, bool ignore_battery) {
+bool t_rpc_command_executor::start_mining(cryptonote::account_public_address address, uint64_t num_threads, cryptonote::network_type nettype) {
   cryptonote::COMMAND_RPC_START_MINING::request req;
   cryptonote::COMMAND_RPC_START_MINING::response res;
   req.miner_address = cryptonote::get_account_address_as_str(nettype, false, address);
   req.threads_count = num_threads;
-  req.do_background_mining = do_background_mining;
-  req.ignore_battery = ignore_battery;
 
   std::string fail_message = "Mining did not start";
 
