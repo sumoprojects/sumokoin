@@ -167,6 +167,28 @@
 #define RPC_PAYMENTS_DATA_FILENAME                      "rpcpayments.bin"
 #define MINER_CONFIG_FILE_NAME                          "miner_conf.json"
 
+// seed nodes
+// MAINNET
+#define SEED_MAINNET_1 full_addrs.insert("144.217.164.165:19733") // Canada
+#define SEED_MAINNET_2 full_addrs.insert("217.182.76.94:19733") // Poland
+#define SEED_MAINNET_3 full_addrs.insert("46.105.92.108:19733") // France
+#define SEED_MAINNET_4 full_addrs.insert("139.99.193.21:19733") // Australia
+#define SEED_MAINNET_5 full_addrs.insert("139.99.40.69:19733") // Singapore
+#define SEED_MAINNET_6 full_addrs.insert("133.18.53.223:19733") // Japan
+#define SEED_MAINNET_7 full_addrs.insert("157.230.187.169:19733") // NY - explorer
+#define SEED_MAINNET_8 full_addrs.insert("157.245.14.220:19733") // NY
+#define SEED_MAINNET_9 full_addrs.insert("134.209.109.190:19733") // Singapore
+#define SEED_MAINNET_10 full_addrs.insert("167.172.44.84:19733") // Netherlands
+// TESTNET
+#define SEED_TESTNET_1 full_addrs.insert("144.217.164.165:29733")
+#define SEED_TESTNET_2 full_addrs.insert("217.182.76.94:29733")
+#define SEED_TESTNET_3 full_addrs.insert("139.99.40.69:29733")
+#define SEED_TESTNET_4 full_addrs.insert("46.105.92.108:29733")
+// STAGENET
+#define SEED_STAGENET_1 full_addrs.insert("144.217.164.165:39733")
+#define SEED_STAGENET_2 full_addrs.insert("217.182.76.94:39733")
+#define SEED_STAGENET_3 full_addrs.insert("139.99.40.69:39733")
+#define SEED_STAGENET_4 full_addrs.insert("46.105.92.108:39733")
 
 // coin emission change interval/speed configs
 #define COIN_EMISSION_MONTH_INTERVAL                    6  // months to change emission speed
