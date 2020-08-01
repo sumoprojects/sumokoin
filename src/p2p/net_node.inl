@@ -616,6 +616,7 @@ namespace nodetool
       SEED_TESTNET_2;
       SEED_TESTNET_3;
       SEED_TESTNET_4;
+      SEED_TESTNET_5;
     }
     else if (nettype == cryptonote::STAGENET)
     {
