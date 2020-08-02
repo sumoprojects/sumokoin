@@ -60,7 +60,7 @@ namespace Language
   public:
     Esperanto(): Base("Esperanto", "Esperanto", {}, 4)
     {
-      static constexpr const char * const words[NWORDS] =
+      static constexpr std::string_view const words[NWORDS] =
       {
       "abako",
       "abdiki",

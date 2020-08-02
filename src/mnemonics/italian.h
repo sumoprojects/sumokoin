@@ -53,7 +53,7 @@ namespace Language
   public:
     Italian(): Base("Italiano", "Italian", {}, 4)
     {
-      static constexpr const char * const words[NWORDS] =
+      static constexpr std::string_view const words[NWORDS] =
       {
         "abbinare",
         "abbonato",

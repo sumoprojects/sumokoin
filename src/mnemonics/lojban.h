@@ -58,7 +58,7 @@ namespace Language
   public:
     Lojban(): Base("Lojban", "Lojban", {}, 4)
     {
-      static constexpr const char * const words[NWORDS] =
+      static constexpr std::string_view const words[NWORDS] =
       {
       "backi",
       "bacru",
