@@ -163,7 +163,7 @@ namespace Language
     virtual ~Base()
     {
     }
-    void set_words(const char * const words[])
+    void set_words(std::string_view const words[])
     {
       word_list.resize(NWORDS);
       for (size_t i = 0; i < NWORDS; ++i)
