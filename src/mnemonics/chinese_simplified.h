@@ -74,7 +74,7 @@ namespace Language
   public:
     Chinese_Simplified(): Base("简体中文 (中国)", "Chinese (simplified)", {}, 1)
     {
-      static constexpr const char * const words[NWORDS] =
+      static constexpr std::string_view const words[NWORDS] =
       {
       "的",
       "一",

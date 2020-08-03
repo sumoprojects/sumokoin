@@ -51,7 +51,7 @@ namespace Language
   public:
     Dutch(): Base("Nederlands", "Dutch", {}, 4)
     {
-      static constexpr const char * const words[NWORDS] =
+      static constexpr std::string_view const words[NWORDS] =
       {
         "aalglad",
         "aalscholver",

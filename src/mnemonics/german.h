@@ -53,7 +53,7 @@ namespace Language
   public:
     German(): Base("Deutsch", "German", {}, 4)
     {
-      static constexpr const char * const words[NWORDS] =
+      static constexpr std::string_view const words[NWORDS] =
       {
         "Abakus",
         "Abart",
