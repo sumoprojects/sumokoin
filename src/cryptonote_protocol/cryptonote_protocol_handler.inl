@@ -2560,7 +2560,7 @@ skip:
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>
-  void t_cryptonote_protocol_handler<t_core>::drop_connection_with_score(cryptonote_connection_context &context, unsigned score, bool flush_all_spans)
+  void t_cryptonote_protocol_handler<t_core>::drop_connection_with_score(cryptonote_connection_context &context, uint64_t score, bool flush_all_spans)
   {
     LOG_DEBUG_CC(context, "dropping connection id " << context.m_connection_id << " (pruning seed " <<
         epee::string_tools::to_string_hex(context.m_pruning_seed) <<

@@ -116,6 +116,7 @@ namespace nodetool
     command_line::add_arg(desc, arg_no_sync);
     command_line::add_arg(desc, arg_no_igd);
     command_line::add_arg(desc, arg_igd);
+    command_line::add_arg(desc, arg_same_version);
     command_line::add_arg(desc, arg_out_peers);
     command_line::add_arg(desc, arg_in_peers);
     command_line::add_arg(desc, arg_tos_flag);
@@ -322,15 +323,15 @@ namespace nodetool
   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
-  bool node_server<t_payload_net_handler>::add_host_fail(const epee::net_utils::network_address &address, unsigned int score)
+  bool node_server<t_payload_net_handler>::add_host_fail(const epee::net_utils::network_address &address, uint64_t score)
   {
     if(!address.is_blockable())
       return false;
 
     CRITICAL_REGION_LOCAL(m_host_fails_score_lock);
-    uint64_t fails = m_host_fails_score[address.host_str()] += score;
-    MDEBUG("Host " << address.host_str() << " fail score=" << fails);
-    if(fails > P2P_IP_FAILS_BEFORE_BLOCK)
+    score = ++m_host_fails_score[address.host_str()];
+    MDEBUG("Host " << address.host_str() << " fail score=" << score);
+    if(score > P2P_IP_FAILS_BEFORE_BLOCK)
     {
       auto it = m_host_fails_score.find(address.host_str());
       CHECK_AND_ASSERT_MES(it != m_host_fails_score.end(), false, "internal error");
@@ -361,6 +362,7 @@ namespace nodetool
     m_allow_local_ip = command_line::get_arg(vm, arg_p2p_allow_local_ip);
     const bool has_no_igd = command_line::get_arg(vm, arg_no_igd);
     const std::string sigd = command_line::get_arg(vm, arg_igd);
+
     if (sigd == "enabled")
     {
       if (has_no_igd)
@@ -447,6 +449,9 @@ namespace nodetool
 
     if(command_line::has_arg(vm, arg_p2p_hide_my_port))
       m_hide_my_port = true;
+
+    if(command_line::has_arg(vm, arg_same_version))
+      m_same_version = true;
 
     if (command_line::has_arg(vm, arg_no_sync))
       m_payload_handler.set_no_sync(true);
@@ -607,30 +612,31 @@ namespace nodetool
     std::set<std::string> full_addrs;
     if (nettype == cryptonote::TESTNET)
     {
-      full_addrs.insert("144.217.164.165:29733");
-      full_addrs.insert("217.182.76.94:29733");
-      full_addrs.insert("139.99.40.69:29733");
-      full_addrs.insert("46.105.92.108:29733");
+      SEED_TESTNET_1;
+      SEED_TESTNET_2;
+      SEED_TESTNET_3;
+      SEED_TESTNET_4;
+      SEED_TESTNET_5;
     }
     else if (nettype == cryptonote::STAGENET)
     {
-      full_addrs.insert("144.217.164.165:39733");
-      full_addrs.insert("217.182.76.94:39733");
-      full_addrs.insert("139.99.40.69:39733");
-      full_addrs.insert("46.105.92.108:39733");
+      SEED_STAGENET_1;
+      SEED_STAGENET_2;
+      SEED_STAGENET_3;
+      SEED_STAGENET_4;
     }
     else
     {
-      full_addrs.insert("144.217.164.165:19733"); // Canada
-      full_addrs.insert("217.182.76.94:19733"); // Poland
-      full_addrs.insert("46.105.92.108:19733"); // France
-      full_addrs.insert("139.99.193.21:19733"); // Sydney
-      full_addrs.insert("139.99.40.69:19733"); // Singapore
-      full_addrs.insert("133.18.53.223:19733"); // Japan
-      full_addrs.insert("157.230.187.169:19733"); // NY - explorer
-      full_addrs.insert("157.245.14.220:19733"); // NY
-      full_addrs.insert("134.209.109.190:19733"); // Singapore
-      full_addrs.insert("167.172.44.84:19733"); // Amsterdam
+      SEED_MAINNET_1;
+      SEED_MAINNET_2;
+      SEED_MAINNET_3;
+      SEED_MAINNET_4;
+      SEED_MAINNET_5;
+      SEED_MAINNET_6;
+      SEED_MAINNET_7;
+      SEED_MAINNET_8;
+      SEED_MAINNET_9;
+      SEED_MAINNET_10;
     }
     return full_addrs;
   }
@@ -1032,8 +1038,15 @@ namespace nodetool
       if(code < 0)
       {
         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
-        if (code == LEVIN_ERROR_CONNECTION_TIMEDOUT || code == LEVIN_ERROR_CONNECTION_DESTROYED)
+        if (code == LEVIN_ERROR_CONNECTION_DESTROYED)
+        {
           timeout = true;
+        }
+        if (code == LEVIN_ERROR_CONNECTION_TIMEDOUT)
+        {
+          timeout = true;
+          add_host_fail(context.m_remote_address);  
+        }
         return;
       }
       std::string remote_version = rsp.node_data.version.substr(0,12);
@@ -2095,7 +2108,7 @@ namespace nodetool
 
     const epee::net_utils::network_address na = context.m_remote_address;
     std::string ip;
-    uint32_t ipv4_addr;
+    uint32_t ipv4_addr = 0;
     boost::asio::ip::address_v6 ipv6_addr;
     bool is_ipv4;
     if (na.get_type_id() == epee::net_utils::ipv4_network_address::get_type_id())
@@ -2259,14 +2272,31 @@ namespace nodetool
   int node_server<t_payload_net_handler>::handle_handshake(int command, typename COMMAND_HANDSHAKE::request& arg, typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
   {
     std::string r_version = arg.node_data.version.substr(0,12);
-    if (arg.node_data.version.size() == 0)
+    if(!m_same_version)
     {
-      MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
-    }
+      if (arg.node_data.version.size() == 0)
+      {
+        MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
+      }
 
-    if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
+      if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
+      {
+        MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << r_version);
+      }
+    }
+    else
     {
-      MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << r_version);
+      if (arg.node_data.version.size() == 0)
+      {
+        MGINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier. Blocking!");
+        block_host(context.m_remote_address);
+      }
+
+      if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
+      {
+        MGINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << r_version << " Blocking!");
+        block_host(context.m_remote_address);
+      }
     }
 
     if(arg.node_data.network_id != m_network_id)

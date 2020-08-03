@@ -764,35 +764,30 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     }
     MTRACE((add ? "Adding" : "Setting") << " " << ms << " expiry");
     auto self = safe_shared_from_this();
-
     if(!self)
     {
       MERROR("Resetting timer on a dead object");
       return;
     }
-
-    if (!m_was_shutdown)
+    if (m_was_shutdown)
     {
-      if (add)
-      {
-        const auto cur = m_timer.expires_from_now().total_milliseconds();
-        if (cur > 0)
-          ms += (boost::posix_time::milliseconds)cur;
-      }
-      m_timer.expires_from_now(ms);
-      m_timer.async_wait([=](const boost::system::error_code& ec)
-      {
-        if(ec == boost::asio::error::operation_aborted)
-          return;
-        MDEBUG(context << "connection timeout, closing");
-        self->close();
-      });
-    }
-    else
-    {
-      MINFO("Object is shut down, timer not set");
+      MINFO("Setting timer on a shut down object - ignored");
       return;
     }
+    if (add)
+    {
+      const auto cur = m_timer.expires_from_now().total_milliseconds();
+      if (cur > 0)
+        ms += (boost::posix_time::milliseconds)cur;
+    }
+    m_timer.expires_from_now(ms);
+    m_timer.async_wait([=](const boost::system::error_code& ec)
+    {
+      if(ec == boost::asio::error::operation_aborted)
+        return;
+      MDEBUG(context << "connection timeout, closing");
+      self->close();
+    });
   }
   //---------------------------------------------------------------------------------
   template<class t_protocol_handler>
@@ -811,12 +806,12 @@ PRAGMA_WARNING_DISABLE_VS(4355)
       if (!state.stop_signal_sent)
         socket_.shutdown(ignored_ec);
     }
-    socket().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_ec);
     if (!m_host.empty())
     {
       try { host_count(m_host, -1); } catch (...) { /* ignore */ }
       m_host = "";
     }
+    socket_.shutdown(ignored_ec);
     CRITICAL_REGION_END();
     m_protocol_handler.release_protocol();
     return true;
@@ -836,8 +831,10 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     send_que_size = m_send_que.size();
     CRITICAL_REGION_END();
     boost::interprocess::ipcdetail::atomic_write32(&m_want_close_connection, 1);
+    boost::system::error_code ignored_ec;
     if(!send_que_size)
     {
+      socket_.shutdown(ignored_ec);
       shutdown();
     }
 

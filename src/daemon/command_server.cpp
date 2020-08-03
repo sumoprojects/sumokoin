@@ -115,8 +115,8 @@ t_command_server::t_command_server(
   m_command_lookup.set_handler(
       "start_mining"
     , std::bind(&t_command_parser_executor::start_mining, &m_parser, p::_1)
-    , "start_mining <addr> [<threads>|auto] [do_background_mining] [ignore_battery]"
-    , "Start mining for specified address. Defaults to 1 thread and no background mining. Use \"auto\" to autodetect optimal number of threads."
+    , "start_mining <addr> [<threads>|auto]"
+    , "Start mining for specified address. Defaults to 1 thread. Use \"auto\" to autodetect optimal number of threads."
     );
   m_command_lookup.set_handler(
       "stop_mining"

@@ -149,7 +149,6 @@ namespace cryptonote
     bool set_track_uses(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_inactivity_lock_timeout(const std::vector<std::string> &args = std::vector<std::string>());
     bool disable_lock(const std::vector<std::string> &args = std::vector<std::string>());
-    bool set_setup_background_mining(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_device_name(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_export_format(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_persistent_rpc_client_id(const std::vector<std::string> &args = std::vector<std::string>());
@@ -330,13 +329,6 @@ namespace cryptonote
      * \param ptx_vector Pending tx(es) created by transfer/sweep_all
      */
     void commit_or_save(std::vector<tools::wallet2::pending_tx>& ptx_vector, bool do_not_relay);
-
-    /*!
-     * \brief checks whether background mining is enabled, and asks to configure it if not
-     */
-    void check_background_mining(const epee::wipeable_string &password);
-    void start_background_mining();
-    void stop_background_mining();
 
     // idle thread workers
     bool check_inactivity();

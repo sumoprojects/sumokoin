@@ -357,7 +357,7 @@ namespace cryptonote
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  bool core_rpc_server::add_host_fail(const connection_context *ctx, unsigned int score)
+  bool core_rpc_server::add_host_fail(const connection_context *ctx, uint64_t score)
   {
     if(!ctx || !ctx->m_remote_address.is_blockable() || disable_rpc_ban)
       return false;
@@ -1400,7 +1400,7 @@ namespace cryptonote
       res.status = "Already mining";
       return true;
     }
-    if(!miner.start(info.address, static_cast<size_t>(req.threads_count), req.do_background_mining, req.ignore_battery))
+    if(!miner.start(info.address, static_cast<size_t>(req.threads_count)))
     {
       res.status = "Failed, mining not started";
       LOG_PRINT_L0(res.status);
@@ -1436,7 +1436,6 @@ namespace cryptonote
 
     const miner& lMiner = m_core.get_miner();
     res.active = lMiner.is_mining();
-    res.is_background_mining_enabled = lMiner.get_is_background_mining_enabled();
     store_difficulty(m_core.get_blockchain_storage().get_difficulty_for_next_block(), res.difficulty, res.wide_difficulty, res.difficulty_top64);
 
     res.block_target = DIFFICULTY_TARGET;
@@ -1446,7 +1445,7 @@ namespace cryptonote
       res.block_reward = lMiner.get_block_reward();
     }
     const account_public_address& lMiningAdr = lMiner.get_mining_address();
-    if (lMiner.is_mining() || lMiner.get_is_background_mining_enabled())
+    if (lMiner.is_mining())
       res.address = get_account_address_as_str(nettype(), false, lMiningAdr);
     const uint8_t major_version = m_core.get_blockchain_storage().get_current_hard_fork_version();
     const unsigned variant = major_version >= 7 ? major_version - 3 : 0;
@@ -1457,13 +1456,6 @@ namespace cryptonote
       case 2: case 3: res.pow_algorithm = "CNv2 (Cryptonight variant 2)"; break;
       case 4: case 5: case 6: res.pow_algorithm = "CNv4 (Cryptonight variant 4)"; break;
       default: res.pow_algorithm = "I'm not sure actually"; break;
-    }
-    if (res.is_background_mining_enabled)
-    {
-      res.bg_idle_threshold = lMiner.get_idle_threshold();
-      res.bg_min_idle_seconds = lMiner.get_min_idle_seconds();
-      res.bg_ignore_battery = lMiner.get_ignore_battery();
-      res.bg_target = lMiner.get_mining_target();
     }
 
     res.status = CORE_RPC_STATUS_OK;
@@ -2598,14 +2590,13 @@ namespace cryptonote
     {
       for (const auto &str: req.txids)
       {
-        cryptonote::blobdata txid_data;
-        if(!epee::string_tools::parse_hexstr_to_binbuff(str, txid_data))
+        crypto::hash txid;
+        if(!epee::string_tools::hex_to_pod(str, txid))
         {
           failed = true;
         }
         else
         {
-          crypto::hash txid = *reinterpret_cast<const crypto::hash*>(txid_data.data());
           txids.push_back(txid);
         }
       }
@@ -2952,15 +2943,14 @@ namespace cryptonote
     res.status = "";
     for (const auto &str: req.txids)
     {
-      cryptonote::blobdata txid_data;
-      if(!epee::string_tools::parse_hexstr_to_binbuff(str, txid_data))
+      crypto::hash txid;
+      if(!epee::string_tools::hex_to_pod(str, txid))
       {
         if (!res.status.empty()) res.status += ", ";
         res.status += std::string("invalid transaction id: ") + str;
         failed = true;
         continue;
       }
-      crypto::hash txid = *reinterpret_cast<const crypto::hash*>(txid_data.data());
 
       cryptonote::blobdata txblob;
       if (m_core.get_pool_transaction(txid, txblob, relay_category::legacy))

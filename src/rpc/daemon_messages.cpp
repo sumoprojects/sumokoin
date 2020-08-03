@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2020, The Monero Project
 //
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
 //
@@ -213,16 +213,12 @@ void StartMining::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) 
 {
   INSERT_INTO_JSON_OBJECT(dest, miner_address, miner_address);
   INSERT_INTO_JSON_OBJECT(dest, threads_count, threads_count);
-  INSERT_INTO_JSON_OBJECT(dest, do_background_mining, do_background_mining);
-  INSERT_INTO_JSON_OBJECT(dest, ignore_battery, ignore_battery);
 }
 
 void StartMining::Request::fromJson(const rapidjson::Value& val)
 {
   GET_FROM_JSON_OBJECT(val, miner_address, miner_address);
   GET_FROM_JSON_OBJECT(val, threads_count, threads_count);
-  GET_FROM_JSON_OBJECT(val, do_background_mining, do_background_mining);
-  GET_FROM_JSON_OBJECT(val, ignore_battery, ignore_battery);
 }
 
 void StartMining::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
@@ -261,7 +257,6 @@ void MiningStatus::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest
   INSERT_INTO_JSON_OBJECT(dest, speed, speed);
   INSERT_INTO_JSON_OBJECT(dest, threads_count, threads_count);
   INSERT_INTO_JSON_OBJECT(dest, address, address);
-  INSERT_INTO_JSON_OBJECT(dest, is_background_mining_enabled, is_background_mining_enabled);
 }
 
 void MiningStatus::Response::fromJson(const rapidjson::Value& val)
@@ -270,7 +265,6 @@ void MiningStatus::Response::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, speed, speed);
   GET_FROM_JSON_OBJECT(val, threads_count, threads_count);
   GET_FROM_JSON_OBJECT(val, address, address);
-  GET_FROM_JSON_OBJECT(val, is_background_mining_enabled, is_background_mining_enabled);
 }
 
 

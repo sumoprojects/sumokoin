@@ -264,7 +264,7 @@ namespace cryptonote
 private:
     bool check_core_busy();
     bool check_core_ready();
-    bool add_host_fail(const connection_context *ctx, unsigned int score = 1);
+    bool add_host_fail(const connection_context *ctx, uint64_t score = 1);
 
     //utils
     uint64_t get_block_reward(const block& blk);

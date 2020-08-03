@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 
 # Copyright (c) 2018 The Monero Project
-# 
+#
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are
 # permitted provided that the following conditions are met:
-# 
+#
 # 1. Redistributions of source code must retain the above copyright notice, this list of
 #    conditions and the following disclaimer.
-# 
+#
 # 2. Redistributions in binary form must reproduce the above copyright notice, this list
 #    of conditions and the following disclaimer in the documentation and/or other
 #    materials provided with the distribution.
-# 
+#
 # 3. Neither the name of the copyright holder nor the names of its contributors may be
 #    used to endorse or promote products derived from this software without specific
 #    prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -88,7 +88,6 @@ class MiningTest():
         assert res_status.active == True
         assert res_status.threads_count == 1
         assert res_status.address == '42ey1afDFnn4886T7196doS9GPMzexD9gXpsZJDwVjeRVdFCSoHnv7KPbBeGpzJBzHRCAs9UxqeoyFQMYbqSWYTfJJQAWDm'
-        assert res_status.is_background_mining_enabled == False
         assert res_status.block_reward >= 600000000000
 
         # wait till we mined a few of them
@@ -124,14 +123,13 @@ class MiningTest():
         assert balance >= prev_balance + (new_height - prev_height) * 600000000000
 
         if via_daemon:
-            res = daemon.start_mining('42ey1afDFnn4886T7196doS9GPMzexD9gXpsZJDwVjeRVdFCSoHnv7KPbBeGpzJBzHRCAs9UxqeoyFQMYbqSWYTfJJQAWDm', threads_count = 1, do_background_mining = True)
+            res = daemon.start_mining('42ey1afDFnn4886T7196doS9GPMzexD9gXpsZJDwVjeRVdFCSoHnv7KPbBeGpzJBzHRCAs9UxqeoyFQMYbqSWYTfJJQAWDm', threads_count = 1)
         else:
-            res = wallet.start_mining(threads_count = 1, do_background_mining = True)
+            res = wallet.start_mining(threads_count = 1)
         res_status = daemon.mining_status()
         assert res_status.active == True
         assert res_status.threads_count == 1
         assert res_status.address == '42ey1afDFnn4886T7196doS9GPMzexD9gXpsZJDwVjeRVdFCSoHnv7KPbBeGpzJBzHRCAs9UxqeoyFQMYbqSWYTfJJQAWDm'
-        assert res_status.is_background_mining_enabled == True
         assert res_status.block_reward >= 600000000000
 
         # don't wait, might be a while if the machine is busy, which it probably is
