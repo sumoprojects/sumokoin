@@ -344,8 +344,8 @@ namespace epee
   } \
   catch (const std::exception &e) { \
     MERROR("Error in handle_invoke_map: " << e.what()); \
-    return LEVIN_ERROR_CONNECTION_TIMEDOUT; /* seems kinda appropriate */ \
-  } \ 
+    return LEVIN_ERROR_CONNECTION_TIMEDOUT; \
+  } \
   }
   
   }
