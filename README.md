@@ -121,6 +121,18 @@ Install all dependencies at once on Debian/Ubuntu:
 
 ``` sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libevent-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev libusb-dev ```
 
+Note that for Ubuntu 16.04 (Xenial) g++ must be upgraded (to support C++17)
+To achieve this do:
+1. sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+2. sudo apt-get update 
+3. Do not install ```build-essential``` but break it down and install ``` dpkg-dev libc6-dev make g++-7 gcc ``` 
+4. sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
+                   --slave /usr/bin/g++ g++ /usr/bin/g++-7
+ 
+Also for Xenial cmake must be upgraded so ommit it from the dependencies listed above. 
+Do ``` sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ xenial main' ``` (nevermind the signing key this is the official kitware ppa so it is secure)
+Then ``` sudo apt-get update ``` and finaly ``` sudo apt-get install cmake ``` , this will install for you the latest official release for cmake
+			 
 Install all dependencies at once on macOS with the provided Brewfile:
 ``` brew update && brew bundle --file=contrib/brew/Brewfile ```
 
