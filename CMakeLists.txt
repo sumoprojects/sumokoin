@@ -459,7 +459,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "(SunOS|Solaris)")
 endif ()
 
 if (APPLE AND NOT IOS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -fvisibility=default -std=c++17")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -fvisibility=default -std=c++17 -D_LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR")
   if (NOT OpenSSL_DIR)
       EXECUTE_PROCESS(COMMAND brew --prefix openssl
         OUTPUT_VARIABLE OPENSSL_ROOT_DIR
