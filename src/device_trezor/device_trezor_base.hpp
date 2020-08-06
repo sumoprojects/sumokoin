@@ -69,8 +69,8 @@ namespace trezor {
       explicit trezor_debug_callback(std::shared_ptr<Transport> & debug_transport);
 
       void on_button_request(uint64_t code=0) override;
-      std::optional<epee::wipeable_string> on_pin_request() override;
-      std::optional<epee::wipeable_string> on_passphrase_request(bool on_device) override;
+      boost::optional<epee::wipeable_string> on_pin_request() override;
+      boost::optional<epee::wipeable_string> on_passphrase_request(bool on_device) override;
       void on_passphrase_state_request(const std::string &state);
       void on_disconnect();
     protected:
@@ -96,8 +96,8 @@ namespace trezor {
       std::vector<unsigned int> m_wallet_deriv_path;
       std::string m_device_state;  // returned after passphrase entry, session
       std::shared_ptr<messages::management::Features> m_features;  // features from the last device reset
-      std::optional<epee::wipeable_string> m_pin;
-      std::optional<epee::wipeable_string> m_passphrase;
+      boost::optional<epee::wipeable_string> m_pin;
+      boost::optional<epee::wipeable_string> m_passphrase;
       messages::MessageType m_last_msg_type;
 
       cryptonote::network_type network_type;
@@ -138,9 +138,9 @@ namespace trezor {
       template<class t_message=google::protobuf::Message>
       std::shared_ptr<t_message>
       client_exchange(const std::shared_ptr<const google::protobuf::Message> &req,
-                      const std::optional<messages::MessageType> & resp_type = std::nullopt,
-                      const std::optional<std::vector<messages::MessageType>> & resp_types = std::nullopt,
-                      const std::optional<messages::MessageType*> & resp_type_ptr = std::nullopt,
+                      const boost::optional<messages::MessageType> & resp_type = boost::none,
+                      const boost::optional<std::vector<messages::MessageType>> & resp_types = boost::none,
+                      const boost::optional<messages::MessageType*> & resp_type_ptr = boost::none,
                       bool open_session = false)
       {
         // Require strictly protocol buffers response in the template.
@@ -204,8 +204,8 @@ namespace trezor {
        */
       template<class t_message>
       void set_msg_addr(t_message * msg,
-                        const std::optional<std::vector<uint32_t>> & path = std::nullopt,
-                        const std::optional<cryptonote::network_type> & network_type = std::nullopt)
+                        const boost::optional<std::vector<uint32_t>> & path = boost::none,
+                        const boost::optional<cryptonote::network_type> & network_type = boost::none)
       {
         CHECK_AND_ASSERT_THROW_MES(msg, "Message is null");
         msg->clear_address_n();

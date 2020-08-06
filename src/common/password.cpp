@@ -248,7 +248,7 @@ namespace tools
 
   std::atomic<bool> password_container::is_prompting(false);
 
-  std::optional<password_container> password_container::prompt(const bool verify, const char *message, bool hide_input)
+  boost::optional<password_container> password_container::prompt(const bool verify, const char *message, bool hide_input)
   {
     is_prompting = true;
     password_container pass1{};
@@ -260,10 +260,10 @@ namespace tools
     }
 
     is_prompting = false;
-    return std::nullopt;
+    return boost::none;
   }
 
-  std::optional<login> login::parse(std::string&& userpass, bool verify, const std::function<std::optional<password_container>(bool)> &prompt)
+  boost::optional<login> login::parse(std::string&& userpass, bool verify, const std::function<boost::optional<password_container>(bool)> &prompt)
   {
     login out{};
 
@@ -272,7 +272,7 @@ namespace tools
     {
       auto result = prompt(verify);
       if (!result)
-        return std::nullopt;
+        return boost::none;
 
       out.password = std::move(*result);
     }

@@ -315,11 +315,11 @@ namespace tx {
     dst->set_commitment(key_to_string(src->mask));
   }
 
-  std::string hash_addr(const MoneroAccountPublicAddress * addr, std::optional<uint64_t> amount, std::optional<bool> is_subaddr){
+  std::string hash_addr(const MoneroAccountPublicAddress * addr, boost::optional<uint64_t> amount, boost::optional<bool> is_subaddr){
     return hash_addr(addr->spend_public_key(), addr->view_public_key(), amount, is_subaddr);
   }
 
-  std::string hash_addr(const std::string & spend_key, const std::string & view_key, std::optional<uint64_t> amount, std::optional<bool> is_subaddr){
+  std::string hash_addr(const std::string & spend_key, const std::string & view_key, boost::optional<uint64_t> amount, boost::optional<bool> is_subaddr){
     ::crypto::public_key spend{}, view{};
     if (spend_key.size() != 32 || view_key.size() != 32){
       throw std::invalid_argument("Public keys have invalid sizes");
@@ -330,7 +330,7 @@ namespace tx {
     return hash_addr(&spend, &view, amount, is_subaddr);
   }
 
-  std::string hash_addr(const ::crypto::public_key * spend_key, const ::crypto::public_key * view_key, std::optional<uint64_t> amount, std::optional<bool> is_subaddr){
+  std::string hash_addr(const ::crypto::public_key * spend_key, const ::crypto::public_key * view_key, boost::optional<uint64_t> amount, boost::optional<bool> is_subaddr){
     char buff[64+8+1];
     size_t offset = 0;
 

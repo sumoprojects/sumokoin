@@ -318,13 +318,13 @@ namespace trezor{
   const char * BridgeTransport::PATH_PREFIX = "bridge:";
 
   BridgeTransport::BridgeTransport(
-        std::optional<std::string> device_path,
-        std::optional<std::string> bridge_host):
+        boost::optional<std::string> device_path,
+        boost::optional<std::string> bridge_host):
     m_device_path(device_path),
     m_bridge_host(bridge_host ? bridge_host.get() : DEFAULT_BRIDGE),
-    m_response(std::nullopt),
-    m_session(std::nullopt),
-    m_device_info(std::nullopt)
+    m_response(boost::none),
+    m_session(boost::none),
+    m_device_info(boost::none)
     {
       const char *env_bridge_port = nullptr;
       if (!bridge_host && (env_bridge_port = getenv("TREZOR_BRIDGE_PORT")) != nullptr)
@@ -337,7 +337,7 @@ namespace trezor{
         MDEBUG("Bridge host: " << m_bridge_host);
       }
 
-      m_http_client.set_server(m_bridge_host, std::nullopt, epee::net_utils::ssl_support_t::e_ssl_support_disabled);
+      m_http_client.set_server(m_bridge_host, boost::none, epee::net_utils::ssl_support_t::e_ssl_support_disabled);
     }
 
   std::string BridgeTransport::get_path() const {
@@ -424,11 +424,11 @@ namespace trezor{
       throw exc::CommunicationException("Failed to release device");
     }
 
-    m_session = std::nullopt;
+    m_session = boost::none;
   }
 
   void BridgeTransport::write(const google::protobuf::Message &req) {
-    m_response = std::nullopt;
+    m_response = boost::none;
 
     const auto msg_size = message_size(req);
     const auto buff_size = serialize_message_buffer_size(msg_size);
@@ -478,7 +478,7 @@ namespace trezor{
     msg = msg_wrap;
   }
 
-  const std::optional<json> & BridgeTransport::device_info() const {
+  const boost::optional<json> & BridgeTransport::device_info() const {
     return m_device_info;
   }
 
@@ -512,8 +512,8 @@ namespace trezor{
     }
   }
 
-  UdpTransport::UdpTransport(std::optional<std::string> device_path,
-                             std::optional<std::shared_ptr<Protocol>> proto) :
+  UdpTransport::UdpTransport(boost::optional<std::string> device_path,
+                             boost::optional<std::shared_ptr<Protocol>> proto) :
       m_io_service(), m_deadline(m_io_service)
   {
     m_device_host = DEFAULT_HOST;
@@ -839,8 +839,8 @@ namespace trezor{
   const char * WebUsbTransport::PATH_PREFIX = "webusb:";
 
   WebUsbTransport::WebUsbTransport(
-      std::optional<libusb_device_descriptor*> descriptor,
-      std::optional<std::shared_ptr<Protocol>> proto
+      boost::optional<libusb_device_descriptor*> descriptor,
+      boost::optional<std::shared_ptr<Protocol>> proto
   ): m_usb_session(nullptr), m_usb_device(nullptr), m_usb_device_handle(nullptr),
      m_bus_id(-1), m_device_addr(-1)
   {
@@ -1020,7 +1020,7 @@ namespace trezor{
 
     m_open_counter = 1;
     m_proto->session_begin(*this);
-
+    
 #undef TREZOR_DESTROY_SESSION
   };
 
@@ -1178,7 +1178,7 @@ namespace trezor{
     if (!env_trezor_path){
       return;
     }
-
+    
     // Sort transports by the longest matching prefix with TREZOR_PATH
     std::string trezor_path(env_trezor_path);
     std::vector<size_t> match_idx(res.size());
@@ -1188,7 +1188,7 @@ namespace trezor{
       auto cpath = res[i]->get_path();
       std::string * s1 = &trezor_path;
       std::string * s2 = &cpath;
-
+      
       // first has to be shorter in std::mismatch(). Returns first non-matching iterators.
       if (s1->size() >= s2->size()){
         std::swap(s1, s2);
@@ -1224,8 +1224,8 @@ namespace trezor{
       throw std::invalid_argument("Failure message cannot be null");
     }
 
-    std::optional<std::string> message = failure->has_message() ? boost::make_optional(failure->message()) : std::nullopt;
-    std::optional<uint32_t> code = failure->has_code() ? boost::make_optional(static_cast<uint32_t>(failure->code())) : std::nullopt;
+    boost::optional<std::string> message = failure->has_message() ? boost::make_optional(failure->message()) : boost::none;
+    boost::optional<uint32_t> code = failure->has_code() ? boost::make_optional(static_cast<uint32_t>(failure->code())) : boost::none;
     if (!code){
       throw exc::proto::FailureException(code, message);
     }
@@ -1267,3 +1267,4 @@ namespace trezor{
 
 }
 }
+

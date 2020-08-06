@@ -32,7 +32,7 @@
 
 #include <exception>
 #include <string>
-#include <optional>
+#include <boost/optional.hpp>
 
 namespace hw {
 namespace trezor {
@@ -40,7 +40,7 @@ namespace exc {
 
   class SecurityException : public std::exception {
   protected:
-    std::optional<std::string> reason;
+    boost::optional<std::string> reason;
 
   public:
     SecurityException(): reason("General Security exception"){}
@@ -59,7 +59,7 @@ namespace exc {
 
   class TrezorException : public std::exception {
   protected:
-    std::optional<std::string> reason;
+    boost::optional<std::string> reason;
 
   public:
     TrezorException(): reason("General Trezor exception"){}
@@ -130,13 +130,13 @@ namespace proto {
 
   class FailureException : public ProtocolException {
   private:
-    std::optional<uint32_t> code;
-    std::optional<std::string> message;
+    boost::optional<uint32_t> code;
+    boost::optional<std::string> message;
   public:
     using ProtocolException::ProtocolException;
     FailureException(): ProtocolException("Trezor returned failure"){}
-    FailureException(std::optional<uint32_t> code,
-                     std::optional<std::string> message)
+    FailureException(boost::optional<uint32_t> code,
+                     boost::optional<std::string> message)
         : code(code), message(message) {
       reason = "Trezor returned failure: code="
                + (code ? std::to_string(code.get()) : "")

@@ -38,7 +38,7 @@ namespace daemonize {
 t_command_parser_executor::t_command_parser_executor(
     uint32_t ip
   , uint16_t port
-  , const std::optional<tools::login>& login
+  , const boost::optional<tools::login>& login
   , const epee::net_utils::ssl_options_t& ssl_options
   , bool is_rpc
   , cryptonote::core_rpc_server* rpc_server

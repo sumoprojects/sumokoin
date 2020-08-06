@@ -37,7 +37,7 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
-#include <optional>
+#include <boost/optional/optional.hpp>
 
 #include "net/http_client.h"
 
@@ -49,7 +49,7 @@ namespace bootstrap_node
   struct node_info
   {
     std::string address;
-    std::optional<epee::net_utils::http::login> credentials;
+    boost::optional<epee::net_utils::http::login> credentials;
   };
 
   struct selector
@@ -57,7 +57,7 @@ namespace bootstrap_node
     virtual ~selector() = default;
 
     virtual void handle_result(const std::string &address, bool success) = 0;
-    virtual std::optional<node_info> next_node() = 0;
+    virtual boost::optional<node_info> next_node() = 0;
   };
 
   class selector_auto : public selector
@@ -69,7 +69,7 @@ namespace bootstrap_node
     {}
 
     void handle_result(const std::string &address, bool success) final;
-    std::optional<node_info> next_node() final;
+    boost::optional<node_info> next_node() final;
 
   private:
     bool has_at_least_one_good_node() const;

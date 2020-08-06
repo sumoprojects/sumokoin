@@ -85,7 +85,7 @@ namespace wallet_args
     return i18n_translate(str, "wallet_args");
   }
 
-  std::pair<std::optional<boost::program_options::variables_map>, bool> main(
+  std::pair<boost::optional<boost::program_options::variables_map>, bool> main(
     int argc, char** argv,
     const char* const usage,
     const char* const notice,
@@ -178,7 +178,7 @@ namespace wallet_args
       return true;
     });
     if (!r)
-      return {std::nullopt, true};
+      return {boost::none, true};
 
     if (should_terminate)
       return {std::move(vm), should_terminate};

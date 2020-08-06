@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
   command_line::add_arg(desc_params, arg_stagenet);
   command_line::add_arg(desc_params, arg_create_address_file);
 
-  std::optional<po::variables_map> vm;
+  boost::optional<po::variables_map> vm;
   bool should_terminate = false;
   std::tie(vm, should_terminate) = wallet_args::main(
    argc, argv,

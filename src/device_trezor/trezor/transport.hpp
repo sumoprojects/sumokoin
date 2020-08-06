@@ -162,8 +162,8 @@ namespace trezor {
   class BridgeTransport : public Transport {
   public:
     BridgeTransport(
-        std::optional<std::string> device_path = std::nullopt,
-        std::optional<std::string> bridge_host = std::nullopt);
+        boost::optional<std::string> device_path = boost::none,
+        boost::optional<std::string> bridge_host = boost::none);
 
     virtual ~BridgeTransport() = default;
 
@@ -178,16 +178,16 @@ namespace trezor {
     void write(const google::protobuf::Message &req) override;
     void read(std::shared_ptr<google::protobuf::Message> & msg, messages::MessageType * msg_type=nullptr) override;
 
-    const std::optional<json> & device_info() const;
+    const boost::optional<json> & device_info() const;
     std::ostream& dump(std::ostream& o) const override;
 
   private:
     epee::net_utils::http::http_simple_client m_http_client;
     std::string m_bridge_host;
-    std::optional<std::string> m_device_path;
-    std::optional<std::string> m_session;
-    std::optional<std::string> m_response;
-    std::optional<json> m_device_info;
+    boost::optional<std::string> m_device_path;
+    boost::optional<std::string> m_session;
+    boost::optional<std::string> m_response;
+    boost::optional<json> m_device_info;
   };
 
   // UdpTransport transport
@@ -197,8 +197,8 @@ namespace trezor {
   public:
 
     explicit UdpTransport(
-        std::optional<std::string> device_path=std::nullopt,
-        std::optional<std::shared_ptr<Protocol>> proto=std::nullopt);
+        boost::optional<std::string> device_path=boost::none,
+        boost::optional<std::shared_ptr<Protocol>> proto=boost::none);
 
     virtual ~UdpTransport() = default;
 
@@ -247,8 +247,8 @@ namespace trezor {
   public:
 
     explicit WebUsbTransport(
-        std::optional<libusb_device_descriptor*> descriptor = std::nullopt,
-        std::optional<std::shared_ptr<Protocol>> proto = std::nullopt
+        boost::optional<libusb_device_descriptor*> descriptor = boost::none,
+        boost::optional<std::shared_ptr<Protocol>> proto = boost::none
     );
 
     virtual ~WebUsbTransport();
@@ -371,7 +371,7 @@ namespace trezor {
   template<class t_message=google::protobuf::Message>
   std::shared_ptr<t_message>
       exchange_message(Transport & transport, const google::protobuf::Message & req,
-                       std::optional<messages::MessageType> resp_type = std::nullopt)
+                       boost::optional<messages::MessageType> resp_type = boost::none)
   {
     // Require strictly protocol buffers response in the template.
     BOOST_STATIC_ASSERT(boost::is_base_of<google::protobuf::Message, t_message>::value);

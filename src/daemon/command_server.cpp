@@ -42,7 +42,7 @@ namespace p = std::placeholders;
 t_command_server::t_command_server(
     uint32_t ip
   , uint16_t port
-  , const std::optional<tools::login>& login
+  , const boost::optional<tools::login>& login
   , const epee::net_utils::ssl_options_t& ssl_options
   , bool is_rpc
   , cryptonote::core_rpc_server* rpc_server

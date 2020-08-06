@@ -60,7 +60,7 @@ namespace epee
     bool init(std::function<void(size_t, uint8_t*)> rng, const std::string& bind_port = "0", const std::string& bind_ip = "0.0.0.0",
       const std::string& bind_ipv6_address = "::", bool use_ipv6 = false, bool require_ipv4 = true,
       std::vector<std::string> access_control_origins = std::vector<std::string>(),
-      std::optional<net_utils::http::login> user = std::nullopt,
+      boost::optional<net_utils::http::login> user = boost::none,
       net_utils::ssl_options_t ssl_options = net_utils::ssl_support_t::e_ssl_support_autodetect)
     {
 

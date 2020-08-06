@@ -315,7 +315,7 @@ namespace crypto {
     return sc_isnonzero(&c) == 0;
   }
 
-  void crypto_ops::generate_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const std::optional<public_key> &B, const public_key &D, const secret_key &r, signature &sig) {
+  void crypto_ops::generate_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const boost::optional<public_key> &B, const public_key &D, const secret_key &r, signature &sig) {
     // sanity check
     ge_p3 R_p3;
     ge_p3 A_p3;
@@ -389,7 +389,7 @@ namespace crypto {
     memwipe(&k, sizeof(k));
   }
 
-  bool crypto_ops::check_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const std::optional<public_key> &B, const public_key &D, const signature &sig) {
+  bool crypto_ops::check_tx_proof(const hash &prefix_hash, const public_key &R, const public_key &A, const boost::optional<public_key> &B, const public_key &D, const signature &sig) {
     // sanity check
     ge_p3 R_p3;
     ge_p3 A_p3;

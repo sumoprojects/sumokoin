@@ -39,7 +39,7 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/identity.hpp>
 #include <boost/multi_index/member.hpp>
-#include <optional>
+#include <boost/optional/optional.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 
 
@@ -67,10 +67,10 @@ namespace nodetool
     {}
 
     //! \return Peers stored in stream `src` in `new_format` (portable archive or older non-portable).
-    static std::optional<peerlist_storage> open(std::istream& src, const bool new_format);
+    static boost::optional<peerlist_storage> open(std::istream& src, const bool new_format);
 
     //! \return Peers stored in file at `path`
-    static std::optional<peerlist_storage> open(const std::string& path);
+    static boost::optional<peerlist_storage> open(const std::string& path);
 
     peerlist_storage(peerlist_storage&&) = default;
     peerlist_storage(const peerlist_storage&) = delete;

@@ -78,8 +78,8 @@ namespace hw {
     public:
         virtual void on_button_request(uint64_t code=0) {}
         virtual void on_button_pressed() {}
-        virtual std::optional<epee::wipeable_string> on_pin_request() { return std::nullopt; }
-        virtual std::optional<epee::wipeable_string> on_passphrase_request(bool on_device) { return std::nullopt; }
+        virtual boost::optional<epee::wipeable_string> on_pin_request() { return boost::none; }
+        virtual boost::optional<epee::wipeable_string> on_passphrase_request(bool on_device) { return boost::none; }
         virtual void on_progress(const device_progress& event) {}
         virtual ~i_device_callback() = default;
     };
@@ -199,7 +199,7 @@ namespace hw {
         /* ======================================================================= */
 
         virtual void generate_tx_proof(const crypto::hash &prefix_hash, 
-                                       const crypto::public_key &R, const crypto::public_key &A, const std::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r, 
+                                       const crypto::public_key &R, const crypto::public_key &A, const boost::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r, 
                                        crypto::signature &sig) = 0;
 
         virtual bool  open_tx(crypto::secret_key &tx_key) = 0;
@@ -219,7 +219,7 @@ namespace hw {
         virtual bool  ecdhDecode(rct::ecdhTuple & masked, const rct::key & sharedSec, bool short_amount) = 0;
 
         virtual bool  generate_output_ephemeral_keys(const size_t tx_version, const cryptonote::account_keys &sender_account_keys, const crypto::public_key &txkey_pub,  const crypto::secret_key &tx_key,
-                                                     const cryptonote::tx_destination_entry &dst_entr, const std::optional<cryptonote::account_public_address> &change_addr, const size_t output_index,
+                                                     const cryptonote::tx_destination_entry &dst_entr, const boost::optional<cryptonote::account_public_address> &change_addr, const size_t output_index,
                                                      const bool &need_additional_txkeys, const std::vector<crypto::secret_key> &additional_tx_keys,
                                                      std::vector<crypto::public_key> &additional_tx_public_keys,
                                                      std::vector<rct::key> &amount_keys,
@@ -239,7 +239,7 @@ namespace hw {
         virtual bool  compute_key_image(const cryptonote::account_keys& ack, const crypto::public_key& out_key, const crypto::key_derivation& recv_derivation, size_t real_output_index, const cryptonote::subaddress_index& received_index, cryptonote::keypair& in_ephemeral, crypto::key_image& ki) { return false; }
         virtual void  computing_key_images(bool started) {};
         virtual void  set_network_type(cryptonote::network_type network_type) { }
-        virtual void  display_address(const cryptonote::subaddress_index& index, const std::optional<crypto::hash8> &payment_id) {}
+        virtual void  display_address(const cryptonote::subaddress_index& index, const boost::optional<crypto::hash8> &payment_id) {}
 
     protected:
         device_mode mode;

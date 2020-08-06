@@ -200,7 +200,7 @@ namespace trezor {
       }
     }
 
-    void device_trezor::display_address(const cryptonote::subaddress_index& index, const std::optional<crypto::hash8> &payment_id) {
+    void device_trezor::display_address(const cryptonote::subaddress_index& index, const boost::optional<crypto::hash8> &payment_id) {
       get_address(index, payment_id, true);
     }
 
@@ -213,11 +213,11 @@ namespace trezor {
     /* ======================================================================= */
 
     std::shared_ptr<messages::monero::MoneroAddress> device_trezor::get_address(
-        const std::optional<cryptonote::subaddress_index> & subaddress,
-        const std::optional<crypto::hash8> & payment_id,
+        const boost::optional<cryptonote::subaddress_index> & subaddress,
+        const boost::optional<crypto::hash8> & payment_id,
         bool show_address,
-        const std::optional<std::vector<uint32_t>> & path,
-        const std::optional<cryptonote::network_type> & network_type){
+        const boost::optional<std::vector<uint32_t>> & path,
+        const boost::optional<cryptonote::network_type> & network_type){
       CHECK_AND_ASSERT_THROW_MES(!payment_id || !subaddress || subaddress->is_zero(), "Subaddress cannot be integrated");
       TREZOR_AUTO_LOCK_CMD();
       require_connected();
@@ -241,8 +241,8 @@ namespace trezor {
     }
 
     std::shared_ptr<messages::monero::MoneroWatchKey> device_trezor::get_view_key(
-        const std::optional<std::vector<uint32_t>> & path,
-        const std::optional<cryptonote::network_type> & network_type){
+        const boost::optional<std::vector<uint32_t>> & path,
+        const boost::optional<cryptonote::network_type> & network_type){
       TREZOR_AUTO_LOCK_CMD();
       require_connected();
       device_state_reset_unsafe();

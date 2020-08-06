@@ -408,7 +408,7 @@ namespace trezor {
 
 #else
 #define TREZOR_CALLBACK(method, ...) do { if (m_callback) m_callback->method(__VA_ARGS__); } while(0)
-#define TREZOR_CALLBACK_GET(VAR, method, ...) VAR = (m_callback ? m_callback->method(__VA_ARGS__) : std::nullopt)
+#define TREZOR_CALLBACK_GET(VAR, method, ...) VAR = (m_callback ? m_callback->method(__VA_ARGS__) : boost::none)
 #endif
 
     void device_trezor_base::on_button_request(GenericMessage & resp, const messages::common::ButtonRequest * msg)
@@ -434,7 +434,7 @@ namespace trezor {
       MDEBUG("on_pin_request");
       CHECK_AND_ASSERT_THROW_MES(msg, "Empty message");
 
-      std::optional<epee::wipeable_string> pin;
+      boost::optional<epee::wipeable_string> pin;
       TREZOR_CALLBACK_GET(pin, on_pin_request);
 
       if (!pin && m_pin){
@@ -453,14 +453,14 @@ namespace trezor {
     {
       CHECK_AND_ASSERT_THROW_MES(msg, "Empty message");
       MDEBUG("on_passhprase_request, on device: " << msg->on_device());
-      std::optional<epee::wipeable_string> passphrase;
+      boost::optional<epee::wipeable_string> passphrase;
       TREZOR_CALLBACK_GET(passphrase, on_passphrase_request, msg->on_device());
 
       if (!passphrase && m_passphrase){
         passphrase = m_passphrase;
       }
 
-      m_passphrase = std::nullopt;
+      m_passphrase = boost::none;
 
       messages::common::PassphraseAck m;
       if (!msg->on_device() && passphrase){
@@ -531,12 +531,12 @@ namespace trezor {
       if (m_debug_link) m_debug_link->press_yes();
     }
 
-    std::optional<epee::wipeable_string> trezor_debug_callback::on_pin_request() {
-      return std::nullopt;
+    boost::optional<epee::wipeable_string> trezor_debug_callback::on_pin_request() {
+      return boost::none;
     }
 
-    std::optional<epee::wipeable_string> trezor_debug_callback::on_passphrase_request(bool on_device) {
-      return std::nullopt;
+    boost::optional<epee::wipeable_string> trezor_debug_callback::on_passphrase_request(bool on_device) {
+      return boost::none;
     }
 
     void trezor_debug_callback::on_passphrase_state_request(const std::string &state) {

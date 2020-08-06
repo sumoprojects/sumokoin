@@ -820,7 +820,7 @@ std::string get_nix_version_display_string()
 #endif
   }
 
-  std::optional<bool> is_hdd(const char *file_path)
+  boost::optional<bool> is_hdd(const char *file_path)
   {
 #ifdef __GLIBC__
     struct stat st;
@@ -833,7 +833,7 @@ std::string get_nix_version_display_string()
     }
     else
     {
-      return std::nullopt;
+      return boost::none;
     }
     std::string attr_path = prefix + "/queue/rotational";
     std::ifstream f(attr_path, std::ios_base::in);
@@ -843,7 +843,7 @@ std::string get_nix_version_display_string()
       f.open(attr_path, std::ios_base::in);
       if(not f.is_open())
       {
-          return std::nullopt;
+          return boost::none;
       }
     }
     unsigned short val = 0xdead;
@@ -852,9 +852,9 @@ std::string get_nix_version_display_string()
     {
       return (val == 1);
     }
-    return std::nullopt;
+    return boost::none;
 #else
-    return std::nullopt;
+    return boost::none;
 #endif
   }
 
@@ -984,7 +984,7 @@ std::string get_nix_version_display_string()
     return true;
   }
 
-  std::optional<std::pair<uint32_t, uint32_t>> parse_subaddress_lookahead(const std::string& str)
+  boost::optional<std::pair<uint32_t, uint32_t>> parse_subaddress_lookahead(const std::string& str)
   {
     auto pos = str.find(":");
     bool r = pos != std::string::npos;

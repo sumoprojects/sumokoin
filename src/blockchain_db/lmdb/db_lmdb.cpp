@@ -580,8 +580,7 @@ void BlockchainLMDB::do_resize(uint64_t increase_size)
 
   boost::filesystem::path path(m_folder);
   boost::filesystem::space_info si = boost::filesystem::space(path);
-  std::optional<uint64_t> space_available = si.available;
-
+  boost::optional<uint64_t> space_available = si.available;
   if (space_available)
   {
    if ((*space_available / (1024 * 1024)) < 4294)
@@ -1357,7 +1356,7 @@ void BlockchainLMDB::open(const std::string& filename, const int db_flags)
     throw DB_ERROR("Database could not be opened");
   }
 
-  std::optional<bool> is_hdd_result = tools::is_hdd(filename.c_str());
+  boost::optional<bool> is_hdd_result = tools::is_hdd(filename.c_str());
   if (is_hdd_result)
   {
     if (is_hdd_result.value())
