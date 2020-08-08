@@ -715,6 +715,12 @@ else()
     set(LD_SECURITY_FLAGS "${LD_SECURITY_FLAGS} -Wl,-z,noexecheap")
   endif()
 
+  if (LINUX AND STATIC AND NOT BUILD_64)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+  add_linker_flag_if_supported(-m32)
+  endif()
+
   if(BACKCOMPAT)
       add_linker_flag_if_supported(-Wl,--wrap=__divmoddi4 LD_BACKCOMPAT_FLAGS)
       add_linker_flag_if_supported(-Wl,--wrap=glob LD_BACKCOMPAT_FLAGS)
