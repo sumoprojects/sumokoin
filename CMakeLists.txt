@@ -721,6 +721,12 @@ else()
       message(STATUS "Using Lib C back compat flags: ${LD_BACKCOMPAT_FLAGS}")
   endif()
 
+  if (LINUX AND STATIC AND NOT BUILD_64)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
+  add_linker_flag_if_supported(-m32)
+  endif()
+
   # some windows linker bits
   if (WIN32)
     add_linker_flag_if_supported(-Wl,--dynamicbase LD_SECURITY_FLAGS)

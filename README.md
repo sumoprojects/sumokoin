@@ -19,7 +19,7 @@ Portions Copyright (c) 2012-2013, The Cryptonote developers
   - [Pruning](#Pruning)
   - [Debugging](#Debugging)
   - [Known issues](#known-issues)
-  
+
 ## Development Resources
 
 - Web: [www.sumokoin.org](https://www.sumokoin.org)
@@ -432,7 +432,7 @@ You can also cross-compile static binaries on Linux for Windows and macOS with t
 * ```make depends target=x86_64-apple-darwin11``` for macOS binaries.
   * Requires: `cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python-pip python3-setuptools autoconf automake libtool` , `MacOSX10.15.sdk` (download and extract it to `contrib/depends/SDKs`) and `pip install setuptools`
 * ```make depends target=i686-linux-gnu``` for 32-bit linux binaries.
-  * Requires: `g++-multilib bc`
+  * Requires: `gperf gcc-7 g++-7 g++-7-multilib gcc-7-multilib pkg-config git screen libtool automake autoconf cmake ccache binutils-gold pkg-config linux-libc-dev:i386`
 * ```make depends target=i686-w64-mingw32``` for 32-bit windows binaries.
   * Requires: `python3 g++-mingw-w64-i686`
 * ```make depends target=arm-linux-gnueabihf``` for armv7 binaries.
