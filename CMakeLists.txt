@@ -79,6 +79,12 @@ endif()
 
 project(sumokoin)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0.0)
+    message(FATAL_ERROR "GCC version must be at least 7.0!")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0.0)
+    message(FATAL_ERROR "Clang version must be at least 8.0!")
+endif()
+
 enable_language(C ASM)
 
 function (die msg)
