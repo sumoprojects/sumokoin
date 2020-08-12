@@ -152,10 +152,10 @@ invokes cmake commands as needed.
 
 * Change to the root of the source code directory and build:
 
-        ```bash
-        cd sumokoin
-        make
-        ```
+    ```bash
+    cd sumokoin
+    make
+    ```
 
     *Optional*: If your machine has several cores and enough memory, enable
     parallel build by running `make -j<number of threads>` instead of `make`. For
@@ -222,11 +222,13 @@ Tested on a Raspberry Pi Zero with a clean install of minimal Raspbian Stretch (
 * If using an external hard disk without an external power supply, ensure it gets enough power to avoid hardware issues when syncing, by adding the line "max_usb_current=1" to /boot/config.txt
 
 * Clone sumokoin and checkout most recent release version:
-```
-        git clone https://github.com/sumoprojects/sumokoin.git
-	cd sumokoin
-	git checkout tags/v0.6.1.0
-```
+
+    ```bash
+    git clone https://github.com/sumoprojects/sumokoin.git
+    cd sumokoin
+    git checkout tags/v0.7.0.0
+    ```
+
 * Build:
 
     ```bash
@@ -340,10 +342,10 @@ application.
     cd sumokoin
     ```
 
-* If you would like a specific [version/tag](https://github.com/sumoprojects/sumokoin/tags), do a git checkout for that version. eg. 'v0.6.1.0'. If you don't care about the version and just want binaries from master, skip this step:
+* If you would like a specific [version/tag](https://github.com/sumoprojects/sumokoin/tags), do a git checkout for that version. eg. 'v0.7.0.0'. If you don't care about the version and just want binaries from master, skip this step:
 
     ```bash
-    git checkout v0.6.1.0
+    git checkout v0.7.0.0
     ```
 
 * If you are on a 64-bit system, run:
@@ -390,10 +392,8 @@ Build sumokoin: `env DEVELOPER_LOCAL_TOOLS=1 BOOST_ROOT=/usr/local gmake release
 
 Note: you may encounter the following error, when compiling the latest version of sumokoin as a normal user:
 
-```
-LLVM ERROR: out of memory
-c++: error: unable to execute command: Abort trap (core dumped)
-```
+	LLVM ERROR: out of memory
+	c++: error: unable to execute command: Abort trap (core dumped)
 
 Then you need to increase the data ulimit size to 2GB and try again: `ulimit -d 2000000`
 
@@ -401,12 +401,10 @@ Then you need to increase the data ulimit size to 2GB and try again: `ulimit -d 
 
 The default Solaris linker can't be used, you have to install GNU ld, then run cmake manually with the path to your copy of GNU ld:
 
-```bash
-mkdir -p build/release
-cd build/release
-cmake -DCMAKE_LINKER=/path/to/ld -D CMAKE_BUILD_TYPE=Release ../..
-cd ../..
-```
+	mkdir -p build/release
+	cd build/release
+	cmake -DCMAKE_LINKER=/path/to/ld -D CMAKE_BUILD_TYPE=Release ../..
+	cd ../..
 
 Then you can run make as usual.
 
