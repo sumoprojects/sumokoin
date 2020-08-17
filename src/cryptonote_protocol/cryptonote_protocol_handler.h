@@ -140,6 +140,7 @@ namespace cryptonote
     void drop_connection(cryptonote_connection_context &context, bool add_fail, bool flush_all_spans);
     void drop_connection_with_score(cryptonote_connection_context &context, uint64_t score, bool flush_all_spans);
     bool kick_idle_peers();
+    bool kick_unresponsive_peers();
     bool check_standby_peers();
     bool update_sync_search();
     int try_add_next_blocks(cryptonote_connection_context &context);
@@ -159,6 +160,7 @@ namespace cryptonote
     boost::mutex m_sync_lock;
     block_queue m_block_queue;
     epee::math_helper::once_a_time_seconds<30> m_idle_peer_kicker;
+    epee::math_helper::once_a_time_seconds<30> m_unresponsive_peer_kicker;		
     epee::math_helper::once_a_time_milliseconds<100> m_standby_checker;
     epee::math_helper::once_a_time_seconds<101> m_sync_search_checker;
     std::atomic<unsigned int> m_max_out_peers;
