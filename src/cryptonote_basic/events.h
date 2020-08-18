@@ -1,4 +1,4 @@
-// Copyright (c) 2018, The Monero Project
+// Copyright (c) 2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -28,26 +28,19 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "crypto/hash.h"
+#include "cryptonote_basic/cryptonote_basic.h"
 
-namespace tools
+namespace cryptonote
 {
-
-class Notify
-{
-public:
-  Notify(const char *spec);
-  Notify(const Notify&) = default;
-  Notify(Notify&&) = default;
-  Notify& operator=(const Notify&) = default;
-  Notify& operator=(Notify&&) = default;
-
-  int notify(const char *tag, const char *s, ...) const;
-
-private:
-  std::string filename;
-  std::vector<std::string> args;
-};
-
+  /*! Transactions are expensive to move or copy (lots of 32-byte internal
+      buffers). This allows `cryptonote::core` to do a single notification for
+      a vector of transactions, without having to move/copy duplicate or invalid
+      transactions. */
+  struct txpool_event
+  {
+    cryptonote::transaction tx;
+    crypto::hash hash;
+    bool res; //!< Listeners must ignore `tx` when this is false.
+  };
 }

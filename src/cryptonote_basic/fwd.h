@@ -1,4 +1,4 @@
-// Copyright (c) 2018, The Monero Project
+// Copyright (c) 2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -28,26 +28,9 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
-namespace tools
+namespace cryptonote
 {
-
-class Notify
-{
-public:
-  Notify(const char *spec);
-  Notify(const Notify&) = default;
-  Notify(Notify&&) = default;
-  Notify& operator=(const Notify&) = default;
-  Notify& operator=(Notify&&) = default;
-
-  int notify(const char *tag, const char *s, ...) const;
-
-private:
-  std::string filename;
-  std::vector<std::string> args;
-};
-
+  struct block;
+  class transaction;
+  struct txpool_event;
 }
