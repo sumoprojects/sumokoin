@@ -904,7 +904,8 @@ namespace nodetool
           unsigned int number_of_out_peers = 0;
           zone.second.m_net_server.get_config_object().foreach_connection([&](const p2p_connection_context& cntxt)
           {
-            if (cntxt.m_is_income)
+            // dont count lingering backpings
+            if (cntxt.m_is_income && !(cntxt.m_state == p2p_connection_context::state_before_handshake && std::time(NULL) > cntxt.m_started + 10))
             {
               ++number_of_in_peers;
             }
