@@ -304,11 +304,7 @@ namespace
       : cryptonote::rpc::RpcHandler()
     {}
 
-<<<<<<< HEAD
-    virtual epee::byte_slice handle(const std::string& request) override final
-=======
     virtual epee::byte_slice handle(std::string&& request) override final
->>>>>>> f76a5f37... [zmq] fix pruned tx for ZMQ's GetBlocksFast - Monero Ref #6601
     {
       throw std::logic_error{"not implemented"};
     }
