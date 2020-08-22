@@ -155,9 +155,15 @@ void ZmqServer::serve()
 
       if (!pub || sockets[2].revents)
       {
+<<<<<<< HEAD
         const std::string message = MONERO_UNWRAP(net::zmq::receive(rep.get(), read_flags));
         MDEBUG("Received RPC request: \"" << message << "\"");
         epee::byte_slice response = handler.handle(message);
+=======
+        std::string message = MONERO_UNWRAP(net::zmq::receive(rep.get(), read_flags));
+        MDEBUG("Received RPC request: \"" << message << "\"");
+        epee::byte_slice response = handler.handle(std::move(message));
+>>>>>>> e8cc9a38... [zmq] Switch to insitu parsing for ZMQ-JSON; GetBlocksFast reads 13%+ faster - Monero Ref #6601
 
         const boost::string_ref response_view{reinterpret_cast<const char*>(response.data()), response.size()};
         MDEBUG("Sending RPC reply: \"" << response_view << "\"");
