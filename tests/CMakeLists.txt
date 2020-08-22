@@ -1,21 +1,21 @@
 # Copyright (c) 2014-2020, The Monero Project
-# 
+#
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are
 # permitted provided that the following conditions are met:
-# 
+#
 # 1. Redistributions of source code must retain the above copyright notice, this list of
 #    conditions and the following disclaimer.
-# 
+#
 # 2. Redistributions in binary form must reproduce the above copyright notice, this list
 #    of conditions and the following disclaimer in the documentation and/or other
 #    materials provided with the distribution.
-# 
+#
 # 3. Neither the name of the copyright holder nor the names of its contributors may be
 #    used to endorse or promote products derived from this software without specific
 #    prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,8 +25,10 @@
 # INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# 
+#
 # Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
+
+set(MONERO_WALLET_CRYPTO_BENCH "auto" CACHE STRING "Select wallet crypto libraries for benchmarking")
 
 # The docs say this only affects grouping in IDEs
 set(folder "tests")
@@ -117,6 +119,41 @@ set_property(TARGET hash-target-tests
 add_test(
   NAME    hash-target
   COMMAND hash-target-tests)
+
+#
+# Configure wallet crypto benchmark
+#
+if (${MONERO_WALLET_CRYPTO_BENCH} STREQUAL "auto")
+  set(MONERO_WALLET_CRYPTO_BENCH "cn")
+  monero_crypto_autodetect(AVAILABLE BEST)
+  if (DEFINED AVAILABLE)
+    list(APPEND MONERO_WALLET_CRYPTO_BENCH ${AVAILABLE})
+  endif ()
+  message("Wallet crypto bench is using ${MONERO_WALLET_CRYPTO_BENCH}")
+endif ()
+
+list(REMOVE_DUPLICATES MONERO_WALLET_CRYPTO_BENCH)
+list(REMOVE_ITEM MONERO_WALLET_CRYPTO_BENCH "cn") # always used for comparison
+set(MONERO_WALLET_CRYPTO_BENCH_NAMES "(cn)")
+foreach(BENCH IN LISTS MONERO_WALLET_CRYPTO_BENCH)
+  monero_crypto_valid(${BENCH} VALID)
+  if (NOT VALID)
+    message(FATAL_ERROR "Invalid MONERO_WALLET_CRYPTO_BENCH option ${BENCH}")
+  endif ()
+
+  monero_crypto_get_target(${BENCH} BENCH_LIBRARY)
+  list(APPEND BENCH_OBJECTS $<TARGET_OBJECTS:${BENCH_LIBRARY}>)
+
+  monero_crypto_get_namespace(${BENCH} BENCH_NAMESPACE)
+  set(MONERO_WALLET_CRYPTO_BENCH_NAMES "${MONERO_WALLET_CRYPTO_BENCH_NAMES}(${BENCH_NAMESPACE})")
+endforeach ()
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/benchmark.h.in" "${MONERO_GENERATED_HEADERS_DIR}/tests/benchmark.h")
+add_executable(monero-wallet-crypto-bench benchmark.cpp ${BENCH_OBJECTS})
+target_link_libraries(monero-wallet-crypto-bench cncrypto)
+
+add_test(NAME wallet-crypto-bench COMMAND monero-wallet-crypto-bench)
+
 
 set(enabled_tests
     core_tests

@@ -135,7 +135,7 @@ if (ARM)
 endif()
 
 # Because of the way Qt works on android with JNI, the code does not live in the main android thread
-# So this code runs with a 1 MB default stack size. 
+# So this code runs with a 1 MB default stack size.
 # This will force the use of the heap for the allocation of the scratchpad
 if (ANDROID OR IOS)
   if( BUILD_GUI_DEPS )
@@ -145,3 +145,6 @@ endif()
 
 # cheat because cmake and ccache hate each other
 set_property(SOURCE CryptonightR_template.S PROPERTY LANGUAGE C)
+
+# Must be done last, because it references libraries in this directory
+add_subdirectory(wallet)
