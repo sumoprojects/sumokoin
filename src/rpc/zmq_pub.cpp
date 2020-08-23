@@ -217,6 +217,8 @@ namespace
     return {lower, std::size_t(upper - lower)};
   }
 
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wsign-compare"
   template<std::size_t N, typename T>
   void add_subscriptions(std::array<std::size_t, N>& subs, const epee::span<const context<T>> range, context<T> const* const first)
   {
@@ -229,7 +231,10 @@ namespace
       subs[i] = std::min(std::numeric_limits<std::size_t>::max() - 1, subs[i]) + 1;
     }
   }
+  #pragma GCC diagnostic pop
 
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wsign-compare"
   template<std::size_t N, typename T>
   void remove_subscriptions(std::array<std::size_t, N>& subs, const epee::span<const context<T>> range, context<T> const* const first)
   {
@@ -242,6 +247,7 @@ namespace
       subs[i] = std::max(std::size_t(1), subs[i]) - 1;
     }
   }
+  #pragma GCC diagnostic pop
 
   template<std::size_t N, typename T, typename... U>
   std::array<epee::byte_slice, N> make_pubs(const std::array<std::size_t, N>& subs, const std::array<context<T>, N>& contexts, U&&... args)
