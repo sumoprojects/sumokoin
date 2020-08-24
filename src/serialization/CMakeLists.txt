@@ -42,6 +42,7 @@ monero_add_library(serialization
   ${serialization_private_headers})
 target_link_libraries(serialization
   LINK_PRIVATE
+    cryptonote_basic  
     cryptonote_core
     cryptonote_protocol
     epee
@@ -52,4 +53,3 @@ target_link_libraries(serialization
     ${EXTRA_LIBRARIES})
 add_dependencies(serialization
   version)
-

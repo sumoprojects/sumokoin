@@ -1,4 +1,4 @@
-### Usage
+# Usage
 
 To build dependencies for the current arch+OS:
 
@@ -30,7 +30,7 @@ Common `host-platform-triplets` for cross compilation are:
 
 - `i686-w64-mingw32` for Win32
 - `x86_64-w64-mingw32` for Win64
-- `x86_64-apple-darwin11` for MacOSX
+- `x86_64-apple-darwin14` for MacOSX
 - `arm-linux-gnueabihf` for Linux ARM 32 bit
 - `aarch64-linux-gnu` for Linux ARM 64 bit
 - `riscv64-linux-gnu` for Linux RISCV 64 bit
@@ -59,15 +59,59 @@ download-win: run 'make download-win' to fetch all sources needed for win builds
 download-linux: run 'make download-linux' to fetch all sources needed for linux builds
 ```
 
-#Darwin (macos) builds:
+## Darwin (macos) builds:
 
-To build with the x86_64-apple-darwin11 you require the mac os developer tools in MacOSX10.11.sdk. 
-Download it from apple, or search for it on github. Create a new directoty called SDKs in this
-directory and place the entire MacOSX10.11.sdk folder in it. The depends build will then pick it up automatically
+To build with the x86_64-apple-darwin14 you require the mac os developer tools.
+Here are step-by-step to extract Apple SDK from XCode.app
+
+### SDK Extraction
+
+#### Step 1: Obtaining `Xcode.app`
+
+Our current macOS SDK
+(`Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz`) can be
+extracted from
+[Xcode_11.3.1.xip](https://download.developer.apple.com/Developer_Tools/Xcode_11.3.1/Xcode_11.3.1.xip).
+An Apple ID is needed to download this.
+
+After Xcode version 7.x, Apple started shipping the `Xcode.app` in a `.xip`
+archive. This makes the SDK less-trivial to extract on non-macOS machines. One
+approach (tested on Debian Buster) is outlined below:
+
+```bash
+# Install/clone tools needed for extracting Xcode.app
+apt install cpio
+git clone https://github.com/bitcoin-core/apple-sdk-tools.git
+
+# Unpack Xcode_11.3.1.xip and place the resulting Xcode.app in your current
+# working directory
+python3 apple-sdk-tools/extract_xcode.py -f Xcode_11.3.1.xip | cpio -d -i
+```
+
+On macOS the process is more straightforward:
+
+```bash
+xip -x Xcode_11.3.1.xip
+```
+
+#### Step 2: Generating `Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz` from `Xcode.app`
+
+To generate `Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz`, run
+the script [`gen-sdk`](./gen-sdk) with the path to `Xcode.app` (extracted in the
+previous stage) as the first argument.
+
+```bash
+# Generate a Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz from
+# the supplied Xcode.app
+python3 ./contrib/depends/gen-sdk.py '/path/to/Xcode.app'
+```
+
+Create a new directoty called `SDKs` in this directory and extract the generated .gz into it.
+The depends build will then pick it up automatically
 (without requiring SDK_PATH). 
 
 
-#Mingw builds
+## Mingw builds
 
 Building for 32/64bit mingw requires switching alternatives to a posix mode
 
@@ -76,8 +120,7 @@ update-alternatives --set x86_64-w64-mingw32-g++ x86_64-w64-mingw32-g++-posix
 update-alternatives --set x86_64-w64-mingw32-gcc x86_64-w64-mingw32-gcc-posix
 ```
 
-### Other documentation
+## Other documentation
 
 - [description.md](description.md): General description of the depends system
 - [packages.md](packages.md): Steps for adding packages
-

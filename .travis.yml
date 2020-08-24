@@ -33,7 +33,7 @@ env:
 # x86_64 Linux
     - HOST=x86_64-unknown-linux-gnu PACKAGES="gperf cmake python3-zmq libdbus-1-dev libharfbuzz-dev"
 # Cross-Mac
-    - HOST=x86_64-apple-darwin11 PACKAGES="cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python3-setuptools-git" OSX_SDK=10.11
+    - HOST=x86_64-apple-darwin14 PACKAGES="cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python3-setuptools-git" OSX_SDK=Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers
 # x86_64 Freebsd
     - HOST=x86_64-unknown-freebsd PACKAGES="clang-8 gperf cmake python3-zmq libdbus-1-dev libharfbuzz-dev"
 
@@ -49,8 +49,8 @@ install:
     - travis_retry $DOCKER_EXEC apt-get install --no-install-recommends --no-upgrade -qq $PACKAGES $DOCKER_PACKAGES
 before_script:
     - mkdir -p contrib/depends/SDKs contrib/depends/sdk-sources
-    - if [ -n "$OSX_SDK" -a ! -f contrib/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz ]; then curl --location --fail $SDK_URL/MacOSX${OSX_SDK}.sdk.tar.gz -o contrib/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz; fi
-    - if [ -n "$OSX_SDK" -a -f contrib/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz ]; then tar -C contrib/depends/SDKs -xf contrib/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz; fi
+    - if [ -n "$OSX_SDK" -a ! -f contrib/depends/sdk-sources/${OSX_SDK}.tar.gz ]; then curl --location --fail $SDK_URL/${OSX_SDK}.tar.gz -o contrib/depends/sdk-sources/${OSX_SDK}.tar.gz; fi
+    - if [ -n "$OSX_SDK" -a -f contrib/depends/sdk-sources/${OSX_SDK}.tar.gz ]; then tar -C contrib/depends/SDKs -xf contrib/depends/sdk-sources/${OSX_SDK}.tar.gz; fi
     - if [[ $HOST = *-mingw32 ]]; then $DOCKER_EXEC bash -c "update-alternatives --set $HOST-g++ \$(which $HOST-g++-posix)"; fi
     - if [[ $HOST = *-mingw32 ]]; then $DOCKER_EXEC bash -c "update-alternatives --set $HOST-gcc \$(which $HOST-gcc-posix)"; fi
     - if [ -z "$NO_DEPENDS" ]; then $DOCKER_EXEC bash -c "make $MAKEJOBS -C contrib/depends HOST=$HOST $DEP_OPTS"; fi
