@@ -1,21 +1,21 @@
 // Copyright (c) 2017-2020, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -32,6 +32,7 @@
 
 #include "device_default.hpp"
 #include "int-util.h"
+#include "crypto/wallet/crypto.h"
 #include "cryptonote_basic/account.h"
 #include "cryptonote_basic/subaddress_index.h"
 #include "cryptonote_core/cryptonote_tx_utils.h"
@@ -64,7 +65,7 @@ namespace hw {
         const std::string device_default::get_name()  const {
             return this->name;
         }
-        
+
         bool device_default::init(void) {
             return true;
         }
@@ -85,8 +86,8 @@ namespace hw {
 
         /* ======================================================================= */
         /*  LOCKER                                                                 */
-        /* ======================================================================= */ 
-    
+        /* ======================================================================= */
+
         void device_default::lock() { }
 
         bool device_default::try_lock() { return true; }
@@ -118,7 +119,7 @@ namespace hw {
         /* ======================================================================= */
 
         bool device_default::derive_subaddress_public_key(const crypto::public_key &out_key, const crypto::key_derivation &derivation, const std::size_t output_index, crypto::public_key &derived_key) {
-            return crypto::derive_subaddress_public_key(out_key, derivation, output_index,derived_key);
+            return crypto::wallet::derive_subaddress_public_key(out_key, derivation, output_index,derived_key);
         }
 
         crypto::public_key device_default::get_subaddress_spend_public_key(const cryptonote::account_keys& keys, const cryptonote::subaddress_index &index) {
@@ -234,7 +235,7 @@ namespace hw {
         }
 
         bool device_default::generate_key_derivation(const crypto::public_key &key1, const crypto::secret_key &key2, crypto::key_derivation &derivation) {
-            return crypto::generate_key_derivation(key1, key2, derivation);
+            return crypto::wallet::generate_key_derivation(key1, key2, derivation);
         }
 
         bool device_default::derivation_to_scalar(const crypto::key_derivation &derivation, const size_t output_index, crypto::ec_scalar &res){
@@ -267,8 +268,8 @@ namespace hw {
         /* ======================================================================= */
         /*                               TRANSACTION                               */
         /* ======================================================================= */
-        void device_default::generate_tx_proof(const crypto::hash &prefix_hash, 
-                                               const crypto::public_key &R, const crypto::public_key &A, const std::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r, 
+        void device_default::generate_tx_proof(const crypto::hash &prefix_hash,
+                                               const crypto::public_key &R, const crypto::public_key &A, const std::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r,
                                                crypto::signature &sig) {
             crypto::generate_tx_proof(prefix_hash, R, A, B, D, r, sig);
         }
