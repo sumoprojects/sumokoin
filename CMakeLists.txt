@@ -31,6 +31,16 @@
 cmake_minimum_required(VERSION 2.8.7)
 message(STATUS "CMake version ${CMAKE_VERSION}")
 
+cmake_host_system_information(RESULT freememsys QUERY AVAILABLE_PHYSICAL_MEMORY) 
+cmake_host_system_information(RESULT freememvirt QUERY AVAILABLE_VIRTUAL_MEMORY)
+message(STATUS "Total available physical memory: ${freememsys} Mib")
+message(STATUS "Total available virtual memory: ${freememvirt} Mib")
+math(EXPR totalmemavail "${freememsys} + ${freememvirt}")
+message(STATUS "Total available memory: ${totalmemavail}  Mib")
+if (totalmemavail LESS 3500) #sumokoin needs on about 3 Gb of available memory to compile, give it 500 Mb slack
+  message(FATAL_ERROR "Sumokoin needs at least 3.5 Gb of available memory (physical+virtual) to compile!")
+endif()
+
 set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
 
