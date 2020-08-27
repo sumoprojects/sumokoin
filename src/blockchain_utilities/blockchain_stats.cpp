@@ -218,8 +218,8 @@ plot 'stats.csv' index "DATA" using (timecolumn(1,"%Y-%m-%d")):4 with lines, '' 
   uint64_t prevtxs = 0, currtxs = 0;
   uint64_t currblks = 0;
   uint64_t totins = 0, totouts = 0, totrings = 0;
-  boost::multiprecision::uint128_t prevemission = 0, prevfees = 0;
-  boost::multiprecision::uint128_t emission = 0, fees = 0;
+  uint64_t prevemission = 0, prevfees = 0;
+  uint64_t emission = 0, fees = 0;
   boost::multiprecision::uint128_t totdiff = 0, mindiff = 0, maxdiff = 0;
   uint32_t minins = MAX_INOUT, maxins = 0;
   uint32_t minouts = MAX_INOUT, maxouts = 0;
