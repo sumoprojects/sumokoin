@@ -38,6 +38,7 @@
 #include <locale.h>
 #include <thread>
 #include <iostream>
+#include <fstream>
 #include <boost/lexical_cast.hpp>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string.hpp>
@@ -193,7 +194,7 @@ namespace
                             "  account tag_description <tag_name> <description>");
   const char* USAGE_ADDRESS("address [ new <label text with white spaces allowed> | all | <index_min> [<index_max>] | label <index> <label text with white spaces allowed> | device [<index>] | one-off <account> <subaddress>]");
   const char* USAGE_INTEGRATED_ADDRESS("integrated_address [device] [<payment_id> | <address>]");
-  const char* USAGE_ADDRESS_BOOK("address_book [(add (<address>|<integrated address>) [<description possibly with whitespaces>])|(delete <index>)]");
+  const char* USAGE_ADDRESS_BOOK("address_book [(show)|(export)|(export_csv)|(add (<address>|<integrated address>) [<description possibly with whitespaces>])|(delete <index>)]");
   const char* USAGE_SET_VARIABLE("set <option> [<value>]");
   const char* USAGE_GET_TX_KEY("get_tx_key <txid>");
   const char* USAGE_SET_TX_KEY("set_tx_key <txid> <tx_key>");
@@ -9478,16 +9479,105 @@ bool simple_wallet::print_integrated_address(const std::vector<std::string> &arg
 //----------------------------------------------------------------------------------------------------
 bool simple_wallet::address_book(const std::vector<std::string> &args/* = std::vector<std::string>()*/)
 {
-  if (args.size() == 0)
-  {
-  }
-  else if (args.size() == 1 || (args[0] != "add" && args[0] != "delete"))
+  if (args.size() == 0 || (args.size() == 1 && args[0] != "show" && args[0] != "add" && args[0] != "delete" && args[0] != "export" && args[0] != "export_csv"))
   {
     PRINT_USAGE(USAGE_ADDRESS_BOOK);
     return true;
   }
-  else if (args[0] == "add")
+  if (args[0] == "export")
   {
+    if (args.size() > 1)
+    {
+      PRINT_USAGE(USAGE_ADDRESS_BOOK);
+      return true;
+    }
+    ofstream addressfile;
+    message_writer() << "Exporting adress book to a file";
+    auto address_book = m_wallet->get_address_book();
+    if (address_book.empty())
+    {
+      success_msg_writer() << tr("Address book has no entries!");
+      return true;
+    }
+    else
+    {
+      addressfile.open("address_book.txt");
+      for (size_t i = 0; i < address_book.size(); ++i)
+      {
+        auto& row = address_book[i];
+        addressfile << "Index: " << i << "\n";
+        std::string address;
+        if (row.m_has_payment_id)
+          address = cryptonote::get_account_integrated_address_as_str(m_wallet->nettype(), row.m_address, row.m_payment_id);
+        else
+          address = get_account_address_as_str(m_wallet->nettype(), row.m_is_subaddress, row.m_address);
+        addressfile << "Address: " << address << "\n";
+        addressfile << "Description: " << row.m_description << "\n\n";
+      }
+      addressfile.close();
+      message_writer() << "Address book exported to file " << "address_book.txt";
+    }
+    return true;
+  }
+  if (args[0] == "export_csv")
+  {
+    if (args.size() > 1)
+    {
+      PRINT_USAGE(USAGE_ADDRESS_BOOK);
+      return true;
+    }
+    ofstream addressfilecsv("address_book.csv");
+    // header
+    addressfilecsv <<
+    boost::format("%-6.6s,%-210.210s,%-125.125s") %
+    tr("Index") % tr("Address") % tr("Description")
+    << std::endl;
+    message_writer() << "Exporting adress book to csv a file";
+    auto address_book = m_wallet->get_address_book();
+    if (address_book.empty())
+    {
+      success_msg_writer() << tr("Address book has no entries!");
+      return true;
+    }
+    else
+    {
+      for (size_t i = 0; i < address_book.size(); ++i)
+      {
+        auto& row = address_book[i];
+        stringstream index;
+        index << i;
+        string indexn = index.str();
+        const char * indexno = indexn.c_str();
+        std::string address;
+        std::string description = row.m_description;
+        const char * descriptionchar = description.c_str();
+        if (row.m_has_payment_id)
+        {
+          address = cryptonote::get_account_integrated_address_as_str(m_wallet->nettype(), row.m_address, row.m_payment_id);
+        }
+        else
+        {
+          address = get_account_address_as_str(m_wallet->nettype(), row.m_is_subaddress, row.m_address);
+        }
+        const char * addresschar = address.c_str();
+        addressfilecsv << boost::format("%-6.6s,%-210.210s,%-125.125s")
+          % tr(indexno)
+          % tr(addresschar)
+          % tr(descriptionchar)
+          << std::endl;
+      }
+      addressfilecsv.close();
+      message_writer() << "Address book exported to csv file " << "address_book.csv";
+    }
+    return true;
+  }
+  if (args[0] == "add")
+  {
+    if (args.size() == 1)
+    {
+      PRINT_USAGE(USAGE_ADDRESS_BOOK);
+      return true;
+    }
     cryptonote::address_parse_info info;
     if(!cryptonote::get_account_address_from_str_or_url(info, m_wallet->nettype(), args[1], oa_prompter))
     {
@@ -9503,9 +9593,15 @@ bool simple_wallet::address_book(const std::vector<std::string> &args/* = std::v
       description += args[i];
     }
     m_wallet->add_address_book_row(info.address, info.has_payment_id ? &info.payment_id : NULL, description, info.is_subaddress);
+    return true;
   }
-  else
+  if (args[0] == "delete")
   {
+    if (args.size() == 1)
+    {
+      PRINT_USAGE(USAGE_ADDRESS_BOOK);
+      return true;
+    }
     size_t row_id;
     if(!epee::string_tools::get_xtype_from_string(row_id, args[1]))
     {
@@ -9513,24 +9609,36 @@ bool simple_wallet::address_book(const std::vector<std::string> &args/* = std::v
       return true;
     }
     m_wallet->delete_address_book_row(row_id);
+    return true;
   }
-  auto address_book = m_wallet->get_address_book();
-  if (address_book.empty())
+  if (args[0] == "show")
   {
-    success_msg_writer() << tr("Address book is empty.");
-  }
-  else
-  {
-    for (size_t i = 0; i < address_book.size(); ++i) {
-      auto& row = address_book[i];
-      success_msg_writer() << tr("Index: ") << i;
-      std::string address;
-      if (row.m_has_payment_id)
-        address = cryptonote::get_account_integrated_address_as_str(m_wallet->nettype(), row.m_address, row.m_payment_id);
-      else
-        address = get_account_address_as_str(m_wallet->nettype(), row.m_is_subaddress, row.m_address);
-      success_msg_writer() << tr("Address: ") << address;
-      success_msg_writer() << tr("Description: ") << row.m_description << "\n";
+    if (args.size() > 1)
+    {
+      PRINT_USAGE(USAGE_ADDRESS_BOOK);
+      return true;
+    }
+    auto address_book = m_wallet->get_address_book();
+    if (address_book.empty())
+    {
+      success_msg_writer() << tr("Address book is empty.");
+      return true;
+    }
+    else
+    {
+      for (size_t i = 0; i < address_book.size(); ++i)
+      {
+        auto& row = address_book[i];
+        success_msg_writer() << tr("Index: ") << i;
+        std::string address;
+        if (row.m_has_payment_id)
+          address = cryptonote::get_account_integrated_address_as_str(m_wallet->nettype(), row.m_address, row.m_payment_id);
+        else
+          address = get_account_address_as_str(m_wallet->nettype(), row.m_is_subaddress, row.m_address);
+        success_msg_writer() << tr("Address: ") << address;
+        success_msg_writer() << tr("Description: ") << row.m_description << "\n";
+      }
+      return true;
     }
   }
   return true;
