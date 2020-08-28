@@ -4771,7 +4771,6 @@ std::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::prog
 
   // convert rng value to electrum-style word list
   epee::wipeable_string electrum_words;
-  auto timenow =  chrono::system_clock::to_time_t(chrono::system_clock::now());
   crypto::ElectrumWords::bytes_to_words(recovery_val, electrum_words, mnemonic_language);
   const std::string vkey = epee::string_tools::pod_to_hex(m_wallet->get_account().get_keys().m_view_secret_key);
   message_writer(console_color_cyan, true) <<
@@ -4795,7 +4794,9 @@ std::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::prog
     "your email or on file storage services outside of your immediate control.");
   if (!m_restoring)
     {
-      message_writer(console_color_green, true) << "\n" << "Seed words generated at: " << ctime(&timenow);
+      std::time_t timenow= std::time(nullptr);
+      std::tm tm = *std::gmtime(&timenow);
+      message_writer(console_color_green, true) << "\n" << "Seed words generated at: " << std::put_time(&tm, "%a %b %d %H:%M:%S %Y") << " UTC";
       message_writer(console_color_yellow, true) << tr("When restoring from seed words you may use the date above to avoid needlessly scanning the entire blockchain.") << "\n";
     }
   message_writer(console_color_green, true) << "Press ENTER to Continue";
@@ -6429,7 +6430,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
   SCOPED_WALLET_UNLOCK_ON_BAD_PASSWORD(return false;);
 
 #if (__GNUC__ && defined( __has_warning ))
-#if __has_warning( "-Wimplicit-fallthrough=" ) 
+#if __has_warning( "-Wimplicit-fallthrough=" )
 #define SUPPRESS
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
