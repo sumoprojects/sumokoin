@@ -106,7 +106,7 @@
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              50     //by default, blocks count in blocks downloading
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_END          1      //by default, blocks count in blocks downloading at the end of the chain
 
-#define LAST_CHECKPOINT                                 435000
+#define LAST_CHECKPOINT                                 446000
 
 #define CRYPTONOTE_MEMPOOL_TX_LIVETIME                  (86400*3) //seconds, three days
 #define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME   604800 //seconds, one week
@@ -125,6 +125,11 @@
 #define CRYPTONOTE_NOISE_DELAY_RANGE                    5      // seconds
 #define CRYPTONOTE_NOISE_BYTES                          3*1024 // 3 KiB
 #define CRYPTONOTE_NOISE_CHANNELS                       2      // Max outgoing connections per zone used for noise/covert sending
+
+// Both below are in seconds. The idea is to delay forwarding from i2p/tor
+// to ipv4/6, such that 2+ incoming connections _could_ have sent the tx
+#define CRYPTONOTE_FORWARD_DELAY_BASE (CRYPTONOTE_NOISE_MIN_DELAY + CRYPTONOTE_NOISE_DELAY_RANGE)
+#define CRYPTONOTE_FORWARD_DELAY_AVERAGE (CRYPTONOTE_FORWARD_DELAY_BASE + (CRYPTONOTE_FORWARD_DELAY_BASE / 2))
 
 #define CRYPTONOTE_MAX_FRAGMENTS                        20 // ~20 * NOISE_BYTES max payload size for covert/noise send
 
@@ -256,7 +261,8 @@ namespace config
   const unsigned char HASH_KEY_RPC_PAYMENT_NONCE = 0x58;
   const unsigned char HASH_KEY_MEMORY = 'k';
   const unsigned char HASH_KEY_MULTISIG[] = {'M', 'u', 'l', 't' , 'i', 's', 'i', 'g', 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-
+  const unsigned char HASH_KEY_TXPROOF_V2[] = "TXPROOF_V2";
+  
   // Funding for exchange burned coins
   static constexpr const char* EXCHANGE_FUND_ADDRESS = "Sumoo2y7AAteNGJ5yepUUFX3taqDRfM5eYHmCc1qnhwx6cJp3htcjTbKWH7NxkcADcT82pRwns9Us7NdCmuw3gx8bnzYGg14L2o";
   // aa0d3ec96e05fd154235fdcff4c2ebce79f49f4ce76f0aeabeb4a40cf64cc30b

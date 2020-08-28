@@ -136,12 +136,12 @@ jobs:
       run: sudo apt update
     - name: install sumokoin dependencies
       run: sudo apt -y install build-essential cmake miniupnpc libunbound-dev libevent-dev graphviz doxygen pkg-config libssl-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libudev-dev ccache libtool autoconf automake python libtinfo5
-    - name: build boost 1_67
+    - name: build boost 1_74
       run: |
-        curl -s -L -o  boost_1_67_0.tar.bz2 https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.bz2/download
-        tar -xvf boost_1_67_0.tar.bz2
-        rm -f /usr/boost_1_67_0.tar.bz2
-        cd boost_1_67_0
+        wget https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
+        tar -xvf boost_1_74_0.tar.bz2
+        rm -f /usr/boost_1_74_0.tar.bz2
+        cd boost_1_74_0
         sudo ./bootstrap.sh
         sudo ./b2 install -j3
         cd ..
@@ -191,14 +191,14 @@ jobs:
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
                         --slave /usr/bin/g++ g++ /usr/bin/g++-7
         sudo update-alternatives --config gcc                     
-    - name: build boost 1_67
+    - name: build boost 1_74
       run: |
-        curl -s -L -o  boost_1_67_0.tar.bz2 https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.bz2/download
-        tar -xvf boost_1_67_0.tar.bz2
-        rm -f /usr/boost_1_67_0.tar.bz2
-        cd boost_1_67_0
+        wget https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
+        tar -xvf boost_1_74_0.tar.bz2
+        rm -f /usr/boost_1_74_0.tar.bz2
+        cd boost_1_74_0
         sudo ./bootstrap.sh
-        sudo ./b2 install
+        sudo ./b2 install -j3
         cd ..
     - name: manually install default xenial openssl workaround
       run: |
@@ -240,12 +240,12 @@ jobs:
          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
                          --slave /usr/bin/g++ g++ /usr/bin/g++-7
          sudo update-alternatives --config gcc
-    - name: build boost 1_67
+    - name: build boost 1_74
       run: |
-        curl -s -L -o  boost_1_67_0.tar.bz2 https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.bz2/download
-        tar -xvf boost_1_67_0.tar.bz2
-        rm -f /usr/boost_1_67_0.tar.bz2
-        cd boost_1_67_0
+        wget https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
+        tar -xvf boost_1_74_0.tar.bz2
+        rm -f /usr/boost_1_74_0.tar.bz2
+        cd boost_1_74_0
         sudo ./bootstrap.sh
         sudo ./b2 install -j3
         cd ..

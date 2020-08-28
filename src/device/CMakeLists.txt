@@ -33,8 +33,8 @@ set(device_sources
   )
 
 if(HIDAPI_FOUND)
-  set(device_sources 
-    ${device_sources} 
+  set(device_sources
+    ${device_sources}
     device_ledger.cpp
     device_io_hid.cpp
     )
@@ -49,8 +49,8 @@ set(device_headers
  )
 
 if(HIDAPI_FOUND)
-  set(device_headers 
-    ${device_headers} 
+  set(device_headers
+    ${device_headers}
     device_ledger.hpp
     device_io_hid.hpp
     )
@@ -72,6 +72,7 @@ target_link_libraries(device
     ${HIDAPI_LIBRARIES}
     cncrypto
     ringct_basic
+    wallet-crypto    
     ${OPENSSL_CRYPTO_LIBRARIES}
     ${Boost_SERIALIZATION_LIBRARY}
   PRIVATE

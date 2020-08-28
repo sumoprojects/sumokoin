@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2019 The Monero Project
-# 
+# Copyright (c) 2019-2020 The Monero Project
+#
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are
 # permitted provided that the following conditions are met:
-# 
+#
 # 1. Redistributions of source code must retain the above copyright notice, this list of
 #    conditions and the following disclaimer.
-# 
+#
 # 2. Redistributions in binary form must reproduce the above copyright notice, this list
 #    of conditions and the following disclaimer in the documentation and/or other
 #    materials provided with the distribution.
-# 
+#
 # 3. Neither the name of the copyright holder nor the names of its contributors may be
 #    used to endorse or promote products derived from this software without specific
 #    prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -130,13 +130,13 @@ class ProofsTest():
         sending_address = '42ey1afDFnn4886T7196doS9GPMzexD9gXpsZJDwVjeRVdFCSoHnv7KPbBeGpzJBzHRCAs9UxqeoyFQMYbqSWYTfJJQAWDm'
         receiving_address = '44Kbx4sJ7JDRDV5aAhLJzQCjDz2ViLRduE3ijDZu3osWKBjMGkV1XPk4pfDUMqt1Aiezvephdqm6YD19GKFD9ZcXVUTp6BW'
         res = self.wallet[0].get_tx_proof(txid, sending_address, 'foo');
-        assert res.signature.startswith('InProof');
+        assert res.signature.startswith('InProofV2');
         signature0i = res.signature
         res = self.wallet[0].get_tx_proof(txid, receiving_address, 'bar');
-        assert res.signature.startswith('OutProof');
+        assert res.signature.startswith('OutProofV2');
         signature0o = res.signature
         res = self.wallet[1].get_tx_proof(txid, receiving_address, 'baz');
-        assert res.signature.startswith('InProof');
+        assert res.signature.startswith('InProofV2');
         signature1 = res.signature
 
         res = self.wallet[0].check_tx_proof(txid, sending_address, 'foo', signature0i);
@@ -219,6 +219,23 @@ class ProofsTest():
         except: ok = True
         assert ok or not res.good
 
+
+        # Test bad cross-version verification
+        ok = False
+        try: res = self.wallet[0].check_tx_proof(txid, sending_address, 'foo', signature0i.replace('ProofV2','ProofV1'));
+        except: ok = True
+        assert ok or not res.good
+
+        ok = False
+        try: res = self.wallet[0].check_tx_proof(txid, receiving_address, 'bar', signature0o.replace('ProofV2','ProofV1'));
+        except: ok = True
+        assert ok or not res.good
+
+        ok = False
+        try: res = self.wallet[1].check_tx_proof(txid, receiving_address, 'baz', signature1.replace('ProofV2','ProofV1'));
+        except: ok = True
+        assert ok or not res.good
+
     def check_spend_proof(self, txid):
         daemon = Daemon()
 
@@ -270,7 +287,7 @@ class ProofsTest():
         balance1 = res.balance
 
         res = self.wallet[0].get_reserve_proof(all_ = True, message = 'foo')
-        assert res.signature.startswith('ReserveProof')
+        assert res.signature.startswith('ReserveProofV2')
         signature = res.signature
         for i in range(2):
           res = self.wallet[i].check_reserve_proof(address = address0, message = 'foo', signature = signature)
@@ -287,9 +304,15 @@ class ProofsTest():
           except: ok = True
           assert ok or not res.good
 
+          # Test bad cross-version verification
+          ok = False
+          try: res = self.wallet[i].check_reserve_proof(address = address0, message = 'foo', signature = signature.replace('ProofV2','ProofV1'))
+          except: ok = True
+          assert ok or not res.good
+
         amount = int(balance0 / 10)
         res = self.wallet[0].get_reserve_proof(all_ = False, amount = amount, message = 'foo')
-        assert res.signature.startswith('ReserveProof')
+        assert res.signature.startswith('ReserveProofV2')
         signature = res.signature
         for i in range(2):
           res = self.wallet[i].check_reserve_proof(address = address0, message = 'foo', signature = signature)
@@ -303,6 +326,12 @@ class ProofsTest():
 
           ok = False
           try: res = self.wallet[i].check_reserve_proof(address = address1, message = 'foo', signature = signature)
+          except: ok = True
+          assert ok or not res.good
+
+          # Test bad cross-version verification
+          ok = False
+          try: res = self.wallet[i].check_reserve_proof(address = address0, message = 'foo', signature = signature.replace('ProofV2','ProofV1'))
           except: ok = True
           assert ok or not res.good
 

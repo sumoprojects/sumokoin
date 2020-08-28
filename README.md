@@ -423,12 +423,13 @@ By default, in either dynamically or statically linked builds, binaries target t
 ### Cross Compiling
 
 You can also cross-compile static binaries on Linux for Windows and macOS with the `depends` system.
+Read more at [contrib/depends/README.md](contrib/depends/README.md)
 
 * ```make depends target=x86_64-linux-gnu``` for 64-bit linux binaries.
 * ```make depends target=x86_64-w64-mingw32``` for 64-bit windows binaries.
   * Requires: `python3 g++-mingw-w64-x86-64 wine1.6 bc`
-* ```make depends target=x86_64-apple-darwin11``` for macOS binaries.
-  * Requires: `cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python-pip` , `MacOSX10.11.sdk` (download and extract it to `contrib/depends/SDKs`) and `pip install setuptools`
+* ```make depends target=x86_64-apple-darwin14``` for macOS binaries.
+  * Requires: `cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python-pip`, and `pip install setuptools`
 * ```make depends target=i686-linux-gnu``` for 32-bit linux binaries.
   * Requires: `g++-multilib bc`
 * ```make depends target=i686-w64-mingw32``` for 32-bit windows binaries.

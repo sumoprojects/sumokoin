@@ -40,6 +40,9 @@ namespace epee
   namespace serialization
   {
 #define ASSERT_AND_THROW_WRONG_CONVERSION() ASSERT_MES_AND_THROW("WRONG DATA CONVERSION: from type=" << typeid(from).name() << " to type " << typeid(to).name())
+	
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
 
     template<typename from_type, typename to_type>
     void convert_int_to_uint(const from_type& from, to_type& to)
@@ -72,6 +75,8 @@ DISABLE_CLANG_WARNING(tautological-constant-out-of-range-compare)
       to = static_cast<to_type>(from);
 POP_WARNINGS
     }
+
+#pragma GCC diagnostic pop
 
     template<typename from_type, typename to_type, bool, bool> //is from signed, is from to signed
     struct convert_to_signed_unsigned;

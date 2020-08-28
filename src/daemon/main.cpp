@@ -95,8 +95,8 @@ uint16_t parse_public_rpc_port(const po::variables_map &vm)
 
   if (address->is_loopback() || address->is_local())
   {
-    MLOG_RED(el::Level::Warning, "--" << public_node_arg.name 
-      << " is enabled, but RPC server " << address->str() 
+    MLOG_RED(el::Level::Warning, "--" << public_node_arg.name
+      << " is enabled, but RPC server " << address->str()
       << " may be unreachable from outside, please check RPC server bind address");
   }
 
@@ -136,6 +136,7 @@ int main(int argc, char const * argv[])
       command_line::add_arg(core_settings, daemon_args::arg_public_node);
       command_line::add_arg(core_settings, daemon_args::arg_zmq_rpc_bind_ip);
       command_line::add_arg(core_settings, daemon_args::arg_zmq_rpc_bind_port);
+      command_line::add_arg(core_settings, daemon_args::arg_zmq_pub);    
       command_line::add_arg(core_settings, daemon_args::arg_zmq_rpc_disabled);
 
       daemonizer::init_options(hidden_options, visible_options);

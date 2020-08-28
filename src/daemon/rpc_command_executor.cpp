@@ -814,35 +814,40 @@ bool t_rpc_command_executor::print_connections() {
       << std::setw(22) << "Down |  Up (kB/s/now)"
       << std::setw(8) << "Alive(s)"
       << std::endl;
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
   for (auto & info : res.connections)
   {
-    std::string rpc_port = info.rpc_port ? std::to_string(info.rpc_port) : "no";
-    std::string address = info.incoming ? "INC " : "OUT ";
-    if (info.incoming)
-      ++incoming_number;
-    else
-      ++ outgoing_number;
-    address += info.ip + ":" + info.port;
-    //std::string in_out = info.incoming ? "INC " : "OUT ";
-    tools::msg_writer()
-     //<< std::setw(30) << std::left << in_out
-     << std::setw(30) << std::left << address
-     << std::setw(6) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
-     << std::setw(4) << (info.ssl ? "yes" : "no")
-     << std::setw(8) << rpc_port
-     << std::setw(8) << info.height
-     << std::setw(18) << info.peer_id
-     << std::setw(6) << info.support_flags
-     << std::setw(26) << std::to_string(info.recv_count) + "("  + std::to_string(info.recv_idle_time) + ")/" + std::to_string(info.send_count) + "(" + std::to_string(info.send_idle_time) + ")"
-     << std::setw(18) << info.state
-     << std::setw(22) << std::to_string(info.avg_download) + "/" + std::to_string(info.current_download) + "  |  "+ std::to_string(info.avg_upload) + "/" + std::to_string(info.current_upload)
-     << std::setw(8) << info.live_time
+    if (!(info.state == "before_handshake" && std::time(NULL) > info.live_time + 10))
+    {
+      std::string rpc_port = info.rpc_port ? std::to_string(info.rpc_port) : "no";
+      std::string address = info.incoming ? "INC " : "OUT ";
+      if (info.incoming)
+        ++incoming_number;
+      else
+        ++ outgoing_number;
+      address += info.ip + ":" + info.port;
+      //std::string in_out = info.incoming ? "INC " : "OUT ";
+      tools::msg_writer()
+       //<< std::setw(30) << std::left << in_out
+       << std::setw(30) << std::left << address
+       << std::setw(6) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
+       << std::setw(4) << (info.ssl ? "yes" : "no")
+       << std::setw(8) << rpc_port
+       << std::setw(8) << info.height
+       << std::setw(18) << info.peer_id
+       << std::setw(6) << info.support_flags
+       << std::setw(26) << std::to_string(info.recv_count) + "("  + std::to_string(info.recv_idle_time) + ")/" + std::to_string(info.send_count) + "(" + std::to_string(info.send_idle_time) + ")"
+       << std::setw(18) << info.state
+       << std::setw(22) << std::to_string(info.avg_download) + "/" + std::to_string(info.current_download) + "  |  "+ std::to_string(info.avg_upload) + "/" + std::to_string(info.current_upload)
+       << std::setw(8) << info.live_time
 
-     << std::left << (info.localhost ? "[LOCALHOST]" : "")
-     << std::left << (info.local_ip ? "[LAN]" : "");
-    //tools::msg_writer() << boost::format("%-25s peer_id: %-25s %s") % address % info.peer_id % in_out;
+       << std::left << (info.localhost ? "[LOCALHOST]" : "")
+       << std::left << (info.local_ip ? "[LAN]" : "");
+      //tools::msg_writer() << boost::format("%-25s peer_id: %-25s %s") % address % info.peer_id % in_out;
+    } 
   }
+#pragma GCC diagnostic pop
   tools::msg_writer()
       << "\n" << "Incoming Connections Count: " << incoming_number << " Outgoing Connections Count: " << outgoing_number << " Total Number of Connections: " << (incoming_number + outgoing_number);
 
@@ -938,10 +943,11 @@ bool t_rpc_command_executor::print_net_stats()
   uint64_t average = seconds > 0 ? net_stats_res.total_bytes_in / seconds : 0;
   uint64_t limit = limit_res.limit_down * 1024;   // convert to bytes, as limits are always kB/s
   double percent = (double)average / (double)limit * 100.0;
-  tools::success_msg_writer() << boost::format("Received %u bytes (%s) in %u packets, average %s/s = %.2f%% of the limit of %s/s")
+  tools::success_msg_writer() << boost::format("Received %u bytes (%s) in %u packets in %s, average %s/s = %.2f%% of the limit of %s/s")
     % net_stats_res.total_bytes_in
     % tools::get_human_readable_bytes(net_stats_res.total_bytes_in)
     % net_stats_res.total_packets_in
+    % tools::get_human_readable_timespan(seconds)	  
     % tools::get_human_readable_bytes(average)
     % percent
     % tools::get_human_readable_bytes(limit);
@@ -949,10 +955,11 @@ bool t_rpc_command_executor::print_net_stats()
   average = seconds > 0 ? net_stats_res.total_bytes_out / seconds : 0;
   limit = limit_res.limit_up * 1024;
   percent = (double)average / (double)limit * 100.0;
-  tools::success_msg_writer() << boost::format("Sent %u bytes (%s) in %u packets, average %s/s = %.2f%% of the limit of %s/s")
+  tools::success_msg_writer() << boost::format("Sent %u bytes (%s) in %u packets in %s, average %s/s = %.2f%% of the limit of %s/s")
     % net_stats_res.total_bytes_out
     % tools::get_human_readable_bytes(net_stats_res.total_bytes_out)
     % net_stats_res.total_packets_out
+    % tools::get_human_readable_timespan(seconds)	  
     % tools::get_human_readable_bytes(average)
     % percent
     % tools::get_human_readable_bytes(limit);
@@ -1218,7 +1225,9 @@ bool t_rpc_command_executor::print_transaction(crypto::hash transaction_hash,
     if (1 == res.txs.size())
     {
       // only available for new style answers
-      bool pruned = res.txs.front().prunable_as_hex.empty() && res.txs.front().prunable_hash != epee::string_tools::pod_to_hex(crypto::null_hash);
+      static const std::string empty_hash = epee::string_tools::pod_to_hex(crypto::cn_fast_hash("", 0));
+      // prunable_hash will equal empty_hash when nothing is prunable (mostly when the transaction is coinbase)
+      bool pruned = res.txs.front().prunable_as_hex.empty() && res.txs.front().prunable_hash != epee::string_tools::pod_to_hex(crypto::null_hash) && res.txs.front().prunable_hash != empty_hash;
       if (res.txs.front().in_pool)
         tools::success_msg_writer() << "Found in pool";
       else
@@ -2474,7 +2483,8 @@ bool t_rpc_command_executor::sync_info()
             return true;
         }
     }
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
     uint64_t target = res.target_height < res.height ? res.height : res.target_height;
     tools::success_msg_writer() << "Height: " << res.height << ", target: " << target << " (" << (100.0 * res.height / target) << "%)";
     uint64_t current_download = 0;
@@ -2487,15 +2497,18 @@ bool t_rpc_command_executor::sync_info()
     tools::success_msg_writer() << std::to_string(res.peers.size()) << " peers";
     for (const auto &p: res.peers)
     {
-      std::string address = epee::string_tools::pad_string(p.info.address, 24);
-      uint64_t nblocks = 0, size = 0;
-      for (const auto &s: res.spans)
-        if (s.connection_id == p.info.connection_id)
-          nblocks += s.nblocks, size += s.size;
-      tools::success_msg_writer() << address << "  " << p.info.peer_id << "  " <<
-          epee::string_tools::pad_string(p.info.state, 16) << "  " <<
-          epee::string_tools::pad_string(epee::string_tools::to_string_hex(p.info.pruning_seed), 8) << "  " << p.info.height << "  "  <<
-          p.info.current_download << " kB/s, " << nblocks << " blocks / " << size/1e6 << " MB queued";
+      if (!(p.info.state == "before_handshake" && std::time(NULL) > p.info.live_time + 10))
+      {
+        std::string address = epee::string_tools::pad_string(p.info.address, 24);
+        uint64_t nblocks = 0, size = 0;
+        for (const auto &s: res.spans)
+          if (s.connection_id == p.info.connection_id)
+            nblocks += s.nblocks, size += s.size;
+        tools::success_msg_writer() << address << "  " << p.info.peer_id << "  " <<
+            epee::string_tools::pad_string(p.info.state, 16) << "  " <<
+            epee::string_tools::pad_string(epee::string_tools::to_string_hex(p.info.pruning_seed), 8) << "  " << p.info.height << "  "  <<
+            p.info.current_download << " kB/s, " << nblocks << " blocks / " << size/1e6 << " MB queued";
+      }
     }
 
     uint64_t total_size = 0;
@@ -2516,7 +2529,7 @@ bool t_rpc_command_executor::sync_info()
         tools::success_msg_writer() << address << "  " << s.nblocks << "/" << pruning_seed << " (" << s.start_block_height << " - " << (s.start_block_height + s.nblocks - 1) << ", " << (uint64_t)(s.size/1e3) << " kB)  " << (unsigned)(s.rate/1e3) << " kB/s (" << s.speed/100.0f << ")";
       }
     }
-
+#pragma GCC diagnostic pop
     return true;
 }
 

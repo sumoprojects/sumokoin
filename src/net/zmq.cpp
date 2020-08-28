@@ -131,7 +131,7 @@ namespace zmq
                all are received or none are. Looking through ZMQ code and
                Github discussions indicates that after part 1 is returned,
                `EAGAIN` cannot be returned to meet these guarantees. Unit tests
-               verify (for the `inproc://` case) that this is the behavior. 
+               verify (for the `inproc://` case) that this is the behavior.
                Therefore, read errors after the first part are treated as a
                failure for the entire message (probably `ETERM`). */
             int operator()(std::string& payload, void* const socket, const int flags) const
@@ -154,19 +154,6 @@ namespace zmq
             }
         };
 
-        template<typename F, typename... T>
-        expect<void> retry_op(F op, T&&... args) noexcept(noexcept(op(args...)))
-        {
-            for (;;)
-            {
-                if (0 <= op(args...))
-                    return success();
-
-                const int error = zmq_errno();
-                if (error != EINTR)
-                    return make_error_code(error);
-            }
-        }
     } // anonymous
 
     expect<std::string> receive(void* const socket, const int flags)
@@ -198,4 +185,3 @@ namespace zmq
     }
 } // zmq
 } // net
-

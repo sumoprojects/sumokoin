@@ -31,6 +31,16 @@
 cmake_minimum_required(VERSION 2.8.7)
 message(STATUS "CMake version ${CMAKE_VERSION}")
 
+cmake_host_system_information(RESULT freememsys QUERY AVAILABLE_PHYSICAL_MEMORY) 
+cmake_host_system_information(RESULT freememvirt QUERY AVAILABLE_VIRTUAL_MEMORY)
+message(STATUS "Total available physical memory: ${freememsys} Mib")
+message(STATUS "Total available virtual memory: ${freememvirt} Mib")
+math(EXPR totalmemavail "${freememsys} + ${freememvirt}")
+message(STATUS "Total available memory: ${totalmemavail}  Mib")
+if (totalmemavail LESS 3500) #sumokoin needs on about 3 Gb of available memory to compile, give it 500 Mb slack
+  message(FATAL_ERROR "Sumokoin needs at least 3.5 Gb of available memory (physical+virtual) to compile!")
+endif()
+
 set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
 
@@ -230,6 +240,7 @@ if(NOT MANUAL_SUBMODULES)
 
     message(STATUS "Checking submodules")
     check_submodule(external/rapidjson)
+    check_submodule(external/supercop)
   endif()
 endif()
 
@@ -322,7 +333,7 @@ endif()
 # elseif(CMAKE_SYSTEM_NAME MATCHES ".*BSDI.*")
 #   set(BSDI TRUE)
 
-include_directories(external/rapidjson/include external/easylogging++ src contrib/epee/include external)
+include_directories(external/rapidjson/include external/easylogging++ src contrib/epee/include external external/supercop/include)
 
 if(APPLE)
   include_directories(SYSTEM /usr/include/malloc)
@@ -363,8 +374,12 @@ elseif(NOT MSVC AND NOT DEPENDS)
 endif()
 
 # This is a CMake built-in switch that concerns internal libraries
-if (NOT DEFINED BUILD_SHARED_LIBS AND NOT STATIC AND CMAKE_BUILD_TYPE_LOWER STREQUAL "debug")
+if (NOT DEFINED BUILD_SHARED_LIBS AND NOT STATIC AND CMAKE_BUILD_TYPE_LOWER STREQUAL "debug" AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set(BUILD_SHARED_LIBS ON)
+endif()
+
+if (NOT DEFINED BUILD_SHARED_LIBS AND NOT STATIC AND CMAKE_BUILD_TYPE_LOWER STREQUAL "debug" AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    set(BUILD_SHARED_LIBS OFF)
 endif()
 
 if (BUILD_SHARED_LIBS)
@@ -498,6 +513,9 @@ add_definition_if_library_exists(c explicit_bzero "strings.h" HAVE_EXPLICIT_BZER
 add_definition_if_function_found(strptime HAVE_STRPTIME)
 
 add_definitions(-DAUTO_INITIALIZE_EASYLOGGINGPP)
+
+set(MONERO_GENERATED_HEADERS_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated_include")
+include_directories(${MONERO_GENERATED_HEADERS_DIR})
 
 # Generate header for embedded translations
 # Generate header for embedded translations, use target toolchain if depends, otherwise use the
@@ -1011,6 +1029,7 @@ if(SODIUM_LIBRARY)
   set(ZMQ_LIB "${ZMQ_LIB};${SODIUM_LIBRARY}")
 endif()
 
+include(external/supercop/functions.cmake) # place after setting flags and before src directory inclusion
 add_subdirectory(contrib)
 add_subdirectory(src)
 
