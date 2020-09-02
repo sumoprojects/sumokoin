@@ -58,6 +58,12 @@ t_command_server::t_command_server(
     , "Show the help section or the documentation about a <command>."
     );
   m_command_lookup.set_handler(
+      "search_command"
+    , std::bind(&t_command_server::search_command, this, p::_1)
+    , "search_command <keyword> [<keyword> ...]"
+    , "Search all command descriptions for keyword(s)."
+    );
+  m_command_lookup.set_handler(
       "print_height"
     , std::bind(&t_command_parser_executor::print_height, &m_parser, p::_1)
     , "Print the local blockchain height."
@@ -371,7 +377,7 @@ bool t_command_server::start_handling(std::function<void(void)> exit_handler)
 {
   if (m_is_rpc) return false;
 
-  m_command_lookup.start_handling("", get_commands_str(), exit_handler);
+  m_command_lookup.start_handling("", "Use \"help\" to list all commands and their usage\n", exit_handler);
 
   return true;
 }
@@ -396,6 +402,33 @@ bool t_command_server::help(const std::vector<std::string>& args)
   return true;
 }
 
+bool t_command_server::search_command(const std::vector<std::string>& args)
+{
+  if (args.empty())
+  {
+    std::cout << "Missing keyword" << std::endl;
+    return true;
+  }
+  const std::vector<std::string>& command_list = m_command_lookup.get_command_list(args);
+  if (command_list.empty())
+  {
+    std::cout << "Nothing found" << std::endl;
+    return true;
+  }
+
+  std::cout << std::endl;
+  for(auto const& command:command_list)
+  {
+    std::vector<std::string> cmd;
+    cmd.push_back(command);
+    std::pair<std::string, std::string> documentation = m_command_lookup.get_documentation(cmd);
+    std::cout << "  " << documentation.first << std::endl;
+  }
+  std::cout << std::endl;
+
+  return true;
+}
+
 std::string t_command_server::get_commands_str()
 {
   std::stringstream ss;
@@ -404,7 +437,7 @@ std::string t_command_server::get_commands_str()
   std::string usage = m_command_lookup.get_usage();
   boost::replace_all(usage, "\n", "\n  ");
   usage.insert(0, "  ");
-  ss << usage << std::endl;
+  ss << usage;
   return ss.str();
 }
 
