@@ -1282,11 +1282,22 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
     return false;
   }
 
-  CHECK_AND_ASSERT_MES(money_in_use - fee <= base_reward, false, "base reward calculation bug");
-  if (base_reward + fee != money_in_use)
-    partial_block_reward = true;
-  base_reward = money_in_use - fee;
-
+  // Until hf 10, we were allowing a miner to claim less block reward than is allowed, in case a miner wants less dust
+  if (version >= HF_VERSION_EXACT_COINBASE)
+  {
+    if(base_reward + fee != money_in_use)
+    {
+      MDEBUG("coinbase transaction doesn't use full amount of block reward:  spent: " << money_in_use << ",  block reward " << base_reward + fee << "(" << base_reward << "+" << fee << ")");
+      return false;
+    }
+  }
+  else
+  {
+    CHECK_AND_ASSERT_MES(money_in_use - fee <= base_reward, false, "base reward calculation bug");
+    if (base_reward + fee != money_in_use)
+      partial_block_reward = true;
+    base_reward = money_in_use - fee;
+  }
   return true;
 }
 //------------------------------------------------------------------
@@ -1995,7 +2006,7 @@ bool Blockchain::get_alternative_blocks(std::vector<block>& blocks) const
   CRITICAL_REGION_LOCAL(m_blockchain_lock);
 
   blocks.reserve(m_db->get_alt_block_count());
-  m_db->for_all_alt_blocks([&blocks](const crypto::hash &blkid, const cryptonote::alt_block_data_t &data, const cryptonote::blobdata *blob) {
+  m_db->for_all_alt_blocks([&blocks](const crypto::hash &blkid, const cryptonote::alt_block_data_t &data, const cryptonote::blobdata_ref *blob) {
     if (!blob)
     {
       MERROR("No blob, but blobs were requested");
@@ -4888,7 +4899,7 @@ cryptonote::blobdata Blockchain::get_txpool_tx_blob(const crypto::hash& txid, re
   return m_db->get_txpool_tx_blob(txid, tx_category);
 }
 
-bool Blockchain::for_all_txpool_txes(std::function<bool(const crypto::hash&, const txpool_tx_meta_t&, const cryptonote::blobdata*)> f, bool include_blob, relay_category tx_category) const
+bool Blockchain::for_all_txpool_txes(std::function<bool(const crypto::hash&, const txpool_tx_meta_t&, const cryptonote::blobdata_ref*)> f, bool include_blob, relay_category tx_category) const
 {
   return m_db->for_all_txpool_txes(f, include_blob, tx_category);
 }
@@ -4959,7 +4970,7 @@ std::vector<std::pair<Blockchain::block_extended_info,std::vector<crypto::hash>>
 
   blocks_ext_by_hash alt_blocks;
   alt_blocks.reserve(m_db->get_alt_block_count());
-  m_db->for_all_alt_blocks([&alt_blocks](const crypto::hash &blkid, const cryptonote::alt_block_data_t &data, const cryptonote::blobdata *blob) {
+   m_db->for_all_alt_blocks([&alt_blocks](const crypto::hash &blkid, const cryptonote::alt_block_data_t &data, const cryptonote::blobdata_ref *blob) {
     if (!blob)
     {
       MERROR("No blob, but blobs were requested");
