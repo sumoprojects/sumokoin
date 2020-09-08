@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2020, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
@@ -39,6 +39,7 @@
 #include "misc_language.h"
 #include "string_tools.h"
 #include "time_helper.h"
+#include "serialization/serialization.h"
 #include "cryptonote_config.h"
 
 namespace nodetool
@@ -54,7 +55,7 @@ namespace nodetool
   }
 
 #pragma pack (push, 1)
-  
+
   struct network_address_old
   {
     uint32_t ip;
@@ -84,6 +85,15 @@ namespace nodetool
       KV_SERIALIZE_OPT(rpc_port, (uint16_t)0)
       KV_SERIALIZE_OPT(rpc_credits_per_hash, (uint32_t)0)
     END_KV_SERIALIZE_MAP()
+
+    BEGIN_SERIALIZE()
+      FIELD(adr)
+      FIELD(id)
+      VARINT_FIELD(last_seen)
+      VARINT_FIELD(pruning_seed)
+      VARINT_FIELD(rpc_port)
+      VARINT_FIELD(rpc_credits_per_hash)
+    END_SERIALIZE()
   };
   typedef peerlist_entry_base<epee::net_utils::network_address> peerlist_entry;
 
@@ -99,6 +109,12 @@ namespace nodetool
       KV_SERIALIZE(id)
       KV_SERIALIZE(first_seen)
     END_KV_SERIALIZE_MAP()
+
+    BEGIN_SERIALIZE()
+      FIELD(adr)
+      FIELD(id)
+      VARINT_FIELD(first_seen)
+    END_SERIALIZE()
   };
   typedef anchor_peerlist_entry_base<epee::net_utils::network_address> anchor_peerlist_entry;
 
@@ -114,12 +130,18 @@ namespace nodetool
       KV_SERIALIZE(id)
       KV_SERIALIZE(is_income)
     END_KV_SERIALIZE_MAP()
+
+    BEGIN_SERIALIZE()
+      FIELD(adr)
+      FIELD(id)
+      FIELD(is_income)
+    END_SERIALIZE()    
   };
   typedef connection_entry_base<epee::net_utils::network_address> connection_entry;
 
 #pragma pack(pop)
 
-  inline 
+  inline
   std::string print_peerlist_to_string(const std::vector<peerlist_entry>& pl)
   {
     time_t now_time = 0;
@@ -131,7 +153,7 @@ namespace nodetool
       ss << peerid_to_string(pe.id) << "\t" << pe.adr.str()
         << " \trpc port " << (pe.rpc_port > 0 ? std::to_string(pe.rpc_port) : "-")
         << " \trpc credits per hash " << (pe.rpc_credits_per_hash > 0 ? std::to_string(pe.rpc_credits_per_hash) : "-")
-        << " \tpruning seed " << pe.pruning_seed 
+        << " \tpruning seed " << pe.pruning_seed
         << " \tlast_seen: " << (pe.last_seen == 0 ? std::string("never") : epee::misc_utils::get_time_interval_string(now_time - pe.last_seen))
         << std::endl;
     }
@@ -161,13 +183,13 @@ namespace nodetool
 
   struct basic_node_data
   {
-    uuid network_id;                   
+    uuid network_id;
     uint32_t my_port;
     uint16_t rpc_port;
     uint32_t rpc_credits_per_hash;
     peerid_type peer_id;
     std::string version;
-   
+
     BEGIN_KV_SERIALIZE_MAP()
       KV_SERIALIZE_VAL_POD_AS_BLOB(network_id)
       KV_SERIALIZE(peer_id)
@@ -177,7 +199,7 @@ namespace nodetool
       KV_SERIALIZE_OPT(rpc_credits_per_hash, (uint32_t)0)
     END_KV_SERIALIZE_MAP()
   };
-  
+
 
 #define P2P_COMMANDS_POOL_BASE 1000
 
@@ -254,7 +276,7 @@ namespace nodetool
   struct COMMAND_PING
   {
     /*
-      Used to make "callback" connection, to be sure that opponent node 
+      Used to make "callback" connection, to be sure that opponent node
       have accessible connection point. Only other nodes can add peer to peerlist,
       and ONLY in case when peer has accepted connection and answered to ping.
     */
@@ -279,12 +301,12 @@ namespace nodetool
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(status)
         KV_SERIALIZE(peer_id)
-      END_KV_SERIALIZE_MAP()    
+      END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;
   };
 
-  
+
   /************************************************************************/
   /*                                                                      */
   /************************************************************************/
@@ -295,7 +317,7 @@ namespace nodetool
     struct request_t
     {
       BEGIN_KV_SERIALIZE_MAP()
-      END_KV_SERIALIZE_MAP()    
+      END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<request_t> request;
 
@@ -305,7 +327,7 @@ namespace nodetool
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(support_flags)
-      END_KV_SERIALIZE_MAP()    
+      END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;
   };

@@ -548,6 +548,31 @@ eof:
       return it->second.second;
     }
 
+    std::vector<std::string> get_command_list(const std::vector<std::string>& keywords = std::vector<std::string>())
+    {
+      std::vector<std::string> list;
+      list.reserve(m_command_handlers.size());
+      for(auto const& x:m_command_handlers)
+      {
+        bool take = true;
+        for(auto const& y:keywords)
+        {
+          bool in_usage = x.second.second.first.find(y) != std::string::npos;
+          bool in_description = x.second.second.second.find(y) != std::string::npos;
+          if (!(in_usage || in_description))
+          {
+            take = false;
+            break;
+          }
+        }
+        if (take)
+        {
+          list.push_back(x.first);
+        }
+      }
+      return list;
+    }
+        
     void set_handler(const std::string& cmd, const callback& hndlr, const std::string& usage = "", const std::string& description = "")
     {
       lookup::mapped_type & vt = m_command_handlers[cmd];
@@ -621,7 +646,7 @@ eof:
       }
       catch (const std::exception &e) { /* ignore */ }
     }
-    
+
     bool start_handling(std::function<std::string(void)> prompt, const std::string& usage_string = "", std::function<void(void)> exit_handler = NULL)
     {
       m_console_thread.reset(new boost::thread(boost::bind(&console_handlers_binder::run_handling, this, prompt, usage_string, exit_handler)));
