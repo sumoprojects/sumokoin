@@ -1,20 +1,18 @@
 # Supercop
 
-> This project could use a rename :/
-
 The objective of this project is to provide fast cryptographic operations for
-Monero wallets. Unfortunately, there isn't necessarily a single fastest library
+Sumokoin wallets. Unfortunately, there isn't necessarily a single fastest library
 for all platforms - donna64 for instance likely performs poorly when
 cross-compiled to asm.js or 32-bit arm. This project mitigates this issue by
 copying the cryptographic libraries with as little changes as possible (ideally
 zero), and then provides smaller and easier to audit "glue" functions that use
-the cryptographic library to perform typical Monero wallet tasks. These "glue"
+the cryptographic library to perform typical Sumokoin wallet tasks. These "glue"
 functions are often not obvious to the typical developer (otherwise they would
 be using the cryptographic libraries already), however auditing these functions
-should be straightforward to anyone familar with how the cryptography works.
+should be straightforward to anyone familiar with how the cryptography works.
 
 The project is also designed to be used in-tree in other projects or installable
-on a system. The default Monero wallets use the in-tree implementation which
+on a system. The default Sumokoin wallets use the in-tree implementation which
 serve as a more complex example of its usage. The project directory structure:
 
   - **crypto_sign** - whose name is taken from supercop. The code in here is
@@ -24,14 +22,14 @@ serve as a more complex example of its usage. The project directory structure:
     with the exception of the auto-generated header.
   - **src** - Contains all of the glue functions and build code.
   - **functions.cmake** - The raw components for building the library. Used by
-    the default Monero wallet.
+    the default Sumokoin wallet.
   - **intree.cmake** - Creates a cmake library target `monero-crypto-intree`
     and generates a header at `<BUILD_LOCATION>/include/monero/crypto.h`.
   - **CMakeLists.txt** - Declares a new project for creating/installing a
     shared or static `monero-crypto` library.
 
 > Downstream projects cannot currently use this project _without_ also using
-> the `monero-project/monero/src/crypto/crypto.h` functions - specifically
+> the `sumoprojects/sumokoin/src/crypto/crypto.h` functions - specifically
 > `crypto::derivation_to_scalar`. So currently this project provides
 > performance enhancements but not standalone usage.
 
