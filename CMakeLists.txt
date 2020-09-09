@@ -502,6 +502,8 @@ if (OPENSSL_FOUND)
   endif()
 endif()
 
+find_package(Boost)
+
 find_package(HIDAPI)
 
 add_definition_if_library_exists(c memset_s "string.h" HAVE_MEMSET_S)
