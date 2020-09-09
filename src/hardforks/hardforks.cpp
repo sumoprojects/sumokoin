@@ -42,7 +42,8 @@ const hardfork_t mainnet_hard_forks[] = {
   { 7, MAINNET_HARDFORK_V7_HEIGHT, 0, 1555234940 },
   { 8, MAINNET_HARDFORK_V8_HEIGHT, 0, 1555321375 },
   { 9, 350000, 0, 1574120819 }, // abt 6h47' Nov 19, 2019
-//{ 10, XXXXXX, 0, XXXXXXXXXX }, // CLSAG & EXACT COINBASE
+//{ 10, XXXXXX, 0, XXXXXXXXXX }, // CLSAG & EXACT COINBASE - ALLOW BOTH MLSAG AND CLSAG 
+//{ 11, XXXXXX, 0, XXXXXXXXXX }, // FORBID MLSAG ALLOW CLSAG ONLY - SHOULD HAPPEN A DAY OR TWO AFTER HF 10
 };
 const size_t num_mainnet_hard_forks = sizeof(mainnet_hard_forks) / sizeof(mainnet_hard_forks[0]);
 
@@ -57,6 +58,7 @@ const hardfork_t testnet_hard_forks[] = {
   { 8, 130560, 0, 1554479506 },
   { 9, 164100, 0, 1572592223 },
 //{ 10, XXXXXX, 0, XXXXXXXXXX }, // CLSAG & EXACT COINBASE
+//{ 11, XXXXXX, 0, XXXXXXXXXX }, // FORBID MLSAG ALLOW CLSAG ONLY  
 };
 const size_t num_testnet_hard_forks = sizeof(testnet_hard_forks) / sizeof(testnet_hard_forks[0]);
 
@@ -70,6 +72,7 @@ const hardfork_t stagenet_hard_forks[] = {
   { 7, 130530, 0, 1554465078 },
   { 8, 130560, 0, 1554479506 },
   { 9, 164100, 0, 1572592223 },
-//{ 10, XXXXXX, 0, XXXXXXXXXX }, // CLSAG & EXACT COINBASE     
+//{ 10, XXXXXX, 0, XXXXXXXXXX }, // CLSAG & EXACT COINBASE
+//{ 11, XXXXXX, 0, XXXXXXXXXX }, // FORBID MLSAG ALLOW CLSAG ONLY  
 };
 const size_t num_stagenet_hard_forks = sizeof(stagenet_hard_forks) / sizeof(stagenet_hard_forks[0]);
