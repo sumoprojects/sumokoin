@@ -266,7 +266,8 @@ namespace config
   const unsigned char HASH_KEY_TXPROOF_V2[] = "TXPROOF_V2";
   const unsigned char HASH_KEY_CLSAG_ROUND[] = "CLSAG_round";
   const unsigned char HASH_KEY_CLSAG_AGG_0[] = "CLSAG_agg_0";
-  const unsigned char HASH_KEY_CLSAG_AGG_1[] = "CLSAG_agg_1";  
+  const unsigned char HASH_KEY_CLSAG_AGG_1[] = "CLSAG_agg_1";
+  const char HASH_KEY_MESSAGE_SIGNING[] = "MoneroMessageSignature";  
 
   // Funding for exchange burned coins
   static constexpr const char* EXCHANGE_FUND_ADDRESS = "Sumoo2y7AAteNGJ5yepUUFX3taqDRfM5eYHmCc1qnhwx6cJp3htcjTbKWH7NxkcADcT82pRwns9Us7NdCmuw3gx8bnzYGg14L2o";
