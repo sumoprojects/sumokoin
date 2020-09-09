@@ -763,6 +763,7 @@ else()
   message(STATUS "Using C security hardening flags: ${C_SECURITY_FLAGS}")
   message(STATUS "Using C++ security hardening flags: ${CXX_SECURITY_FLAGS}")
   message(STATUS "Using linker security hardening flags: ${LD_SECURITY_FLAGS}")
+
   if (NOT (DEPENDS OR MINGW))
     message(STATUS "Using linker elimination of unused data flags: ${LINKER_OPTIONS}")
   else()

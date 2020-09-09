@@ -1,21 +1,21 @@
 // Copyright (c) 2017-2020, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -58,25 +58,25 @@ namespace hw {
 
             bool connect(void) override;
             bool disconnect() override;
- 
+
             bool set_mode(device_mode mode) override;
 
             device_type get_type() const override {return device_type::SOFTWARE;};
 
             /* ======================================================================= */
             /*  LOCKER                                                                 */
-            /* ======================================================================= */ 
+            /* ======================================================================= */
             void lock(void)  override;
             void unlock(void) override;
             bool try_lock(void) override;
-            
+
             /* ======================================================================= */
             /*                             WALLET & ADDRESS                            */
             /* ======================================================================= */
             bool  get_public_address(cryptonote::account_public_address &pubkey) override;
             bool  get_secret_keys(crypto::secret_key &viewkey , crypto::secret_key &spendkey) override;
             bool  generate_chacha_key(const cryptonote::account_keys &keys, crypto::chacha_key &key, uint64_t kdf_rounds) override;
- 
+
             /* ======================================================================= */
             /*                               SUB ADDRESS                               */
             /* ======================================================================= */
@@ -107,8 +107,8 @@ namespace hw {
             /*                               TRANSACTION                               */
             /* ======================================================================= */
 
-            void generate_tx_proof(const crypto::hash &prefix_hash, 
-                                   const crypto::public_key &R, const crypto::public_key &A, const std::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r, 
+            void generate_tx_proof(const crypto::hash &prefix_hash,
+                                   const crypto::public_key &R, const crypto::public_key &A, const std::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r,
                                    crypto::signature &sig) override;
 
             bool  open_tx(crypto::secret_key &tx_key) override;
@@ -134,6 +134,10 @@ namespace hw {
             bool  mlsag_hash(const rct::keyV &long_message, rct::key &c) override;
             bool  mlsag_sign(const rct::key &c, const rct::keyV &xx, const rct::keyV &alpha, const size_t rows, const size_t dsRows, rct::keyV &ss) override;
 
+            bool clsag_prepare(const rct::key &p, const rct::key &z, rct::key &I, rct::key &D, const rct::key &H, rct::key &a, rct::key &aG, rct::key &aH) override;
+            bool clsag_hash(const rct::keyV &data, rct::key &hash) override;
+            bool clsag_sign(const rct::key &c, const rct::key &a, const rct::key &p, const rct::key &z, const rct::key &mu_P, const rct::key &mu_C, rct::key &s) override;            
+
             bool  close_tx(void) override;
         };
 
@@ -142,4 +146,3 @@ namespace hw {
 
 
 }
-

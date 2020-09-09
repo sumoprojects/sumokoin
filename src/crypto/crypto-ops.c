@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2020, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include <assert.h>
@@ -1234,6 +1234,56 @@ void ge_double_scalarmult_base_vartime(ge_p2 *r, const unsigned char *a, const g
   }
 }
 
+// Computes aG + bB + cC (G is the fixed basepoint)
+void ge_triple_scalarmult_base_vartime(ge_p2 *r, const unsigned char *a, const unsigned char *b, const ge_dsmp Bi, const unsigned char *c, const ge_dsmp Ci) {
+  signed char aslide[256];
+  signed char bslide[256];
+  signed char cslide[256];
+  ge_p1p1 t;
+  ge_p3 u;
+  int i;
+
+  slide(aslide, a);
+  slide(bslide, b);
+  slide(cslide, c);
+
+  ge_p2_0(r);
+
+  for (i = 255; i >= 0; --i) {
+    if (aslide[i] || bslide[i] || cslide[i]) break;
+  }
+
+  for (; i >= 0; --i) {
+    ge_p2_dbl(&t, r);
+
+    if (aslide[i] > 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_madd(&t, &u, &ge_Bi[aslide[i]/2]);
+    } else if (aslide[i] < 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_msub(&t, &u, &ge_Bi[(-aslide[i])/2]);
+    }
+
+    if (bslide[i] > 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_add(&t, &u, &Bi[bslide[i]/2]);
+    } else if (bslide[i] < 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_sub(&t, &u, &Bi[(-bslide[i])/2]);
+    }
+
+    if (cslide[i] > 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_add(&t, &u, &Ci[cslide[i]/2]);
+    } else if (cslide[i] < 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_sub(&t, &u, &Ci[(-cslide[i])/2]);
+    }
+
+    ge_p1p1_to_p2(r, &t);
+  }
+}
+
 void ge_double_scalarmult_base_vartime_p3(ge_p3 *r3, const unsigned char *a, const ge_p3 *A, const unsigned char *b) {
   signed char aslide[256];
   signed char bslide[256];
@@ -2142,6 +2192,56 @@ void ge_double_scalarmult_precomp_vartime2(ge_p2 *r, const unsigned char *a, con
     } else if (bslide[i] < 0) {
       ge_p1p1_to_p3(&u, &t);
       ge_sub(&t, &u, &Bi[(-bslide[i])/2]);
+    }
+
+    ge_p1p1_to_p2(r, &t);
+  }
+}
+
+// Computes aA + bB + cC (all points require precomputation)
+void ge_triple_scalarmult_precomp_vartime(ge_p2 *r, const unsigned char *a, const ge_dsmp Ai, const unsigned char *b, const ge_dsmp Bi, const unsigned char *c, const ge_dsmp Ci) {
+  signed char aslide[256];
+  signed char bslide[256];
+  signed char cslide[256];
+  ge_p1p1 t;
+  ge_p3 u;
+  int i;
+
+  slide(aslide, a);
+  slide(bslide, b);
+  slide(cslide, c);
+
+  ge_p2_0(r);
+
+  for (i = 255; i >= 0; --i) {
+    if (aslide[i] || bslide[i] || cslide[i]) break;
+  }
+
+  for (; i >= 0; --i) {
+    ge_p2_dbl(&t, r);
+
+    if (aslide[i] > 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_add(&t, &u, &Ai[aslide[i]/2]);
+    } else if (aslide[i] < 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_sub(&t, &u, &Ai[(-aslide[i])/2]);
+    }
+
+    if (bslide[i] > 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_add(&t, &u, &Bi[bslide[i]/2]);
+    } else if (bslide[i] < 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_sub(&t, &u, &Bi[(-bslide[i])/2]);
+    }
+
+    if (cslide[i] > 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_add(&t, &u, &Ci[cslide[i]/2]);
+    } else if (cslide[i] < 0) {
+      ge_p1p1_to_p3(&u, &t);
+      ge_sub(&t, &u, &Ci[(-cslide[i])/2]);
     }
 
     ge_p1p1_to_p2(r, &t);

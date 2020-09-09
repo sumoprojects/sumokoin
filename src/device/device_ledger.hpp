@@ -1,21 +1,21 @@
 // Copyright (c) 2017-2020, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -51,13 +51,13 @@ namespace hw {
     #define VERSION_MAJOR(v)     (((v)>>16)&0xFF)
     #define VERSION_MINOR(v)     (((v)>>8)&0xFF)
     #define VERSION_MICRO(v)     (((v)>>0)&0xFF)
-    
+
     #define MINIMAL_APP_VERSION   VERSION(MINIMAL_APP_VERSION_MAJOR, MINIMAL_APP_VERSION_MINOR, MINIMAL_APP_VERSION_MICRO)
 
     void register_all(std::map<std::string, std::unique_ptr<device>> &registry);
 
     #ifdef WITH_DEVICE_LEDGER
-        
+
     // Origin: https://github.com/LedgerHQ/ledger-app-monero/blob/master/src/monero_types.h
     #define SW_BYTES_REMAINING_00                0x6100
     #define SW_WARNING_STATE_UNCHANGED           0x6200
@@ -192,7 +192,7 @@ namespace hw {
         // To speed up blockchain parsing the view key maybe handle here.
         crypto::secret_key viewkey;
         bool has_view_key;
-        
+
         //extra debug
         #ifdef DEBUG_HWDEVICE
         device *controle_device;
@@ -228,7 +228,7 @@ namespace hw {
 
         /* ======================================================================= */
         /*  LOCKER                                                                 */
-        /* ======================================================================= */ 
+        /* ======================================================================= */
         void lock(void)  override;
         void unlock(void) override;
         bool try_lock(void) override;
@@ -269,10 +269,10 @@ namespace hw {
         /* ======================================================================= */
         /*                               TRANSACTION                               */
         /* ======================================================================= */
-        void generate_tx_proof(const crypto::hash &prefix_hash, 
-                                   const crypto::public_key &R, const crypto::public_key &A, const std::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r, 
+        void generate_tx_proof(const crypto::hash &prefix_hash,
+                                   const crypto::public_key &R, const crypto::public_key &A, const std::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r,
                                    crypto::signature &sig) override;
-        
+
         bool  open_tx(crypto::secret_key &tx_key) override;
 
         void get_transaction_prefix_hash(const cryptonote::transaction_prefix& tx, crypto::hash& h) override;
@@ -288,7 +288,7 @@ namespace hw {
                                              const cryptonote::tx_destination_entry &dst_entr, const std::optional<cryptonote::account_public_address> &change_addr, const size_t output_index,
                                              const bool &need_additional_txkeys, const std::vector<crypto::secret_key> &additional_tx_keys,
                                              std::vector<crypto::public_key> &additional_tx_public_keys,
-                                             std::vector<rct::key> &amount_keys, 
+                                             std::vector<rct::key> &amount_keys,
                                              crypto::public_key &out_eph_public_key) override;
 
         bool  mlsag_prehash(const std::string &blob, size_t inputs_size, size_t outputs_size, const rct::keyV &hashes, const rct::ctkeyV &outPk, rct::key &prehash) override;
@@ -296,6 +296,11 @@ namespace hw {
         bool  mlsag_prepare(rct::key &a, rct::key &aG) override;
         bool  mlsag_hash(const rct::keyV &long_message, rct::key &c) override;
         bool  mlsag_sign( const rct::key &c, const rct::keyV &xx, const rct::keyV &alpha, const size_t rows, const size_t dsRows, rct::keyV &ss) override;
+
+        bool clsag_prepare(const rct::key &p, const rct::key &z, rct::key &I, rct::key &D, const rct::key &H, rct::key &a, rct::key &aG, rct::key &aH) override;
+        bool clsag_hash(const rct::keyV &data, rct::key &hash) override;
+        bool clsag_sign(const rct::key &c, const rct::key &a, const rct::key &p, const rct::key &z, const rct::key &mu_P, const rct::key &mu_C, rct::key &s) override;
+        
 
         bool  close_tx(void) override;
 
@@ -311,4 +316,3 @@ namespace hw {
   }
 
 }
-
