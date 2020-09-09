@@ -751,6 +751,10 @@ else()
   # cleanup bins
   if (NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
     set(LINKER_OPTIONS "${LINKER_OPTIONS} -ffunction-sections -fdata-sections -Wl,--gc-sections")
+  else()
+    set(LINKER_OPTIONS "${LINKER_OPTIONS} -ffunction-sections -fdata-sections -Wl,-dead_strip")
+  # silence warning in link cases dead_strip cannot be used
+    set(WARNINGS "${WARNINGS} -Wno-unused-command-line-argument")
   endif()
 
   message(STATUS "Using C security hardening flags: ${C_SECURITY_FLAGS}")
