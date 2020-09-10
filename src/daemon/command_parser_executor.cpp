@@ -29,6 +29,7 @@
 #include "common/dns_utils.h"
 #include "common/command_line.h"
 #include "daemon/command_parser_executor.h"
+#include <fstream>
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "daemon"
@@ -596,6 +597,15 @@ bool t_command_parser_executor::ban(const std::vector<std::string>& args)
     if (seconds == 0)
     {
       return false;
+    }
+    if (seconds == -1)
+    {
+      seconds = 999999999;
+      std::ofstream permanently_banned_ips;
+      MCLOG_CYAN(el::Level::Info, "global", "Exporting host " << args[0] << " to permanently banned IPs list");
+      permanently_banned_ips.open("bannedips", std::ios_base::app);
+      permanently_banned_ips << args[0] << "\n";
+      permanently_banned_ips.close();
     }
   }
   return m_executor.ban(ip, seconds);
