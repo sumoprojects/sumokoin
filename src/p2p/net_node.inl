@@ -256,8 +256,10 @@ namespace nodetool
 
       conns.clear();
     }
-
-    MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << seconds << " seconds.");
+    if (seconds >= 500 * P2P_IP_BLOCKTIME)
+      MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked permanently.");
+    else 
+      MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << seconds << " seconds.");
     return true;
   }
   //-----------------------------------------------------------------------------------
@@ -694,12 +696,12 @@ namespace nodetool
         if (endpoint.address().is_v4())
         {
           epee::net_utils::network_address na{epee::net_utils::ipv4_network_address{boost::asio::detail::socket_ops::host_to_network_long(endpoint.address().to_v4().to_ulong()), endpoint.port()}};
-          block_host(na, 999999999);
+          block_host(na, std::numeric_limits<time_t>::max());
         }
         else
         {
           epee::net_utils::network_address na{epee::net_utils::ipv6_network_address{endpoint.address().to_v6(), endpoint.port()}};
-          block_host(na, 999999999);
+          block_host(na, std::numeric_limits<time_t>::max());
         }
       }     
     }
