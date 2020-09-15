@@ -43,6 +43,9 @@
 #include <memory>
 #include <tuple>
 #include <vector>
+#include<iostream>
+#include<string>
+#include<fstream>
 
 #include "version.h"
 #include "string_tools.h"
@@ -254,7 +257,7 @@ namespace nodetool
       conns.clear();
     }
 
-    MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << P2P_IP_BLOCKTIME << " seconds.");
+    MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << seconds << " seconds.");
     return true;
   }
   //-----------------------------------------------------------------------------------
@@ -659,6 +662,48 @@ namespace nodetool
 
     bool res = handle_command_line(vm);
     CHECK_AND_ASSERT_MES(res, false, "Failed to handle command line");
+
+    // insert permanent banned ips if any
+
+    std::string b_ips;
+    std::ifstream permanently_banned_ips("bannedips");
+    while(getline(permanently_banned_ips, b_ips))
+    {
+      using namespace boost::asio;
+
+      std::string host = b_ips;
+      std::string port = std::to_string(19733);
+      size_t colon_pos = b_ips.find_last_of(':');
+      size_t dot_pos = b_ips.find_last_of('.');
+      size_t square_brace_pos = b_ips.find('[');
+      if ((std::string::npos != colon_pos && std::string::npos != dot_pos) || std::string::npos != square_brace_pos)
+      {
+        net::get_network_address_host_and_port(b_ips, host, port);
+      }
+      io_service io_srv;
+      ip::tcp::resolver resolver(io_srv);
+      ip::tcp::resolver::query query(host, port, boost::asio::ip::tcp::resolver::query::canonical_name);
+      boost::system::error_code ec;
+      ip::tcp::resolver::iterator i = resolver.resolve(query, ec);
+      CHECK_AND_ASSERT_MES(!ec, false, "Failed to resolve host name '" << host << "': " << ec.message() << ':' << ec.value());
+
+      ip::tcp::resolver::iterator iend;
+      for (; i != iend; ++i)
+      {
+        ip::tcp::endpoint endpoint = *i;
+        if (endpoint.address().is_v4())
+        {
+          epee::net_utils::network_address na{epee::net_utils::ipv4_network_address{boost::asio::detail::socket_ops::host_to_network_long(endpoint.address().to_v4().to_ulong()), endpoint.port()}};
+          block_host(na, 999999999);
+        }
+        else
+        {
+          epee::net_utils::network_address na{epee::net_utils::ipv6_network_address{endpoint.address().to_v6(), endpoint.port()}};
+          block_host(na, 999999999);
+        }
+      }     
+    }
+    permanently_banned_ips.close();
 
     m_fallback_seed_nodes_added = false;
     if (m_nettype == cryptonote::TESTNET)
