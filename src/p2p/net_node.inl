@@ -615,31 +615,31 @@ namespace nodetool
     std::set<std::string> full_addrs;
     if (nettype == cryptonote::TESTNET)
     {
-      SEED_TESTNET_1;
-      SEED_TESTNET_2;
-      SEED_TESTNET_3;
-      SEED_TESTNET_4;
-      SEED_TESTNET_5;
+      full_addrs.insert(SEED_TESTNET_1);
+      full_addrs.insert(SEED_TESTNET_2);
+      full_addrs.insert(SEED_TESTNET_3);
+      full_addrs.insert(SEED_TESTNET_4);
+      full_addrs.insert(SEED_TESTNET_5);
     }
     else if (nettype == cryptonote::STAGENET)
     {
-      SEED_STAGENET_1;
-      SEED_STAGENET_2;
-      SEED_STAGENET_3;
-      SEED_STAGENET_4;
+      full_addrs.insert(SEED_STAGENET_1);
+      full_addrs.insert(SEED_STAGENET_2);
+      full_addrs.insert(SEED_STAGENET_3);
+      full_addrs.insert(SEED_STAGENET_4);
     }
     else
     {
-      SEED_MAINNET_1;
-      SEED_MAINNET_2;
-      SEED_MAINNET_3;
-      SEED_MAINNET_4;
-      SEED_MAINNET_5;
-      SEED_MAINNET_6;
-      SEED_MAINNET_7;
-      SEED_MAINNET_8;
-      SEED_MAINNET_9;
-      SEED_MAINNET_10;
+      full_addrs.insert(SEED_MAINNET_1);
+      full_addrs.insert(SEED_MAINNET_2);
+      full_addrs.insert(SEED_MAINNET_3);
+      full_addrs.insert(SEED_MAINNET_4);
+      full_addrs.insert(SEED_MAINNET_5);
+      full_addrs.insert(SEED_MAINNET_6);
+      full_addrs.insert(SEED_MAINNET_7);
+      full_addrs.insert(SEED_MAINNET_8);
+      full_addrs.insert(SEED_MAINNET_9);
+      full_addrs.insert(SEED_MAINNET_10);
     }
     return full_addrs;
   }

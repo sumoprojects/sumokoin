@@ -172,27 +172,27 @@
 
 // seed nodes
 // MAINNET
-#define SEED_MAINNET_1 full_addrs.insert("144.217.164.165:19733") // Canada
-#define SEED_MAINNET_2 full_addrs.insert("217.182.76.94:19733") // Poland
-#define SEED_MAINNET_3 full_addrs.insert("46.105.92.108:19733") // France
-#define SEED_MAINNET_4 full_addrs.insert("139.99.193.21:19733") // Australia
-#define SEED_MAINNET_5 full_addrs.insert("139.99.40.69:19733") // Singapore
-#define SEED_MAINNET_6 full_addrs.insert("133.18.53.223:19733") // Japan
-#define SEED_MAINNET_7 full_addrs.insert("157.230.187.169:19733") // NY - explorer
-#define SEED_MAINNET_8 full_addrs.insert("157.245.14.220:19733") // NY
-#define SEED_MAINNET_9 full_addrs.insert("134.209.109.190:19733") // Singapore
-#define SEED_MAINNET_10 full_addrs.insert("167.172.44.84:19733") // Netherlands
+#define SEED_MAINNET_1   "144.217.164.165:19733" // Canada
+#define SEED_MAINNET_2   "217.182.76.94:19733" // Poland
+#define SEED_MAINNET_3   "46.105.92.108:19733" // France
+#define SEED_MAINNET_4   "139.99.193.21:19733" // Australia
+#define SEED_MAINNET_5   "139.99.40.69:19733" // Singapore
+#define SEED_MAINNET_6   "133.18.53.223:19733" // Japan
+#define SEED_MAINNET_7   "157.230.187.169:19733" // NY - explorer
+#define SEED_MAINNET_8   "157.245.14.220:19733" // NY
+#define SEED_MAINNET_9   "134.209.109.190:19733" // Singapore
+#define SEED_MAINNET_10  "167.172.44.84:19733" // Netherlands
 // TESTNET
-#define SEED_TESTNET_1 full_addrs.insert("144.217.164.165:29733")
-#define SEED_TESTNET_2 full_addrs.insert("217.182.76.94:29733")
-#define SEED_TESTNET_3 full_addrs.insert("139.99.40.69:29733")
-#define SEED_TESTNET_4 full_addrs.insert("46.105.92.108:29733")
-#define SEED_TESTNET_5 full_addrs.insert("167.172.44.84:29733") // Testnet Explorer
+#define SEED_TESTNET_1 	 "144.217.164.165:29733"
+#define SEED_TESTNET_2 	 "217.182.76.94:29733"
+#define SEED_TESTNET_3 	 "139.99.40.69:29733"
+#define SEED_TESTNET_4 	 "46.105.92.108:29733"
+#define SEED_TESTNET_5 	 "167.172.44.84:29733" // Testnet Explorer
 // STAGENET
-#define SEED_STAGENET_1 full_addrs.insert("144.217.164.165:39733")
-#define SEED_STAGENET_2 full_addrs.insert("217.182.76.94:39733")
-#define SEED_STAGENET_3 full_addrs.insert("139.99.40.69:39733")
-#define SEED_STAGENET_4 full_addrs.insert("46.105.92.108:39733")
+#define SEED_STAGENET_1  "144.217.164.165:39733"
+#define SEED_STAGENET_2  "217.182.76.94:39733"
+#define SEED_STAGENET_3  "139.99.40.69:39733"
+#define SEED_STAGENET_4  "46.105.92.108:39733"
 
 // coin emission change interval/speed configs
 #define COIN_EMISSION_MONTH_INTERVAL                    6  // months to change emission speed
@@ -264,7 +264,7 @@ namespace config
   const unsigned char HASH_KEY_TXPROOF_V2[] = "TXPROOF_V2";
   const unsigned char HASH_KEY_CLSAG_ROUND[] = "CLSAG_round";
   const unsigned char HASH_KEY_CLSAG_AGG_0[] = "CLSAG_agg_0";
-  const unsigned char HASH_KEY_CLSAG_AGG_1[] = "CLSAG_agg_1";  
+  const unsigned char HASH_KEY_CLSAG_AGG_1[] = "CLSAG_agg_1";
 
   // Funding for exchange burned coins
   static constexpr const char* EXCHANGE_FUND_ADDRESS = "Sumoo2y7AAteNGJ5yepUUFX3taqDRfM5eYHmCc1qnhwx6cJp3htcjTbKWH7NxkcADcT82pRwns9Us7NdCmuw3gx8bnzYGg14L2o";
