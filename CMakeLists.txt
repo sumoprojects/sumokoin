@@ -240,7 +240,6 @@ if(NOT MANUAL_SUBMODULES)
 
     message(STATUS "Checking submodules")
     check_submodule(external/rapidjson)
-    check_submodule(external/supercop)
   endif()
 endif()
 
