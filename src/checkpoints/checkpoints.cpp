@@ -227,7 +227,7 @@ namespace cryptonote
     boost::system::error_code errcode;
     if (! (boost::filesystem::exists(json_hashfile_fullpath, errcode)))
     {
-      LOG_PRINT_L1("Blockchain checkpoints file not found");
+      LOG_PRINT_L1("JSON blockchain checkpoints not available");
       return true;
     }
 
