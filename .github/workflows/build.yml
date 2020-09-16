@@ -4,24 +4,15 @@ on: [push, pull_request]
 
 jobs:
   build-macos:
-    runs-on: macOS-latest
+    runs-on: macOS-latest 
     steps:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
     - name: update brew and install dependencies
-      run: brew update && brew install boost hidapi zmq libpgm ldns expat libunwind-headers protobuf ccache pkg-config 
-    - name: link pkg-config with openssl (find libcrypto)
-      run: |                                  
-        PKG_CONFIG_PATH=/usr/local/opt/openssl@1.1/lib/pkgconfig:"${PKG_CONFIG_PATH}"          
-        export PKG_CONFIG_PATH   
-        mkdir build
-        cd build
-        PKG_CONFIG_PATH=/usr/local/opt/openssl@1.1/lib/pkgconfig cmake ..
-    - name: build sumokoin
-      run: |
-        cd build
-        make -j2
+      run: brew update && brew install boost hidapi zmq unbound libpgm ldns expat libunwind-headers protobuf
+    - name: build
+      run: make -j2
 
   build-windows:
     runs-on: windows-latest
