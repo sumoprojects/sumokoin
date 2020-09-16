@@ -1941,7 +1941,10 @@ bool t_rpc_command_executor::print_bans()
         std::cout << std::setw(17) << std::left << "Banned IPs " << " " << "Time remaining in seconds" << std::endl;
         for (auto i = res.bans.begin(); i != res.bans.end(); ++i)
         {
-            std::cout << std::setw(17) << std::left << i->host  << " " << i->seconds << std::endl;
+            if (i->seconds >= 500 * P2P_IP_BLOCKTIME)
+              std::cout << std::setw(17) << std::left << i->host  << " " << "permanently banned" << std::endl; 
+            else
+              std::cout << std::setw(17) << std::left << i->host  << " " << i->seconds << std::endl;                   
         }
     }
     else

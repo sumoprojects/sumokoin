@@ -600,7 +600,7 @@ bool t_command_parser_executor::ban(const std::vector<std::string>& args)
     }
     if (seconds == -1)
     {
-      seconds = 999999999;
+      seconds = std::numeric_limits<time_t>::max();
       std::ofstream permanently_banned_ips;
       MCLOG_CYAN(el::Level::Info, "global", "Exporting host " << args[0] << " to permanently banned IPs list");
       permanently_banned_ips.open("bannedips", std::ios_base::app);
