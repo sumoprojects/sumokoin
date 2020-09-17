@@ -264,11 +264,12 @@ namespace cryptonote
   {
     std::vector<std::string> records;
 
-    // All four SumoPulse domains have DNSSEC on and valid
+    // All five SumoPulse domains have DNSSEC on and valid
     static const std::vector<std::string> dns_urls = { "checkpoints.sumopulse.stream"
                    , "checkpoints.sumopulse.download"
                    , "checkpoints.sumopulse.win"
                    , "checkpoints.sumopulse.bid"
+                   , "sumocheckpoints.cloud"
     };
 
     static const std::vector<std::string> testnet_dns_urls = { "testpoints.sumopulse.stream"

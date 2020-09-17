@@ -1150,11 +1150,30 @@ namespace cryptonote
   size_t core::get_block_sync_size(uint64_t height) const
   {
     if (block_sync_size > 0)
+    {
       return block_sync_size;
-    if (get_current_blockchain_height() <= LAST_CHECKPOINT)
-    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
-    else
+    }
+#if defined(PER_BLOCK_CHECKPOINT)
+   if (!core::is_within_compiled_block_hash_area(height))
     return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_END;
+   else  
+    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
+#endif
+    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
+  }
+  //-----------------------------------------------------------------------------------------------
+  size_t core::get_block_sync_size_per_block_chekpoint(uint64_t height) const
+  {
+#if defined(PER_BLOCK_CHECKPOINT)
+    if (block_sync_size > 0)
+    {
+      return block_sync_size;
+    }
+   if (!core::is_within_compiled_block_hash_area(height))
+    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_END;
+   else  
+    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
+#endif
   }
   //-----------------------------------------------------------------------------------------------
   bool core::are_key_images_spent_in_pool(const std::vector<crypto::key_image>& key_im, std::vector<bool> &spent) const

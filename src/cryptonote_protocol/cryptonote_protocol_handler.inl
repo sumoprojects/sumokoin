@@ -2030,7 +2030,11 @@ skip:
       NOTIFY_REQUEST_GET_OBJECTS::request req;
       bool is_next = false;
       size_t count = 0;
-      const size_t count_limit = m_core.get_block_sync_size(m_core.get_current_blockchain_height());
+      size_t count_limit = 0;
+#if defined(PER_BLOCK_CHECKPOINT)
+      count_limit = m_core.get_block_sync_size_per_block_chekpoint(m_core.get_current_blockchain_height());
+#endif
+      count_limit = m_core.get_block_sync_size(m_core.get_current_blockchain_height());
       std::pair<uint64_t, uint64_t> span = std::make_pair(0, 0);
       if (force_next_span)
       {
