@@ -89,6 +89,11 @@ t_command_server::t_command_server(
       , std::bind(&t_command_parser_executor::print_open_rpc, &m_parser, p::_1)
       , "Print connections with open rpc."
       );
+    m_command_lookup.set_handler(
+        "print_checkpoints"
+      , std::bind(&t_command_parser_executor::print_checkpoints, &m_parser, p::_1)
+      , "Print the current blockchain dns checkpoints list."
+      );
   m_command_lookup.set_handler(
       "print_net_stats"
     , std::bind(&t_command_parser_executor::print_net_stats, &m_parser, p::_1)
