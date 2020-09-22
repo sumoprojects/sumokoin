@@ -203,6 +203,7 @@
 #define DEFAULT_MIXIN                                   12     // default & minimum mixin allowed
 #define MAX_MIXIN                                       240
 #define DEFAULT_MIXIN_V2                                48
+#define DEFAULT_MIXIN_V3                                58
 
 #define TRANSACTION_WEIGHT_LIMIT                        ((uint64_t) ((CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 110 / 100) - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE))
 #define BLOCK_SIZE_GROWTH_FAVORED_ZONE                  ((uint64_t) (CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 4))
@@ -219,6 +220,8 @@
 #define HF_VERSION_EXACT_COINBASE                         10
 #define HF_VERSION_CLSAG                                  10
 #define HF_VERSION_DETERMINISTIC_UNLOCK_TIME              10
+#define HF_VERSION_MIN_MIXIN_58                           10
+#define HF_VERSION_SAME_MIXIN                             10
 
 #define PER_KB_FEE_QUANTIZATION_DECIMALS                 6
 #define HASH_OF_HASHES_STEP                              512

@@ -7454,6 +7454,8 @@ int wallet2::get_fee_algorithm()
 //------------------------------------------------------------------------------------------------------------------------------
 uint64_t wallet2::get_min_ring_size()
 {
+  if (use_fork_rules(10, 10))
+    return DEFAULT_MIXIN_V3 + 1;
   if (use_fork_rules(7, 10))
     return DEFAULT_MIXIN_V2 + 1;
   return DEFAULT_MIXIN + 1;

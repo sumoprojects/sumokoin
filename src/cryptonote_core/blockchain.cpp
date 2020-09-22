@@ -3013,8 +3013,9 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
   }
 
   size_t n_unmixable = 0, n_mixable = 0;
-  size_t mixin = std::numeric_limits<size_t>::max();
-  const size_t min_mixin = hf_version < 7 ? DEFAULT_MIXIN : DEFAULT_MIXIN_V2;
+  size_t min_actual_mixin = std::numeric_limits<size_t>::max();
+  size_t max_actual_mixin = 0;
+  const size_t min_mixin = hf_version >= HF_VERSION_MIN_MIXIN_58 ? DEFAULT_MIXIN_V3 : hf_version >= 7 ? DEFAULT_MIXIN_V2 : DEFAULT_MIXIN;
   const size_t max_mixin = MAX_MIXIN;
   for (const auto& txin : tx.vin)
   {
@@ -3039,30 +3040,51 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
         else
           ++n_mixable;
       }
-      if (in_to_key.key_offsets.size() - 1 < mixin)
-        mixin = in_to_key.key_offsets.size() - 1;
+      size_t ring_mixin = in_to_key.key_offsets.size() - 1;
+      if (ring_mixin < min_actual_mixin)
+        min_actual_mixin = ring_mixin;
+      if (ring_mixin > max_actual_mixin)
+        max_actual_mixin = ring_mixin;
+    }
+  }
+  MDEBUG("Mixin: " << min_actual_mixin << "-" << max_actual_mixin);
+
+  if (hf_version >= HF_VERSION_SAME_MIXIN)
+  {
+    if (min_actual_mixin != max_actual_mixin)
+    {
+      MERROR_VER("Tx " << get_transaction_hash(tx) << " has varying ring size (" << (min_actual_mixin + 1) << "-" << (max_actual_mixin + 1) << "), it should be constant");
+      tvc.m_low_mixin = true;
+      return false;
     }
   }
 
-  if (mixin < min_mixin)
+    if (((hf_version == HF_VERSION_MIN_MIXIN_58 || hf_version == HF_VERSION_MIN_MIXIN_58+1) && min_actual_mixin != 58) || (hf_version >= HF_VERSION_MIN_MIXIN_58+2 && min_actual_mixin > 58))
+    {
+      MERROR_VER("Tx " << get_transaction_hash(tx) << " has invalid ring size (" << (min_actual_mixin + 1) << "), it should be 58");
+      tvc.m_low_mixin = true;
+      return false;
+    }
+
+  if (min_actual_mixin < min_mixin)
   {
     if (n_unmixable == 0)
     {
-      MERROR_VER("Tx " << get_transaction_hash(tx) << " has too low ring size (" << (mixin + 1) << "), and no unmixable inputs");
+      MERROR_VER("Tx " << get_transaction_hash(tx) << " has too low ring size (" << (min_actual_mixin + 1) << "), and no unmixable inputs");
       tvc.m_low_mixin = true;
       return false;
     }
     if (n_mixable > 1)
     {
-      MERROR_VER("Tx " << get_transaction_hash(tx) << " has too low ring size (" << (mixin + 1) << "), and more than one mixable input with unmixable inputs");
+      MERROR_VER("Tx " << get_transaction_hash(tx) << " has too low ring size (" << (min_actual_mixin + 1) << "), and more than one mixable input with unmixable inputs");
       tvc.m_low_mixin = true;
       return false;
     }
   }
 
-  if (mixin > max_mixin)
+  if (max_actual_mixin > max_mixin)
   {
-    MERROR_VER("Tx " << get_transaction_hash(tx) << " has too high ring size (" << mixin + 1 << "), max ring size = " << max_mixin + 1);
+    MERROR_VER("Tx " << get_transaction_hash(tx) << " has too high ring size (" << (max_actual_mixin + 1) << "), max ring size = " << max_mixin + 1);
     tvc.m_high_mixin = true;
     return false;
   }
