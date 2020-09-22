@@ -218,6 +218,7 @@
 #define HF_VERSION_EFFECTIVE_SHORT_TERM_MEDIAN_IN_PENALTY 9
 #define HF_VERSION_EXACT_COINBASE                         10
 #define HF_VERSION_CLSAG                                  10
+#define HF_VERSION_DETERMINISTIC_UNLOCK_TIME              10
 
 #define PER_KB_FEE_QUANTIZATION_DECIMALS                 6
 #define HASH_OF_HASHES_STEP                              512
