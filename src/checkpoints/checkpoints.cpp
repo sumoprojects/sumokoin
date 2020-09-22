@@ -207,6 +207,8 @@ namespace cryptonote
     ADD_CHECKPOINT(137500, "0a50041b952bdc1b1f2c6a5e8749600f545e43ddfa255607b529df95f8945e5d"); // v4 fork
     ADD_CHECKPOINT(165000, "a15ab984e4c93bff84f617daaed357e28c5eb2fb6c64efa803f4cfba0b69f4a4"); // v5 fork
     ADD_CHECKPOINT(199800, "d8c7fcfcf605e834b3125b68cc96736e1f1d2f753c79c24db8fb9d6af4b84293"); // v6 fork
+    ADD_CHECKPOINT(225000, "4a63e8c350e2ee31f2c35a290eee99c759cbadd4518dc9f13f24a8365ff62b43");
+    ADD_CHECKPOINT(250000, "ea4ac947d9f0cdca5997871fb6a9e78f377bba17b5c70b87ce65693bc5032838");	  
     ADD_CHECKPOINT(274000, "49d2579161c277b9d9fe6baba5aabcef1534e9abef93eaa7f17cc8fe229454b0"); // v7 fork
     ADD_CHECKPOINT(274360, "66c129116187f36980a97333f1c7cf99c21629cc52bc6d591126d3a8fe36b90a"); // v8 fork
     ADD_CHECKPOINT(300000, "b09b147b23148d2995ff860d9ede9d8d38757c934b6de7945d397fc4e1ab2501");
@@ -227,7 +229,7 @@ namespace cryptonote
     boost::system::error_code errcode;
     if (! (boost::filesystem::exists(json_hashfile_fullpath, errcode)))
     {
-      LOG_PRINT_L1("Blockchain checkpoints file not found");
+      LOG_PRINT_L1("JSON blockchain checkpoints not available");
       return true;
     }
 
@@ -262,11 +264,12 @@ namespace cryptonote
   {
     std::vector<std::string> records;
 
-    // All four SumoPulse domains have DNSSEC on and valid
+    // All five SumoPulse domains have DNSSEC on and valid
     static const std::vector<std::string> dns_urls = { "checkpoints.sumopulse.stream"
                    , "checkpoints.sumopulse.download"
                    , "checkpoints.sumopulse.win"
                    , "checkpoints.sumopulse.bid"
+                   , "sumocheckpoints.cloud"
     };
 
     static const std::vector<std::string> testnet_dns_urls = { "testpoints.sumopulse.stream"

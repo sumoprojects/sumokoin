@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 
   lookup(LOOKUP_TXT, {"updates.sumopulse.stream", "updates.sumopulse.download", "updates.sumopulse.win", "updates.sumopulse.bid"});
 
-  lookup(LOOKUP_TXT, {"checkpoints.sumopulse.stream", "checkpoints.sumopulse.download", "checkpoints.sumopulse.win", "checkpoints.sumopulse.bid"});
+  lookup(LOOKUP_TXT, {"checkpoints.sumopulse.stream", "checkpoints.sumopulse.download", "checkpoints.sumopulse.win", "checkpoints.sumopulse.bid", "sumocheckpoints.cloud"});
 
   // those are in the code, but don't seem to actually exist
 #if 0

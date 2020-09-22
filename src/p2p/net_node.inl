@@ -43,6 +43,9 @@
 #include <memory>
 #include <tuple>
 #include <vector>
+#include<iostream>
+#include<string>
+#include<fstream>
 
 #include "version.h"
 #include "string_tools.h"
@@ -253,8 +256,10 @@ namespace nodetool
 
       conns.clear();
     }
-
-    MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << P2P_IP_BLOCKTIME << " seconds.");
+    if (seconds >= 500 * P2P_IP_BLOCKTIME)
+      MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked permanently.");
+    else 
+      MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << seconds << " seconds.");
     return true;
   }
   //-----------------------------------------------------------------------------------
@@ -612,31 +617,31 @@ namespace nodetool
     std::set<std::string> full_addrs;
     if (nettype == cryptonote::TESTNET)
     {
-      SEED_TESTNET_1;
-      SEED_TESTNET_2;
-      SEED_TESTNET_3;
-      SEED_TESTNET_4;
-      SEED_TESTNET_5;
+      full_addrs.insert(SEED_TESTNET_1);
+      full_addrs.insert(SEED_TESTNET_2);
+      full_addrs.insert(SEED_TESTNET_3);
+      full_addrs.insert(SEED_TESTNET_4);
+      full_addrs.insert(SEED_TESTNET_5);
     }
     else if (nettype == cryptonote::STAGENET)
     {
-      SEED_STAGENET_1;
-      SEED_STAGENET_2;
-      SEED_STAGENET_3;
-      SEED_STAGENET_4;
+      full_addrs.insert(SEED_STAGENET_1);
+      full_addrs.insert(SEED_STAGENET_2);
+      full_addrs.insert(SEED_STAGENET_3);
+      full_addrs.insert(SEED_STAGENET_4);
     }
     else
     {
-      SEED_MAINNET_1;
-      SEED_MAINNET_2;
-      SEED_MAINNET_3;
-      SEED_MAINNET_4;
-      SEED_MAINNET_5;
-      SEED_MAINNET_6;
-      SEED_MAINNET_7;
-      SEED_MAINNET_8;
-      SEED_MAINNET_9;
-      SEED_MAINNET_10;
+      full_addrs.insert(SEED_MAINNET_1);
+      full_addrs.insert(SEED_MAINNET_2);
+      full_addrs.insert(SEED_MAINNET_3);
+      full_addrs.insert(SEED_MAINNET_4);
+      full_addrs.insert(SEED_MAINNET_5);
+      full_addrs.insert(SEED_MAINNET_6);
+      full_addrs.insert(SEED_MAINNET_7);
+      full_addrs.insert(SEED_MAINNET_8);
+      full_addrs.insert(SEED_MAINNET_9);
+      full_addrs.insert(SEED_MAINNET_10);
     }
     return full_addrs;
   }
@@ -659,6 +664,48 @@ namespace nodetool
 
     bool res = handle_command_line(vm);
     CHECK_AND_ASSERT_MES(res, false, "Failed to handle command line");
+
+    // insert permanent banned ips if any
+
+    std::string b_ips;
+    std::ifstream permanently_banned_ips("bannedips");
+    while(getline(permanently_banned_ips, b_ips))
+    {
+      using namespace boost::asio;
+
+      std::string host = b_ips;
+      std::string port = std::to_string(19733);
+      size_t colon_pos = b_ips.find_last_of(':');
+      size_t dot_pos = b_ips.find_last_of('.');
+      size_t square_brace_pos = b_ips.find('[');
+      if ((std::string::npos != colon_pos && std::string::npos != dot_pos) || std::string::npos != square_brace_pos)
+      {
+        net::get_network_address_host_and_port(b_ips, host, port);
+      }
+      io_service io_srv;
+      ip::tcp::resolver resolver(io_srv);
+      ip::tcp::resolver::query query(host, port, boost::asio::ip::tcp::resolver::query::canonical_name);
+      boost::system::error_code ec;
+      ip::tcp::resolver::iterator i = resolver.resolve(query, ec);
+      CHECK_AND_ASSERT_MES(!ec, false, "Failed to resolve host name '" << host << "': " << ec.message() << ':' << ec.value());
+
+      ip::tcp::resolver::iterator iend;
+      for (; i != iend; ++i)
+      {
+        ip::tcp::endpoint endpoint = *i;
+        if (endpoint.address().is_v4())
+        {
+          epee::net_utils::network_address na{epee::net_utils::ipv4_network_address{boost::asio::detail::socket_ops::host_to_network_long(endpoint.address().to_v4().to_ulong()), endpoint.port()}};
+          block_host(na, std::numeric_limits<time_t>::max());
+        }
+        else
+        {
+          epee::net_utils::network_address na{epee::net_utils::ipv6_network_address{endpoint.address().to_v6(), endpoint.port()}};
+          block_host(na, std::numeric_limits<time_t>::max());
+        }
+      }     
+    }
+    permanently_banned_ips.close();
 
     m_fallback_seed_nodes_added = false;
     if (m_nettype == cryptonote::TESTNET)
@@ -2764,13 +2811,9 @@ namespace nodetool
     int result;
     const int ipv6_arg = ipv6 ? 1 : 0;
 
-#if MINIUPNPC_API_VERSION > 13
     // default according to miniupnpc.h
     unsigned char ttl = 2;
     UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, ttl, &result);
-#else
-    UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, &result);
-#endif
     UPNPUrls urls;
     IGDdatas igdData;
     char lanAddress[64];
@@ -2824,7 +2867,6 @@ namespace nodetool
     if (ipv6) add_upnp_port_mapping_v6(port);
   }
 
-
   template<class t_payload_net_handler>
   void node_server<t_payload_net_handler>::delete_upnp_port_mapping_impl(uint32_t port, bool ipv6)
   {
@@ -2832,13 +2874,9 @@ namespace nodetool
     MDEBUG("Attempting to delete IGD port mapping " << ipversion << ".");
     int result;
     const int ipv6_arg = ipv6 ? 1 : 0;
-#if MINIUPNPC_API_VERSION > 13
     // default according to miniupnpc.h
     unsigned char ttl = 2;
     UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, ttl, &result);
-#else
-    UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, &result);
-#endif
     UPNPUrls urls;
     IGDdatas igdData;
     char lanAddress[64];

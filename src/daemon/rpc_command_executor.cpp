@@ -55,6 +55,11 @@ namespace {
       case epee::net_utils::address_type::tor: return "Tor";
     }
   }
+  
+  bool search_array(const std::string &value, const std::vector<std::string> &array)
+  {
+    return std::find(array.begin(), array.end(), value) != array.end();
+  }
 
   std::string print_float(float f, int prec)
   {
@@ -802,7 +807,7 @@ bool t_rpc_command_executor::print_connections() {
   uint32_t incoming_number = 0;
   uint32_t outgoing_number = 0;
 
-  tools::msg_writer() << std::setw(30) << std::left << "Remote Host"
+  tools::msg_writer() << std::setw(34) << std::left << "Remote Host"
       << std::setw(6) << "Type"
       << std::setw(4) << "SSL"
       << std::setw(8) << "RPC"
@@ -811,7 +816,7 @@ bool t_rpc_command_executor::print_connections() {
       << std::setw(6) << "Flags"
       << std::setw(26) << "Recv/Sent (inactive,s)"
       << std::setw(18) << "State"
-      << std::setw(22) << "Down |  Up (kB/s/now)"
+      << std::setw(20) << "Down/Up|now(kB/s)"
       << std::setw(8) << "Alive(s)"
       << std::endl;
 #pragma GCC diagnostic push
@@ -825,12 +830,22 @@ bool t_rpc_command_executor::print_connections() {
       if (info.incoming)
         ++incoming_number;
       else
-        ++ outgoing_number;
+        ++ outgoing_number;     
+      std::string seed_1 = SEED_MAINNET_1; std::string seed1 = seed_1.erase(seed_1.length()-6); std::string seed_2 = SEED_MAINNET_2; std::string seed2 = seed_2.erase(seed_2.length()-6);
+      std::string seed_3 = SEED_MAINNET_3; std::string seed3 = seed_3.erase(seed_3.length()-6); std::string seed_4 = SEED_MAINNET_4; std::string seed4 = seed_4.erase(seed_4.length()-6);
+      std::string seed_5 = SEED_MAINNET_5; std::string seed5 = seed_5.erase(seed_5.length()-6); std::string seed_6 = SEED_MAINNET_6; std::string seed6 = seed_6.erase(seed_6.length()-6);
+      std::string seed_7 = SEED_MAINNET_7; std::string seed7 = seed_7.erase(seed_7.length()-6); std::string seed_8 = SEED_MAINNET_8; std::string seed8 = seed_8.erase(seed_8.length()-6);
+      std::string seed_9 = SEED_MAINNET_9; std::string seed9 = seed_9.erase(seed_9.length()-6); std::string seed_10 = SEED_MAINNET_10; std::string seed10 = seed_10.erase(seed_10.length()-6); 
+      std::vector<std::string> seeds {seed1, seed2, seed3, seed4, seed5, seed6, seed7, seed8, seed9, seed10};     
+      if (search_array(info.ip, seeds))
+      {
+        address += info.ip + ":" + info.port + "(seed)";
+      }
+      else
       address += info.ip + ":" + info.port;
-      //std::string in_out = info.incoming ? "INC " : "OUT ";
+
       tools::msg_writer()
-       //<< std::setw(30) << std::left << in_out
-       << std::setw(30) << std::left << address
+       << std::setw(34) << std::left << address
        << std::setw(6) << (get_address_type_name((epee::net_utils::address_type)info.address_type))
        << std::setw(4) << (info.ssl ? "yes" : "no")
        << std::setw(8) << rpc_port
@@ -839,12 +854,11 @@ bool t_rpc_command_executor::print_connections() {
        << std::setw(6) << info.support_flags
        << std::setw(26) << std::to_string(info.recv_count) + "("  + std::to_string(info.recv_idle_time) + ")/" + std::to_string(info.send_count) + "(" + std::to_string(info.send_idle_time) + ")"
        << std::setw(18) << info.state
-       << std::setw(22) << std::to_string(info.avg_download) + "/" + std::to_string(info.current_download) + "  |  "+ std::to_string(info.avg_upload) + "/" + std::to_string(info.current_upload)
+       << std::setw(20) << std::to_string(info.avg_download) + "/" + std::to_string(info.current_download) + "|"+ std::to_string(info.avg_upload) + "/" + std::to_string(info.current_upload)
        << std::setw(8) << info.live_time
 
        << std::left << (info.localhost ? "[LOCALHOST]" : "")
        << std::left << (info.local_ip ? "[LAN]" : "");
-      //tools::msg_writer() << boost::format("%-25s peer_id: %-25s %s") % address % info.peer_id % in_out;
     } 
   }
 #pragma GCC diagnostic pop
@@ -1927,7 +1941,10 @@ bool t_rpc_command_executor::print_bans()
         std::cout << std::setw(17) << std::left << "Banned IPs " << " " << "Time remaining in seconds" << std::endl;
         for (auto i = res.bans.begin(); i != res.bans.end(); ++i)
         {
-            std::cout << std::setw(17) << std::left << i->host  << " " << i->seconds << std::endl;
+            if (i->seconds >= 500 * P2P_IP_BLOCKTIME)
+              std::cout << std::setw(17) << std::left << i->host  << " " << "permanently banned" << std::endl; 
+            else
+              std::cout << std::setw(17) << std::left << i->host  << " " << i->seconds << std::endl;                   
         }
     }
     else
