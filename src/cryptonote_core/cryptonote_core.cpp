@@ -42,6 +42,7 @@ using namespace epee;
 #include "common/updates.h"
 #include "common/threadpool.h"
 #include "common/notify.h"
+#include "common/dns_utils.h"
 #include "version.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
@@ -1667,6 +1668,7 @@ namespace cryptonote
     m_block_rate_interval.do_call(boost::bind(&core::check_block_rate, this));
     m_blockchain_pruning_interval.do_call(boost::bind(&core::update_blockchain_pruning, this));
     m_ok_status.do_call(boost::bind(&core::check_sync_status, this));
+    m_version_check.do_call(boost::bind(&core::check_version, this));
     m_miner.on_idle();
     m_mempool.on_idle();
     return true;
@@ -1681,10 +1683,26 @@ namespace cryptonote
     hours = minutes / 60;
     if((get_blockchain_storage().get_current_blockchain_height() >= m_target_blockchain_height) && (m_target_blockchain_height > 0))
     {
+     std::string version = std::string(SUMOKOIN_VERSION) + " " + std::string(SUMOKOIN_RELEASE_NAME);
      MGINFO_GREEN(ENDL << "Sumokoin node is on idle and fully synchronized | Height: " << get_blockchain_storage().get_current_blockchain_height()
        << " | Uptime: " << int(hours) << " hours " << int(minutes%60) << " minutes "
-       << int(seconds%60) << " seconds" << ENDL);
+       << int(seconds%60) << " seconds" << " | Version: " << version << ENDL);
     }
+   return true;
+  }
+  //-----------------------------------------------------------------------------------------------
+  bool core::check_version()
+  {
+    bool avail, valid;
+    std::vector<std::string> version = tools::DNSResolver::instance().get_txt_record("sumoversion.pw", avail, valid);
+    std::string current_version = std::string(SUMOKOIN_VERSION) + " " + std::string(SUMOKOIN_RELEASE_NAME);
+   
+   for (auto& ver : version)
+   {
+      if (current_version != ver)
+        MWARNING("Your current version of Sumokoin (" << current_version << ") is obsolete, please upgrade to the lastest version ("<< ver << ")" <<ENDL); 
+   }
+
    return true;
   }
   //-----------------------------------------------------------------------------------------------
