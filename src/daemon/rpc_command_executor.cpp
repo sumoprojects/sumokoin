@@ -32,6 +32,7 @@
 #include "common/password.h"
 #include "common/scoped_message_writer.h"
 #include "common/pruning.h"
+#include "common/dns_utils.h"
 #include "daemon/rpc_command_executor.h"
 #include "version.h"
 #include "rpc/rpc_version_str.h"
@@ -915,6 +916,47 @@ bool t_rpc_command_executor::print_open_rpc() {
           << std::left << (info.local_ip ? "[LAN]" : "");
     }
   }
+
+  return true;
+}
+
+bool t_rpc_command_executor::print_checkpoints() {
+  cryptonote::COMMAND_RPC_GET_INFO::request ireq;
+  cryptonote::COMMAND_RPC_GET_INFO::response ires;
+  std::string fail_message = "Problem fetching info";
+
+  if (m_is_rpc)
+  {
+    if (!m_rpc_client->rpc_request(ireq, ires, "/getinfo", fail_message.c_str()))
+    {
+      return true;
+    }
+  }
+  else
+  {
+    if (!m_rpc_server->on_get_info(ireq, ires) || ires.status != CORE_RPC_STATUS_OK)
+    {
+      tools::fail_msg_writer() << make_error(fail_message, ires.status);
+      return true;
+    }
+  }
+  
+  bool avail, valid;
+  std::vector<std::string> records = tools::DNSResolver::instance().get_txt_record("sumocheckpoints.cloud", avail, valid);
+  std::string network_type = (ires.testnet ? "testnet" : ires.stagenet ? "stagenet" : "mainnet");
+
+  std::cout << std::endl << "blockchain checkpoints" <<std::endl;
+  std::cout << "HEIGHT:HASH" <<std::endl;
+
+  if (network_type == "mainnet")
+  {
+    for (auto& rec : records)
+    {
+      std::cout << rec << std::endl;
+    }
+  }
+  else
+    std::cout << "print_checkpoints returns the blockchain checkpoints on mainnet" << std::endl;
 
   return true;
 }
