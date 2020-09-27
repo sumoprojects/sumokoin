@@ -140,7 +140,7 @@ TEST(DNSResolver, GetTXTRecord)
 {
   bool avail, valid;
 
-  std::vector<std::string> records = tools::DNSResolver::instance().get_txt_record("donate.getmonero.org", avail, valid);
+  std::vector<std::string> records = tools::DNSResolver::instance().get_txt_record("sumocheckpoints.cloud", avail, valid);
 
   EXPECT_NE(0, records.size());
 
