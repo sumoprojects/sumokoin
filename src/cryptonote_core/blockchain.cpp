@@ -3627,6 +3627,15 @@ bool Blockchain::check_block_timestamp(std::vector<uint64_t>& timestamps, const 
 //   false otherwise
 bool Blockchain::check_block_timestamp(const block& b, uint64_t& median_ts) const
 {
+#if (__GNUC__ && defined( __has_warning ))
+#if __has_warning( "-Wunused-but-set-variable" )
+#define SUPPRESS
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
+#endif
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
   LOG_PRINT_L3("Blockchain::" << __func__);
 
   uint64_t cryptonote_block_future_time_limit;
@@ -3670,6 +3679,11 @@ bool Blockchain::check_block_timestamp(const block& b, uint64_t& median_ts) cons
   }
 
   return check_block_timestamp(timestamps, b, median_ts);
+#pragma GCC diagnostic pop
+#ifdef SUPPRESS
+#undef SUPPRESS
+#pragma GCC diagnostic pop
+#endif
 }
 //------------------------------------------------------------------
 void Blockchain::return_tx_to_pool(std::vector<std::pair<transaction, blobdata>> &txs)
