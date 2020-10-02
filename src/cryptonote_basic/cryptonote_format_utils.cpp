@@ -71,8 +71,6 @@ static const uint64_t valid_decomposed_outputs[] = {
   (uint64_t)10000000000000000000ull
 };
 
-static std::atomic<unsigned int> default_decimal_point(CRYPTONOTE_DISPLAY_DECIMAL_POINT);
-
 static std::atomic<uint64_t> tx_hashes_calculated_count(0);
 static std::atomic<uint64_t> tx_hashes_cached_count(0);
 static std::atomic<uint64_t> block_hashes_calculated_count(0);
@@ -393,12 +391,12 @@ namespace cryptonote
     if (std::string::npos != point_index)
     {
       fraction_size = str_amount.size() - point_index - 1;
-      while (default_decimal_point < fraction_size && '0' == str_amount.back())
+      while (CRYPTONOTE_DISPLAY_DECIMAL_POINT < fraction_size && '0' == str_amount.back())
       {
         str_amount.erase(str_amount.size() - 1, 1);
         --fraction_size;
       }
-      if (default_decimal_point < fraction_size)
+      if (CRYPTONOTE_DISPLAY_DECIMAL_POINT < fraction_size)
         return false;
       str_amount.erase(point_index, 1);
     }
@@ -410,9 +408,9 @@ namespace cryptonote
     if (str_amount.empty())
       return false;
 
-    if (fraction_size < default_decimal_point)
+    if (fraction_size < CRYPTONOTE_DISPLAY_DECIMAL_POINT)
     {
-      str_amount.append(default_decimal_point - fraction_size, '0');
+      str_amount.append(CRYPTONOTE_DISPLAY_DECIMAL_POINT - fraction_size, '0');
     }
 
     return string_tools::get_xtype_from_string(amount, str_amount);
@@ -966,30 +964,10 @@ namespace cryptonote
     cn_fast_hash(blob.data(), blob.size(), res);
   }
   //---------------------------------------------------------------
-  void set_default_decimal_point(unsigned int decimal_point)
-  {
-    switch (decimal_point)
-    {
-      case 9:
-      case 6:
-      case 3:
-      case 0:
-        default_decimal_point = decimal_point;
-        break;
-      default:
-        ASSERT_MES_AND_THROW("Invalid decimal point specification: " << decimal_point);
-    }
-  }
-  //---------------------------------------------------------------
-  unsigned int get_default_decimal_point()
-  {
-    return default_decimal_point;
-  }
-  //---------------------------------------------------------------
   std::string get_unit(unsigned int decimal_point)
   {
     if (decimal_point == (unsigned int)-1)
-      decimal_point = default_decimal_point;
+      decimal_point = CRYPTONOTE_DISPLAY_DECIMAL_POINT;
     switch (decimal_point)
     {
       case 9:
@@ -1008,7 +986,7 @@ namespace cryptonote
   std::string print_money(uint64_t amount, unsigned int decimal_point)
   {
     if (decimal_point == (unsigned int)-1)
-      decimal_point = default_decimal_point;
+      decimal_point = CRYPTONOTE_DISPLAY_DECIMAL_POINT;
     std::string s = std::to_string(amount);
     if(s.size() < decimal_point+1)
     {
