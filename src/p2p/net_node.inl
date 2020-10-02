@@ -258,7 +258,7 @@ namespace nodetool
     }
     if (seconds >= 500 * P2P_IP_BLOCKTIME)
       MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked permanently.");
-    else 
+    else
       MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << seconds << " seconds.");
     return true;
   }
@@ -640,8 +640,6 @@ namespace nodetool
       full_addrs.insert(SEED_MAINNET_6);
       full_addrs.insert(SEED_MAINNET_7);
       full_addrs.insert(SEED_MAINNET_8);
-      full_addrs.insert(SEED_MAINNET_9);
-      full_addrs.insert(SEED_MAINNET_10);
     }
     return full_addrs;
   }
@@ -703,7 +701,7 @@ namespace nodetool
           epee::net_utils::network_address na{epee::net_utils::ipv6_network_address{endpoint.address().to_v6(), endpoint.port()}};
           block_host(na, std::numeric_limits<time_t>::max());
         }
-      }     
+      }
     }
     permanently_banned_ips.close();
 
@@ -996,7 +994,7 @@ namespace nodetool
         if (code == LEVIN_ERROR_CONNECTION_TIMEDOUT)
         {
           timeout = true;
-          add_host_fail(context.m_remote_address);  
+          add_host_fail(context.m_remote_address);
         }
         return;
       }

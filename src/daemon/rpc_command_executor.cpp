@@ -56,7 +56,7 @@ namespace {
       case epee::net_utils::address_type::tor: return "Tor";
     }
   }
-  
+
   bool search_array(const std::string &value, const std::vector<std::string> &array)
   {
     return std::find(array.begin(), array.end(), value) != array.end();
@@ -831,13 +831,12 @@ bool t_rpc_command_executor::print_connections() {
       if (info.incoming)
         ++incoming_number;
       else
-        ++ outgoing_number;     
+        ++ outgoing_number;
       std::string seed_1 = SEED_MAINNET_1; std::string seed1 = seed_1.erase(seed_1.length()-6); std::string seed_2 = SEED_MAINNET_2; std::string seed2 = seed_2.erase(seed_2.length()-6);
       std::string seed_3 = SEED_MAINNET_3; std::string seed3 = seed_3.erase(seed_3.length()-6); std::string seed_4 = SEED_MAINNET_4; std::string seed4 = seed_4.erase(seed_4.length()-6);
       std::string seed_5 = SEED_MAINNET_5; std::string seed5 = seed_5.erase(seed_5.length()-6); std::string seed_6 = SEED_MAINNET_6; std::string seed6 = seed_6.erase(seed_6.length()-6);
       std::string seed_7 = SEED_MAINNET_7; std::string seed7 = seed_7.erase(seed_7.length()-6); std::string seed_8 = SEED_MAINNET_8; std::string seed8 = seed_8.erase(seed_8.length()-6);
-      std::string seed_9 = SEED_MAINNET_9; std::string seed9 = seed_9.erase(seed_9.length()-6); std::string seed_10 = SEED_MAINNET_10; std::string seed10 = seed_10.erase(seed_10.length()-6); 
-      std::vector<std::string> seeds {seed1, seed2, seed3, seed4, seed5, seed6, seed7, seed8, seed9, seed10};     
+      std::vector<std::string> seeds {seed1, seed2, seed3, seed4, seed5, seed6, seed7, seed8};     
       if (search_array(info.ip, seeds))
       {
         address += info.ip + ":" + info.port + "(seed)";
@@ -860,7 +859,7 @@ bool t_rpc_command_executor::print_connections() {
 
        << std::left << (info.localhost ? "[LOCALHOST]" : "")
        << std::left << (info.local_ip ? "[LAN]" : "");
-    } 
+    }
   }
 #pragma GCC diagnostic pop
   tools::msg_writer()
@@ -940,7 +939,7 @@ bool t_rpc_command_executor::print_checkpoints() {
       return true;
     }
   }
-  
+
   bool avail, valid;
   std::vector<std::string> records = tools::DNSResolver::instance().get_txt_record("sumocheckpoints.cloud", avail, valid);
   std::string network_type = (ires.testnet ? "testnet" : ires.stagenet ? "stagenet" : "mainnet");
@@ -1003,7 +1002,7 @@ bool t_rpc_command_executor::print_net_stats()
     % net_stats_res.total_bytes_in
     % tools::get_human_readable_bytes(net_stats_res.total_bytes_in)
     % net_stats_res.total_packets_in
-    % tools::get_human_readable_timespan(seconds)	  
+    % tools::get_human_readable_timespan(seconds)
     % tools::get_human_readable_bytes(average)
     % percent
     % tools::get_human_readable_bytes(limit);
@@ -1015,7 +1014,7 @@ bool t_rpc_command_executor::print_net_stats()
     % net_stats_res.total_bytes_out
     % tools::get_human_readable_bytes(net_stats_res.total_bytes_out)
     % net_stats_res.total_packets_out
-    % tools::get_human_readable_timespan(seconds)	  
+    % tools::get_human_readable_timespan(seconds)
     % tools::get_human_readable_bytes(average)
     % percent
     % tools::get_human_readable_bytes(limit);
@@ -1984,9 +1983,9 @@ bool t_rpc_command_executor::print_bans()
         for (auto i = res.bans.begin(); i != res.bans.end(); ++i)
         {
             if (i->seconds >= 500 * P2P_IP_BLOCKTIME)
-              std::cout << std::setw(17) << std::left << i->host  << " " << "permanently banned" << std::endl; 
+              std::cout << std::setw(17) << std::left << i->host  << " " << "permanently banned" << std::endl;
             else
-              std::cout << std::setw(17) << std::left << i->host  << " " << i->seconds << std::endl;                   
+              std::cout << std::setw(17) << std::left << i->host  << " " << i->seconds << std::endl;
         }
     }
     else
