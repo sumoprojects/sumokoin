@@ -475,22 +475,6 @@ namespace cryptonote
     CHECK_AND_ASSERT_MES (boost::filesystem::exists(folder) || boost::filesystem::create_directories(folder), false,
       std::string("Failed to create directory ").append(folder.string()).c_str());
 
-    // check for blockchain.bin
-    try
-    {
-      const boost::filesystem::path old_files = folder;
-      if (boost::filesystem::exists(old_files / "blockchain.bin"))
-      {
-        MWARNING("Found old-style blockchain.bin in " << old_files.string());
-        MWARNING("Sumokoin now uses a new format. You can either remove blockchain.bin to start syncing");
-        MWARNING("the blockchain anew, or use sumo-blockchain-export and sumo-blockchain-import to");
-        MWARNING("convert your existing blockchain.bin to the new format. See README.md for instructions.");
-        return false;
-      }
-    }
-    // folder might not be a directory, etc, etc
-    catch (...) { }
-
     std::unique_ptr<BlockchainDB> db(new_db());
     if (db == NULL)
     {
