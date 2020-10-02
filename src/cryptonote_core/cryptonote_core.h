@@ -1032,9 +1032,16 @@ namespace cryptonote
      /**
       * @brief checks sync status
       *
-      * @return true on synchronized, false otherwise
+      * @return true on sucess, false otherwise
       */
      bool check_sync_status();
+
+     /**
+      * @brief checks current version against remote DNS TXT record of latest version (DNSSEC secured)
+      *
+      * @return true on sucess, false otherwise
+      */
+     bool check_version();
 
      bool m_test_drop_download = true; //!< whether or not to drop incoming blocks (for testing)
 
@@ -1061,6 +1068,7 @@ namespace cryptonote
      epee::math_helper::once_a_time_seconds<90, false> m_block_rate_interval; //!< interval for checking block rate
      epee::math_helper::once_a_time_seconds<60*60*5, true> m_blockchain_pruning_interval; //!< interval for incremental blockchain pruning
      epee::math_helper::once_a_time_seconds<60*30, true> m_ok_status; //!< interval for checking daemon status
+     epee::math_helper::once_a_time_seconds<60*15, true> m_version_check; //!< interval for checking version
 
      std::atomic<bool> m_starter_message_showed; //!< has the "daemon will sync now" message been shown?
 
