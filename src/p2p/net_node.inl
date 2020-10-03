@@ -43,6 +43,9 @@
 #include <memory>
 #include <tuple>
 #include <vector>
+#include<iostream>
+#include<string>
+#include<fstream>
 
 #include "version.h"
 #include "string_tools.h"
@@ -253,8 +256,10 @@ namespace nodetool
 
       conns.clear();
     }
-
-    MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << P2P_IP_BLOCKTIME << " seconds.");
+    if (seconds >= 500 * P2P_IP_BLOCKTIME)
+      MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked permanently.");
+    else
+      MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << seconds << " seconds.");
     return true;
   }
   //-----------------------------------------------------------------------------------
@@ -612,31 +617,29 @@ namespace nodetool
     std::set<std::string> full_addrs;
     if (nettype == cryptonote::TESTNET)
     {
-      SEED_TESTNET_1;
-      SEED_TESTNET_2;
-      SEED_TESTNET_3;
-      SEED_TESTNET_4;
-      SEED_TESTNET_5;
+      full_addrs.insert(SEED_TESTNET_1);
+      full_addrs.insert(SEED_TESTNET_2);
+      full_addrs.insert(SEED_TESTNET_3);
+      full_addrs.insert(SEED_TESTNET_4);
+      full_addrs.insert(SEED_TESTNET_5);
     }
     else if (nettype == cryptonote::STAGENET)
     {
-      SEED_STAGENET_1;
-      SEED_STAGENET_2;
-      SEED_STAGENET_3;
-      SEED_STAGENET_4;
+      full_addrs.insert(SEED_STAGENET_1);
+      full_addrs.insert(SEED_STAGENET_2);
+      full_addrs.insert(SEED_STAGENET_3);
+      full_addrs.insert(SEED_STAGENET_4);
     }
     else
     {
-      SEED_MAINNET_1;
-      SEED_MAINNET_2;
-      SEED_MAINNET_3;
-      SEED_MAINNET_4;
-      SEED_MAINNET_5;
-      SEED_MAINNET_6;
-      SEED_MAINNET_7;
-      SEED_MAINNET_8;
-      SEED_MAINNET_9;
-      SEED_MAINNET_10;
+      full_addrs.insert(SEED_MAINNET_1);
+      full_addrs.insert(SEED_MAINNET_2);
+      full_addrs.insert(SEED_MAINNET_3);
+      full_addrs.insert(SEED_MAINNET_4);
+      full_addrs.insert(SEED_MAINNET_5);
+      full_addrs.insert(SEED_MAINNET_6);
+      full_addrs.insert(SEED_MAINNET_7);
+      full_addrs.insert(SEED_MAINNET_8);
     }
     return full_addrs;
   }
@@ -660,6 +663,48 @@ namespace nodetool
     bool res = handle_command_line(vm);
     CHECK_AND_ASSERT_MES(res, false, "Failed to handle command line");
 
+    // insert permanent banned ips if any
+
+    std::string b_ips;
+    std::ifstream permanently_banned_ips("bannedips");
+    while(getline(permanently_banned_ips, b_ips))
+    {
+      using namespace boost::asio;
+
+      std::string host = b_ips;
+      std::string port = std::to_string(19733);
+      size_t colon_pos = b_ips.find_last_of(':');
+      size_t dot_pos = b_ips.find_last_of('.');
+      size_t square_brace_pos = b_ips.find('[');
+      if ((std::string::npos != colon_pos && std::string::npos != dot_pos) || std::string::npos != square_brace_pos)
+      {
+        net::get_network_address_host_and_port(b_ips, host, port);
+      }
+      io_service io_srv;
+      ip::tcp::resolver resolver(io_srv);
+      ip::tcp::resolver::query query(host, port, boost::asio::ip::tcp::resolver::query::canonical_name);
+      boost::system::error_code ec;
+      ip::tcp::resolver::iterator i = resolver.resolve(query, ec);
+      CHECK_AND_ASSERT_MES(!ec, false, "Failed to resolve host name '" << host << "': " << ec.message() << ':' << ec.value());
+
+      ip::tcp::resolver::iterator iend;
+      for (; i != iend; ++i)
+      {
+        ip::tcp::endpoint endpoint = *i;
+        if (endpoint.address().is_v4())
+        {
+          epee::net_utils::network_address na{epee::net_utils::ipv4_network_address{boost::asio::detail::socket_ops::host_to_network_long(endpoint.address().to_v4().to_ulong()), endpoint.port()}};
+          block_host(na, std::numeric_limits<time_t>::max());
+        }
+        else
+        {
+          epee::net_utils::network_address na{epee::net_utils::ipv6_network_address{endpoint.address().to_v6(), endpoint.port()}};
+          block_host(na, std::numeric_limits<time_t>::max());
+        }
+      }
+    }
+    permanently_banned_ips.close();
+
     m_fallback_seed_nodes_added = false;
     if (m_nettype == cryptonote::TESTNET)
     {
@@ -674,107 +719,10 @@ namespace nodetool
     else
     {
       memcpy(&m_network_id, &::config::NETWORK_ID, 16);
-      if (m_exclusive_peers.empty() && !m_offline)
-      {
-/*
-  //Spare us the time and resources checking for seed nodes by DNS resolving hardcoded addresses which are not updated regularly anyhow.
-  //use the "fallback" harcoded seed IPs which are plenty, regularly checked and updated
-      // for each hostname in the seed nodes list, attempt to DNS resolve and
-      // add the result addresses as seed nodes
-      // TODO: at some point add IPv6 support, but that won't be relevant
-      // for some time yet.
-
-      std::vector<std::vector<std::string>> dns_results;
-      dns_results.resize(m_seed_nodes_list.size());
-
-      // some libc implementation provide only a very small stack
-      // for threads, e.g. musl only gives +- 80kb, which is not
-      // enough to do a resolve with unbound. we request a stack
-      // of 1 mb, which should be plenty
-      boost::thread::attributes thread_attributes;
-      thread_attributes.set_stack_size(1024*1024);
-
-      std::list<boost::thread> dns_threads;
-      uint64_t result_index = 0;
-      for (const std::string& addr_str : m_seed_nodes_list)
-      {
-        boost::thread th = boost::thread(thread_attributes, [=, &dns_results, &addr_str]
-        {
-          MDEBUG("dns_threads[" << result_index << "] created for: " << addr_str);
-          // TODO: care about dnssec avail/valid
-          bool avail, valid;
-          std::vector<std::string> addr_list;
-
-          try
-          {
-            addr_list = tools::DNSResolver::instance().get_ipv4(addr_str, avail, valid);
-            MDEBUG("dns_threads[" << result_index << "] DNS resolve done");
-            boost::this_thread::interruption_point();
-          }
-          catch(const boost::thread_interrupted&)
-          {
-            // thread interruption request
-            // even if we now have results, finish thread without setting
-            // result variables, which are now out of scope in main thread
-            MWARNING("dns_threads[" << result_index << "] interrupted");
-            return;
-          }
-
-          MINFO("dns_threads[" << result_index << "] addr_str: " << addr_str << "  number of results: " << addr_list.size());
-          dns_results[result_index] = addr_list;
-        });
-
-        dns_threads.push_back(std::move(th));
-        ++result_index;
-      }
-
-      MDEBUG("dns_threads created, now waiting for completion or timeout of " << CRYPTONOTE_DNS_TIMEOUT_MS << "ms");
-      boost::chrono::system_clock::time_point deadline = boost::chrono::system_clock::now() + boost::chrono::milliseconds(CRYPTONOTE_DNS_TIMEOUT_MS);
-      uint64_t i = 0;
-      for (boost::thread& th : dns_threads)
-      {
-        if (! th.try_join_until(deadline))
-        {
-          MWARNING("dns_threads[" << i << "] timed out, sending interrupt");
-          th.interrupt();
-        }
-        ++i;
-      }
-
-      i = 0;
-      for (const auto& result : dns_results)
-      {
-        MDEBUG("DNS lookup for " << m_seed_nodes_list[i] << ": " << result.size() << " results");
-        // if no results for node, thread's lookup likely timed out
-        if (result.size())
-        {
-          for (const auto& addr_string : result)
-            full_addrs.insert(addr_string + ":" + std::to_string(cryptonote::get_config(m_nettype).P2P_DEFAULT_PORT));
-        }
-        ++i;
-      }
-      // append the fallback nodes if we have too few seed nodes to start with (not anymore)
-      // always append the fall back hardcoded seed nodes
-      if (full_addrs.size() < MIN_WANTED_SEED_NODES)
-      {
-        if (full_addrs.empty())
-          MINFO("DNS seed node lookup either timed out or failed, falling back to defaults");
-        else
-          MINFO("Not enough DNS seed nodes found, using fallback defaults too");
-*/
        for (const auto &peer: get_seed_nodes(cryptonote::MAINNET))
         full_addrs.insert(peer);
        m_fallback_seed_nodes_added = true;
-      }
     }
-//  }
-
-    for (const auto& full_addr : full_addrs)
-    {
-      MDEBUG("Seed node: " << full_addr);
-      append_net_address(m_seed_nodes, full_addr, cryptonote::get_config(m_nettype).P2P_DEFAULT_PORT);
-    }
-    MDEBUG("Number of seed nodes: " << m_seed_nodes.size());
 
     m_config_folder = command_line::get_arg(vm, cryptonote::arg_data_dir);
     network_zone& public_zone = m_network_zones.at(epee::net_utils::zone::public_);
@@ -1046,7 +994,7 @@ namespace nodetool
         if (code == LEVIN_ERROR_CONNECTION_TIMEDOUT)
         {
           timeout = true;
-          add_host_fail(context.m_remote_address);  
+          add_host_fail(context.m_remote_address);
         }
         return;
       }
@@ -1687,7 +1635,7 @@ namespace nodetool
 
     if (start_conn_count == get_public_outgoing_connections_count() && start_conn_count < m_network_zones.at(zone_type::public_).m_config.m_net_config.max_out_connection_count)
     {
-      MINFO("Failed to connect to any, trying seeds");
+      MINFO("No previous stored connections, trying seeds");
       if (!connect_to_seed())
         return false;
     }
@@ -2764,13 +2712,9 @@ namespace nodetool
     int result;
     const int ipv6_arg = ipv6 ? 1 : 0;
 
-#if MINIUPNPC_API_VERSION > 13
     // default according to miniupnpc.h
     unsigned char ttl = 2;
     UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, ttl, &result);
-#else
-    UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, &result);
-#endif
     UPNPUrls urls;
     IGDdatas igdData;
     char lanAddress[64];
@@ -2824,7 +2768,6 @@ namespace nodetool
     if (ipv6) add_upnp_port_mapping_v6(port);
   }
 
-
   template<class t_payload_net_handler>
   void node_server<t_payload_net_handler>::delete_upnp_port_mapping_impl(uint32_t port, bool ipv6)
   {
@@ -2832,13 +2775,9 @@ namespace nodetool
     MDEBUG("Attempting to delete IGD port mapping " << ipversion << ".");
     int result;
     const int ipv6_arg = ipv6 ? 1 : 0;
-#if MINIUPNPC_API_VERSION > 13
     // default according to miniupnpc.h
     unsigned char ttl = 2;
     UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, ttl, &result);
-#else
-    UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, &result);
-#endif
     UPNPUrls urls;
     IGDdatas igdData;
     char lanAddress[64];

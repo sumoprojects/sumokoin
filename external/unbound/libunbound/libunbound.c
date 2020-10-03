@@ -1139,6 +1139,17 @@ ub_ctx_resolvconf(struct ub_ctx* ctx, const char* fname)
 	return UB_NOERROR;
 }
 
+// suppress "warning: ‘%s’ directive output may be truncated writing up to 1023 bytes into a region of size between 1018 and 1021, on gcc >= 10"
+#if (__GNUC__ && defined( __has_warning ))
+#if __has_warning( "-Wformat-truncation=" )
+#define SUPPRESS
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation="
+#endif
+#endif
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+
 int
 ub_ctx_hosts(struct ub_ctx* ctx, const char* fname)
 {
@@ -1243,6 +1254,11 @@ ub_ctx_hosts(struct ub_ctx* ctx, const char* fname)
 	fclose(in);
 	return UB_NOERROR;
 }
+#pragma GCC diagnostic pop
+#ifdef SUPPRESS
+#undef SUPPRESS
+#pragma GCC diagnostic pop
+#endif
 
 /** finalize the context, if not already finalized */
 static int ub_ctx_finalize(struct ub_ctx* ctx)

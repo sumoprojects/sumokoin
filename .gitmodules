@@ -1,7 +1,3 @@
 [submodule "external/rapidjson"]
 	path = external/rapidjson
 	url = https://github.com/Tencent/rapidjson
-[submodule "external/supercop"]
-	path = external/supercop
-	url = https://github.com/monero-project/supercop
-	branch = monero

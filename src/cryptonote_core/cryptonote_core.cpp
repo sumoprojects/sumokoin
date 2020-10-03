@@ -42,6 +42,7 @@ using namespace epee;
 #include "common/updates.h"
 #include "common/threadpool.h"
 #include "common/notify.h"
+#include "common/dns_utils.h"
 #include "version.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
@@ -475,22 +476,6 @@ namespace cryptonote
     CHECK_AND_ASSERT_MES (boost::filesystem::exists(folder) || boost::filesystem::create_directories(folder), false,
       std::string("Failed to create directory ").append(folder.string()).c_str());
 
-    // check for blockchain.bin
-    try
-    {
-      const boost::filesystem::path old_files = folder;
-      if (boost::filesystem::exists(old_files / "blockchain.bin"))
-      {
-        MWARNING("Found old-style blockchain.bin in " << old_files.string());
-        MWARNING("Sumokoin now uses a new format. You can either remove blockchain.bin to start syncing");
-        MWARNING("the blockchain anew, or use sumo-blockchain-export and sumo-blockchain-import to");
-        MWARNING("convert your existing blockchain.bin to the new format. See README.md for instructions.");
-        return false;
-      }
-    }
-    // folder might not be a directory, etc, etc
-    catch (...) { }
-
     std::unique_ptr<BlockchainDB> db(new_db());
     if (db == NULL)
     {
@@ -906,6 +891,7 @@ namespace cryptonote
           break;
         case rct::RCTTypeBulletproof:
         case rct::RCTTypeBulletproof2:
+        case rct::RCTTypeCLSAG:
           if (!is_canonical_bulletproof_layout(rv.p.bulletproofs))
           {
             MERROR_VER("Bulletproof does not have canonical form");
@@ -933,7 +919,7 @@ namespace cryptonote
       {
         if (!tx_info[n].result)
           continue;
-        if (tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof && tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof2)
+        if (tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof && tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof2 && tx_info[n].tx->rct_signatures.type != rct::RCTTypeCLSAG)
           continue;
         if (assumed_bad || !rct::verRctSemanticsSimple(tx_info[n].tx->rct_signatures))
         {
@@ -962,7 +948,7 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL(m_incoming_tx_lock);
 
     tools::threadpool& tpool = tools::threadpool::getInstance();
-    tools::threadpool::waiter waiter;
+    tools::threadpool::waiter waiter(tpool);
     epee::span<tx_blob_entry>::const_iterator it = tx_blobs.begin();
     for (size_t i = 0; i < tx_blobs.size(); i++, ++it) {
       tpool.submit(&waiter, [&, i, it] {
@@ -978,7 +964,8 @@ namespace cryptonote
         }
       });
     }
-    waiter.wait(&tpool);
+    if (!waiter.wait())
+      return false;
     it = tx_blobs.begin();
     std::vector<bool> already_have(tx_blobs.size(), false);
     for (size_t i = 0; i < tx_blobs.size(); i++, ++it) {
@@ -1010,7 +997,8 @@ namespace cryptonote
         });
       }
     }
-    waiter.wait(&tpool);
+    if (!waiter.wait())
+      return false;
 
     std::vector<tx_verification_batch_info> tx_info;
     tx_info.reserve(tx_blobs.size());
@@ -1148,10 +1136,8 @@ namespace cryptonote
   {
     if (block_sync_size > 0)
       return block_sync_size;
-    if (get_current_blockchain_height() <= LAST_CHECKPOINT)
+
     return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
-    else
-    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_END;
   }
   //-----------------------------------------------------------------------------------------------
   bool core::are_key_images_spent_in_pool(const std::vector<crypto::key_image>& key_im, std::vector<bool> &spent) const
@@ -1664,6 +1650,7 @@ namespace cryptonote
     m_block_rate_interval.do_call(boost::bind(&core::check_block_rate, this));
     m_blockchain_pruning_interval.do_call(boost::bind(&core::update_blockchain_pruning, this));
     m_ok_status.do_call(boost::bind(&core::check_sync_status, this));
+    m_version_check.do_call(boost::bind(&core::check_version, this));
     m_miner.on_idle();
     m_mempool.on_idle();
     return true;
@@ -1678,10 +1665,26 @@ namespace cryptonote
     hours = minutes / 60;
     if((get_blockchain_storage().get_current_blockchain_height() >= m_target_blockchain_height) && (m_target_blockchain_height > 0))
     {
+     std::string version = std::string(SUMOKOIN_VERSION) + " " + std::string(SUMOKOIN_RELEASE_NAME);
      MGINFO_GREEN(ENDL << "Sumokoin node is on idle and fully synchronized | Height: " << get_blockchain_storage().get_current_blockchain_height()
        << " | Uptime: " << int(hours) << " hours " << int(minutes%60) << " minutes "
-       << int(seconds%60) << " seconds" << ENDL);
+       << int(seconds%60) << " seconds" << " | Version: " << version << ENDL);
     }
+   return true;
+  }
+  //-----------------------------------------------------------------------------------------------
+  bool core::check_version()
+  {
+    bool avail, valid;
+    std::vector<std::string> version = tools::DNSResolver::instance().get_txt_record("sumoversion.pw", avail, valid);
+    std::string current_version = std::string(SUMOKOIN_VERSION) + " " + std::string(SUMOKOIN_RELEASE_NAME);
+   
+   for (auto& ver : version)
+   {
+      if (current_version != ver)
+        MWARNING("Your current version of Sumokoin (" << current_version << ") is obsolete, please upgrade to the lastest version ("<< ver << ")" <<ENDL); 
+   }
+
    return true;
   }
   //-----------------------------------------------------------------------------------------------

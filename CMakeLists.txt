@@ -240,7 +240,6 @@ if(NOT MANUAL_SUBMODULES)
 
     message(STATUS "Checking submodules")
     check_submodule(external/rapidjson)
-    check_submodule(external/supercop)
   endif()
 endif()
 
@@ -374,12 +373,8 @@ elseif(NOT MSVC AND NOT DEPENDS)
 endif()
 
 # This is a CMake built-in switch that concerns internal libraries
-if (NOT DEFINED BUILD_SHARED_LIBS AND NOT STATIC AND CMAKE_BUILD_TYPE_LOWER STREQUAL "debug" AND NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
+if (NOT DEFINED BUILD_SHARED_LIBS AND NOT STATIC AND CMAKE_BUILD_TYPE_LOWER STREQUAL "debug")
     set(BUILD_SHARED_LIBS ON)
-endif()
-
-if (NOT DEFINED BUILD_SHARED_LIBS AND NOT STATIC AND CMAKE_BUILD_TYPE_LOWER STREQUAL "debug" AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
-    set(BUILD_SHARED_LIBS OFF)
 endif()
 
 if (BUILD_SHARED_LIBS)
@@ -505,6 +500,8 @@ if (OPENSSL_FOUND)
     endif()
   endif()
 endif()
+
+find_package(Boost)
 
 find_package(HIDAPI)
 
@@ -752,12 +749,31 @@ else()
     add_linker_flag_if_supported(-Wl,--high-entropy-va LD_SECURITY_FLAGS)
   endif()
 
+  # cleanup bins
+  if (NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    set(LINKER_OPTIONS "${LINKER_OPTIONS} -ffunction-sections -fdata-sections -Wl,--gc-sections")
+  else()
+    set(LINKER_OPTIONS "${LINKER_OPTIONS} -ffunction-sections -fdata-sections -Wl,-dead_strip")
+  # silence warning in link cases dead_strip cannot be used
+    set(WARNINGS "${WARNINGS} -Wno-unused-command-line-argument")
+  endif()
+  if (DEPENDS OR MINGW)
+    set(CMAKE_EXE_LINKER_OPTIONS_FLAGS "${CMAKE_EXE_LINKER_OPTIONS_FLAGS} -Wl,-s")
+  endif() 
+
   message(STATUS "Using C security hardening flags: ${C_SECURITY_FLAGS}")
   message(STATUS "Using C++ security hardening flags: ${CXX_SECURITY_FLAGS}")
   message(STATUS "Using linker security hardening flags: ${LD_SECURITY_FLAGS}")
 
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -D_GNU_SOURCE ${MINGW_FLAG} ${STATIC_ASSERT_FLAG} ${WARNINGS} ${C_WARNINGS} ${COVERAGE_FLAGS} ${PIC_FLAG} ${C_SECURITY_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -D_GNU_SOURCE ${MINGW_FLAG} ${STATIC_ASSERT_CPP_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${COVERAGE_FLAGS} ${PIC_FLAG} ${CXX_SECURITY_FLAGS}")
+  if (NOT (DEPENDS OR MINGW))
+    message(STATUS "Using linker elimination of unused data flags: ${LINKER_OPTIONS}")
+  else()
+    message(STATUS "Using linker elimination of unused data flags: ${LINKER_OPTIONS}")
+    message(STATUS "Using exe linker elimination of unused data flags: ${CMAKE_EXE_LINKER_OPTIONS_FLAGS}")
+  endif()
+
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -D_GNU_SOURCE ${MINGW_FLAG} ${STATIC_ASSERT_FLAG} ${WARNINGS} ${C_WARNINGS} ${COVERAGE_FLAGS} ${PIC_FLAG} ${C_SECURITY_FLAGS} ${LINKER_OPTIONS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -D_GNU_SOURCE ${MINGW_FLAG} ${STATIC_ASSERT_CPP_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${COVERAGE_FLAGS} ${PIC_FLAG} ${CXX_SECURITY_FLAGS} ${LINKER_OPTIONS} ${CMAKE_EXE_LINKER_OPTIONS_FLAGS}")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LD_SECURITY_FLAGS} ${LD_BACKCOMPAT_FLAGS}")
 
   # With GCC 6.1.1 the compiled binary malfunctions due to aliasing. Until that

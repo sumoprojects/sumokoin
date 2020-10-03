@@ -39,7 +39,6 @@
 
 #define CRYPTONOTE_MAX_BLOCK_NUMBER                     500000000
 #define CRYPTONOTE_MAX_BLOCK_WEIGHT                     500000000  // block header blob limit, never used!
-#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE      196608 //size of block (bytes) that is the maximum that miners will produce
 #define CRYPTONOTE_MAX_TX_SIZE                          1000000000
 #define CRYPTONOTE_MAX_TX_PER_BLOCK                     0x10000000
 #define CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER          0
@@ -103,10 +102,7 @@
 #define DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN             DIFFICULTY_TARGET //just alias; used by tests
 
 #define BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT          10000  //by default, blocks ids count in synchronizing
-#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              50     //by default, blocks count in blocks downloading
-#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_END          1      //by default, blocks count in blocks downloading at the end of the chain
-
-#define LAST_CHECKPOINT                                 446000
+#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              10     //by default, blocks count in blocks downloading
 
 #define CRYPTONOTE_MEMPOOL_TX_LIVETIME                  (86400*3) //seconds, three days
 #define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME   604800 //seconds, one week
@@ -165,7 +161,6 @@
 #define RPC_IP_FAILS_BEFORE_BLOCK                       3
 
 #define CRYPTONOTE_NAME                                 "sumokoin"
-#define CRYPTONOTE_POOLDATA_FILENAME                    "poolstate.bin"
 #define CRYPTONOTE_BLOCKCHAINDATA_FILENAME              "data.mdb"
 #define CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME         "lock.mdb"
 #define P2P_NET_DATA_FILENAME                           "p2pstate.bin"
@@ -174,27 +169,25 @@
 
 // seed nodes
 // MAINNET
-#define SEED_MAINNET_1 full_addrs.insert("144.217.164.165:19733") // Canada
-#define SEED_MAINNET_2 full_addrs.insert("217.182.76.94:19733") // Poland
-#define SEED_MAINNET_3 full_addrs.insert("46.105.92.108:19733") // France
-#define SEED_MAINNET_4 full_addrs.insert("139.99.193.21:19733") // Australia
-#define SEED_MAINNET_5 full_addrs.insert("139.99.40.69:19733") // Singapore
-#define SEED_MAINNET_6 full_addrs.insert("133.18.53.223:19733") // Japan
-#define SEED_MAINNET_7 full_addrs.insert("157.230.187.169:19733") // NY - explorer
-#define SEED_MAINNET_8 full_addrs.insert("157.245.14.220:19733") // NY
-#define SEED_MAINNET_9 full_addrs.insert("134.209.109.190:19733") // Singapore
-#define SEED_MAINNET_10 full_addrs.insert("167.172.44.84:19733") // Netherlands
+#define SEED_MAINNET_1   "144.217.164.165:19733" // Canada
+#define SEED_MAINNET_2   "217.182.76.94:19733" // Poland
+#define SEED_MAINNET_3   "46.105.92.108:19733" // France
+#define SEED_MAINNET_4   "139.99.193.21:19733" // Australia
+#define SEED_MAINNET_5   "139.99.40.69:19733" // Singapore
+#define SEED_MAINNET_6   "133.18.53.223:19733" // Japan
+#define SEED_MAINNET_7   "168.119.105.217:19733" // Germany - explorer
+#define SEED_MAINNET_8   "135.181.96.238:19733" // Finland
 // TESTNET
-#define SEED_TESTNET_1 full_addrs.insert("144.217.164.165:29733")
-#define SEED_TESTNET_2 full_addrs.insert("217.182.76.94:29733")
-#define SEED_TESTNET_3 full_addrs.insert("139.99.40.69:29733")
-#define SEED_TESTNET_4 full_addrs.insert("46.105.92.108:29733")
-#define SEED_TESTNET_5 full_addrs.insert("167.172.44.84:29733") // Testnet Explorer
+#define SEED_TESTNET_1 	 "144.217.164.165:29733"
+#define SEED_TESTNET_2 	 "217.182.76.94:29733"
+#define SEED_TESTNET_3 	 "139.99.40.69:29733"
+#define SEED_TESTNET_4 	 "46.105.92.108:29733"
+#define SEED_TESTNET_5 	 "78.47.33.34:29733" // Testnet Explorer
 // STAGENET
-#define SEED_STAGENET_1 full_addrs.insert("144.217.164.165:39733")
-#define SEED_STAGENET_2 full_addrs.insert("217.182.76.94:39733")
-#define SEED_STAGENET_3 full_addrs.insert("139.99.40.69:39733")
-#define SEED_STAGENET_4 full_addrs.insert("46.105.92.108:39733")
+#define SEED_STAGENET_1  "144.217.164.165:39733"
+#define SEED_STAGENET_2  "217.182.76.94:39733"
+#define SEED_STAGENET_3  "139.99.40.69:39733"
+#define SEED_STAGENET_4  "46.105.92.108:39733"
 
 // coin emission change interval/speed configs
 #define COIN_EMISSION_MONTH_INTERVAL                    6  // months to change emission speed
@@ -218,6 +211,9 @@
 #define HF_VERSION_MIN_2_OUTPUTS                          9
 #define HF_VERSION_ENFORCE_MIN_AGE                        9
 #define HF_VERSION_EFFECTIVE_SHORT_TERM_MEDIAN_IN_PENALTY 9
+#define HF_VERSION_EXACT_COINBASE                         10
+#define HF_VERSION_CLSAG                                  10
+#define HF_VERSION_DETERMINISTIC_UNLOCK_TIME              10
 
 #define PER_KB_FEE_QUANTIZATION_DECIMALS                 6
 #define HASH_OF_HASHES_STEP                              512
@@ -262,7 +258,11 @@ namespace config
   const unsigned char HASH_KEY_MEMORY = 'k';
   const unsigned char HASH_KEY_MULTISIG[] = {'M', 'u', 'l', 't' , 'i', 's', 'i', 'g', 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
   const unsigned char HASH_KEY_TXPROOF_V2[] = "TXPROOF_V2";
-  
+  const unsigned char HASH_KEY_CLSAG_ROUND[] = "CLSAG_round";
+  const unsigned char HASH_KEY_CLSAG_AGG_0[] = "CLSAG_agg_0";
+  const unsigned char HASH_KEY_CLSAG_AGG_1[] = "CLSAG_agg_1";
+  const char HASH_KEY_MESSAGE_SIGNING[] = "MoneroMessageSignature";
+
   // Funding for exchange burned coins
   static constexpr const char* EXCHANGE_FUND_ADDRESS = "Sumoo2y7AAteNGJ5yepUUFX3taqDRfM5eYHmCc1qnhwx6cJp3htcjTbKWH7NxkcADcT82pRwns9Us7NdCmuw3gx8bnzYGg14L2o";
   // aa0d3ec96e05fd154235fdcff4c2ebce79f49f4ce76f0aeabeb4a40cf64cc30b

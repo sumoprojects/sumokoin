@@ -961,7 +961,7 @@ namespace cryptonote
     bool get_txpool_tx_meta(const crypto::hash& txid, txpool_tx_meta_t &meta) const;
     bool get_txpool_tx_blob(const crypto::hash& txid, cryptonote::blobdata &bd, relay_category tx_category) const;
     cryptonote::blobdata get_txpool_tx_blob(const crypto::hash& txid, relay_category tx_category) const;
-    bool for_all_txpool_txes(std::function<bool(const crypto::hash&, const txpool_tx_meta_t&, const cryptonote::blobdata*)>, bool include_blob = false, relay_category tx_category = relay_category::broadcasted) const;
+    bool for_all_txpool_txes(std::function<bool(const crypto::hash&, const txpool_tx_meta_t&, const cryptonote::blobdata_ref*)>, bool include_blob = false, relay_category tx_category = relay_category::broadcasted) const;
     bool txpool_tx_matches_category(const crypto::hash& tx_hash, relay_category category);
 
     bool is_within_compiled_block_hash_area() const { return is_within_compiled_block_hash_area(m_db->height()); }
@@ -1014,6 +1014,21 @@ namespace cryptonote
      * @brief flush the invalid blocks set
      */
     void flush_invalid_blocks();
+
+    /**
+     * @brief get the "adjusted time"
+     *
+     * Computes the median timestamp of the previous 60 blocks, projects it
+     * onto the current block to get an 'adjusted median time' which approximates
+     * what the current block's timestamp should be. Also projects the previous
+     * block's timestamp to estimate the current block's timestamp.
+     * 
+     * Returns the minimum of the two projections, or the current local time on
+     * the machine if less than 60 blocks are available.
+     *
+     * @return current time approximated from chain data
+     */
+    uint64_t get_adjusted_time(uint64_t height) const;
 
 #ifndef IN_UNIT_TESTS
   private:
@@ -1151,10 +1166,11 @@ namespace cryptonote
      * @param output_keys return-by-reference the public keys of the outputs in the input set
      * @param rct_signatures the ringCT signatures, which are only valid if tx version > 1
      * @param pmax_related_block_height return-by-pointer the height of the most recent block in the input set
+     * @param hf_version the consensus rules version to use
      *
      * @return false if any output is not yet unlocked, or is missing, otherwise true
      */
-    bool check_tx_input(size_t tx_version,const txin_to_key& txin, const crypto::hash& tx_prefix_hash, const std::vector<crypto::signature>& sig, const rct::rctSig &rct_signatures, std::vector<rct::ctkey> &output_keys, uint64_t* pmax_related_block_height) const;
+    bool check_tx_input(size_t tx_version,const txin_to_key& txin, const crypto::hash& tx_prefix_hash, const std::vector<crypto::signature>& sig, const rct::rctSig &rct_signatures, std::vector<rct::ctkey> &output_keys, uint64_t* pmax_related_block_height, uint8_t hf_version) const;
 
     /**
      * @brief validate a transaction's inputs and their keys
@@ -1341,10 +1357,11 @@ namespace cryptonote
      * unlock_time is either a block index or a unix time.
      *
      * @param unlock_time the unlock parameter (height or time)
+     * @param hf_version the consensus rules version to use
      *
      * @return true if spendable, otherwise false
      */
-    bool is_tx_spendtime_unlocked(uint64_t unlock_time) const;
+    bool is_tx_spendtime_unlocked(uint64_t unlock_time, uint8_t hf_version) const;
 
     /**
      * @brief stores an invalid block in a separate container
@@ -1404,16 +1421,6 @@ namespace cryptonote
      */
     bool check_block_timestamp(std::vector<uint64_t>& timestamps, const block& b, uint64_t& median_ts) const;
     bool check_block_timestamp(std::vector<uint64_t>& timestamps, const block& b) const { uint64_t median_ts; return check_block_timestamp(timestamps, b, median_ts); }
-
-    /**
-     * @brief get the "adjusted time"
-     *
-     * Currently this simply returns the current time according to the
-     * user's machine.
-     *
-     * @return the current time
-     */
-    uint64_t get_adjusted_time() const;
 
     /**
      * @brief finish an alternate chain's timestamp window from the main chain
