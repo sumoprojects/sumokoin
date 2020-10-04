@@ -27,12 +27,12 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <array>
-#include <lmdb.h>
 #include <boost/algorithm/string.hpp>
 #include "common/command_line.h"
 #include "common/pruning.h"
 #include "cryptonote_core/cryptonote_core.h"
 #include "blockchain_db/lmdb/db_lmdb.h"
+#include "lmdb/db_drivers/liblmdb/lmdb.h"
 #include "version.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
