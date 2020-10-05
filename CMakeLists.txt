@@ -31,7 +31,7 @@
 cmake_minimum_required(VERSION 2.8.7)
 message(STATUS "CMake version ${CMAKE_VERSION}")
 
-cmake_host_system_information(RESULT freememsys QUERY AVAILABLE_PHYSICAL_MEMORY) 
+cmake_host_system_information(RESULT freememsys QUERY AVAILABLE_PHYSICAL_MEMORY)
 cmake_host_system_information(RESULT freememvirt QUERY AVAILABLE_VIRTUAL_MEMORY)
 message(STATUS "Total available physical memory: ${freememsys} Mib")
 message(STATUS "Total available virtual memory: ${freememvirt} Mib")
@@ -237,9 +237,6 @@ if(NOT MANUAL_SUBMODULES)
         message(FATAL_ERROR "Submodule '${relative_path}' is not up-to-date. Please update all submodules with\ngit submodule update --init --force\nor run cmake with -DMANUAL_SUBMODULES=1\n")
       endif()
     endfunction ()
-
-    message(STATUS "Checking submodules")
-    check_submodule(external/rapidjson)
   endif()
 endif()
 
@@ -759,7 +756,7 @@ else()
   endif()
   if (DEPENDS OR MINGW)
     set(CMAKE_EXE_LINKER_OPTIONS_FLAGS "${CMAKE_EXE_LINKER_OPTIONS_FLAGS} -Wl,-s")
-  endif() 
+  endif()
 
   message(STATUS "Using C security hardening flags: ${C_SECURITY_FLAGS}")
   message(STATUS "Using C++ security hardening flags: ${CXX_SECURITY_FLAGS}")
