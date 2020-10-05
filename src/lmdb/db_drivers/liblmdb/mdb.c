@@ -1669,11 +1669,11 @@ mdb_version(int *major, int *minor, int *patch)
 	if (major) *major = MDB_VERSION_MAJOR;
 	if (minor) *minor = MDB_VERSION_MINOR;
 	if (patch) *patch = MDB_VERSION_PATCH;
-	return MDB_VERSION_STRING;
+	return (char *)MDB_VERSION_STRING;
 }
 
 /** Table of descriptions for LMDB @ref errors */
-static char *const mdb_errstr[] = {
+static const char *const mdb_errstr[] = {
 	"MDB_KEYEXIST: Key/data pair already exists",
 	"MDB_NOTFOUND: No matching key/data pair found",
 	"MDB_PAGE_NOTFOUND: Requested page not found",
@@ -1711,11 +1711,11 @@ mdb_strerror(int err)
 #endif
 	int i;
 	if (!err)
-		return ("Successful return: 0");
+		return (char *)("Successful return: 0");
 
 	if (err >= MDB_KEYEXIST && err <= MDB_LAST_ERRCODE) {
 		i = err - MDB_KEYEXIST;
-		return mdb_errstr[i];
+		return (char *)mdb_errstr[i];
 	}
 
 #ifdef _WIN32
@@ -1743,7 +1743,7 @@ mdb_strerror(int err)
 	return ptr;
 #else
 	if (err < 0)
-		return "Invalid error code";
+		return (char *)"Invalid error code";
 	return strerror(err);
 #endif
 }
@@ -2388,6 +2388,7 @@ mdb_page_dirty(MDB_txn *txn, MDB_page *mp)
 {
 	MDB_ID2 mid;
 	int rc, (*insert)(MDB_ID2L, MDB_ID2 *);
+  (void) rc;
 
 	if (txn->mt_flags & MDB_TXN_WRITEMAP) {
 		insert = mdb_mid2l_append;
@@ -7663,6 +7664,15 @@ more:
 							data->mv_size);
 						break;
 					}
+#if (__GNUC__ && defined( __has_warning ))
+#if __has_warning( "-Wimplicit-fallthrough=" )
+#define SUPPRESS
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough="
+#endif
+#endif
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
 					offset = fp->mp_pad;
 					if (SIZELEFT(fp) < offset) {
 						offset *= 4; /* space for 4 more */
@@ -7678,7 +7688,11 @@ more:
 				}
 				xdata.mv_size = olddata.mv_size + offset;
 			}
-
+#pragma GCC diagnostic pop
+#ifdef SUPPRESS
+#undef SUPPRESS
+#pragma GCC diagnostic pop
+#endif
 			fp_flags = fp->mp_flags;
 			if (NODESIZE + NODEKSZ(leaf) + xdata.mv_size > env->me_nodemax) {
 					/* Too big for a sub-page, convert to sub-DB */
@@ -7865,7 +7879,7 @@ new_sub:
 			mdb_size_t ecount;
 put_sub:
 			xdata.mv_size = 0;
-			xdata.mv_data = "";
+			xdata.mv_data = (char *)"";
 			leaf = NODEPTR(mc->mc_pg[mc->mc_top], mc->mc_ki[mc->mc_top]);
 			if (flags == MDB_CURRENT) {
 				xflags = MDB_CURRENT|MDB_NOSPILL;
