@@ -33,7 +33,7 @@
 
 namespace crypto {
   namespace wallet {
-// if C functions defined from external/supercop - cmake generates crypto/wallet/ops.h
+// if C functions defined from thirdparty/supercop - cmake generates crypto/wallet/ops.h
 #if defined(monero_crypto_generate_key_derivation)
       inline
       bool generate_key_derivation(const public_key &tx_pub, const secret_key &view_sec, key_derivation &out)
