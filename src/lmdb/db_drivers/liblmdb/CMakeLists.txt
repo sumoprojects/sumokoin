@@ -51,9 +51,7 @@ if(${ARCH_WIDTH} EQUAL 32)
     PUBLIC -DMDB_VL32)
 endif()
 
-if(MINGW)
 set(CMAKE_C_FLAGS "-Wall -Wno-unused-but-set-variable -Wno-array-bounds -Wno-stringop-overflow -Wno-return-local-addr -Wno-format")
-endif()
 
 # GUI/libwallet install target
 if (BUILD_GUI_DEPS)
