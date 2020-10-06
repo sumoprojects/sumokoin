@@ -45,7 +45,7 @@ static const char *DEFAULT_DNS_PUBLIC_ADDR[] =
 // OpenNIC DNS Servers for more privacy https://www.opennic.org + https://dns.watch/index
 // As recently added as possible and with no logs kept declaration + DNScrypt, added many cause they are sponsored
   "89.40.116.230",       // Germany opennic
-  "104.238.186.189",     // UK opennic	
+  "104.238.186.189",     // UK opennic
   "192.71.245.208",      // Italy opennic
   "5.132.191.104",       // Austria opennic
   "162.248.241.94",      // US opennic
@@ -59,7 +59,7 @@ static const char *DEFAULT_DNS_PUBLIC_ADDR[] =
   "80.67.169.12",        // FDN (France - This is not OpenNIC but its still an independent anticensorship group https://www.fdn.fr/)
   "142.4.204.111",       // Canada opennic
   "5.189.170.196",       // Germany opennic
-  "51.15.98.97",         // Netherlands opennic	
+  "51.15.98.97",         // Netherlands opennic
   "142.4.205.47",        // Canada opennic
   "66.70.228.164",       // Canada opennic
   "50.116.17.96",        // US opennic
@@ -75,7 +75,7 @@ namespace
 /*
  * The following two functions were taken from unbound-anchor.c, from
  * the unbound library packaged with this source.  The license and source
- * can be found in $PROJECT_ROOT/external/unbound
+ * can be found in $PROJECT_ROOT/thirdparty/unbound
  */
 
 /* Cert builtin commented out until it's used, as the compiler complains
@@ -540,7 +540,7 @@ bool load_txt_records_from_dns(std::vector<std::string> &good_records, const std
   for (size_t n = 0; n < dns_urls.size(); ++n)
   {
     tpool.submit(&waiter,[n, dns_urls, &records, &avail, &valid](){
-      records[n] = tools::DNSResolver::instance().get_txt_record(dns_urls[n], avail[n], valid[n]); 
+      records[n] = tools::DNSResolver::instance().get_txt_record(dns_urls[n], avail[n], valid[n]);
     });
   }
   waiter.wait();

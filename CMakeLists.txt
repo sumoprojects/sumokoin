@@ -329,7 +329,7 @@ endif()
 # elseif(CMAKE_SYSTEM_NAME MATCHES ".*BSDI.*")
 #   set(BSDI TRUE)
 
-include_directories(external/rapidjson/include external/easylogging++ src contrib/epee/include external external/supercop/include)
+include_directories(thirdparty/rapidjson/include thirdparty/easylogging++ src contrib/epee/include thirdparty thirdparty/supercop/include)
 
 if(APPLE)
   include_directories(SYSTEM /usr/include/malloc)
@@ -522,7 +522,7 @@ include_directories(${MONERO_GENERATED_HEADERS_DIR})
 #  CMAKE_ARGS -DLRELEASE_PATH=${LRELEASE_PATH}
 #  INSTALL_COMMAND cmake -E echo "")
 # include_directories("${CMAKE_CURRENT_BINARY_DIR}/translations")
-add_subdirectory(external)
+add_subdirectory(thirdparty)
 
 # Final setup for libunbound
 include_directories(${UNBOUND_INCLUDE_DIRS})
@@ -1042,7 +1042,7 @@ if(SODIUM_LIBRARY)
   set(ZMQ_LIB "${ZMQ_LIB};${SODIUM_LIBRARY}")
 endif()
 
-include(external/supercop/functions.cmake) # place after setting flags and before src directory inclusion
+include(thirdparty/supercop/functions.cmake) # place after setting flags and before src directory inclusion
 add_subdirectory(contrib)
 add_subdirectory(src)
 
