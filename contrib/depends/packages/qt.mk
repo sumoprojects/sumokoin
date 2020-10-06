@@ -1,18 +1,18 @@
 PACKAGE=qt
 $(package)_version=5.7.1
-$(package)_download_path=https://build.nav.community/depends-sources/
-$(package)_suffix=opensource-src-$($(package)_version).tar.gz
+$(package)_download_path=https://distfiles.macports.org/qt5/
+$(package)_suffix=opensource-src-$($(package)_version).tar.xz
 $(package)_file_name=qtbase-$($(package)_suffix)
-$(package)_sha256_hash=95f83e532d23b3ddbde7973f380ecae1bac13230340557276f75f2e37984e410
+$(package)_sha256_hash=edcdf549d94d98aff08e201dcb3ca25bc3628a37b1309e320d5f556b6b66557e
 $(package)_build_subdir=qtbase
 $(package)_qt_libs=corelib
 $(package)_patches=pidlist_absolute.patch fix_qt_pkgconfig.patch qfixed-coretext.patch
 
 $(package)_qttranslations_file_name=qttranslations-$($(package)_suffix)
-$(package)_qttranslations_sha256_hash=3a15aebd523c6d89fb97b2d3df866c94149653a26d27a00aac9b6d3020bc5a1d
+$(package)_qttranslations_sha256_hash=16ecdb09532724e80fa6202e5604d80877923b652b771b6020cea36bee0258e7
 
 $(package)_qttools_file_name=qttools-$($(package)_suffix)
-$(package)_qttools_sha256_hash=22d67de915cb8cd93e16fdd38fa006224ad9170bd217c2be1e53045a8dd02f0f
+$(package)_qttools_sha256_hash=64197022686c3d8b11a8639f102e2caf03cc325a30e7a32ba66881648ac2dfac
 
 $(package)_extra_sources  = $($(package)_qttranslations_file_name)
 $(package)_extra_sources += $($(package)_qttools_file_name)
