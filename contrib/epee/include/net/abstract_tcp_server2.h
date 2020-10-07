@@ -207,7 +207,7 @@ namespace net_utils
   {
     boosted_tcp_server(const boosted_tcp_server&) = delete;
     boosted_tcp_server& operator=(const boosted_tcp_server&) = delete;
-        
+
     enum try_connect_result_t
     {
       CONNECT_SUCCESS,
@@ -325,7 +325,7 @@ namespace net_utils
         std::shared_ptr<idle_callback_conext<t_handler>> ptr(new idle_callback_conext<t_handler>(io_service_, t_callback, timeout_ms));
         //needed call handler here ?...
         ptr->m_timer.expires_from_now(boost::posix_time::milliseconds(ptr->m_period));
-        ptr->m_timer.async_wait(boost::bind(&boosted_tcp_server<t_protocol_handler>::global_timer_handler<t_handler>, this, ptr));
+        ptr->m_timer.async_wait(std::bind(&boosted_tcp_server<t_protocol_handler>::global_timer_handler<t_handler>, this, ptr));
         return true;
       }
 
@@ -336,7 +336,7 @@ namespace net_utils
       if(!ptr->call_handler())
         return true;
       ptr->m_timer.expires_from_now(boost::posix_time::milliseconds(ptr->m_period));
-      ptr->m_timer.async_wait(boost::bind(&boosted_tcp_server<t_protocol_handler>::global_timer_handler<t_handler>, this, ptr));
+      ptr->m_timer.async_wait(std::bind(&boosted_tcp_server<t_protocol_handler>::global_timer_handler<t_handler>, this, ptr));
       return true;
     }
 

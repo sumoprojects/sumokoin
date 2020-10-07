@@ -976,7 +976,7 @@ namespace cryptonote
           fluff_txs.push_back(std::move(tx));
           break;
         default:
-        case relay_method::forward: // not supposed to happen here        
+        case relay_method::forward: // not supposed to happen here
         case relay_method::none:
           break;
       }
@@ -1610,9 +1610,9 @@ skip:
   template<class t_core>
   bool t_cryptonote_protocol_handler<t_core>::on_idle()
   {
-    m_idle_peer_kicker.do_call(boost::bind(&t_cryptonote_protocol_handler<t_core>::kick_idle_peers, this));
-    m_standby_checker.do_call(boost::bind(&t_cryptonote_protocol_handler<t_core>::check_standby_peers, this));
-    m_sync_search_checker.do_call(boost::bind(&t_cryptonote_protocol_handler<t_core>::update_sync_search, this));
+    m_idle_peer_kicker.do_call(std::bind(&t_cryptonote_protocol_handler<t_core>::kick_idle_peers, this));
+    m_standby_checker.do_call(std::bind(&t_cryptonote_protocol_handler<t_core>::check_standby_peers, this));
+    m_sync_search_checker.do_call(std::bind(&t_cryptonote_protocol_handler<t_core>::update_sync_search, this));
     return m_core.on_idle();
   }
   //------------------------------------------------------------------------------------------------------------------------
