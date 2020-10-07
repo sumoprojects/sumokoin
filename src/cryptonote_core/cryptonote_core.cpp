@@ -1644,13 +1644,13 @@ namespace cryptonote
       m_starter_message_showed = true;
     }
 
-    m_txpool_auto_relayer.do_call(boost::bind(&core::relay_txpool_transactions, this));
-    m_check_updates_interval.do_call(boost::bind(&core::check_updates, this));
-    m_check_disk_space_interval.do_call(boost::bind(&core::check_disk_space, this));
-    m_block_rate_interval.do_call(boost::bind(&core::check_block_rate, this));
-    m_blockchain_pruning_interval.do_call(boost::bind(&core::update_blockchain_pruning, this));
-    m_ok_status.do_call(boost::bind(&core::check_sync_status, this));
-    m_version_check.do_call(boost::bind(&core::check_version, this));
+    m_txpool_auto_relayer.do_call(std::bind(&core::relay_txpool_transactions, this));
+    m_check_updates_interval.do_call(std::bind(&core::check_updates, this));
+    m_check_disk_space_interval.do_call(std::bind(&core::check_disk_space, this));
+    m_block_rate_interval.do_call(std::bind(&core::check_block_rate, this));
+    m_blockchain_pruning_interval.do_call(std::bind(&core::update_blockchain_pruning, this));
+    m_ok_status.do_call(std::bind(&core::check_sync_status, this));
+    m_version_check.do_call(std::bind(&core::check_version, this));
     m_miner.on_idle();
     m_mempool.on_idle();
     return true;
@@ -1678,11 +1678,11 @@ namespace cryptonote
     bool avail, valid;
     std::vector<std::string> version = tools::DNSResolver::instance().get_txt_record("sumoversion.pw", avail, valid);
     std::string current_version = std::string(SUMOKOIN_VERSION) + " " + std::string(SUMOKOIN_RELEASE_NAME);
-   
+
    for (auto& ver : version)
    {
       if (current_version != ver)
-        MWARNING("Your current version of Sumokoin (" << current_version << ") is obsolete, please upgrade to the lastest version ("<< ver << ")" <<ENDL); 
+        MWARNING("Your current version of Sumokoin (" << current_version << ") is obsolete, please upgrade to the lastest version ("<< ver << ")" <<ENDL);
    }
 
    return true;

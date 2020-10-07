@@ -464,13 +464,8 @@ eof:
   template<class t_server, class t_handler>
   bool run_default_console_handler_no_srv_param(t_server* ptsrv, t_handler handlr, std::function<std::string(void)> prompt, const std::string& usage = "")
   {
-#if BOOST_VERSION >= 106100
     async_console_handler console_handler;
-    return console_handler.run(ptsrv, boost::bind<bool>(no_srv_param_adapter<t_server, t_handler>, boost::placeholders::_1, boost::placeholders::_2, handlr), prompt, usage);
-#else
-    async_console_handler console_handler;
-    return console_handler.run(ptsrv, boost::bind<bool>(no_srv_param_adapter<t_server, t_handler>, _1, _2, handlr), prompt, usage);
-#endif
+    return console_handler.run(ptsrv, std::bind<bool>(no_srv_param_adapter<t_server, t_handler>, std::placeholders::_1, std::placeholders::_2, handlr), prompt, usage);
   }
 
   template<class t_server, class t_handler>
@@ -482,7 +477,7 @@ eof:
   template<class t_server, class t_handler>
   bool start_default_console_handler_no_srv_param(t_server* ptsrv, t_handler handlr, std::function<std::string(void)> prompt, const std::string& usage = "")
   {
-    boost::thread( boost::bind(run_default_console_handler_no_srv_param<t_server, t_handler>, ptsrv, handlr, prompt, usage) );
+    boost::thread( std::bind(run_default_console_handler_no_srv_param<t_server, t_handler>, ptsrv, handlr, prompt, usage) );
     return true;
   }
 
@@ -507,9 +502,9 @@ eof:
   bool start_default_console2(t_handler handlr, const std::string& usage = "")
   {
     //std::string usage_local = usage;
-    boost::thread( boost::bind(default_console_handler2<t_handler>, handlr, usage) );
-    //boost::function<bool ()> p__ = boost::bind(f<t_handler>, 1, handlr);
-    //boost::function<bool ()> p__ = boost::bind(default_console_handler2<t_handler>, handlr, usage);
+    boost::thread( std::bind(default_console_handler2<t_handler>, handlr, usage) );
+    //boost::function<bool ()> p__ = std::bind(f<t_handler>, 1, handlr);
+    //boost::function<bool ()> p__ = std::bind(default_console_handler2<t_handler>, handlr, usage);
     //boost::thread tr(p__);
     return true;
   }*/
@@ -572,7 +567,7 @@ eof:
       }
       return list;
     }
-        
+
     void set_handler(const std::string& cmd, const callback& hndlr, const std::string& usage = "", const std::string& description = "")
     {
       lookup::mapped_type & vt = m_command_handlers[cmd];
@@ -649,7 +644,7 @@ eof:
 
     bool start_handling(std::function<std::string(void)> prompt, const std::string& usage_string = "", std::function<void(void)> exit_handler = NULL)
     {
-      m_console_thread.reset(new boost::thread(boost::bind(&console_handlers_binder::run_handling, this, prompt, usage_string, exit_handler)));
+      m_console_thread.reset(new boost::thread(std::bind(&console_handlers_binder::run_handling, this, prompt, usage_string, exit_handler)));
       return true;
     }
     bool start_handling(const std::string &prompt, const std::string& usage_string = "", std::function<void(void)> exit_handler = NULL)
@@ -664,11 +659,7 @@ eof:
 
     bool run_handling(std::function<std::string(void)> prompt, const std::string& usage_string, std::function<void(void)> exit_handler = NULL)
     {
-#if BOOST_VERSION >= 106100
-      return m_console_handler.run(boost::bind(&console_handlers_binder::process_command_str, this, boost::placeholders::_1), prompt, usage_string, exit_handler);
-#else
-      return m_console_handler.run(boost::bind(&console_handlers_binder::process_command_str, this, _1), prompt, usage_string, exit_handler);
-#endif
+      return m_console_handler.run(std::bind(&console_handlers_binder::process_command_str, this, std::placeholders::_1), prompt, usage_string, exit_handler);
     }
 
     void print_prompt()
@@ -690,13 +681,13 @@ eof:
   //public:
   //  bool start_handling(t_server* psrv, const std::string& prompt, const std::string& usage_string = "")
   //  {
-  //    boost::thread(boost::bind(&srv_console_handlers_binder<t_server>::run_handling, this, psrv, prompt, usage_string)).detach();
+  //    boost::thread(std::bind(&srv_console_handlers_binder<t_server>::run_handling, this, psrv, prompt, usage_string)).detach();
   //    return true;
   //  }
 
   //  bool run_handling(t_server* psrv, const std::string& prompt, const std::string& usage_string)
   //  {
-  //    return m_console_handler.run(psrv, boost::bind(&srv_console_handlers_binder<t_server>::process_command_str, this, boost::placeholders::_1, boost::placeholders::_2), prompt, usage_string);
+  //    return m_console_handler.run(psrv, std::bind(&srv_console_handlers_binder<t_server>::process_command_str, this, std::placeholders::_1, std::placeholders::_2), prompt, usage_string);
   //  }
 
   //  void stop_handling()

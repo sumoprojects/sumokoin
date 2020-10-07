@@ -376,7 +376,7 @@ public:
   void request_callback()
   {
     misc_utils::auto_scope_leave_caller scope_exit_handler = misc_utils::create_scope_leave_handler(
-      boost::bind(&async_protocol_handler::finish_outer_call, this));
+      std::bind(&async_protocol_handler::finish_outer_call, this));
 
     m_pservice_endpoint->request_callback();
   }
@@ -608,7 +608,7 @@ public:
   bool async_invoke(int command, const epee::span<const uint8_t> in_buff, const callback_t &cb, size_t timeout = LEVIN_DEFAULT_TIMEOUT_PRECONFIGURED)
   {
     misc_utils::auto_scope_leave_caller scope_exit_handler = misc_utils::create_scope_leave_handler(
-      boost::bind(&async_protocol_handler::finish_outer_call, this));
+      std::bind(&async_protocol_handler::finish_outer_call, this));
 
     if(timeout == LEVIN_DEFAULT_TIMEOUT_PRECONFIGURED)
       timeout = m_config.m_invoke_timeout;
@@ -662,7 +662,7 @@ public:
   int invoke(int command, const epee::span<const uint8_t> in_buff, std::string& buff_out)
   {
     misc_utils::auto_scope_leave_caller scope_exit_handler = misc_utils::create_scope_leave_handler(
-                                      boost::bind(&async_protocol_handler::finish_outer_call, this));
+                                      std::bind(&async_protocol_handler::finish_outer_call, this));
 
     if(m_deletion_initiated)
       return LEVIN_ERROR_CONNECTION_DESTROYED;
@@ -714,7 +714,7 @@ public:
   int notify(int command, const epee::span<const uint8_t> in_buff)
   {
     misc_utils::auto_scope_leave_caller scope_exit_handler = misc_utils::create_scope_leave_handler(
-                          boost::bind(&async_protocol_handler::finish_outer_call, this));
+                          std::bind(&async_protocol_handler::finish_outer_call, this));
 
     if(m_deletion_initiated)
       return LEVIN_ERROR_CONNECTION_DESTROYED;
@@ -742,7 +742,7 @@ public:
   int send(byte_slice message)
   {
     const misc_utils::auto_scope_leave_caller scope_exit_handler = misc_utils::create_scope_leave_handler(
-      boost::bind(&async_protocol_handler::finish_outer_call, this)
+      std::bind(&async_protocol_handler::finish_outer_call, this)
     );
 
     if(m_deletion_initiated)

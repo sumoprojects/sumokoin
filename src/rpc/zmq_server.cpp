@@ -230,7 +230,7 @@ std::shared_ptr<listener::zmq_pub> ZmqServer::init_pub(epee::span<const std::str
 
 void ZmqServer::run()
 {
-  run_thread = boost::thread(boost::bind(&ZmqServer::serve, this));
+  run_thread = boost::thread(std::bind(&ZmqServer::serve, this));
 }
 
 void ZmqServer::stop()

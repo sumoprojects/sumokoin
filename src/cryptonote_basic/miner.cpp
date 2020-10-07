@@ -241,7 +241,7 @@ namespace cryptonote
     boost::interprocess::ipcdetail::atomic_write32(&m_stop, 0);
     boost::interprocess::ipcdetail::atomic_write32(&m_thread_index, 0);
     for(size_t i = 0; i != m_threads_total; i++)
-      m_threads.push_back(boost::thread(m_attrs, boost::bind(&miner::worker_thread, this)));
+      m_threads.push_back(boost::thread(m_attrs, std::bind(&miner::worker_thread, this)));
   }
   //-----------------------------------------------------------------------------------------------------
   void miner::init_options(boost::program_options::options_description& desc)
@@ -343,7 +343,7 @@ namespace cryptonote
 
     for(size_t i = 0; i != m_threads_total; i++)
     {
-      m_threads.push_back(boost::thread(m_attrs, boost::bind(&miner::worker_thread, this)));
+      m_threads.push_back(boost::thread(m_attrs, std::bind(&miner::worker_thread, this)));
     }
 
     if (threads_count == 0)
