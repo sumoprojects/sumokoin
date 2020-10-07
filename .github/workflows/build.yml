@@ -7,8 +7,6 @@ jobs:
     runs-on: macOS-latest 
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: update brew and install dependencies
       run: brew update && brew install boost hidapi zmq unbound libpgm ldns expat libunwind-headers protobuf
     - name: build
@@ -21,8 +19,6 @@ jobs:
         shell: msys2 {0}
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - uses: eine/setup-msys2@v1
       with:
         update: true
@@ -34,8 +30,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -54,8 +48,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -74,8 +66,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -94,8 +84,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -114,8 +102,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -162,8 +148,6 @@ jobs:
     runs-on: ubuntu-16.04
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -210,8 +194,6 @@ jobs:
     runs-on: ubuntu-16.04
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: |
         sudo rm -rf /usr/local/share/boost
@@ -266,8 +248,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -287,8 +267,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
