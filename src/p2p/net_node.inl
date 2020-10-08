@@ -723,6 +723,13 @@ namespace nodetool
        m_fallback_seed_nodes_added = true;
     }
 
+    for (const auto& full_addr : full_addrs)
+    {
+      MDEBUG("Seed node: " << full_addr);
+      append_net_address(m_seed_nodes, full_addr, cryptonote::get_config(m_nettype).P2P_DEFAULT_PORT);
+    }
+    MDEBUG("Number of seed nodes: " << m_seed_nodes.size());
+
     m_config_folder = command_line::get_arg(vm, cryptonote::arg_data_dir);
     network_zone& public_zone = m_network_zones.at(epee::net_utils::zone::public_);
 
