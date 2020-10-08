@@ -749,12 +749,13 @@ else()
   # cleanup bins
   if (NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
     set(LINKER_OPTIONS "${LINKER_OPTIONS} -ffunction-sections -fdata-sections -Wl,--gc-sections")
-  else()
+  endif()
+  if (CMAKE_C_COMPILER_ID STREQUAL "Clang" AND APPLE)
     set(LINKER_OPTIONS "${LINKER_OPTIONS} -ffunction-sections -fdata-sections -Wl,-dead_strip")
   # silence warning in link cases dead_strip cannot be used
     set(WARNINGS "${WARNINGS} -Wno-unused-command-line-argument")
   endif()
-  if (DEPENDS OR MINGW)
+  if (DEPENDS OR MINGW AND NOT FREEBSD)
     set(CMAKE_EXE_LINKER_OPTIONS_FLAGS "${CMAKE_EXE_LINKER_OPTIONS_FLAGS} -Wl,-s")
   endif()
 
