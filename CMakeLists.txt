@@ -1,4 +1,5 @@
 # Copyright (c) 2014-2020, The Monero Project
+# Copyright (c) 2017-2020, Sumokoin Projects
 #
 # All rights reserved.
 #
@@ -755,7 +756,7 @@ else()
   # silence warning in link cases dead_strip cannot be used
     set(WARNINGS "${WARNINGS} -Wno-unused-command-line-argument")
   endif()
-  if (DEPENDS OR MINGW AND NOT FREEBSD)
+  if (DEPENDS OR MINGW AND NOT FREEBSD AND NOT APPLE)
     set(CMAKE_EXE_LINKER_OPTIONS_FLAGS "${CMAKE_EXE_LINKER_OPTIONS_FLAGS} -Wl,-s")
   endif()
 
