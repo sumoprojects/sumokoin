@@ -13,6 +13,34 @@ jobs:
       run: brew update && brew install boost hidapi zmq unbound libpgm ldns expat libunwind-headers protobuf
     - name: build
       run: make -j2
+      
+   macOS-cross-on-bionic:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: remove bundled boost
+      run: sudo rm -rf /usr/local/share/boost
+    - name: set apt conf
+      run: |
+        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: update apt
+      run: sudo apt update
+    - name: install sumokoin dependencies
+      run: sudo apt -y install cmake build-essential autoconf automake gperf libtool imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python-pip
+    - name: install setuptools
+      run: pip install setuptools
+    - name: get SDK 
+      run:  wget https://sumokoin.org/downloads/Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz
+    - name: create SDKs dir
+      run: sudo mkdir /home/runner/work/sumokoin/sumokoin/contrib/depends/SDKs
+    - name: move SDK
+      run: sudo mv Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz /home/runner/work/sumokoin/sumokoin/contrib/depends/SDKs
+    - name: build sumokoin
+      run: make depends target=x86_64-apple-darwin14 -j3     
 
   build-windows:
     runs-on: windows-latest
