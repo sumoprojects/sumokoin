@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -77,8 +77,8 @@ namespace net_utils
 			CONNECT_NO_SSL,
 		};
 
-		
-		
+
+
 				struct handler_obj
 				{
 					handler_obj(boost::system::error_code& error,	size_t& bytes_transferred):ref_error(error), ref_bytes_transferred(bytes_transferred)
@@ -252,11 +252,11 @@ namespace net_utils
 			m_connector = std::move(connector);
 		}
 
-		inline 
+		inline
 		bool disconnect()
 		{
 			try
-			{	
+			{
 				if(m_connected)
 				{
 					m_connected = false;
@@ -279,7 +279,7 @@ namespace net_utils
 		}
 
 
-		inline 
+		inline
 		bool send(const std::string& buff, std::chrono::milliseconds timeout)
 		{
 
@@ -297,14 +297,14 @@ namespace net_utils
 				// Start the asynchronous operation itself. The boost::lambda function
 				// object is used as a callback and will update the ec variable when the
 				// operation completes. The blocking_udp_client.cpp example shows how you
-				// can use boost::bind rather than boost::lambda.
+				// can use std::bind rather than boost::lambda.
 				async_write(buff.c_str(), buff.size(), ec);
 
 				// Block until the asynchronous operation has completed.
 				while (ec == boost::asio::error::would_block)
 				{
 					m_io_service.reset();
-					m_io_service.run_one(); 
+					m_io_service.run_one();
 				}
 
 				if (ec)
@@ -333,7 +333,7 @@ namespace net_utils
 			return true;
 		}
 
-		inline 
+		inline
 			bool send(const void* data, size_t sz)
 		{
 			try
@@ -351,7 +351,7 @@ namespace net_utils
 				// Start the asynchronous operation itself. The boost::lambda function
 				// object is used as a callback and will update the ec variable when the
 				// operation completes. The blocking_udp_client.cpp example shows how you
-				// can use boost::bind rather than boost::lambda.
+				// can use std::bind rather than boost::lambda.
 				boost::asio::async_write(m_socket, boost::asio::buffer(data, sz), boost::lambda::var(ec) = boost::lambda::_1);
 
 				// Block until the asynchronous operation has completed.
@@ -400,7 +400,7 @@ namespace net_utils
 			return true;
 		}
 
-		inline 
+		inline
 		bool recv(std::string& buff, std::chrono::milliseconds timeout)
 		{
 
@@ -421,23 +421,23 @@ namespace net_utils
 				// Start the asynchronous operation itself. The boost::lambda function
 				// object is used as a callback and will update the ec variable when the
 				// operation completes. The blocking_udp_client.cpp example shows how you
-				// can use boost::bind rather than boost::lambda.
+				// can use std::bind rather than boost::lambda.
 
 				boost::system::error_code ec = boost::asio::error::would_block;
 				size_t bytes_transfered = 0;
-			
+
 				handler_obj hndlr(ec, bytes_transfered);
 
 				static const size_t max_size = 16384;
 				buff.resize(max_size);
-				
+
 				async_read(&buff[0], max_size, boost::asio::transfer_at_least(1), hndlr);
 
 				// Block until the asynchronous operation has completed.
 				while (ec == boost::asio::error::would_block && !boost::interprocess::ipcdetail::atomic_read32(&m_shutdowned))
 				{
 					m_io_service.reset();
-					m_io_service.run_one(); 
+					m_io_service.run_one();
 				}
 
 
@@ -507,20 +507,20 @@ namespace net_utils
 				// Start the asynchronous operation itself. The boost::lambda function
 				// object is used as a callback and will update the ec variable when the
 				// operation completes. The blocking_udp_client.cpp example shows how you
-				// can use boost::bind rather than boost::lambda.
+				// can use std::bind rather than boost::lambda.
 
 				buff.resize(static_cast<size_t>(sz));
 				boost::system::error_code ec = boost::asio::error::would_block;
 				size_t bytes_transfered = 0;
 
-				
+
 				handler_obj hndlr(ec, bytes_transfered);
 				async_read((char*)buff.data(), buff.size(), boost::asio::transfer_at_least(buff.size()), hndlr);
-				
+
 				// Block until the asynchronous operation has completed.
 				while (ec == boost::asio::error::would_block && !boost::interprocess::ipcdetail::atomic_read32(&m_shutdowned))
 				{
-					m_io_service.run_one(); 
+					m_io_service.run_one();
 				}
 
 				if (ec)
@@ -559,7 +559,7 @@ namespace net_utils
 
 			return false;
 		}
-		
+
 		bool shutdown()
 		{
 			m_deadline.cancel();
@@ -579,7 +579,7 @@ namespace net_utils
       m_connected = false;
 			return true;
 		}
-		
+
 		boost::asio::io_service& get_io_service()
 		{
 			return m_io_service;
@@ -622,7 +622,7 @@ namespace net_utils
 			}
 
 			// Put the actor back to sleep.
-			m_deadline.async_wait(boost::bind(&blocked_mode_client::check_deadline, this));
+			m_deadline.async_wait(std::bind(&blocked_mode_client::check_deadline, this));
 		}
 
 		void shutdown_ssl() {
@@ -646,7 +646,7 @@ namespace net_utils
 			    )
 				MDEBUG("Problems at ssl shutdown: " << ec.message());
 		}
-		
+
 	protected:
 		bool write(const void* data, size_t sz, boost::system::error_code& ec)
 		{
@@ -657,24 +657,24 @@ namespace net_utils
 				success = boost::asio::write(m_ssl_socket->next_layer(), boost::asio::buffer(data, sz), ec);
 			return success;
 		}
-		
-		void async_write(const void* data, size_t sz, boost::system::error_code& ec) 
+
+		void async_write(const void* data, size_t sz, boost::system::error_code& ec)
 		{
 			if(m_ssl_options.support != ssl_support_t::e_ssl_support_disabled)
 				boost::asio::async_write(*m_ssl_socket, boost::asio::buffer(data, sz), boost::lambda::var(ec) = boost::lambda::_1);
 			else
 				boost::asio::async_write(m_ssl_socket->next_layer(), boost::asio::buffer(data, sz), boost::lambda::var(ec) = boost::lambda::_1);
 		}
-		
+
 		void async_read(char* buff, size_t sz, boost::asio::detail::transfer_at_least_t transfer_at_least, handler_obj& hndlr)
 		{
 			if(m_ssl_options.support == ssl_support_t::e_ssl_support_disabled)
 				boost::asio::async_read(m_ssl_socket->next_layer(), boost::asio::buffer(buff, sz), transfer_at_least, hndlr);
 			else
 				boost::asio::async_read(*m_ssl_socket, boost::asio::buffer(buff, sz), transfer_at_least, hndlr);
-			
+
 		}
-		
+
 	protected:
 		boost::asio::io_service m_io_service;
 		boost::asio::ssl::context m_ctx;
@@ -711,7 +711,7 @@ namespace net_utils
 		{
 			m_send_deadline.cancel();
 		}
-		
+
 		bool shutdown()
 		{
 			blocked_mode_client::shutdown();
@@ -719,7 +719,7 @@ namespace net_utils
 			return true;
 		}
 
-		inline 
+		inline
 			bool send(const void* data, size_t sz)
 		{
 			try
@@ -737,7 +737,7 @@ namespace net_utils
 				// Start the asynchronous operation itself. The boost::lambda function
 				// object is used as a callback and will update the ec variable when the
 				// operation completes. The blocking_udp_client.cpp example shows how you
-				// can use boost::bind rather than boost::lambda.
+				// can use std::bind rather than boost::lambda.
 				boost::asio::async_write(m_socket, boost::asio::buffer(data, sz), boost::lambda::var(ec) = boost::lambda::_1);
 
 				// Block until the asynchronous operation has completed.
@@ -745,11 +745,11 @@ namespace net_utils
 				{
 					m_io_service.run_one();
 				}*/
-				
+
 				boost::system::error_code ec;
 
 				size_t writen = write(data, sz, ec);
-				
+
 				if (!writen || ec)
 				{
 					LOG_PRINT_L3("Problems at write: " << ec.message());
@@ -798,9 +798,8 @@ namespace net_utils
 			}
 
 			// Put the actor back to sleep.
-			m_send_deadline.async_wait(boost::bind(&async_blocked_mode_client::check_send_deadline, this));
+			m_send_deadline.async_wait(std::bind(&async_blocked_mode_client::check_send_deadline, this));
 		}
 	};
 }
 }
-

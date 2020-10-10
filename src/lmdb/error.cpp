@@ -27,7 +27,7 @@
 
 #include "error.h"
 
-#include <lmdb.h>
+#include "lmdb/db_drivers/liblmdb/lmdb.h"
 
 namespace {
     struct category final : std::error_category
@@ -94,4 +94,3 @@ namespace lmdb
         return instance;
     }
 }
-

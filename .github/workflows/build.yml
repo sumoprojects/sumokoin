@@ -4,15 +4,44 @@ on: [push, pull_request]
 
 jobs:
   build-macos:
-    runs-on: macOS-latest 
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: update brew and install dependencies
+      run: brew update && brew install boost hidapi zmq libpgm ldns expat libunwind-headers protobuf
+    - name: build
+      run: make -j2
+      
+  macOS-cross-on-bionic:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
       with:
         submodules: recursive
-    - name: update brew and install dependencies
-      run: brew update && brew install boost hidapi zmq unbound libpgm ldns expat libunwind-headers protobuf
-    - name: build
-      run: make -j2
+    - name: remove bundled boost
+      run: sudo rm -rf /usr/local/share/boost
+    - name: set apt conf
+      run: |
+        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: update apt
+      run: sudo apt update
+    - name: install sumokoin dependencies
+      run: sudo apt -y install cmake build-essential autoconf automake gperf libtool imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python-pip
+    - name: install setuptools
+      run: pip install setuptools
+    - name: get SDK 
+      run:  wget https://sumokoin.org/downloads/Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz
+    - name: create SDKs dir, move and extract SDK
+      run: |
+        sudo mkdir /home/runner/work/sumokoin/sumokoin/contrib/depends/SDKs
+        sudo mv Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz /home/runner/work/sumokoin/sumokoin/contrib/depends/SDKs
+        cd /home/runner/work/sumokoin/sumokoin/contrib/depends/SDKs
+        sudo tar -xf Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz
+        cd /home/runner/work/sumokoin/sumokoin
+    - name: build sumokoin
+      run: make depends target=x86_64-apple-darwin14 -j3
 
   build-windows:
     runs-on: windows-latest
@@ -21,8 +50,6 @@ jobs:
         shell: msys2 {0}
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - uses: eine/setup-msys2@v1
       with:
         update: true
@@ -30,32 +57,28 @@ jobs:
     - name: build sumokoin
       run: make release-static-win64 -j2
 
-  build-windows64-debug:
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: msys2 {0}
+  Windows64-cross-on-bionic:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - uses: eine/setup-msys2@v1
-      with:
-        update: true
-        install: mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-libunwind mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb git
-    - name: SetPageFile
+    - name: remove bundled boost
+      run: sudo rm -rf /usr/local/share/boost
+    - name: set apt conf
       run: |
-         Invoke-Expression ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/sumogr/PageFile/master/SetPageFileSize.ps1'))
-      shell: powershell
-    - name: build sumokoin
-      run: make debug-static-win64
+        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: update apt
+      run: sudo apt update
+    - name: install sumokoin dependencies
+      run: sudo apt -y install python3 g++-mingw-w64-x86-64 wine1.6 bc gperf autoconf automake libtool build-essential cmake graphviz doxygen libunwind8-dev pkg-config libssl-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
+    - name: cross compile sumokoin windows binaries
+      run: make depends target=x86_64-w64-mingw32 -j 3
 
   build-ubuntu-bionic:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -74,8 +97,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -94,8 +115,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -114,8 +133,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -162,8 +179,6 @@ jobs:
     runs-on: ubuntu-16.04
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -181,7 +196,7 @@ jobs:
         sudo apt -y install dpkg-dev libc6-dev make g++-7 gcc libssl-dev cmake miniupnpc libunbound-dev libevent-dev graphviz doxygen libunwind8-dev pkg-config libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
                         --slave /usr/bin/g++ g++ /usr/bin/g++-7
-        sudo update-alternatives --config gcc                     
+        sudo update-alternatives --config gcc
     - name: build boost 1_74
       run: |
         wget https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
@@ -210,8 +225,6 @@ jobs:
     runs-on: ubuntu-16.04
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: |
         sudo rm -rf /usr/local/share/boost
@@ -262,12 +275,28 @@ jobs:
     - name: build sumokoin
       run: make release-static -j3
 
+  FreeBSD-cross-on-bionic:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: remove bundled boost
+      run: sudo rm -rf /usr/local/share/boost
+    - name: set apt conf
+      run: |
+        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: update apt
+      run: sudo apt update
+    - name: install sumokoin dependencies
+      run: sudo apt -y install autoconf automake libtool gperf cmake clang-8
+    - name: cross compile sumokoin bins for FreeBSD
+      run: make depends target=x86_64-unknown-freebsd -j 3
+
   libwallet-ubuntu:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -287,8 +316,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-      with:
-        submodules: recursive
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf

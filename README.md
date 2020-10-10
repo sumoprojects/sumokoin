@@ -131,13 +131,7 @@ FreeBSD one liner for required to build dependencies
 
 ### Cloning the repository
 
-Clone recursively to pull-in needed submodule(s):
-
-`$ git clone --recursive https://github.com/sumoprojects/sumokoin`
-
-If you already have a repo cloned, initialize and update:
-
-`$ cd sumokoin && git submodule init && git submodule update`
+`$ git clone https://github.com/sumoprojects/sumokoin`
 
 ### Build instructions
 
@@ -333,7 +327,7 @@ application.
 * To git clone, run:
 
     ```bash
-    git clone --recursive https://github.com/sumoprojects/sumokoin.git
+    git clone https://github.com/sumoprojects/sumokoin.git
     ```
 
 **Building**
@@ -405,7 +399,7 @@ Check that the dependencies are present: `pkg_info -c libexecinfo boost-headers 
 
 Third-party dependencies are usually under `/usr/pkg/`, but if you have a custom setup, adjust the "/usr/pkg" (below) accordingly.
 
-Clone the sumokoin repository recursively and checkout the most recent release as described above. Then build sumokoin: `gmake BOOST_ROOT=/usr/pkg LDFLAGS="-Wl,-R/usr/pkg/lib" release`.  The resulting executables can be found in `build/NetBSD/[Release version]/Release/bin/`.
+Clone the sumokoin repository and checkout the most recent release as described above. Then build sumokoin: `gmake BOOST_ROOT=/usr/pkg LDFLAGS="-Wl,-R/usr/pkg/lib" release`.  The resulting executables can be found in `build/NetBSD/[Release version]/Release/bin/`.
 
 ### On Solaris:
 
@@ -629,7 +623,7 @@ Instructions for debugging suspected blockchain corruption as per @HYC
 There is an `mdb_stat` command in the LMDB source that can print statistics about the database but it's not routinely built. This can be built with the following command:
 
 ```bash
-cd ~/sumokoin/external/db_drivers/liblmdb && make
+cd ~/sumokoin/src/lmdb/db_drivers/liblmdb && make
 ```
 
 The output of `mdb_stat -ea <path to blockchain dir>` will indicate inconsistencies in the blocks, block_heights and block_info table.

@@ -29,7 +29,6 @@
 #include "rpc_args.h"
 
 #include <boost/algorithm/string.hpp>
-#include <boost/bind/bind.hpp>
 // #include "common/command_line.h" // already #included in rpc/rpc_args.h
 #include "common/i18n.h"
 #include "hex.h"
@@ -217,17 +216,10 @@ namespace cryptonote
         LOG_ERROR(arg.rpc_access_control_origins.name  << tr(" requires RPC server password --") << arg.rpc_login.name << tr(" cannot be empty"));
         return std::nullopt;
       }
-#if BOOST_VERSION >= 106100
       std::vector<std::string> access_control_origins;
       boost::split(access_control_origins, access_control_origins_input, boost::is_any_of(","));
-      std::for_each(access_control_origins.begin(), access_control_origins.end(), boost::bind(&boost::trim<std::string>, boost::placeholders::_1, std::locale::classic()));
+      std::for_each(access_control_origins.begin(), access_control_origins.end(), std::bind(&boost::trim<std::string>, std::placeholders::_1, std::locale::classic()));
       config.access_control_origins = std::move(access_control_origins);
-#else
-      std::vector<std::string> access_control_origins;
-      boost::split(access_control_origins, access_control_origins_input, boost::is_any_of(","));
-      std::for_each(access_control_origins.begin(), access_control_origins.end(), boost::bind(&boost::trim<std::string>, _1, std::locale::classic()));
-      config.access_control_origins = std::move(access_control_origins);
-#endif
     }
 
     auto ssl_options = do_process_ssl(vm, arg, any_cert_option);
