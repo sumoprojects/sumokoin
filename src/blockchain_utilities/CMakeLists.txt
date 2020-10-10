@@ -185,6 +185,7 @@ monero_add_executable(blockchain_import
 target_link_libraries(blockchain_import
   PRIVATE
     cryptonote_core
+    cryptonote_basic
     blockchain_db
     version
     epee
@@ -220,6 +221,7 @@ monero_add_executable(blockchain_export
 target_link_libraries(blockchain_export
   PRIVATE
     cryptonote_core
+    cryptonote_basic
     blockchain_db
     version
     epee
@@ -251,6 +253,7 @@ target_link_libraries(blockchain_blackball
   PRIVATE
     wallet
     cryptonote_core
+    cryptonote_basic
     blockchain_db
     version
     epee
@@ -281,6 +284,7 @@ monero_add_executable(blockchain_usage
 target_link_libraries(blockchain_usage
   PRIVATE
     cryptonote_core
+    cryptonote_basic
     blockchain_db
     version
     epee
@@ -311,6 +315,7 @@ monero_add_executable(blockchain_ancestry
 target_link_libraries(blockchain_ancestry
   PRIVATE
     cryptonote_core
+    cryptonote_basic
     blockchain_db
     version
     epee
@@ -341,6 +346,7 @@ monero_add_executable(blockchain_depth
 target_link_libraries(blockchain_depth
   PRIVATE
     cryptonote_core
+    cryptonote_basic
     blockchain_db
     version
     epee
@@ -371,6 +377,7 @@ monero_add_executable(blockchain_stats
 target_link_libraries(blockchain_stats
   PRIVATE
     cryptonote_core
+    cryptonote_basic
     blockchain_db
     version
     epee
@@ -401,6 +408,7 @@ monero_add_executable(blockchain_prune_known_spent_data
 target_link_libraries(blockchain_prune_known_spent_data
   PRIVATE
     cryptonote_core
+    cryptonote_basic
     blockchain_db
     p2p
     version
@@ -446,6 +454,7 @@ endif()
 target_link_libraries(blockchain_prune
   PRIVATE
     cryptonote_core
+    cryptonote_basic
     blockchain_db
     p2p
     version

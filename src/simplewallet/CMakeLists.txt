@@ -47,6 +47,7 @@ target_link_libraries(simplewallet
     wallet
     rpc_base
     cryptonote_core
+    cryptonote_basic
     cncrypto
     common
     mnemonics

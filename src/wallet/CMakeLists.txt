@@ -132,7 +132,6 @@ if (BUILD_GUI_DEPS)
             hardforks
             ringct
             ringct_basic
-            checkpoints
             version
             net
             device_trezor)
