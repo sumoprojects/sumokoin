@@ -49,6 +49,9 @@
 
 //checkpoints
 
+// per block checkpoint expectod blocks hashes file hash
+#define EXPECTED_BLOCK_HASHES_HASH  "0df1372e29f47c892cec03f346a43d0d38ab541563388887051ba0320e3f9cea"
+
 // mainnet checkpoints
 #define MAINNET_CHECKPOINTS \
     ADD_CHECKPOINT(1, "82e8f378ea29d152146b6317903249751b809e97c0b6655f86e120b9de95c38a"); \
