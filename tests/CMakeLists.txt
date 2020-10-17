@@ -32,7 +32,6 @@ set(MONERO_WALLET_CRYPTO_BENCH "auto" CACHE STRING "Select wallet crypto librari
 
 # The docs say this only affects grouping in IDEs
 set(folder "tests")
-set(TEST_DATA_DIR "${CMAKE_CURRENT_LIST_DIR}/data")
 
 if (WIN32 AND STATIC)
   add_definitions(-DSTATICLIB)
@@ -72,34 +71,10 @@ else ()
   include_directories(SYSTEM "${CMAKE_CURRENT_SOURCE_DIR}/gtest/include")
 endif (GTest_FOUND)
 
-file(COPY
-  data/wallet_9svHk1.keys
-  data/wallet_9svHk1
-  data/outputs
-  data/unsigned_monero_tx
-  data/signed_monero_tx
-  DESTINATION data)
-
-# add_subdirectory(core_tests)
-# add_subdirectory(fuzz)
 add_subdirectory(crypto)
-# add_subdirectory(functional_tests)
-# add_subdirectory(performance_tests)
-# add_subdirectory(core_proxy)
 add_subdirectory(unit_tests)
 add_subdirectory(difficulty)
-add_subdirectory(block_weight)
 add_subdirectory(hash)
-add_subdirectory(net_load_tests)
-if (BUILD_GUI_DEPS)
-  add_subdirectory(libwallet_api_tests)
-endif()
-
-if (TREZOR_DEBUG)
-  add_subdirectory(trezor)
-endif()
-
-# add_subdirectory(daemon_tests)
 
 set(hash_targets_sources
   hash-target.cpp)
@@ -156,13 +131,8 @@ add_test(NAME wallet-crypto-bench COMMAND sumo-wallet-crypto-bench)
 
 
 set(enabled_tests
-    core_tests
     difficulty
-    block_weight
     hash
-    performance_tests
-    core_proxy
-    fuzz
     unit_tests)
 
 add_custom_target(tests DEPENDS enabled_tests)
