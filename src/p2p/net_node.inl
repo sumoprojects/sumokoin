@@ -621,6 +621,7 @@ namespace nodetool
       full_addrs.insert(SEED_TESTNET_3);
       full_addrs.insert(SEED_TESTNET_4);
       full_addrs.insert(SEED_TESTNET_5);
+      full_addrs.insert(SEED_TESTNET_6);
     }
     else if (nettype == cryptonote::STAGENET)
     {
