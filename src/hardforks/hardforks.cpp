@@ -57,7 +57,7 @@ const hardfork_t testnet_hard_forks[] = {
   { 7, 130530, 0, 1554465078 },
   { 8, 130560, 0, 1554479506 },
   { 9, 164100, 0, 1572592223 },
-  { 10, 231500, 0, 1603158050 }, // CLSAG & EXACT COINBASE
+  { 10, 231580, 0, 1603158050 }, // CLSAG & EXACT COINBASE
   { 11, 233500, 0, 1603638050 }, // FORBID MLSAG ALLOW CLSAG ONLY
 };
 const size_t num_testnet_hard_forks = sizeof(testnet_hard_forks) / sizeof(testnet_hard_forks[0]);
@@ -72,7 +72,7 @@ const hardfork_t stagenet_hard_forks[] = {
   { 7, 130530, 0, 1554465078 },
   { 8, 130560, 0, 1554479506 },
   { 9, 164100, 0, 1572592223 },
-  { 10, 231500, 0, 1603158050 }, // CLSAG & EXACT COINBASE
+  { 10, 231580, 0, 1603158050 }, // CLSAG & EXACT COINBASE
   { 11, 233500, 0, 1603638050 }, // FORBID MLSAG ALLOW CLSAG ONLY   
 };
 const size_t num_stagenet_hard_forks = sizeof(stagenet_hard_forks) / sizeof(stagenet_hard_forks[0]);
