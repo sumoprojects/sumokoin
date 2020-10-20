@@ -1476,8 +1476,8 @@ namespace cryptonote
       case 0: res.pow_algorithm = "Cryptonight"; break;
       case 1: res.pow_algorithm = "CNv1 (Cryptonight variant 1)"; break;
       case 2: case 3: res.pow_algorithm = "CNv2 (Cryptonight variant 2)"; break;
-      case 4: case 5: case 6: res.pow_algorithm = "CNv4 (Cryptonight variant 4)"; break;
-      default: res.pow_algorithm = "I'm not sure actually"; break;
+      case 4: case 5: case 6: case 7: case 8: res.pow_algorithm = "CNv4 (Cryptonight variant 4)"; break;
+      default: res.pow_algorithm = "CNv4 (Cryptonight variant 4)"; break; // assumed
     }
 
     res.status = CORE_RPC_STATUS_OK;
