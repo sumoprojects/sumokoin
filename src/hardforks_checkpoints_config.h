@@ -43,7 +43,6 @@
 #define HF_VERSION_MIN_2_OUTPUTS                          9
 #define HF_VERSION_ENFORCE_MIN_AGE                        9
 #define HF_VERSION_EFFECTIVE_SHORT_TERM_MEDIAN_IN_PENALTY 9
-#define HF_VERSION_EXACT_COINBASE                         10
 #define HF_VERSION_CLSAG                                  10
 #define HF_VERSION_DETERMINISTIC_UNLOCK_TIME              10
 
@@ -103,4 +102,4 @@
     ADD_CHECKPOINT(190000, "2d42389a1fd0946c8084cd6141bf7562cb262093957f268208d068f9adbc9839"); \
     ADD_CHECKPOINT(210000, "1fd6d9669525a94cf5d034972d41a9ff4f57d28f1136bbdea395819d85dcc841"); \
     ADD_CHECKPOINT(225000, "8ee300b366f522f06869baf5c5cdbc7c23863fdf8f9d09be4c4d6618baffa62f"); \
-
+    

@@ -1522,22 +1522,11 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
     return false;
   }
 
-  // Until hf 10, we were allowing a miner to claim less block reward than is allowed, in case a miner wants less dust
-  if (version >= HF_VERSION_EXACT_COINBASE)
-  {
-    if(base_reward + fee != money_in_use)
-    {
-      MDEBUG("coinbase transaction doesn't use full amount of block reward:  spent: " << money_in_use << ",  block reward " << base_reward + fee << "(" << base_reward << "+" << fee << ")");
-      return false;
-    }
-  }
-  else
-  {
-    CHECK_AND_ASSERT_MES(money_in_use - fee <= base_reward, false, "base reward calculation bug");
-    if (base_reward + fee != money_in_use)
-      partial_block_reward = true;
-    base_reward = money_in_use - fee;
-  }
+  CHECK_AND_ASSERT_MES(money_in_use - fee <= base_reward, false, "base reward calculation bug");
+  if (base_reward + fee != money_in_use)
+    partial_block_reward = true;
+  base_reward = money_in_use - fee;
+  
   return true;
 }
 //------------------------------------------------------------------
