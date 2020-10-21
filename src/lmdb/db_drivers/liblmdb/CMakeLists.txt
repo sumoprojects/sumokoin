@@ -1,21 +1,21 @@
 # Copyright (c) 2014-2020, The Monero Project
-# 
+#
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are
 # permitted provided that the following conditions are met:
-# 
+#
 # 1. Redistributions of source code must retain the above copyright notice, this list of
 #    conditions and the following disclaimer.
-# 
+#
 # 2. Redistributions in binary form must reproduce the above copyright notice, this list
 #    of conditions and the following disclaimer in the documentation and/or other
 #    materials provided with the distribution.
-# 
+#
 # 3. Neither the name of the copyright holder nor the names of its contributors may be
 #    used to endorse or promote products derived from this software without specific
 #    prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -51,7 +51,13 @@ if(${ARCH_WIDTH} EQUAL 32)
     PUBLIC -DMDB_VL32)
 endif()
 
-set(CMAKE_C_FLAGS "-Wall -Wno-unused-but-set-variable -Wno-array-bounds -Wno-stringop-overflow -Wno-return-local-addr -Wno-format")
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
+set(CMAKE_C_FLAGS "-Wall -Wno-unused-but-set-variable -Wno-array-bounds -Wno-stringop-overflow -Wno-return-local-addr -Wno-format -Wno-format-truncation -Wno-unknown-pragmas")
+endif()
+if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wno-format-truncation")
+set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -Wno-format-truncation")
+endif()
 
 # GUI/libwallet install target
 if (BUILD_GUI_DEPS)

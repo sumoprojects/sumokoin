@@ -32,6 +32,10 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
+
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE 1
 #endif
@@ -10314,3 +10318,4 @@ utf8_to_utf16(const char *src, MDB_name *dst, int xtra)
 }
 #endif /* defined(_WIN32) */
 /** @} */
+#pragma clang diagnostic pop
