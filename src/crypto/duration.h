@@ -29,7 +29,6 @@
 #pragma once
 
 #include <chrono>
-#include <boost/random/poisson_distribution.hpp>
 #include "crypto/crypto.h"
 
 namespace crypto
@@ -54,7 +53,7 @@ namespace crypto
     }
 
   private:
-    boost::random::poisson_distribution<rep> dist;
+    std::poisson_distribution<rep> dist;
   };
 
     /* A custom duration is used for subsecond precision because of the
