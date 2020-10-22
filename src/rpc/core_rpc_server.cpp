@@ -509,7 +509,6 @@ namespace cryptonote
     }
     if (use_bootstrap_daemon)
     {
-      bool r;
       return use_bootstrap_daemon_if_necessary<COMMAND_RPC_GET_BLOCKS_FAST>(invoke_http_mode::BIN, "/getblocks.bin", req, res, r);
     }      
 
