@@ -6,11 +6,11 @@ jobs:
   build-macos:
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: install dependencies
       run: brew install boost hidapi zmq libpgm ldns expat libunwind-headers protobuf
     - name: build
-      run: make -j2
+      run: make -j3
     - name: upload binaries
       uses: actions/upload-artifact@v2
       with:
@@ -20,7 +20,7 @@ jobs:
   macOS-cross-on-bionic:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
         submodules: recursive
     - name: remove bundled boost
@@ -54,13 +54,13 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
-    - uses: actions/checkout@v1
-    - uses: eine/setup-msys2@v1
+    - uses: actions/checkout@v2
+    - uses: eine/setup-msys2@v2
       with:
         update: true
         install: mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-libunwind mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb git
     - name: build sumokoin
-      run: make release-static-win64 -j2
+      run: make release-static-win64 -j3
     - name: upload binaries
       uses: actions/upload-artifact@v2
       with:
@@ -70,7 +70,7 @@ jobs:
   Windows64-cross-on-bionic:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -88,7 +88,7 @@ jobs:
   build-ubuntu-bionic:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -101,7 +101,7 @@ jobs:
     - name: install sumokoin dependencies
       run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev libevent-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
     - name: build sumokoin
-      run: make -j3
+      run: make -j 3
     - name: upload binaries
       uses: actions/upload-artifact@v2
       with:
@@ -111,7 +111,7 @@ jobs:
   build-bionic-debug:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -124,12 +124,12 @@ jobs:
     - name: install sumokoin dependencies
       run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
     - name: build sumokoin
-      run: make debug -j3
+      run: make debug -j 3
 
   build-ubuntu-focal-fossa:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -142,12 +142,12 @@ jobs:
     - name: install sumokoin dependencies
       run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
     - name: build sumokoin
-      run: make -j3
+      run: make -j 3
 
   build-ubuntu-bionic-static:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -166,7 +166,7 @@ jobs:
         rm -f /usr/boost_1_74_0.tar.bz2
         cd boost_1_74_0
         sudo ./bootstrap.sh
-        sudo ./b2 install -j3
+        sudo ./b2 install -j 3
         cd ..
     - name: build zmq
       run: |
@@ -174,7 +174,7 @@ jobs:
         cd libzmq
         sudo ./autogen.sh
         sudo ./configure
-        sudo make -j3
+        sudo make -j 3
         sudo make install
         sudo ldconfig
         cd ..
@@ -184,16 +184,16 @@ jobs:
         cd libunwind
         sudo ./autogen.sh
         sudo ./configure
-        sudo make -j3
+        sudo make -j 3
         sudo make install
         cd ..
     - name: build sumokoin
-      run: make release-static -j3
+      run: make release-static -j 3
 
   build-ubuntu-xenial:
     runs-on: ubuntu-16.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -219,7 +219,7 @@ jobs:
         rm -f /usr/boost_1_74_0.tar.bz2
         cd boost_1_74_0
         sudo ./bootstrap.sh
-        sudo ./b2 install -j3
+        sudo ./b2 install -j 3
         cd ..
     - name: manually install default xenial openssl workaround
       run: |
@@ -227,19 +227,19 @@ jobs:
         sudo tar -xf OpenSSL_1_0_2g.tar.gz
         cd openssl-OpenSSL_1_0_2g
         sudo ./config
-        sudo make
+        sudo make -j 3
         sudo make install
         sudo ldconfig
         cd /home/runner/work/sumokoin/sumokoin
     - name: build sumokoin
       run: |
         cmake -DOPENSSL_ROOT_DIR="/usr/local/ssl/"
-        make -j3
+        make -j 3
 
   build-ubuntu-xenial-static:
     runs-on: ubuntu-16.04
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: remove bundled boost
       run: |
         sudo rm -rf /usr/local/share/boost
@@ -266,7 +266,7 @@ jobs:
         rm -f /usr/boost_1_74_0.tar.bz2
         cd boost_1_74_0
         sudo ./bootstrap.sh
-        sudo ./b2 install -j3
+        sudo ./b2 install -j 3
         cd ..
     - name: build zmq
       run: |
@@ -274,8 +274,8 @@ jobs:
         cd libzmq
         sudo ./autogen.sh
         sudo ./configure
-        sudo make -j3
-        sudo make install
+        sudo make -j 3
+        sudo make install -j 3
         sudo ldconfig
         cd ..
     - name: build libunwind
@@ -284,16 +284,16 @@ jobs:
         cd libunwind
         sudo ./autogen.sh
         sudo ./configure
-        sudo make -j3
-        sudo make install
+        sudo make -j 3
+        sudo make install -j 3
         cd ..
     - name: build sumokoin
-      run: make release-static -j3
+      run: make release-static -j 3
 
   FreeBSD-cross-on-bionic:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -311,7 +311,7 @@ jobs:
   libwallet-ubuntu:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -324,13 +324,13 @@ jobs:
     - name: install sumokoin dependencies
       run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev libevent-dev graphviz doxygen pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
     - name: build sumokoin
-      run: cmake -DBUILD_GUI_DEPS=ON && make -j2
+      run: cmake -DBUILD_GUI_DEPS=ON && make -j 3
 
   test-ubuntu:
     needs: build-ubuntu-bionic
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -347,4 +347,4 @@ jobs:
     - name: tests
       env:
         CTEST_OUTPUT_ON_FAILURE: ON
-      run: make release-test -j2
+      run: make release-test -j 3
