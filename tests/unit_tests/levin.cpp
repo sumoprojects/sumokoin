@@ -120,6 +120,11 @@ namespace
     {
         std::map<cryptonote::relay_method, std::vector<cryptonote::blobdata>> relayed_;
 
+        uint64_t get_target_blockchain_height() const override
+        {
+            return 0;
+        }
+
         virtual void on_transactions_relayed(epee::span<const cryptonote::blobdata> txes, cryptonote::relay_method relay) override final
         {
             std::vector<cryptonote::blobdata>& cached = relayed_[relay];
@@ -324,7 +329,7 @@ namespace
             epee::byte_slice noise = nullptr;
             if (noise_size)
                 noise = epee::levin::make_noise_notify(noise_size);
-            return cryptonote::levin::notify{io_service_, connections_, std::move(noise), is_public, pad_txs};
+            return cryptonote::levin::notify{io_service_, connections_, std::move(noise), is_public, pad_txs, events_};
         }
 
         boost::uuids::random_generator random_generator_;
@@ -483,11 +488,11 @@ TEST_F(levin_notify, defaulted)
         EXPECT_FALSE(status.has_noise);
         EXPECT_FALSE(status.connections_filled);
     }
-    EXPECT_TRUE(notifier.send_txs({}, random_generator_(), events_, cryptonote::relay_method::local));
+    EXPECT_TRUE(notifier.send_txs({}, random_generator_(), cryptonote::relay_method::local));
 
     std::vector<cryptonote::blobdata> txs(2);
     txs[0].resize(100, 'e');
-    EXPECT_FALSE(notifier.send_txs(std::move(txs), random_generator_(), events_, cryptonote::relay_method::local));
+    EXPECT_FALSE(notifier.send_txs(std::move(txs), random_generator_(), cryptonote::relay_method::local));
 }
 
 TEST_F(levin_notify, fluff_without_padding)
@@ -512,7 +517,7 @@ TEST_F(levin_notify, fluff_without_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::fluff));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::fluff));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -564,7 +569,7 @@ TEST_F(levin_notify, stem_without_padding)
     while (!has_stemmed || !has_fluffed)
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::stem));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::stem));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -636,7 +641,7 @@ TEST_F(levin_notify, local_without_padding)
     while (!has_stemmed || !has_fluffed)
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::local));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::local));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -708,7 +713,7 @@ TEST_F(levin_notify, forward_without_padding)
     while (!has_stemmed || !has_fluffed)
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::forward));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::forward));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -774,7 +779,7 @@ TEST_F(levin_notify, block_without_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::block));
+        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::block));
 
         io_service_.reset();
         ASSERT_EQ(0u, io_service_.poll());
@@ -803,7 +808,7 @@ TEST_F(levin_notify, none_without_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::none));
+        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::none));
 
         io_service_.reset();
         ASSERT_EQ(0u, io_service_.poll());
@@ -832,7 +837,7 @@ TEST_F(levin_notify, fluff_with_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::fluff));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::fluff));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -881,7 +886,7 @@ TEST_F(levin_notify, stem_with_padding)
     while (!has_stemmed || !has_fluffed)
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::stem));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::stem));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -948,7 +953,7 @@ TEST_F(levin_notify, local_with_padding)
     while (!has_stemmed || !has_fluffed)
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::local));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::local));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1015,7 +1020,7 @@ TEST_F(levin_notify, forward_with_padding)
     while (!has_stemmed || !has_fluffed)
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::forward));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::forward));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1079,7 +1084,7 @@ TEST_F(levin_notify, block_with_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::block));
+        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::block));
 
         io_service_.reset();
         ASSERT_EQ(0u, io_service_.poll());
@@ -1108,7 +1113,7 @@ TEST_F(levin_notify, none_with_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::none));
+        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::none));
 
         io_service_.reset();
         ASSERT_EQ(0u, io_service_.poll());
@@ -1137,7 +1142,7 @@ TEST_F(levin_notify, private_fluff_without_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::fluff));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::fluff));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1188,7 +1193,7 @@ TEST_F(levin_notify, private_stem_without_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::stem));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::stem));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1239,7 +1244,7 @@ TEST_F(levin_notify, private_local_without_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::local));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::local));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1290,7 +1295,7 @@ TEST_F(levin_notify, private_forward_without_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::forward));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::forward));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1341,7 +1346,7 @@ TEST_F(levin_notify, private_block_without_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::block));
+        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::block));
 
         io_service_.reset();
         ASSERT_EQ(0u, io_service_.poll());
@@ -1371,7 +1376,7 @@ TEST_F(levin_notify, private_none_without_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::none));
+        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::none));
 
         io_service_.reset();
         ASSERT_EQ(0u, io_service_.poll());
@@ -1400,7 +1405,7 @@ TEST_F(levin_notify, private_fluff_with_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::fluff));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::fluff));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1450,7 +1455,7 @@ TEST_F(levin_notify, private_stem_with_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::stem));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::stem));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1500,7 +1505,7 @@ TEST_F(levin_notify, private_local_with_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::local));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::local));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1550,7 +1555,7 @@ TEST_F(levin_notify, private_forward_with_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::forward));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::forward));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1600,7 +1605,7 @@ TEST_F(levin_notify, private_block_with_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::block));
+        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::block));
 
         io_service_.reset();
         ASSERT_EQ(0u, io_service_.poll());
@@ -1629,7 +1634,7 @@ TEST_F(levin_notify, private_none_with_padding)
     ASSERT_EQ(10u, contexts_.size());
     {
         auto context = contexts_.begin();
-        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::none));
+        EXPECT_FALSE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::none));
 
         io_service_.reset();
         ASSERT_EQ(0u, io_service_.poll());
@@ -1661,7 +1666,7 @@ TEST_F(levin_notify, stem_mappings)
     for (;;)
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::stem));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::stem));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1723,7 +1728,7 @@ TEST_F(levin_notify, stem_mappings)
     for (unsigned i = 0; i < contexts_.size() * 2; i += 2)
     {
         auto& incoming = contexts_[i % contexts_.size()];
-        EXPECT_TRUE(notifier.send_txs(txs, incoming.get_id(), events_, cryptonote::relay_method::stem));
+        EXPECT_TRUE(notifier.send_txs(txs, incoming.get_id(), cryptonote::relay_method::stem));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1784,7 +1789,7 @@ TEST_F(levin_notify, fluff_multiple)
     for (;;)
     {
         auto context = contexts_.begin();
-        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), events_, cryptonote::relay_method::stem));
+        EXPECT_TRUE(notifier.send_txs(txs, context->get_id(), cryptonote::relay_method::stem));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1843,7 +1848,7 @@ TEST_F(levin_notify, fluff_multiple)
     for (unsigned i = 0; i < contexts_.size() * 2; i += 2)
     {
         auto& incoming = contexts_[i % contexts_.size()];
-        EXPECT_TRUE(notifier.send_txs(txs, incoming.get_id(), events_, cryptonote::relay_method::stem));
+        EXPECT_TRUE(notifier.send_txs(txs, incoming.get_id(), cryptonote::relay_method::stem));
 
         io_service_.reset();
         ASSERT_LT(0u, io_service_.poll());
@@ -1907,7 +1912,7 @@ TEST_F(levin_notify, noise)
         EXPECT_EQ(0u, receiver_.notified_size());
     }
 
-    EXPECT_TRUE(notifier.send_txs(txs, incoming_id, events_, cryptonote::relay_method::local));
+    EXPECT_TRUE(notifier.send_txs(txs, incoming_id, cryptonote::relay_method::local));
     notifier.run_stems();
     io_service_.reset();
     ASSERT_LT(0u, io_service_.poll());
@@ -1929,7 +1934,7 @@ TEST_F(levin_notify, noise)
     }
 
     txs[0].resize(3000, 'r');
-    EXPECT_TRUE(notifier.send_txs(txs, incoming_id, events_, cryptonote::relay_method::fluff));
+    EXPECT_TRUE(notifier.send_txs(txs, incoming_id, cryptonote::relay_method::fluff));
     notifier.run_stems();
     io_service_.reset();
     ASSERT_LT(0u, io_service_.poll());
@@ -1998,7 +2003,7 @@ TEST_F(levin_notify, noise_stem)
         EXPECT_EQ(0u, receiver_.notified_size());
     }
 
-    EXPECT_TRUE(notifier.send_txs(txs, incoming_id, events_, cryptonote::relay_method::stem));
+    EXPECT_TRUE(notifier.send_txs(txs, incoming_id, cryptonote::relay_method::stem));
     notifier.run_stems();
     io_service_.reset();
     ASSERT_LT(0u, io_service_.poll());

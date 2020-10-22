@@ -1,4 +1,5 @@
-// Copyright (c) 2020, The Monero Project
+// Copyright (c) 2017-2020, Sumokoin Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -25,21 +26,32 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
 
-#include "cryptonote_basic/blobdatatype.h"
-#include "cryptonote_protocol/enums.h"
-#include "span.h"
+#include <stdexcept>
+#include <string>
 
-namespace cryptonote
-{
-  struct i_core_events
-  {
-    virtual ~i_core_events() noexcept
-    {}
-
-    virtual uint64_t get_target_blockchain_height() const = 0;
-    virtual void on_transactions_relayed(epee::span<const cryptonote::blobdata> tx_blobs, relay_method tx_relay) = 0;
-  };
-}
+// MAINNET
+#define SEED_MAINNET_1   "144.217.164.165:19733" // Canada
+#define SEED_MAINNET_2   "217.182.76.94:19733" // Poland
+#define SEED_MAINNET_3   "46.105.92.108:19733" // France
+#define SEED_MAINNET_4   "139.99.193.21:19733" // Australia
+#define SEED_MAINNET_5   "139.99.40.69:19733" // Singapore
+#define SEED_MAINNET_6   "133.18.53.223:19733" // Japan
+#define SEED_MAINNET_7   "168.119.105.217:19733" // Germany - explorer
+#define SEED_MAINNET_8   "135.181.96.238:19733" // Finland
+// TESTNET
+#define SEED_TESTNET_1 	 "144.217.164.165:29733"
+#define SEED_TESTNET_2 	 "217.182.76.94:29733"
+#define SEED_TESTNET_3 	 "139.99.40.69:29733"
+#define SEED_TESTNET_4 	 "46.105.92.108:29733"
+#define SEED_TESTNET_5 	 "78.47.33.34:29733"
+#define SEED_TESTNET_6 	 "78.47.81.157:29733" // Testnet Explorer
+// STAGENET
+#define SEED_STAGENET_1  "144.217.164.165:39733"
+#define SEED_STAGENET_2  "217.182.76.94:39733"
+#define SEED_STAGENET_3  "139.99.40.69:39733"
+#define SEED_STAGENET_4  "46.105.92.108:39733"
