@@ -1,21 +1,21 @@
 // Copyright (c) 2017-2020, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,12 +25,12 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 /*!
  * \file gen_multisig.cpp
- * 
+ *
  * \brief Generates a set of multisig wallets
  */
 #include <sstream>
@@ -192,6 +192,7 @@ int main(int argc, char* argv[])
   bool testnet, stagenet;
   uint32_t threshold = 0, total = 0;
   std::string basename;
+  bool create_address_file = command_line::get_arg(*vm, arg_create_address_file);
 
   testnet = command_line::get_arg(*vm, arg_testnet);
   stagenet = command_line::get_arg(*vm, arg_stagenet);
@@ -200,11 +201,11 @@ int main(int argc, char* argv[])
     tools::fail_msg_writer() << genms::tr("Error: Can't specify more than one of --testnet and --stagenet");
     return 1;
   }
-  if (command_line::has_arg(*vm, arg_scheme))
+  if (!command_line::get_arg(*vm, arg_scheme).empty())
   {
     if (sscanf(command_line::get_arg(*vm, arg_scheme).c_str(), "%u/%u", &threshold, &total) != 2)
     {
-      tools::fail_msg_writer() << genms::tr("Error: expected N/M, but got: ") << command_line::get_arg(*vm, arg_scheme);
+      tools::fail_msg_writer() << genms::tr("Expected N/M, but got: ") << command_line::get_arg(*vm, arg_scheme);
       return 1;
     }
   }
@@ -212,7 +213,7 @@ int main(int argc, char* argv[])
   {
     if (threshold)
     {
-      tools::fail_msg_writer() << genms::tr("Error: either --scheme or both of --threshold and --participants may be given");
+      tools::fail_msg_writer() << genms::tr("Either --scheme or both of --threshold and --participants may be given");
       return 1;
     }
     threshold = command_line::get_arg(*vm, arg_threshold);
@@ -221,14 +222,22 @@ int main(int argc, char* argv[])
   {
     if (total)
     {
-      tools::fail_msg_writer() << genms::tr("Error: either --scheme or both of --threshold and --participants may be given");
+      tools::fail_msg_writer() << genms::tr("Either --scheme or both of --threshold and --participants may be given");
       return 1;
     }
     total = command_line::get_arg(*vm, arg_participants);
   }
-  if (threshold <= 1 || threshold > total)
+  if (!command_line::get_arg(*vm, arg_scheme).empty())
   {
-    tools::fail_msg_writer() << (boost::format(genms::tr("Error: expected N > 1 and N <= M, but got N==%u and M==%d")) % threshold % total).str();
+    if (threshold <= 1 || threshold > total)
+    {
+      tools::fail_msg_writer() << (boost::format(genms::tr("Expected N > 1 and N <= M, but got N==%u and M==%d")) % threshold % total).str();
+      return 1;
+    }
+  }
+  else
+  {
+    tools::fail_msg_writer() << genms::tr("Scheme argument was not passed, try --help for support");
     return 1;
   }
   if (!(*vm)["filename-base"].defaulted() && !command_line::get_arg(*vm, arg_filename_base).empty())
@@ -237,11 +246,10 @@ int main(int argc, char* argv[])
   }
   else
   {
-    tools::fail_msg_writer() << genms::tr("Error: --filename-base is required");
+    tools::fail_msg_writer() << genms::tr("--filename-base is required");
     return 1;
   }
 
-  bool create_address_file = command_line::get_arg(*vm, arg_create_address_file);
   if (!generate_multisig(threshold, total, basename, testnet ? TESTNET : stagenet ? STAGENET : MAINNET, create_address_file))
     return 1;
 
