@@ -131,7 +131,7 @@ if(NOT IOS)
   add_subdirectory(blockchain_utilities)
 endif()
 
-if(BUILD_DEBUG_UTILITIES)
+if(DEFAULT_BUILD_DEBUG_UTILITIES AND NOT IOS)
   add_subdirectory(debug_utilities)
 endif()
 
