@@ -26,6 +26,8 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/debug_utilities)
+
 set(cn_deserialize_sources
   cn_deserialize.cpp
   )
@@ -47,7 +49,15 @@ target_link_libraries(cn_deserialize
 set_property(TARGET cn_deserialize
 	PROPERTY
 	OUTPUT_NAME "sumo-utils-deserialize")
-
+install(TARGETS cn_deserialize DESTINATION bin)
+if (UNIX)   
+add_custom_command(TARGET cn_deserialize POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-utils-deserialize ${CMAKE_BINARY_DIR}/bin/debug_utilities/sumo-utils-deserialize)
+endif()
+if (WIN32)
+add_custom_command(TARGET cn_deserialize POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-utils-deserialize.exe ${CMAKE_BINARY_DIR}/bin/debug_utilities/sumo-utils-deserialize.exe)
+endif()
 
 set(object_sizes_sources
   object_sizes.cpp
@@ -68,7 +78,15 @@ target_link_libraries(object_sizes
 set_property(TARGET object_sizes
 	PROPERTY
 	OUTPUT_NAME "sumo-utils-object-sizes")
-
+install(TARGETS object_sizes DESTINATION bin)
+if (UNIX)   
+add_custom_command(TARGET object_sizes POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-utils-object-sizes ${CMAKE_BINARY_DIR}/bin/debug_utilities/sumo-utils-object-sizes)
+endif()
+if (WIN32)
+add_custom_command(TARGET object_sizes POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-utils-object-sizes.exe ${CMAKE_BINARY_DIR}/bin/debug_utilities/sumo-utils-object-sizes.exe)
+endif()
 
 set(dns_checks_sources
   dns_checks.cpp
@@ -90,4 +108,13 @@ target_link_libraries(dns_checks
 set_property(TARGET dns_checks
 	PROPERTY
 	OUTPUT_NAME "sumo-utils-dns-checks")
+install(TARGETS dns_checks DESTINATION bin)
+if (UNIX)   
+add_custom_command(TARGET dns_checks POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-utils-dns-checks ${CMAKE_BINARY_DIR}/bin/debug_utilities/sumo-utils-dns-checks)
+endif()
+if (WIN32)
+add_custom_command(TARGET dns_checks POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-utils-dns-checks.exe ${CMAKE_BINARY_DIR}/bin/debug_utilities/sumo-utils-dns-checks.exe)
+endif()
 
