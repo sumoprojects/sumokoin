@@ -128,11 +128,11 @@ if(NOT IOS)
   add_subdirectory(gen_ssl_cert)
   add_subdirectory(daemonizer)
   add_subdirectory(daemon)
-  add_subdirectory(blockchain_utilities)
+  add_subdirectory(utilities/blockchain_utilities)
 endif()
 
 if(DEFAULT_BUILD_DEBUG_UTILITIES AND NOT IOS)
-  add_subdirectory(debug_utilities)
+  add_subdirectory(utilities/debug_utilities)
 endif()
 
 if(PER_BLOCK_CHECKPOINT)
