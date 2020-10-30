@@ -5207,7 +5207,7 @@ inline InnerMatcher AllArgs(const InnerMatcher& matcher) { return matcher; }
 // The matcher implementation only uses '!arg' and requires that the optional<>
 // type has a 'value_type' member type and that '*arg' is of type 'value_type'
 // and is printable using 'PrintToString'. It is compatible with
-// std::optional/std::experimental::optional.
+// boost::optional/std::experimental::optional.
 // Note that to compare an optional type variable against nullopt you should
 // use Eq(nullopt) and not Optional(Eq(nullopt)). The latter implies that the
 // optional value contains an optional itself.

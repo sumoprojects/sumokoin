@@ -271,7 +271,7 @@ private:
     bool fill_block_header_response(const block& blk, bool orphan_status, uint64_t height, const crypto::hash& hash, block_header_response& response, bool fill_pow_hash);
     std::map<std::string, bool> get_public_nodes(uint32_t credits_per_hash_threshold = 0);
     bool set_bootstrap_daemon(const std::string &address, const std::string &username_password);
-    bool set_bootstrap_daemon(const std::string &address, const std::optional<epee::net_utils::http::login> &credentials);
+    bool set_bootstrap_daemon(const std::string &address, const boost::optional<epee::net_utils::http::login> &credentials);
     bool r;
     enum invoke_http_mode { JON, BIN, JON_RPC };
     template <typename COMMAND_TYPE>

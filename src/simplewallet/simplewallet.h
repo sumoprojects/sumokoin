@@ -37,7 +37,7 @@
 
 #include <memory>
 
-#include <optional>
+#include <boost/optional/optional.hpp>
 #include <boost/program_options/variables_map.hpp>
 
 #include "cryptonote_basic/account.h"
@@ -94,16 +94,16 @@ namespace cryptonote
     void wallet_idle_thread();
 
     //! \return Prompts user for password and verifies against local file. Logs on error and returns `none`
-    std::optional<tools::password_container> get_and_verify_password() const;
+    boost::optional<tools::password_container> get_and_verify_password() const;
 
-    std::optional<epee::wipeable_string> new_wallet(const boost::program_options::variables_map& vm, const crypto::secret_key& recovery_key,
+    boost::optional<epee::wipeable_string> new_wallet(const boost::program_options::variables_map& vm, const crypto::secret_key& recovery_key,
         bool recover, bool two_random, const std::string &old_language);
-    std::optional<epee::wipeable_string> new_wallet(const boost::program_options::variables_map& vm, const cryptonote::account_public_address& address,
-        const std::optional<crypto::secret_key>& spendkey, const crypto::secret_key& viewkey);
-    std::optional<epee::wipeable_string> new_wallet(const boost::program_options::variables_map& vm,
+    boost::optional<epee::wipeable_string> new_wallet(const boost::program_options::variables_map& vm, const cryptonote::account_public_address& address,
+        const boost::optional<crypto::secret_key>& spendkey, const crypto::secret_key& viewkey);
+    boost::optional<epee::wipeable_string> new_wallet(const boost::program_options::variables_map& vm,
         const epee::wipeable_string &multisig_keys, const std::string &old_language);
-    std::optional<epee::wipeable_string> new_wallet(const boost::program_options::variables_map& vm);
-    std::optional<epee::wipeable_string> open_wallet(const boost::program_options::variables_map& vm);
+    boost::optional<epee::wipeable_string> new_wallet(const boost::program_options::variables_map& vm);
+    boost::optional<epee::wipeable_string> open_wallet(const boost::program_options::variables_map& vm);
     bool close_wallet();
 
     bool viewkey(const std::vector<std::string> &args = std::vector<std::string>());
@@ -349,11 +349,11 @@ namespace cryptonote
     virtual void on_unconfirmed_money_received(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& tx, uint64_t amount, const cryptonote::subaddress_index& subaddr_index);
     virtual void on_money_spent(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& in_tx, uint64_t amount, const cryptonote::transaction& spend_tx, const cryptonote::subaddress_index& subaddr_index);
     virtual void on_skip_transaction(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& tx);
-    virtual std::optional<epee::wipeable_string> on_get_password(const char *reason);
-    virtual std::optional<std::string> on_get_message(const char *info);
+    virtual boost::optional<epee::wipeable_string> on_get_password(const char *reason);
+    virtual boost::optional<std::string> on_get_message(const char *info);
     virtual void on_device_button_request(uint64_t code);
-    virtual std::optional<epee::wipeable_string> on_device_pin_request();
-    virtual std::optional<epee::wipeable_string> on_device_passphrase_request(bool on_device);
+    virtual boost::optional<epee::wipeable_string> on_device_pin_request();
+    virtual boost::optional<epee::wipeable_string> on_device_passphrase_request(bool on_device);
     //----------------------------------------------------------
 
     friend class refresh_progress_reporter_t;

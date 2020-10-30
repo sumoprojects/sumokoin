@@ -59,7 +59,7 @@ namespace bootstrap_node
     }
   }
 
-  std::optional<node_info> selector_auto::next_node()
+  boost::optional<node_info> selector_auto::next_node()
   {
     if (!has_at_least_one_good_node())
     {

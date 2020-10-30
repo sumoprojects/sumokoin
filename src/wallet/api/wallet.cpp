@@ -252,26 +252,26 @@ struct Wallet2CallbackImpl : public tools::i_wallet2_callback
       }
     }
 
-    virtual std::optional<epee::wipeable_string> on_device_pin_request()
+    virtual boost::optional<epee::wipeable_string> on_device_pin_request()
     {
       if (m_listener) {
         auto pin = m_listener->onDevicePinRequest();
         if (pin){
-          return std::make_optional(epee::wipeable_string((*pin).data(), (*pin).size()));
+          return boost::make_optional(epee::wipeable_string((*pin).data(), (*pin).size()));
         }
       }
-      return std::nullopt;
+      return boost::none;
     }
 
-    virtual std::optional<epee::wipeable_string> on_device_passphrase_request(bool on_device)
+    virtual boost::optional<epee::wipeable_string> on_device_passphrase_request(bool on_device)
     {
       if (m_listener) {
         auto passphrase = m_listener->onDevicePassphraseRequest(on_device);
         if (!on_device && passphrase) {
-          return std::make_optional(epee::wipeable_string((*passphrase).data(), (*passphrase).size()));
+          return boost::make_optional(epee::wipeable_string((*passphrase).data(), (*passphrase).size()));
         }
       }
-      return std::nullopt;
+      return boost::none;
     }
 
     virtual void on_device_progress(const hw::device_progress & event)
@@ -1949,7 +1949,7 @@ std::string WalletImpl::getReserveProof(bool all, uint32_t account_index, uint64
     try
     {
         clearStatus();
-        std::optional<std::pair<uint32_t, uint64_t>> account_minreserve;
+        boost::optional<std::pair<uint32_t, uint64_t>> account_minreserve;
         if (!all)
         {
             account_minreserve = std::make_pair(account_index, amount);
@@ -2480,7 +2480,7 @@ uint64_t WalletImpl::coldKeyImageSync(uint64_t &spent, uint64_t &unspent)
 
 void WalletImpl::deviceShowAddress(uint32_t accountIndex, uint32_t addressIndex, const std::string &paymentId)
 {
-    std::optional<crypto::hash8> payment_id_param = std::nullopt;
+    boost::optional<crypto::hash8> payment_id_param = boost::none;
     if (!paymentId.empty())
     {
         crypto::hash8 payment_id;

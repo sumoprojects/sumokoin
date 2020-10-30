@@ -32,7 +32,7 @@
 
 #include <string>
 #include <atomic>
-#include <optional>
+#include <boost/optional/optional.hpp>
 #include <functional>
 #include "wipeable_string.h"
 
@@ -51,7 +51,7 @@ namespace tools
     password_container(const epee::wipeable_string& password) noexcept;
 
     //! \return A password from stdin TTY prompt or `std::cin` pipe.
-    static std::optional<password_container> prompt(bool verify, const char *mesage = "Password", bool hide_input = true);
+    static boost::optional<password_container> prompt(bool verify, const char *mesage = "Password", bool hide_input = true);
     static std::atomic<bool> is_prompting;
 
     password_container(const password_container&) = delete;
@@ -83,10 +83,10 @@ namespace tools
        \param verify is passed to `password_container::prompt` if necessary.
        \param message is passed to `password_container::prompt` if necessary.
 
-       \return The username and password, or std::nullopt if
+       \return The username and password, or boost::none if
          `password_container::prompt` fails.
      */
-    static std::optional<login> parse(std::string&& userpass, bool verify, const std::function<std::optional<password_container>(bool)> &prompt);
+    static boost::optional<login> parse(std::string&& userpass, bool verify, const std::function<boost::optional<password_container>(bool)> &prompt);
 
     login(const login&) = delete;
     login(login&&) = default;

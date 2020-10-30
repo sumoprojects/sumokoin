@@ -32,7 +32,7 @@
 
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
-#include <optional>
+#include <boost/optional/optional.hpp>
 #include <system_error>
 #include <csignal>
 #include <cstdio>
@@ -232,9 +232,9 @@ namespace tools
   bool sha256sum(const uint8_t *data, size_t len, crypto::hash &hash);
   bool sha256sum(const std::string &filename, crypto::hash &hash);
 
-  std::optional<bool> is_hdd(const char *path);
+  boost::optional<bool> is_hdd(const char *path);
 
-  std::optional<std::pair<uint32_t, uint32_t>> parse_subaddress_lookahead(const std::string& str);
+  boost::optional<std::pair<uint32_t, uint32_t>> parse_subaddress_lookahead(const std::string& str);
 
   std::string glob_to_regex(const std::string &val);
 #ifdef _WIN32

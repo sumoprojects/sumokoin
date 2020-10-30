@@ -114,9 +114,9 @@ void message_store::set_options(const std::string &bitmessage_address, const epe
 
 void message_store::set_signer(const multisig_wallet_state &state,
                                uint32_t index,
-                               const std::optional<std::string> &label,
-                               const std::optional<std::string> &transport_address,
-                               const std::optional<cryptonote::account_public_address> monero_address)
+                               const boost::optional<std::string> &label,
+                               const boost::optional<std::string> &transport_address,
+                               const boost::optional<cryptonote::account_public_address> monero_address)
 {
   THROW_WALLET_EXCEPTION_IF(index >= m_num_authorized_signers, tools::error::wallet_internal_error, "Invalid signer index " + std::to_string(index));
   authorized_signer &m = m_signers[index];

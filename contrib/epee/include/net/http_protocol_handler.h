@@ -30,7 +30,7 @@
 #ifndef _HTTP_SERVER_H_
 #define _HTTP_SERVER_H_
 
-#include <optional>
+#include <boost/optional/optional.hpp>
 #include <string>
 #include "net_utils_base.h"
 #include "to_nonconst_iterator.h"
@@ -55,7 +55,7 @@ namespace net_utils
 		{
 			std::string m_folder;
 			std::vector<std::string> m_access_control_origins;
-			std::optional<login> m_user;
+			boost::optional<login> m_user;
 			critical_section m_lock;
 		};
 

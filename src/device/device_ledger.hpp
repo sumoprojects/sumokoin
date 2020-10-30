@@ -34,7 +34,11 @@
 #include <string>
 #include "device.hpp"
 #include "log.hpp"
-#include "device_io_hid.hpp"
+#ifndef HAVE_MONERUJO
+ #include "device_io_hid.hpp"
+#else
+ #include "device_io_monerujo.hpp"
+#endif
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 
@@ -159,7 +163,11 @@ namespace hw {
         mutable boost::mutex   command_locker;
 
         //IO
+#ifndef HAVE_MONERUJO
         hw::io::device_io_hid hw_device;
+#else
+        hw::io::device_io_monerujo hw_device;
+#endif
         unsigned int  length_send;
         unsigned char buffer_send[BUFFER_SEND_SIZE];
         unsigned int  length_recv;
@@ -239,7 +247,7 @@ namespace hw {
         bool  get_public_address(cryptonote::account_public_address &pubkey) override;
         bool  get_secret_keys(crypto::secret_key &viewkey , crypto::secret_key &spendkey) override;
         bool  generate_chacha_key(const cryptonote::account_keys &keys, crypto::chacha_key &key, uint64_t kdf_rounds) override;
-        void  display_address(const cryptonote::subaddress_index& index, const std::optional<crypto::hash8> &payment_id) override;
+        void  display_address(const cryptonote::subaddress_index& index, const boost::optional<crypto::hash8> &payment_id) override;
 
         /* ======================================================================= */
         /*                               SUB ADDRESS                               */
@@ -270,7 +278,7 @@ namespace hw {
         /*                               TRANSACTION                               */
         /* ======================================================================= */
         void generate_tx_proof(const crypto::hash &prefix_hash,
-                                   const crypto::public_key &R, const crypto::public_key &A, const std::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r,
+                                   const crypto::public_key &R, const crypto::public_key &A, const boost::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r,
                                    crypto::signature &sig) override;
 
         bool  open_tx(crypto::secret_key &tx_key) override;
@@ -285,7 +293,7 @@ namespace hw {
         bool  ecdhDecode(rct::ecdhTuple & masked, const rct::key & sharedSec, bool short_format) override;
 
         bool  generate_output_ephemeral_keys(const size_t tx_version, const cryptonote::account_keys &sender_account_keys, const crypto::public_key &txkey_pub,  const crypto::secret_key &tx_key,
-                                             const cryptonote::tx_destination_entry &dst_entr, const std::optional<cryptonote::account_public_address> &change_addr, const size_t output_index,
+                                             const cryptonote::tx_destination_entry &dst_entr, const boost::optional<cryptonote::account_public_address> &change_addr, const size_t output_index,
                                              const bool &need_additional_txkeys, const std::vector<crypto::secret_key> &additional_tx_keys,
                                              std::vector<crypto::public_key> &additional_tx_public_keys,
                                              std::vector<rct::key> &amount_keys,

@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include <optional>
+#include <boost/optional/optional.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/positional_options.hpp>
 #include <boost/program_options/variables_map.hpp>
@@ -49,7 +49,7 @@ namespace wallet_args
     pair.first: The list of parsed options, iff there are no errors.
     pair.second: Should the execution terminate succesfully without actually launching the application
   */
-  std::pair<std::optional<boost::program_options::variables_map>, bool> main(
+  std::pair<boost::optional<boost::program_options::variables_map>, bool> main(
     int argc, char** argv,
     const char* const usage,
     const char* const notice,

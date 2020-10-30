@@ -32,7 +32,7 @@
 #include <boost/algorithm/string/finder.hpp>
 #include <boost/chrono/duration.hpp>
 #include <boost/endian/conversion.hpp>
-#include <optional>
+#include <boost/optional/optional.hpp>
 #include <boost/thread/future.hpp>
 #include <boost/utility/string_ref.hpp>
 
@@ -158,7 +158,7 @@ namespace nodetool
       "pad-transactions", "Pad relayed transactions to help defend against traffic volume analysis", false
     };
 
-    std::optional<std::vector<proxy>> get_proxies(boost::program_options::variables_map const& vm)
+    boost::optional<std::vector<proxy>> get_proxies(boost::program_options::variables_map const& vm)
     {
         namespace ip = boost::asio::ip;
 
@@ -172,11 +172,11 @@ namespace nodetool
             proxies.emplace_back();
 
             auto next = boost::algorithm::make_split_iterator(arg, boost::algorithm::first_finder(","));
-            CHECK_AND_ASSERT_MES(!next.eof() && !next->empty(), std::nullopt, "No network type for --" << arg_tx_proxy.name);
+            CHECK_AND_ASSERT_MES(!next.eof() && !next->empty(), boost::none, "No network type for --" << arg_tx_proxy.name);
             const boost::string_ref zone{next->begin(), next->size()};
 
             ++next;
-            CHECK_AND_ASSERT_MES(!next.eof() && !next->empty(), std::nullopt, "No ipv4:port given for --" << arg_tx_proxy.name);
+            CHECK_AND_ASSERT_MES(!next.eof() && !next->empty(), boost::none, "No ipv4:port given for --" << arg_tx_proxy.name);
             const boost::string_ref proxy{next->begin(), next->size()};
 
             ++next;
@@ -185,7 +185,7 @@ namespace nodetool
                 if (2 <= count)
                 {
                     MERROR("Too many ',' characters given to --" << arg_tx_proxy.name);
-                    return std::nullopt;
+                    return boost::none;
                 }
 
                 if (boost::string_ref{next->begin(), next->size()} == "disable_noise")
@@ -196,7 +196,7 @@ namespace nodetool
                     if (proxies.back().max_connections == 0)
                     {
                         MERROR("Invalid max connections given to --" << arg_tx_proxy.name);
-                        return std::nullopt;
+                        return boost::none;
                     }
                 }
             }
@@ -211,7 +211,7 @@ namespace nodetool
                 break;
             default:
                 MERROR("Invalid network for --" << arg_tx_proxy.name);
-                return std::nullopt;
+                return boost::none;
             }
 
             std::uint32_t ip = 0;
@@ -219,7 +219,7 @@ namespace nodetool
             if (!epee::string_tools::parse_peer_from_string(ip, port, std::string{proxy}) || port == 0)
             {
                 MERROR("Invalid ipv4:port given for --" << arg_tx_proxy.name);
-                return std::nullopt;
+                return boost::none;
             }
             proxies.back().address = ip::tcp::endpoint{ip::address_v4{boost::endian::native_to_big(ip)}, port};
         }
@@ -227,7 +227,7 @@ namespace nodetool
         return proxies;
     }
 
-    std::optional<std::vector<anonymous_inbound>> get_anonymous_inbounds(boost::program_options::variables_map const& vm)
+    boost::optional<std::vector<anonymous_inbound>> get_anonymous_inbounds(boost::program_options::variables_map const& vm)
     {
         std::vector<anonymous_inbound> inbounds{};
 
@@ -239,15 +239,15 @@ namespace nodetool
             inbounds.emplace_back();
 
             auto next = boost::algorithm::make_split_iterator(arg, boost::algorithm::first_finder(","));
-            CHECK_AND_ASSERT_MES(!next.eof() && !next->empty(), std::nullopt, "No inbound address for --" << arg_anonymous_inbound.name);
+            CHECK_AND_ASSERT_MES(!next.eof() && !next->empty(), boost::none, "No inbound address for --" << arg_anonymous_inbound.name);
             const boost::string_ref address{next->begin(), next->size()};
 
             ++next;
-            CHECK_AND_ASSERT_MES(!next.eof() && !next->empty(), std::nullopt, "No local ipv4:port given for --" << arg_anonymous_inbound.name);
+            CHECK_AND_ASSERT_MES(!next.eof() && !next->empty(), boost::none, "No local ipv4:port given for --" << arg_anonymous_inbound.name);
             const boost::string_ref bind{next->begin(), next->size()};
 
             const std::size_t colon = bind.find_first_of(':');
-            CHECK_AND_ASSERT_MES(colon < bind.size(), std::nullopt, "No local port given for --" << arg_anonymous_inbound.name);
+            CHECK_AND_ASSERT_MES(colon < bind.size(), boost::none, "No local port given for --" << arg_anonymous_inbound.name);
 
             ++next;
             if (!next.eof())
@@ -256,7 +256,7 @@ namespace nodetool
                 if (inbounds.back().max_connections == 0)
                 {
                     MERROR("Invalid max connections given to --" << arg_tx_proxy.name);
-                    return std::nullopt;
+                    return boost::none;
                 }
             }
 
@@ -273,19 +273,19 @@ namespace nodetool
                 break;
             default:
                 MERROR("Invalid inbound address (" << address << ") for --" << arg_anonymous_inbound.name << ": " << (our_address ? "invalid type" : our_address.error().message()));
-                return std::nullopt;
+                return boost::none;
             }
 
             // get_address returns default constructed address on error
             if (inbounds.back().our_address == epee::net_utils::network_address{})
-                return std::nullopt;
+                return boost::none;
 
             std::uint32_t ip = 0;
             std::uint16_t port = 0;
             if (!epee::string_tools::parse_peer_from_string(ip, port, std::string{bind}))
             {
                 MERROR("Invalid ipv4:port given for --" << arg_anonymous_inbound.name);
-                return std::nullopt;
+                return boost::none;
             }
             inbounds.back().local_ip = std::string{bind.substr(0, colon)};
             inbounds.back().local_port = std::string{bind.substr(colon + 1)};
@@ -313,7 +313,7 @@ namespace nodetool
         return true;
     }
 
-    std::optional<boost::asio::ip::tcp::socket>
+    boost::optional<boost::asio::ip::tcp::socket>
     socks_connect_internal(const std::atomic<bool>& stop_signal, boost::asio::io_service& service, const boost::asio::ip::tcp::endpoint& proxy, const epee::net_utils::network_address& remote)
     {
         using socket_type = net::socks::client::stream_type::socket;
@@ -338,7 +338,7 @@ namespace nodetool
                 boost::asio::ip::tcp::socket{service}, net::socks::version::v4a, notify{std::move(socks_promise)}
              );
             if (!start_socks(std::move(client), proxy, remote))
-                return std::nullopt;
+                return boost::none;
         }
 
         const auto start = std::chrono::steady_clock::now();
@@ -347,11 +347,11 @@ namespace nodetool
             if (socks_connect_timeout < std::chrono::steady_clock::now() - start)
             {
                 MERROR("Timeout on socks connect (" << proxy << " to " << remote.str() << ")");
-                return std::nullopt;
+                return boost::none;
             }
 
             if (stop_signal)
-                return std::nullopt;
+                return boost::none;
         }
 
         try
@@ -365,6 +365,6 @@ namespace nodetool
         catch (boost::broken_promise const&)
         {}
 
-        return std::nullopt;
+        return boost::none;
     }
 }

@@ -307,7 +307,7 @@ namespace cryptonote
       }
     }
 
-    std::optional<subaddress_receive_info> subaddr_recv_info = is_out_to_acc_precomp(subaddresses, out_key, recv_derivation, additional_recv_derivations, real_output_index,hwdev);
+    boost::optional<subaddress_receive_info> subaddr_recv_info = is_out_to_acc_precomp(subaddresses, out_key, recv_derivation, additional_recv_derivations, real_output_index,hwdev);
     CHECK_AND_ASSERT_MES(subaddr_recv_info, false, "key image helper: given output pubkey doesn't seem to belong to this address");
 
     return generate_key_image_helper_precomp(ack, out_key, subaddr_recv_info->derivation, real_output_index, subaddr_recv_info->index, in_ephemeral, ki, hwdev);
@@ -909,7 +909,7 @@ namespace cryptonote
     return false;
   }
   //---------------------------------------------------------------
-  std::optional<subaddress_receive_info> is_out_to_acc_precomp(const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const crypto::public_key& out_key, const crypto::key_derivation& derivation, const std::vector<crypto::key_derivation>& additional_derivations, size_t output_index, hw::device &hwdev)
+  boost::optional<subaddress_receive_info> is_out_to_acc_precomp(const std::unordered_map<crypto::public_key, subaddress_index>& subaddresses, const crypto::public_key& out_key, const crypto::key_derivation& derivation, const std::vector<crypto::key_derivation>& additional_derivations, size_t output_index, hw::device &hwdev)
   {
     // try the shared tx pubkey
     crypto::public_key subaddress_spendkey;
@@ -920,13 +920,13 @@ namespace cryptonote
     // try additional tx pubkeys if available
     if (!additional_derivations.empty())
     {
-      CHECK_AND_ASSERT_MES(output_index < additional_derivations.size(), std::nullopt, "wrong number of additional derivations");
+      CHECK_AND_ASSERT_MES(output_index < additional_derivations.size(), boost::none, "wrong number of additional derivations");
       hwdev.derive_subaddress_public_key(out_key, additional_derivations[output_index], output_index, subaddress_spendkey);
       found = subaddresses.find(subaddress_spendkey);
       if (found != subaddresses.end())
         return subaddress_receive_info{ found->second, additional_derivations[output_index] };
     }
-    return std::nullopt;
+    return boost::none;
   }
   //---------------------------------------------------------------
   bool lookup_acc_outs(const account_keys& acc, const transaction& tx, std::vector<size_t>& outs, uint64_t& money_transfered)
@@ -1296,19 +1296,6 @@ namespace cryptonote
   //---------------------------------------------------------------
   bool get_block_longhash(const block& b, crypto::hash& res, uint64_t height)
   {
-    block b_local = b; //workaround to avoid const errors with do_serialize
-    blobdata bd = get_block_hashing_blob(b);
-    crypto::cn_slow_hash_type cn_type = cn_slow_hash_type::cn_original;
-    if (b_local.major_version == CRYPTONOTE_HEAVY_BLOCK_VERSION)
-    {
-      cn_type = cn_slow_hash_type::cn_heavy;
-    }
-    else if (b_local.major_version >= HF_VERSION_BP){
-      cn_type = cn_slow_hash_type::cn_r;
-    }
-
-    const int cn_variant = b_local.major_version >= HF_VERSION_BP ? b_local.major_version - 3 : 0;
-    crypto::cn_slow_hash(bd.data(), bd.size(), res, cn_variant, height, cn_type);
     return true;
   }
   //---------------------------------------------------------------

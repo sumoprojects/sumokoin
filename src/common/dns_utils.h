@@ -27,7 +27,7 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <optional>
+#include <boost/optional/optional.hpp>
 #include <vector>
 #include <string>
 #include <functional>
@@ -144,7 +144,7 @@ private:
    * @return A vector of strings containing the requested record; or an empty vector
    */
   // TODO: modify this to accommodate DNSSEC
-  std::vector<std::string> get_record(const std::string& url, int record_type, std::optional<std::string> (*reader)(const char *,size_t), bool& dnssec_available, bool& dnssec_valid);
+  std::vector<std::string> get_record(const std::string& url, int record_type, boost::optional<std::string> (*reader)(const char *,size_t), bool& dnssec_available, bool& dnssec_valid);
 
   /**
    * @brief Checks a string to see if it looks like a URL

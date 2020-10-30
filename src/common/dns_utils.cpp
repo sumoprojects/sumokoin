@@ -144,12 +144,12 @@ static const char *get_record_name(int record_type)
   }
 }
 
-std::optional<std::string> ipv4_to_string(const char* src, size_t len)
+boost::optional<std::string> ipv4_to_string(const char* src, size_t len)
 {
   if (len < 4)
   {
     MERROR("Invalid IPv4 address: " << std::string(src, len));
-    return std::nullopt;
+    return boost::none;
   }
 
   std::stringstream ss;
@@ -168,12 +168,12 @@ std::optional<std::string> ipv4_to_string(const char* src, size_t len)
 
 // this obviously will need to change, but is here to reflect the above
 // stop-gap measure and to make the tests pass at least...
-std::optional<std::string> ipv6_to_string(const char* src, size_t len)
+boost::optional<std::string> ipv6_to_string(const char* src, size_t len)
 {
   if (len < 8)
   {
     MERROR("Invalid IPv4 address: " << std::string(src, len));
-    return std::nullopt;
+    return boost::none;
   }
 
   std::stringstream ss;
@@ -194,10 +194,10 @@ std::optional<std::string> ipv6_to_string(const char* src, size_t len)
   return ss.str();
 }
 
-std::optional<std::string> txt_to_string(const char* src, size_t len)
+boost::optional<std::string> txt_to_string(const char* src, size_t len)
 {
   if (len == 0)
-    return std::nullopt;
+    return boost::none;
   return std::string(src+1, len-1);
 }
 
@@ -327,7 +327,7 @@ DNSResolver::~DNSResolver()
   }
 }
 
-std::vector<std::string> DNSResolver::get_record(const std::string& url, int record_type, std::optional<std::string> (*reader)(const char *,size_t), bool& dnssec_available, bool& dnssec_valid)
+std::vector<std::string> DNSResolver::get_record(const std::string& url, int record_type, boost::optional<std::string> (*reader)(const char *,size_t), bool& dnssec_available, bool& dnssec_valid)
 {
   std::vector<std::string> addresses;
   dnssec_available = false;
@@ -350,7 +350,7 @@ std::vector<std::string> DNSResolver::get_record(const std::string& url, int rec
     {
       for (size_t i=0; result->data[i] != NULL; i++)
       {
-        std::optional<std::string> res = (*reader)(result->data[i], result->len[i]);
+        boost::optional<std::string> res = (*reader)(result->data[i], result->len[i]);
         if (res)
         {
           MINFO("Found \"" << *res << "\" in " << get_record_name(record_type) << " record for " << url);

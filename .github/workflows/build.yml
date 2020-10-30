@@ -3,306 +3,105 @@ name: Continuous_Integration_Testing
 on: [push, pull_request]
 
 jobs:
-  build-macos-native:
-    runs-on: macOS-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: install dependencies
-      run: brew install boost hidapi zmq libpgm ldns expat libunwind-headers protobuf
-    - name: build
-      run: make -j3
-
-  macOS-cross-on-bionic:
+  build-android-libs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: set apt conf
+    - name: build sumokoin for android all archs
       run: |
-        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install cmake build-essential autoconf automake gperf libtool imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python-pip
-    - name: install setuptools
-      run: pip install setuptools
-    - name: get SDK
-      run:  wget https://sumokoin.org/downloads/Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz
-    - name: create SDKs dir, move and extract SDK
-      run: |
-        sudo mkdir /home/runner/work/sumokoin/sumokoin/contrib/depends/SDKs
-        sudo mv Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz /home/runner/work/sumokoin/sumokoin/contrib/depends/SDKs
-        cd /home/runner/work/sumokoin/sumokoin/contrib/depends/SDKs
-        sudo tar -xf Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz
-        cd /home/runner/work/sumokoin/sumokoin
-    - name: build sumokoin
-      run: make depends target=x86_64-apple-darwin14 -j3
-    - name: upload binaries
-      uses: actions/upload-artifact@v2
-      with:
-        name: Macos-release-binaries
-        path: build/**/bin/
-
-  build-windows-native-msys2:
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: msys2 {0}
-    steps:
-    - uses: actions/checkout@v2
-    - uses: msys2/setup-msys2@v2
-      with:
-        update: true
-        install: mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-libunwind mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb git
-    - name: build sumokoin
-      run: make release-static-win64 -j2
-
-  Windows64-cross-on-bionic:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: set apt conf
-      run: |
-        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install python3 g++-mingw-w64-x86-64 wine1.6 bc gperf autoconf automake libtool build-essential cmake graphviz doxygen libunwind8-dev pkg-config libssl-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
-    - name: cross compile sumokoin windows binaries
-      run: make depends target=x86_64-w64-mingw32 -j 3
-    - name: upload binaries
-      uses: actions/upload-artifact@v2
-      with:
-        name: Windows64-release-binaries
-        path: build/**/bin/
-
-  build-ubuntu-bionic-native:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: set apt conf
-      run: |
-        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev libevent-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
-    - name: build sumokoin
-      run: make -j 3
-
-  build-bionic-debug-native:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: set apt conf
-      run: |
-        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
-    - name: build sumokoin
-      run: make debug -j 3
-
-  build-ubuntu-focal-fossa-native:
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v2
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: set apt conf
-      run: |
-        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
-    - name: build sumokoin
-      run: make -j 3
-
-  build-ubuntu-bionic-static-native:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: set apt conf
-      run: |
-        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake miniupnpc libunbound-dev libevent-dev graphviz doxygen pkg-config libssl-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libudev-dev ccache libtool autoconf automake python libtinfo5
-    - name: build boost 1_74
-      run: |
-        wget https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
-        tar -xvf boost_1_74_0.tar.bz2
-        rm -f /usr/boost_1_74_0.tar.bz2
-        cd boost_1_74_0
-        sudo ./bootstrap.sh
-        sudo ./b2 install -j 3
+        cd ~
         cd ..
-    - name: build zmq
-      run: |
-        git clone https://github.com/zeromq/libzmq.git
+        cd ..
+        cd opt
+        sudo mkdir android
+        cd android
+        curl -s -O https://cmake.org/files/v3.12/cmake-3.12.1.tar.gz
+        tar -xzf cmake-3.12.1.tar.gz
+        sudo apt-get update
+        sudo apt-get install -y cmake automake build-essential curl file pkg-config git python libtool
+        cd cmake-3.12.1
+        ./configure
+        make -j 4
+        sudo make install -j 4
+        cd ..
+        git clone https://github.com/sumogr/android-ndk-r17b
+        sudo chmod -R 777 android-ndk-r17b
+        cd android-ndk-r17b
+        cd ..
+        sudo ln -s android-ndk-r17b ndk
+        sudo ndk/build/tools/make_standalone_toolchain.py --api 21 --stl=libc++ --arch arm --install-dir /opt/android/tool/arm
+        sudo ndk/build/tools/make_standalone_toolchain.py --api 21 --stl=libc++ --arch arm64 --install-dir /opt/android/tool/arm64
+        sudo ndk/build/tools/make_standalone_toolchain.py --api 21 --stl=libc++ --arch x86 --install-dir /opt/android/tool/x86
+        sudo ndk/build/tools/make_standalone_toolchain.py --api 21 --stl=libc++ --arch x86_64 --install-dir /opt/android/tool/x86_64
+        git clone https://github.com/sumogr/android-openssl
+        sudo mkdir -p /opt/android/build/openssl/{arm,arm64,x86,x86_64}
+        sudo cp -a /opt/android/android-openssl/prebuilt/armeabi /opt/android/build/openssl/arm/lib
+        sudo cp -a /opt/android/android-openssl/prebuilt/arm64-v8a /opt/android/build/openssl/arm64/lib
+        sudo cp -a /opt/android/android-openssl/prebuilt/x86 /opt/android/build/openssl/x86/lib
+        sudo cp -a /opt/android/android-openssl/prebuilt/x86_64 /opt/android/build/openssl/x86_64/lib
+        sudo cp -aL /opt/android/android-openssl/openssl-OpenSSL_1_0_2l/include/openssl/ /opt/android/build/openssl/include
+        sudo ln -s /opt/android/build/openssl/include /opt/android/build/openssl/arm/include
+        sudo ln -s /opt/android/build/openssl/include /opt/android/build/openssl/arm64/include
+        sudo ln -s /opt/android/build/openssl/include /opt/android/build/openssl/x86/include
+        sudo ln -s /opt/android/build/openssl/include /opt/android/build/openssl/x86_64/include
+        sudo ln -sf /opt/android/build/openssl/include /opt/android/tool/arm/sysroot/usr/include/openssl
+        sudo ln -sf /opt/android/build/openssl/arm/lib/*.so /opt/android/tool/arm/sysroot/usr/lib
+        sudo ln -sf /opt/android/build/openssl/include /opt/android/tool/arm64/sysroot/usr/include/openssl
+        sudo ln -sf /opt/android/build/openssl/arm64/lib/*.so /opt/android/tool/arm64/sysroot/usr/lib
+        sudo ln -sf /opt/android/build/openssl/include /opt/android/tool/x86/sysroot/usr/include/openssl
+        sudo ln -sf /opt/android/build/openssl/x86/lib/*.so /opt/android/tool/x86/sysroot/usr/lib
+        sudo ln -sf /opt/android/build/openssl/include /opt/android/tool/x86_64/sysroot/usr/include/openssl
+        sudo ln -sf /opt/android/build/openssl/x86_64/lib/*.so /opt/android/tool/x86_64/sysroot/usr/lib64
+        git clone https://github.com/sumogr/boost_1_67_0
+        sudo chmod -R 777 boost_1_67_0
+        cd boost_1_67_0
+        ./bootstrap.sh
+        sudo PATH=/opt/android/tool/arm/arm-linux-androideabi/bin:/opt/android/tool/arm/bin:$PATH ./b2 --build-type=minimal link=static runtime-link=static --with-chrono --with-date_time --with-filesystem --with-program_options --with-regex --with-serialization --with-system --with-thread --build-dir=android-arm --prefix=/opt/android/build/boost/arm --includedir=/opt/android/build/boost/include toolset=clang threading=multi threadapi=pthread target-os=android install
+        sudo PATH=/opt/android/tool/arm64/aarch64-linux-android/bin:/opt/android/tool/arm64/bin:$PATH ./b2 --build-type=minimal link=static runtime-link=static --with-chrono --with-date_time --with-filesystem --with-program_options --with-regex --with-serialization --with-system --with-thread --build-dir=android-arm64 --prefix=/opt/android/build/boost/arm64 --includedir=/opt/android/build/boost/include toolset=clang threading=multi threadapi=pthread target-os=android install
+        sudo PATH=/opt/android/tool/x86/i686-linux-android/bin:/opt/android/tool/x86/bin:$PATH ./b2 --build-type=minimal link=static runtime-link=static --with-chrono --with-date_time --with-filesystem --with-program_options --with-regex --with-serialization --with-system --with-thread --build-dir=android-x86 --prefix=/opt/android/build/boost/x86 --includedir=/opt/android/build/boost/include toolset=clang threading=multi threadapi=pthread target-os=android install
+        sudo PATH=/opt/android/tool/x86_64/x86_64-linux-android/bin:/opt/android/tool/x86_64/bin:$PATH ./b2 --build-type=minimal link=static runtime-link=static --with-chrono --with-date_time --with-filesystem --with-program_options --with-regex --with-serialization --with-system --with-thread --build-dir=android-x86_64 --prefix=/opt/android/build/boost/x86_64 --includedir=/opt/android/build/boost/include toolset=clang threading=multi threadapi=pthread target-os=android install
+        sudo ln -sf ../include /opt/android/build/boost/arm
+        sudo ln -sf ../include /opt/android/build/boost/arm64
+        sudo ln -sf ../include /opt/android/build/boost/x86
+        sudo ln -sf ../include /opt/android/build/boost/x86_64
+        cd ..
+        git clone https://github.com/jedisct1/libsodium.git -b 1.0.17 --depth=1
+        sudo chmod -R 777 libsodium
+        cd libsodium
+        ./autogen.sh
+        PATH=/opt/android/tool/arm/arm-linux-androideabi/bin:/opt/android/tool/arm/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libsodium/arm --host=arm-linux-androideabi --enable-static --disable-shared && make && make install && make clean
+        PATH=/opt/android/tool/arm64/aarch64-linux-android/bin:/opt/android/tool/arm64/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libsodium/arm64 --host=aarch64-linux-android --enable-static --disable-shared && make && make install && make clean
+        PATH=/opt/android/tool/x86/i686-linux-android/bin:/opt/android/tool/x86/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libsodium/x86 --host=i686-linux-android --enable-static --disable-shared && make && make install && make clean
+        PATH=/opt/android/tool/x86_64/x86_64-linux-android/bin:/opt/android/tool/x86_64/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libsodium/x86_64 --host=x86_64-linux-android --enable-static --disable-shared && make && make install && make clean
+        cd ..
+        git clone https://github.com/zeromq/libzmq.git -b v4.3.1 --depth=1
+        sudo chmod -R 777 libzmq
         cd libzmq
-        sudo ./autogen.sh
-        sudo ./configure
-        sudo make -j 3
-        sudo make install
-        sudo ldconfig
+        ./autogen.sh
+        PATH=/opt/android/tool/arm/arm-linux-androideabi/bin:/opt/android/tool/arm/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libzmq/arm --host=arm-linux-androideabi --enable-static --disable-shared && make && make install && ldconfig && make clean
+        PATH=/opt/android/tool/arm64/aarch64-linux-android/bin:/opt/android/tool/arm64/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libzmq/arm64 --host=aarch64-linux-android --enable-static --disable-shared && make && make install && ldconfig && make clean
+        PATH=/opt/android/tool/x86/i686-linux-android/bin:/opt/android/tool/x86/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libzmq/x86 --host=i686-linux-android --enable-static --disable-shared && make && make install && ldconfig && make clean
+        PATH=/opt/android/tool/x86_64/x86_64-linux-android/bin:/opt/android/tool/x86_64/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libzmq/x86_64 --host=x86_64-linux-android --enable-static --disable-shared && make && make install && ldconfig && make clean
         cd ..
-    - name: build libunwind
-      run: |
-        git clone https://github.com/libunwind/libunwind
-        cd libunwind
-        sudo ./autogen.sh
-        sudo ./configure
-        sudo make -j 3
-        sudo make install
-        cd ..
-    - name: build sumokoin
-      run: make release-static -j 3
-
-  FreeBSD-cross-on-bionic:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: set apt conf
-      run: |
-        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install autoconf automake libtool gperf cmake clang-8
-    - name: cross compile sumokoin bins for FreeBSD
-      run: make depends target=x86_64-unknown-freebsd -j 3
-    - name: upload binaries
-      uses: actions/upload-artifact@v2
-      with:
-        name: FreeBSD-release-binaries
-        path: build/**/bin/
-
-  cross-build-linux-x64-binaries-on-xenial:
-    runs-on: ubuntu-16.04
-    steps:
-    - uses: actions/checkout@v2
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: set apt conf
-      run: |
-        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-    - name: update apt
-      run: |
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        git clone https://github.com/sumogr/sumokoin -b andr-test
+        sudo mv sumokoin monero
+        cd monero
         sudo apt update
-    - name: install sumokoin dependencies
-      run: |
-        sudo apt -y install dpkg-dev cmake g++-7 gcc pkg-config libtool autoconf automake gperf
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
-                        --slave /usr/bin/g++ g++ /usr/bin/g++-7
-        sudo update-alternatives --config gcc
-    - name: cross compile sumokoin bins for linux x64
-      run: make depends target=x86_64-linux-gnu -j 3
-    - name: upload binaries
+        sudo apt install build-essential cmake pkg-config libunbound-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev libusb-dev libprotobuf-dev protobuf-compiler
+        sudo chmod u+x build-all-archs.sh
+        ./build-all-archs.sh
+        cd ..
+        git clone --recursive https://github.com/sumoprojects/sumo-android-wallet
+        cd sumo-android-wallet
+        cd external-libs
+        sudo find . -type f -name "*.a" -exec rm -f {} \;
+        sudo find . -type f -name "*.h" -exec rm -f {} \;
+        sudo chmod u+x collect.sh
+        cd ..
+        cd ..
+        ./collect.sh
+        sudo cp -avr /opt/android/sumo-android-wallet/external-libs/ /home/external-libs/
+    - name: upload libraries
       uses: actions/upload-artifact@v2
       with:
-        name: linux64-release-binaries
-        path: build/**/bin/
-
-  cross-build-armv8-binaries-on-xenial:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: set apt conf
-      run: |
-        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install dpkg-dev cmake pkg-config libtool autoconf automake gperf g++-aarch64-linux-gnu
-    - name: cross compile sumokoin bins for arm v8
-      run: make depends target=aarch64-linux-gnu -j 3
-    - name: upload binaries
-      uses: actions/upload-artifact@v2
-      with:
-        name: armv8-release-binaries
-        path: build/**/bin/
-
-  cross-build-RISCV64-binaries-on-bionic:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: set apt conf
-      run: |
-        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-    - name: update apt
-      run:  sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install dpkg-dev cmake pkg-config libtool autoconf automake gperf g++-riscv64-linux-gnu
-    - name: cross compile sumokoin bins for RISC V 64
-      run: make depends target=riscv64-linux-gnu -j 3
-    - name: upload binaries
-      uses: actions/upload-artifact@v2
-      with:
-        name: RISCV64-release-binaries
-        path: build/**/bin/
-
-  test-ubuntu:
-    needs: build-ubuntu-bionic-native
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: set apt conf
-      run: |
-        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev libevent-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev
-    - name: install requests
-      run: pip install requests
-    - name: tests
-      env:
-        CTEST_OUTPUT_ON_FAILURE: ON
-      run: make release-test -j 3
+        name: upload external libs
+        path: /home/external-libs/

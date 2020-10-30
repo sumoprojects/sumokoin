@@ -155,7 +155,7 @@ namespace cryptonote
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::set_bootstrap_daemon(const std::string &address, const std::string &username_password)
   {
-    std::optional<epee::net_utils::http::login> credentials;
+    boost::optional<epee::net_utils::http::login> credentials;
     const auto loc = username_password.find(':');
     if (loc != std::string::npos)
     {
@@ -197,7 +197,7 @@ namespace cryptonote
     return result;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  bool core_rpc_server::set_bootstrap_daemon(const std::string &address, const std::optional<epee::net_utils::http::login> &credentials)
+  bool core_rpc_server::set_bootstrap_daemon(const std::string &address, const boost::optional<epee::net_utils::http::login> &credentials)
   {
     boost::unique_lock<boost::shared_mutex> lock(m_bootstrap_daemon_mutex);
 
@@ -293,7 +293,7 @@ namespace cryptonote
       return false;
     }
 
-    std::optional<epee::net_utils::http::login> http_login{};
+    boost::optional<epee::net_utils::http::login> http_login{};
 
     if (rpc_config->login)
       http_login.emplace(std::move(rpc_config->login->username), std::move(rpc_config->login->password).password());
@@ -1713,7 +1713,7 @@ namespace cryptonote
   {
     PERF_TIMER(on_set_bootstrap_daemon);
 
-    std::optional<epee::net_utils::http::login> credentials;
+    boost::optional<epee::net_utils::http::login> credentials;
     if (!req.username.empty() || !req.password.empty())
     {
       credentials = epee::net_utils::http::login(req.username, req.password);
@@ -2121,7 +2121,7 @@ namespace cryptonote
         m_bootstrap_height_check_time = current_time;
       }
 
-      std::optional<uint64_t> bootstrap_daemon_height = m_bootstrap_daemon->get_height();
+      boost::optional<uint64_t> bootstrap_daemon_height = m_bootstrap_daemon->get_height();
       if (!bootstrap_daemon_height)
       {
         MERROR("Failed to fetch bootstrap daemon height");

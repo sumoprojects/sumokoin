@@ -1,21 +1,21 @@
-// Copyright (c) 2017-2020, The Monero Project
-//
+// Copyright (c) 2017-2019, The Monero Project
+// 
 // All rights reserved.
-//
+// 
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-//
+// 
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-//
+// 
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-//
+// 
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-//
+// 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -34,17 +34,7 @@
 #include "ringct/rctTypes.h"
 #include "cryptonote_config.h"
 
-
-#ifndef USE_DEVICE_LEDGER
-#define USE_DEVICE_LEDGER 1
-#endif
-
-#if !defined(HAVE_HIDAPI)
-#undef  USE_DEVICE_LEDGER
-#define USE_DEVICE_LEDGER 0
-#endif
-
-#if USE_DEVICE_LEDGER
+#if defined(HAVE_HIDAPI) || defined(HAVE_MONERUJO)
 #define WITH_DEVICE_LEDGER
 #endif
 
@@ -78,8 +68,8 @@ namespace hw {
     public:
         virtual void on_button_request(uint64_t code=0) {}
         virtual void on_button_pressed() {}
-        virtual std::optional<epee::wipeable_string> on_pin_request() { return std::nullopt; }
-        virtual std::optional<epee::wipeable_string> on_passphrase_request(bool on_device) { return std::nullopt; }
+        virtual boost::optional<epee::wipeable_string> on_pin_request() { return boost::none; }
+        virtual boost::optional<epee::wipeable_string> on_passphrase_request(bool on_device) { return boost::none; }
         virtual void on_progress(const device_progress& event) {}
         virtual ~i_device_callback() = default;
     };
@@ -141,7 +131,7 @@ namespace hw {
 
         /* ======================================================================= */
         /*  LOCKER                                                                 */
-        /* ======================================================================= */
+        /* ======================================================================= */ 
         virtual void lock(void) = 0;
         virtual void unlock(void) = 0;
         virtual bool try_lock(void) = 0;
@@ -198,8 +188,8 @@ namespace hw {
         /*                               TRANSACTION                               */
         /* ======================================================================= */
 
-        virtual void generate_tx_proof(const crypto::hash &prefix_hash,
-                                       const crypto::public_key &R, const crypto::public_key &A, const std::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r,
+        virtual void generate_tx_proof(const crypto::hash &prefix_hash, 
+                                       const crypto::public_key &R, const crypto::public_key &A, const boost::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r, 
                                        crypto::signature &sig) = 0;
 
         virtual bool  open_tx(crypto::secret_key &tx_key) = 0;
@@ -219,7 +209,7 @@ namespace hw {
         virtual bool  ecdhDecode(rct::ecdhTuple & masked, const rct::key & sharedSec, bool short_amount) = 0;
 
         virtual bool  generate_output_ephemeral_keys(const size_t tx_version, const cryptonote::account_keys &sender_account_keys, const crypto::public_key &txkey_pub,  const crypto::secret_key &tx_key,
-                                                     const cryptonote::tx_destination_entry &dst_entr, const std::optional<cryptonote::account_public_address> &change_addr, const size_t output_index,
+                                                     const cryptonote::tx_destination_entry &dst_entr, const boost::optional<cryptonote::account_public_address> &change_addr, const size_t output_index,
                                                      const bool &need_additional_txkeys, const std::vector<crypto::secret_key> &additional_tx_keys,
                                                      std::vector<crypto::public_key> &additional_tx_public_keys,
                                                      std::vector<rct::key> &amount_keys,
@@ -234,7 +224,7 @@ namespace hw {
         virtual bool clsag_prepare(const rct::key &p, const rct::key &z, rct::key &I, rct::key &D, const rct::key &H, rct::key &a, rct::key &aG, rct::key &aH) = 0;
         virtual bool clsag_hash(const rct::keyV &data, rct::key &hash) = 0;
         virtual bool clsag_sign(const rct::key &c, const rct::key &a, const rct::key &p, const rct::key &z, const rct::key &mu_P, const rct::key &mu_C, rct::key &s) = 0;
-        
+
         virtual bool  close_tx(void) = 0;
 
         virtual bool  has_ki_cold_sync(void) const { return false; }
@@ -243,7 +233,7 @@ namespace hw {
         virtual bool  compute_key_image(const cryptonote::account_keys& ack, const crypto::public_key& out_key, const crypto::key_derivation& recv_derivation, size_t real_output_index, const cryptonote::subaddress_index& received_index, cryptonote::keypair& in_ephemeral, crypto::key_image& ki) { return false; }
         virtual void  computing_key_images(bool started) {};
         virtual void  set_network_type(cryptonote::network_type network_type) { }
-        virtual void  display_address(const cryptonote::subaddress_index& index, const std::optional<crypto::hash8> &payment_id) {}
+        virtual void  display_address(const cryptonote::subaddress_index& index, const boost::optional<crypto::hash8> &payment_id) {}
 
     protected:
         device_mode mode;

@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -32,20 +32,17 @@
 
 #include <stddef.h>
 #include <iostream>
-#include <boost/utility/value_init.hpp>
 
 #include "common/pod-class.h"
 #include "generic-ops.h"
 #include "hex.h"
 #include "span.h"
-#include "crypto/cn_heavy_hash.hpp"
-
 
 namespace crypto {
 
   extern "C" {
 #include "hash-ops.h"
-}
+  }
 
 #pragma pack(push, 1)
   POD_CLASS hash {
@@ -73,31 +70,12 @@ namespace crypto {
     return h;
   }
 
-  enum struct cn_slow_hash_type
-  {
-    cn_original,
-    cn_heavy,
-    cn_r,
-  };
+  inline void cn_slow_hash(const void *data, std::size_t length, hash &hash, int variant = 0, uint64_t height = 0) {
+    cn_monero_slow_hash(data, length, reinterpret_cast<char *>(&hash), variant, 0/*prehashed*/, height);
+  }
 
-  inline void cn_slow_hash(const void *data, std::size_t length, hash &hash, int variant = 0, uint64_t height = 0, cn_slow_hash_type type = cn_slow_hash_type::cn_original) {
-    switch (type)
-    {
-      case cn_slow_hash_type::cn_heavy:
-      {
-        static thread_local cn_heavy_hash_v2 v2;
-        v2.hash(data, length, hash.data);
-      }
-      break;
-      
-      case cn_slow_hash_type::cn_r:
-      case cn_slow_hash_type::cn_original:
-      default:
-      {
-        cn_monero_slow_hash(data, length, reinterpret_cast<char *>(&hash), variant, 0/*prehashed*/, height);
-      }
-      break;
-    }
+  inline void cn_slow_hash_prehashed(const void *data, std::size_t length, hash &hash, int variant = 0, uint64_t height = 0) {
+    cn_monero_slow_hash(data, length, reinterpret_cast<char *>(&hash), variant, 1/*prehashed*/, height);
   }
 
   inline void tree_hash(const hash *hashes, std::size_t count, hash &root_hash) {

@@ -105,7 +105,7 @@ typedef cryptonote::simple_wallet sw;
 
 #define SCOPED_WALLET_UNLOCK_ON_BAD_PASSWORD(code) \
   LOCK_IDLE_SCOPE(); \
-  std::optional<tools::password_container> pwd_container = std::nullopt; \
+  boost::optional<tools::password_container> pwd_container = boost::none; \
   if (m_wallet->ask_password() && !(pwd_container = get_and_verify_password())) { code; } \
   tools::wallet_keys_unlocker unlocker(*m_wallet, pwd_container);
 
@@ -300,7 +300,7 @@ namespace
     return buf;
   }
 
-  std::optional<tools::password_container> password_prompter(const char *prompt, bool verify)
+  boost::optional<tools::password_container> password_prompter(const char *prompt, bool verify)
   {
     PAUSE_READLINE();
     auto pwd_container = tools::password_container::prompt(verify, prompt);
@@ -311,7 +311,7 @@ namespace
     return pwd_container;
   }
 
-  std::optional<tools::password_container> default_password_prompter(bool verify)
+  boost::optional<tools::password_container> default_password_prompter(bool verify)
   {
     return password_prompter(verify ? sw::tr("Enter a new password for the wallet") : sw::tr("Wallet password"), verify);
   }
@@ -498,7 +498,7 @@ namespace
     return true;
   }
 
-  std::optional<std::pair<uint32_t, uint32_t>> parse_subaddress_lookahead(const std::string& str)
+  boost::optional<std::pair<uint32_t, uint32_t>> parse_subaddress_lookahead(const std::string& str)
   {
     auto r = tools::parse_subaddress_lookahead(str);
     if (!r)
@@ -859,7 +859,7 @@ bool simple_wallet::seed_set_language(const std::vector<std::string> &args/* = s
     if (!pwd_container)
     {
       pwd_container = get_and_verify_password();
-      if (pwd_container == std::nullopt)
+      if (pwd_container == boost::none)
       {
         fail_msg_writer() << tr("Incorrect password");
         return true;
@@ -881,7 +881,7 @@ bool simple_wallet::change_password(const std::vector<std::string> &args)
 {
   const auto orig_pwd_container = get_and_verify_password();
 
-  if(orig_pwd_container == std::nullopt)
+  if(orig_pwd_container == boost::none)
   {
     fail_msg_writer() << tr("Your original password was incorrect.");
     return true;
@@ -1055,7 +1055,7 @@ bool simple_wallet::make_multisig_main(const std::vector<std::string> &args, boo
   }
 
   const auto orig_pwd_container = get_and_verify_password();
-  if(orig_pwd_container == std::nullopt)
+  if(orig_pwd_container == boost::none)
   {
     fail_msg_writer() << tr("Your original password was incorrect.");
     return false;
@@ -1108,7 +1108,7 @@ bool simple_wallet::finalize_multisig(const std::vector<std::string> &args)
   }
 
   const auto pwd_container = get_and_verify_password();
-  if(pwd_container == std::nullopt)
+  if(pwd_container == boost::none)
   {
     fail_msg_writer() << tr("Your original password was incorrect.");
     return true;
@@ -1175,7 +1175,7 @@ bool simple_wallet::exchange_multisig_keys_main(const std::vector<std::string> &
     }
 
     const auto orig_pwd_container = get_and_verify_password();
-    if(orig_pwd_container == std::nullopt)
+    if(orig_pwd_container == boost::none)
     {
       fail_msg_writer() << tr("Your original password was incorrect.");
       return false;
@@ -4135,7 +4135,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
 
       if (m_restore_multisig_wallet)
       {
-        const std::optional<epee::wipeable_string> parsed = m_electrum_seed.parse_hexstr();
+        const boost::optional<epee::wipeable_string> parsed = m_electrum_seed.parse_hexstr();
         if (!parsed)
         {
           fail_msg_writer() << tr("Multisig seed failed verification");
@@ -4220,7 +4220,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
         return false;
       }
 
-      auto r = new_wallet(vm, info.address, std::nullopt, viewkey);
+      auto r = new_wallet(vm, info.address, boost::none, viewkey);
       CHECK_AND_ASSERT_MES(r, false, tr("account creation failed"));
       password = *r;
       welcome = true;
@@ -4508,7 +4508,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
         return false;
       }
       m_wallet_file = m_generate_new;
-      std::optional<epee::wipeable_string> r;
+      boost::optional<epee::wipeable_string> r;
       if (m_restore_multisig_wallet)
         r = new_wallet(vm, multisig_keys, old_language);
       else
@@ -4787,21 +4787,21 @@ std::string simple_wallet::get_mnemonic_language()
   return language_list_self[language_number];
 }
 //----------------------------------------------------------------------------------------------------
-std::optional<tools::password_container> simple_wallet::get_and_verify_password() const
+boost::optional<tools::password_container> simple_wallet::get_and_verify_password() const
 {
   auto pwd_container = default_password_prompter(m_wallet_file.empty());
   if (!pwd_container)
-    return std::nullopt;
+    return boost::none;
 
   if (!m_wallet->verify_password(pwd_container->password()))
   {
     fail_msg_writer() << tr("invalid password");
-    return std::nullopt;
+    return boost::none;
   }
   return pwd_container;
 }
 //----------------------------------------------------------------------------------------------------
-std::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::program_options::variables_map& vm,
+boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::program_options::variables_map& vm,
   const crypto::secret_key& recovery_key, bool recover, bool two_random, const std::string &old_language)
 {
   std::pair<std::unique_ptr<tools::wallet2>, tools::password_container> rc;
@@ -4902,8 +4902,8 @@ std::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::prog
   return password;
 }
 //----------------------------------------------------------------------------------------------------
-std::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::program_options::variables_map& vm,
-  const cryptonote::account_public_address& address, const std::optional<crypto::secret_key>& spendkey,
+boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::program_options::variables_map& vm,
+  const cryptonote::account_public_address& address, const boost::optional<crypto::secret_key>& spendkey,
   const crypto::secret_key& viewkey)
 {
   std::pair<std::unique_ptr<tools::wallet2>, tools::password_container> rc;
@@ -4952,7 +4952,7 @@ std::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::prog
 }
 
 //----------------------------------------------------------------------------------------------------
-std::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::program_options::variables_map& vm)
+boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::program_options::variables_map& vm)
 {
   std::pair<std::unique_ptr<tools::wallet2>, tools::password_container> rc;
   try { rc = tools::wallet2::make_new(vm, false, password_prompter); }
@@ -4994,7 +4994,7 @@ std::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::prog
   return password;
 }
 //----------------------------------------------------------------------------------------------------
-std::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::program_options::variables_map& vm,
+boost::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::program_options::variables_map& vm,
     const epee::wipeable_string &multisig_keys, const std::string &old_language)
 {
   std::pair<std::unique_ptr<tools::wallet2>, tools::password_container> rc;
@@ -5049,7 +5049,7 @@ std::optional<epee::wipeable_string> simple_wallet::new_wallet(const boost::prog
   return password;
 }
 //----------------------------------------------------------------------------------------------------
-std::optional<epee::wipeable_string> simple_wallet::open_wallet(const boost::program_options::variables_map& vm)
+boost::optional<epee::wipeable_string> simple_wallet::open_wallet(const boost::program_options::variables_map& vm)
 {
   if (!tools::wallet2::wallet_valid_path_format(m_wallet_file))
   {
@@ -5535,16 +5535,16 @@ void simple_wallet::on_skip_transaction(uint64_t height, const crypto::hash &txi
     return;
 }
 //----------------------------------------------------------------------------------------------------
-std::optional<epee::wipeable_string> simple_wallet::on_get_password(const char *reason)
+boost::optional<epee::wipeable_string> simple_wallet::on_get_password(const char *reason)
 {
   if (m_locked)
-    return std::nullopt;
+    return boost::none;
   // can't ask for password from a background thread
   if (!m_in_manual_refresh.load(std::memory_order_relaxed))
   {
     message_writer(console_color_red, false) << boost::format(tr("Password needed (%s) - use the refresh command")) % reason;
     m_cmd_binder.print_prompt();
-    return std::nullopt;
+    return boost::none;
   }
 
   PAUSE_READLINE();
@@ -5555,16 +5555,16 @@ std::optional<epee::wipeable_string> simple_wallet::on_get_password(const char *
   if (!pwd_container)
   {
     MERROR("Failed to read password");
-    return std::nullopt;
+    return boost::none;
   }
 
   return pwd_container->password();
 }
 //----------------------------------------------------------------------------------------------------
-std::optional<std::string> simple_wallet::on_get_message(const char *info)
+boost::optional<std::string> simple_wallet::on_get_message(const char *info)
 {
   if (m_locked)
-    return std::nullopt;
+    return boost::none;
 
   PAUSE_READLINE();
   std::string msg = tr("Message: ");
@@ -5579,7 +5579,7 @@ void simple_wallet::on_device_button_request(uint64_t code)
   message_writer(console_color_white, false) << tr("Device requires attention");
 }
 //----------------------------------------------------------------------------------------------------
-std::optional<epee::wipeable_string> simple_wallet::on_device_pin_request()
+boost::optional<epee::wipeable_string> simple_wallet::on_device_pin_request()
 {
   PAUSE_READLINE();
   std::string msg = tr("Enter device PIN");
@@ -5588,11 +5588,11 @@ std::optional<epee::wipeable_string> simple_wallet::on_device_pin_request()
   return pwd_container->password();
 }
 //----------------------------------------------------------------------------------------------------
-std::optional<epee::wipeable_string> simple_wallet::on_device_passphrase_request(bool on_device)
+boost::optional<epee::wipeable_string> simple_wallet::on_device_passphrase_request(bool on_device)
 {
   if (on_device){
     message_writer(console_color_white, true) << tr("Please enter the device passphrase on the device");
-    return std::nullopt;
+    return boost::none;
   }
 
   PAUSE_READLINE();
@@ -7868,7 +7868,7 @@ bool simple_wallet::set_tx_key(const std::vector<std::string> &args_)
     return true;
   }
 
-  std::optional<cryptonote::account_public_address> single_destination_subaddress;
+  boost::optional<cryptonote::account_public_address> single_destination_subaddress;
   if (local_args.size() > 1)
   {
     cryptonote::address_parse_info info;
@@ -8243,7 +8243,7 @@ bool simple_wallet::get_reserve_proof(const std::vector<std::string> &args)
     return true;
   }
 
-  std::optional<std::pair<uint32_t, uint64_t>> account_minreserve;
+  boost::optional<std::pair<uint32_t, uint64_t>> account_minreserve;
   if (args[0] != "all")
   {
     account_minreserve = std::pair<uint32_t, uint64_t>();
@@ -9426,7 +9426,7 @@ bool simple_wallet::print_address(const std::vector<std::string> &args/* = std::
       label = tr("(Untitled address)");
     m_wallet->add_subaddress(m_current_subaddress_account, label);
     print_address_sub(m_wallet->get_num_subaddresses(m_current_subaddress_account) - 1);
-    m_wallet->device_show_address(m_current_subaddress_account, m_wallet->get_num_subaddresses(m_current_subaddress_account) - 1, std::nullopt);
+    m_wallet->device_show_address(m_current_subaddress_account, m_wallet->get_num_subaddresses(m_current_subaddress_account) - 1, boost::none);
   }
   else if (local_args[0] == "one-off")
   {
@@ -9512,7 +9512,7 @@ bool simple_wallet::print_address(const std::vector<std::string> &args/* = std::
     }
 
     print_address_sub(index);
-    m_wallet->device_show_address(m_current_subaddress_account, index, std::nullopt);
+    m_wallet->device_show_address(m_current_subaddress_account, index, boost::none);
   }
   else
   {
@@ -10488,7 +10488,7 @@ int main(int argc, char* argv[])
   po::positional_options_description positional_options;
   positional_options.add(arg_command.name, -1);
 
-  std::optional<po::variables_map> vm;
+  boost::optional<po::variables_map> vm;
   bool should_terminate = false;
 
   tools::clear_screen();
@@ -10909,13 +10909,13 @@ void simple_wallet::mms_signer(const std::vector<std::string> &args)
     return;
   }
 
-  std::optional<string> label = args[1];
-  std::optional<string> transport_address;
+  boost::optional<string> label = args[1];
+  boost::optional<string> transport_address;
   if (args.size() >= 3)
   {
     transport_address = args[2];
   }
-  std::optional<cryptonote::account_public_address> monero_address;
+  boost::optional<cryptonote::account_public_address> monero_address;
   LOCK_IDLE_SCOPE();
   mms::multisig_wallet_state state = get_multisig_wallet_state();
   if (args.size() == 4)
@@ -11419,7 +11419,7 @@ void simple_wallet::mms_start_auto_config(const std::vector<std::string> &args)
     // Set (or overwrite) all the labels except "me" from the arguments
     for (uint32_t i = 1; i < (other_signers + 1); ++i)
     {
-      ms.set_signer(state, i, args[i - 1], std::nullopt, std::nullopt);
+      ms.set_signer(state, i, args[i - 1], boost::none, boost::none);
     }
   }
   ms.start_auto_config(state);

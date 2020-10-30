@@ -3,7 +3,7 @@
 #include <functional>
 #include <map>
 
-#include <optional>
+#include <boost/optional/optional.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/utility/string_ref.hpp>
 
@@ -23,11 +23,11 @@ namespace cryptonote
       bool rpc_payment_enabled);
     bootstrap_daemon(
       const std::string &address,
-      std::optional<epee::net_utils::http::login> credentials,
+      boost::optional<epee::net_utils::http::login> credentials,
       bool rpc_payment_enabled);
 
     std::string address() const noexcept;
-    std::optional<uint64_t> get_height();
+    boost::optional<uint64_t> get_height();
     bool handle_result(bool success, const std::string &status);
 
     template <class t_request, class t_response>
@@ -72,7 +72,7 @@ namespace cryptonote
     }
 
   private:
-    bool set_server(const std::string &address, const std::optional<epee::net_utils::http::login> &credentials = std::nullopt);
+    bool set_server(const std::string &address, const boost::optional<epee::net_utils::http::login> &credentials = boost::none);
     bool switch_server_if_needed();
 
   private:

@@ -269,7 +269,7 @@ namespace hw {
         /*                               TRANSACTION                               */
         /* ======================================================================= */
         void device_default::generate_tx_proof(const crypto::hash &prefix_hash,
-                                               const crypto::public_key &R, const crypto::public_key &A, const std::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r,
+                                               const crypto::public_key &R, const crypto::public_key &A, const boost::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r,
                                                crypto::signature &sig) {
             crypto::generate_tx_proof(prefix_hash, R, A, B, D, r, sig);
         }
@@ -286,7 +286,7 @@ namespace hw {
 
         bool device_default::generate_output_ephemeral_keys(const size_t tx_version,
                                                             const cryptonote::account_keys &sender_account_keys, const crypto::public_key &txkey_pub,  const crypto::secret_key &tx_key,
-                                                            const cryptonote::tx_destination_entry &dst_entr, const std::optional<cryptonote::account_public_address> &change_addr, const size_t output_index,
+                                                            const cryptonote::tx_destination_entry &dst_entr, const boost::optional<cryptonote::account_public_address> &change_addr, const size_t output_index,
                                                             const bool &need_additional_txkeys, const std::vector<crypto::secret_key> &additional_tx_keys,
                                                             std::vector<crypto::public_key> &additional_tx_public_keys,
                                                             std::vector<rct::key> &amount_keys,  crypto::public_key &out_eph_public_key) {

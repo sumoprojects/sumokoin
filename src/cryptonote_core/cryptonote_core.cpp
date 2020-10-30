@@ -38,7 +38,6 @@ using namespace epee;
 #include <unordered_set>
 #include "cryptonote_core.h"
 #include "cryptonote_basic/events.h"
-#include "rpc/zmq_pub.h"
 #include "common/updates.h"
 #include "common/threadpool.h"
 #include "common/notify.h"

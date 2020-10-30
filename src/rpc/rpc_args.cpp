@@ -37,7 +37,7 @@ namespace cryptonote
 {
   namespace
   {
-    std::optional<epee::net_utils::ssl_options_t> do_process_ssl(const boost::program_options::variables_map& vm, const rpc_args::descriptors& arg, const bool any_cert_option)
+    boost::optional<epee::net_utils::ssl_options_t> do_process_ssl(const boost::program_options::variables_map& vm, const rpc_args::descriptors& arg, const bool any_cert_option)
     {
       bool ssl_required = false;
       epee::net_utils::ssl_options_t ssl_options = epee::net_utils::ssl_support_t::e_ssl_support_enabled;
@@ -55,7 +55,7 @@ namespace cryptonote
           if (fpr.size() != SSL_FINGERPRINT_SIZE)
           {
             MERROR("SHA-256 fingerprint should be " BOOST_PP_STRINGIZE(SSL_FINGERPRINT_SIZE) " bytes long.");
-            return std::nullopt;
+            return boost::none;
           }
         }
 
@@ -75,7 +75,7 @@ namespace cryptonote
       if (!ssl_required && !epee::net_utils::ssl_support_from_string(ssl_options.support, command_line::get_arg(vm, arg.rpc_ssl)))
       {
         MERROR("Invalid argument for " << std::string(arg.rpc_ssl.name));
-        return std::nullopt;
+        return boost::none;
       }
 
       ssl_options.auth = epee::net_utils::ssl_authentication_t{
@@ -127,7 +127,7 @@ namespace cryptonote
       command_line::add_arg(desc, arg.rpc_ssl_allow_any_cert);
   }
 
-  std::optional<rpc_args> rpc_args::process(const boost::program_options::variables_map& vm, const bool any_cert_option)
+  boost::optional<rpc_args> rpc_args::process(const boost::program_options::variables_map& vm, const bool any_cert_option)
   {
     const descriptors arg{};
     rpc_args config{};
@@ -145,7 +145,7 @@ namespace cryptonote
       if (ec)
       {
         LOG_ERROR(tr("Invalid IP address given for --") << arg.rpc_bind_ip.name);
-        return std::nullopt;
+        return boost::none;
       }
 
       if (!parsed_ip.is_loopback() && !command_line::get_arg(vm, arg.confirm_external_bind))
@@ -155,7 +155,7 @@ namespace cryptonote
           tr(" permits inbound unencrypted external connections. Consider SSH tunnel or SSL proxy instead. Override with --") <<
           arg.confirm_external_bind.name
         );
-        return std::nullopt;
+        return boost::none;
       }
     }
     if (!config.bind_ipv6_address.empty())
@@ -173,7 +173,7 @@ namespace cryptonote
       if (ec)
       {
         LOG_ERROR(tr("Invalid IP address given for --") << arg.rpc_bind_ipv6_address.name);
-        return std::nullopt;
+        return boost::none;
       }
 
       if (!parsed_ip.is_loopback() && !command_line::get_arg(vm, arg.confirm_external_bind))
@@ -183,14 +183,14 @@ namespace cryptonote
           tr(" permits inbound unencrypted external connections. Consider SSH tunnel or SSL proxy instead. Override with --") <<
           arg.confirm_external_bind.name
         );
-        return std::nullopt;
+        return boost::none;
       }
     }
 
     const char *env_rpc_login = nullptr;
     const bool has_rpc_arg = command_line::has_arg(vm, arg.rpc_login);
     const bool use_rpc_env = !has_rpc_arg && (env_rpc_login = getenv("RPC_LOGIN")) != nullptr && strlen(env_rpc_login) > 0;
-    std::optional<tools::login> login{};
+    boost::optional<tools::login> login{};
     if (has_rpc_arg || use_rpc_env)
     {
       config.login = tools::login::parse(
@@ -199,12 +199,12 @@ namespace cryptonote
           });
 
       if (!config.login)
-        return std::nullopt;
+        return boost::none;
 
       if (config.login->username.empty())
       {
         LOG_ERROR(tr("Username specified with --") << arg.rpc_login.name << tr(" cannot be empty"));
-        return std::nullopt;
+        return boost::none;
       }
     }
 
@@ -214,7 +214,7 @@ namespace cryptonote
       if (!config.login)
       {
         LOG_ERROR(arg.rpc_access_control_origins.name  << tr(" requires RPC server password --") << arg.rpc_login.name << tr(" cannot be empty"));
-        return std::nullopt;
+        return boost::none;
       }
       std::vector<std::string> access_control_origins;
       boost::split(access_control_origins, access_control_origins_input, boost::is_any_of(","));
@@ -224,13 +224,13 @@ namespace cryptonote
 
     auto ssl_options = do_process_ssl(vm, arg, any_cert_option);
     if (!ssl_options)
-      return std::nullopt;
+      return boost::none;
     config.ssl_options = std::move(*ssl_options);
 
     return {std::move(config)};
   }
 
-  std::optional<epee::net_utils::ssl_options_t> rpc_args::process_ssl(const boost::program_options::variables_map& vm, const bool any_cert_option)
+  boost::optional<epee::net_utils::ssl_options_t> rpc_args::process_ssl(const boost::program_options::variables_map& vm, const bool any_cert_option)
   {
     const descriptors arg{};
     return do_process_ssl(vm, arg, any_cert_option);
