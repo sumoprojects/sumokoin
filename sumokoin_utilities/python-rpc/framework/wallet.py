@@ -706,14 +706,21 @@ class Wallet(object):
         }
         return self.rpc.send_json_rpc_request(check_reserve_proof)
 
+<<<<<<< HEAD:sumokoin_utilities/python-rpc/framework/wallet.py
     def sign(self, data, account_index = 0, address_index = 0, signature_type = ""):
+=======
+    def sign(self, data, account_index = 0, address_index = 0):
+>>>>>>> origin/android-wallet:utils/python-rpc/framework/wallet.py
         sign = {
             'method': 'sign',
             'params' : {
                 'data': data,
                 'account_index': account_index,
                 'address_index': address_index,
+<<<<<<< HEAD:sumokoin_utilities/python-rpc/framework/wallet.py
                 'signature_type': signature_type,
+=======
+>>>>>>> origin/android-wallet:utils/python-rpc/framework/wallet.py
             },
             'jsonrpc': '2.0',
             'id': '0'

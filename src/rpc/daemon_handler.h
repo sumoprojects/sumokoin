@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // Copyright (c) 2017-2020, The Monero Project
+=======
+// Copyright (c) 2017-2019, The Monero Project
+>>>>>>> origin/android-wallet
 //
 // All rights reserved.
 //

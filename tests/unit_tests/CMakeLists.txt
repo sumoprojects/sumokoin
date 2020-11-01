@@ -110,7 +110,10 @@ target_link_libraries(unit_tests
     cryptonote_protocol
     cryptonote_core
     daemon_messages
+<<<<<<< HEAD
     daemon_rpc_server    
+=======
+>>>>>>> origin/android-wallet
     blockchain_db
     lmdb_lib
     rpc

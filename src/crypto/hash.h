@@ -95,3 +95,4 @@ namespace crypto {
 
 CRYPTO_MAKE_HASHABLE(hash)
 CRYPTO_MAKE_COMPARABLE(hash8)
+  

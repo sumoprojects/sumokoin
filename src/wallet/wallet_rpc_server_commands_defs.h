@@ -47,7 +47,11 @@
 // advance which version they will stop working with
 // Don't go over 32767 for any of these
 #define WALLET_RPC_VERSION_MAJOR 1
+<<<<<<< HEAD
 #define WALLET_RPC_VERSION_MINOR 21
+=======
+#define WALLET_RPC_VERSION_MINOR 18
+>>>>>>> origin/android-wallet
 #define MAKE_WALLET_RPC_VERSION(major,minor) (((major)<<16)|(minor))
 #define WALLET_RPC_VERSION MAKE_WALLET_RPC_VERSION(WALLET_RPC_VERSION_MAJOR, WALLET_RPC_VERSION_MINOR)
 namespace tools
@@ -1620,13 +1624,19 @@ namespace wallet_rpc
       std::string data;
       uint32_t account_index;
       uint32_t address_index;
+<<<<<<< HEAD
       std::string signature_type;
+=======
+>>>>>>> origin/android-wallet
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(data)
         KV_SERIALIZE_OPT(account_index, 0u)
         KV_SERIALIZE_OPT(address_index, 0u)
+<<<<<<< HEAD
         KV_SERIALIZE(signature_type)
+=======
+>>>>>>> origin/android-wallet
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<request_t> request;

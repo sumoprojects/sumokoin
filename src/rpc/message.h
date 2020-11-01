@@ -29,11 +29,18 @@
 #pragma once
 
 #include <rapidjson/document.h>
+<<<<<<< HEAD
 #include <rapidjson/writer.h>
 #include <string>
 
 #include "byte_slice.h"
 #include "byte_stream.h"
+=======
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+#include <string>
+
+>>>>>>> origin/android-wallet
 #include "rpc/message_data_structs.h"
 
 namespace cryptonote
@@ -44,7 +51,11 @@ namespace rpc
 
   class Message
   {
+<<<<<<< HEAD
       virtual void doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
+      virtual void doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
       {}
 
     public:
@@ -58,7 +69,11 @@ namespace rpc
 
       virtual ~Message() { }
 
+<<<<<<< HEAD
       void toJson(rapidjson::Writer<epee::byte_stream>& dest) const;
+=======
+      void toJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const;
+>>>>>>> origin/android-wallet
 
       virtual void fromJson(const rapidjson::Value& val);
 
@@ -72,7 +87,13 @@ namespace rpc
     public:
       ~FullMessage() { }
 
+<<<<<<< HEAD
       FullMessage(std::string&& json_string, bool request=false);
+=======
+      FullMessage(FullMessage&& rhs) noexcept : doc(std::move(rhs.doc)) { }
+
+      FullMessage(const std::string& json_string, bool request=false);
+>>>>>>> origin/android-wallet
 
       std::string getRequestType() const;
 
@@ -84,8 +105,13 @@ namespace rpc
 
       cryptonote::rpc::error getError();
 
+<<<<<<< HEAD
       static epee::byte_slice getRequest(const std::string& request, const Message& message, unsigned id);
       static epee::byte_slice getResponse(const Message& message, const rapidjson::Value& id);
+=======
+      static std::string getRequest(const std::string& request, const Message& message, unsigned id);
+      static std::string getResponse(const Message& message, const rapidjson::Value& id);
+>>>>>>> origin/android-wallet
     private:
 
       FullMessage() = default;
@@ -101,8 +127,13 @@ namespace rpc
 
 
   // convenience functions for bad input
+<<<<<<< HEAD
   epee::byte_slice BAD_REQUEST(const std::string& request);
   epee::byte_slice BAD_REQUEST(const std::string& request, const rapidjson::Value& id);
+=======
+  std::string BAD_REQUEST(const std::string& request);
+  std::string BAD_REQUEST(const std::string& request, const rapidjson::Value& id);
+>>>>>>> origin/android-wallet
 
   epee::byte_slice BAD_JSON(const std::string& error_details);
 

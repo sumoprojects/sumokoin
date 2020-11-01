@@ -1179,7 +1179,7 @@ namespace cryptonote
      * onto the current block to get an 'adjusted median time' which approximates
      * what the current block's timestamp should be. Also projects the previous
      * block's timestamp to estimate the current block's timestamp.
-     * 
+     *
      * Returns the minimum of the two projections, or the current local time on
      * the machine if less than 60 blocks are available.
      *

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // Copyright (c) 2014-2020, The Monero Project
+=======
+// Copyright (c) 2014-2019, The Monero Project
+>>>>>>> origin/android-wallet
 //
 // All rights reserved.
 //
@@ -264,7 +268,11 @@ namespace cryptonote
 private:
     bool check_core_busy();
     bool check_core_ready();
+<<<<<<< HEAD
     bool add_host_fail(const connection_context *ctx, uint64_t score = 1);
+=======
+    bool add_host_fail(const connection_context *ctx, unsigned int score = 1);
+>>>>>>> origin/android-wallet
 
     //utils
     uint64_t get_block_reward(const block& blk);

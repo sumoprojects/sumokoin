@@ -2,6 +2,10 @@
 #include <boost/range/adaptor/indexed.hpp>
 #include <gtest/gtest.h>
 #include <rapidjson/document.h>
+<<<<<<< HEAD
+=======
+#include <rapidjson/stringbuffer.h>
+>>>>>>> origin/android-wallet
 #include <rapidjson/writer.h>
 #include <vector>
 #include <boost/optional/optional.hpp>
@@ -82,6 +86,7 @@ namespace test
 
         return tx;
     }
+<<<<<<< HEAD
 }
 
 namespace
@@ -92,12 +97,26 @@ namespace
       epee::byte_stream buffer;
       {
         rapidjson::Writer<epee::byte_stream> dest{buffer};
+=======
+
+    template<typename T>
+    T test_json(const T& value)
+    {
+      rapidjson::StringBuffer buffer;
+      {
+        rapidjson::Writer<rapidjson::StringBuffer> dest{buffer};
+>>>>>>> origin/android-wallet
         cryptonote::json::toJsonValue(dest, value);
       }
 
       rapidjson::Document doc;
+<<<<<<< HEAD
       doc.Parse(reinterpret_cast<const char*>(buffer.data()), buffer.size());
       if (doc.HasParseError())
+=======
+      doc.Parse(buffer.GetString());
+      if (doc.HasParseError() || !doc.IsObject())
+>>>>>>> origin/android-wallet
       {
         throw cryptonote::json::PARSE_FAIL();
       }

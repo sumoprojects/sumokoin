@@ -1486,7 +1486,7 @@ mdb_strerror(int err)
 	 */
 #define MSGSIZE	1024
 #define PADSIZE	4096
-	char buf[MSGSIZE+PADSIZE], *ptr = buf;
+	static char buf[MSGSIZE+PADSIZE], *ptr = buf;
 #endif
 	int i;
 	if (!err)

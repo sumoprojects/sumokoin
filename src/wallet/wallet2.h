@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // Copyright (c) 2014-2020, The Monero Project
+=======
+// Copyright (c) 2014-2019, The Monero Project
+>>>>>>> origin/android-wallet
 //
 // All rights reserved.
 //
@@ -276,7 +280,11 @@ private:
     static bool verify_password(const std::string& keys_file_name, const epee::wipeable_string& password, bool no_spend_key, hw::device &hwdev, uint64_t kdf_rounds);
     static bool query_device(hw::device::device_type& device_type, const std::string& keys_file_name, const epee::wipeable_string& password, uint64_t kdf_rounds = 1);
 
+<<<<<<< HEAD
     wallet2(cryptonote::network_type nettype = cryptonote::MAINNET, uint64_t kdf_rounds = 1, bool unattended = false, std::unique_ptr<epee::net_utils::http::http_client_factory> http_client_factory = std::unique_ptr<epee::net_utils::http::http_client_factory>(new net::http::client_factory()));
+=======
+    wallet2(cryptonote::network_type nettype = cryptonote::MAINNET, uint64_t kdf_rounds = 1, bool unattended = false, std::unique_ptr<epee::net_utils::http::http_client_factory> http_client_factory = std::unique_ptr<epee::net_utils::http::http_simple_client_factory>(new epee::net_utils::http::http_simple_client_factory()));
+>>>>>>> origin/android-wallet
     ~wallet2();
 
     struct multisig_info
@@ -630,6 +638,7 @@ private:
       std::string m_description;
       bool m_is_subaddress;
       bool m_has_payment_id;
+<<<<<<< HEAD
 
       BEGIN_SERIALIZE_OBJECT()
         VERSION_FIELD(0)
@@ -639,6 +648,8 @@ private:
         FIELD(m_is_subaddress)
         FIELD(m_has_payment_id)
       END_SERIALIZE()
+=======
+>>>>>>> origin/android-wallet
     };
 
     struct reserve_proof_entry
@@ -1338,10 +1349,15 @@ private:
      */
     void set_account_tag_description(const std::string& tag, const std::string& description);
 
+<<<<<<< HEAD
     enum message_signature_type_t { sign_with_spend_key, sign_with_view_key };
     std::string sign(const std::string &data, message_signature_type_t signature_type, cryptonote::subaddress_index index = {0, 0}) const;
     struct message_signature_result_t { bool valid; unsigned version; bool old; message_signature_type_t type; };
     message_signature_result_t verify(const std::string &data, const cryptonote::account_public_address &address, const std::string &signature) const;
+=======
+    std::string sign(const std::string &data, cryptonote::subaddress_index index = {0, 0}) const;
+    bool verify(const std::string &data, const cryptonote::account_public_address &address, const std::string &signature) const;
+>>>>>>> origin/android-wallet
 
     /*!
      * \brief sign_multisig_participant signs given message with the multisig public signer key
@@ -1399,7 +1415,11 @@ private:
     std::vector<std::pair<uint64_t, uint64_t>> estimate_backlog(const std::vector<std::pair<double, double>> &fee_levels);
     std::vector<std::pair<uint64_t, uint64_t>> estimate_backlog(uint64_t min_tx_weight, uint64_t max_tx_weight, const std::vector<uint64_t> &fees);
 
+<<<<<<< HEAD
     uint64_t estimate_fee(bool use_per_byte_fee, bool use_rct, int n_inputs, int mixin, int n_outputs, size_t extra_size, bool bulletproof, bool clsag, uint64_t base_fee, uint64_t fee_multiplier, uint64_t fee_quantization_mask) const;
+=======
+    uint64_t estimate_fee(bool use_per_byte_fee, bool use_rct, int n_inputs, int mixin, int n_outputs, size_t extra_size, bool bulletproof, uint64_t base_fee, uint64_t fee_multiplier, uint64_t fee_quantization_mask) const;
+>>>>>>> origin/android-wallet
     uint64_t get_fee_multiplier(uint32_t priority, int fee_algorithm = -1);
     uint64_t get_base_fee();
     uint64_t get_fee_quantization_mask();
@@ -1655,7 +1675,10 @@ private:
     void check_rpc_cost(const char *call, uint64_t post_call_credits, uint64_t pre_credits, double expected_cost);
 
     bool should_expand(const cryptonote::subaddress_index &index) const;
+<<<<<<< HEAD
     bool spends_one_of_ours(const cryptonote::transaction &tx) const;
+=======
+>>>>>>> origin/android-wallet
 
     cryptonote::account_base m_account;
     boost::optional<epee::net_utils::http::login> m_daemon_login;
@@ -1794,7 +1817,10 @@ private:
     std::unique_ptr<wallet_device_callback> m_device_callback;
 
     ExportFormat m_export_format;
+<<<<<<< HEAD
     bool m_load_deprecated_formats;
+=======
+>>>>>>> origin/android-wallet
 
     static boost::mutex default_daemon_address_lock;
     static std::string default_daemon_address;

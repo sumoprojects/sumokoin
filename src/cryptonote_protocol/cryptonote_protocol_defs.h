@@ -202,7 +202,7 @@ namespace cryptonote
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(txs)
         KV_SERIALIZE(_)
-        KV_SERIALIZE_OPT(dandelionpp_fluff, true) // backwards compatible mode is fluff        
+        KV_SERIALIZE_OPT(dandelionpp_fluff, true) // backwards compatible mode is fluff
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<request_t> request;

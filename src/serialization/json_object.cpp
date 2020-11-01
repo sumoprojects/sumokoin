@@ -33,8 +33,11 @@
 #include <limits>
 #include <type_traits>
 
+<<<<<<< HEAD
 #include "cryptonote_basic/cryptonote_basic_impl.h"
 
+=======
+>>>>>>> origin/android-wallet
 // drop macro from windows.h
 #ifdef GetObject
   #undef GetObject
@@ -122,18 +125,30 @@ void read_hex(const rapidjson::Value& val, epee::span<std::uint8_t> dest)
     throw WRONG_TYPE("string");
   }
 
+<<<<<<< HEAD
   if (!epee::from_hex::to_buffer(dest, {val.GetString(), val.GetStringLength()}))
+=======
+  if (!epee::from_hex::to_buffer(dest, {val.GetString(), val.Size()}))
+>>>>>>> origin/android-wallet
   {
     throw BAD_INPUT();
   }
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rapidjson::Value& src)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const rapidjson::Value& src)
+>>>>>>> origin/android-wallet
 {
   src.Accept(dest);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const boost::string_ref i)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const boost::string_ref i)
+>>>>>>> origin/android-wallet
 {
   dest.String(i.data(), i.size());
 }
@@ -148,6 +163,7 @@ void fromJsonValue(const rapidjson::Value& val, std::string& str)
   str = val.GetString();
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const std::vector<std::uint8_t>& src)
 {
   const std::string hex = epee::to_hex::string(epee::to_span(src));
@@ -170,6 +186,10 @@ void fromJsonValue(const rapidjson::Value& val, std::vector<std::uint8_t>& dest)
 
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, bool i)
 {
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, bool i)
+{
+>>>>>>> origin/android-wallet
   dest.Bool(i);
 }
 
@@ -207,7 +227,11 @@ void fromJsonValue(const rapidjson::Value& val, short& i)
   to_int(val, i);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const unsigned int i)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const unsigned int i)
+>>>>>>> origin/android-wallet
 {
   dest.Uint(i);
 }
@@ -217,7 +241,11 @@ void fromJsonValue(const rapidjson::Value& val, unsigned int& i)
   to_uint(val, i);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const int i)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const int i)
+>>>>>>> origin/android-wallet
 {
   dest.Int(i);
 }
@@ -227,7 +255,11 @@ void fromJsonValue(const rapidjson::Value& val, int& i)
   to_int(val, i);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const unsigned long long i)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const unsigned long long i)
+>>>>>>> origin/android-wallet
 {
   static_assert(!precision_loss<unsigned long long, std::uint64_t>(), "bad uint64 conversion");
   dest.Uint64(i);
@@ -238,7 +270,11 @@ void fromJsonValue(const rapidjson::Value& val, unsigned long long& i)
   to_uint64(val, i);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const long long i)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const long long i)
+>>>>>>> origin/android-wallet
 {
   static_assert(!precision_loss<long long, std::int64_t>(), "bad int64 conversion");
   dest.Int64(i);
@@ -259,7 +295,11 @@ void fromJsonValue(const rapidjson::Value& val, long& i)
   to_int64(val, i);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::transaction& tx)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::transaction& tx)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -268,10 +308,14 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::t
   INSERT_INTO_JSON_OBJECT(dest, inputs, tx.vin);
   INSERT_INTO_JSON_OBJECT(dest, outputs, tx.vout);
   INSERT_INTO_JSON_OBJECT(dest, extra, tx.extra);
+<<<<<<< HEAD
   if (!tx.pruned)
   {
     INSERT_INTO_JSON_OBJECT(dest, signatures, tx.signatures);
   }
+=======
+  INSERT_INTO_JSON_OBJECT(dest, signatures, tx.signatures);
+>>>>>>> origin/android-wallet
   INSERT_INTO_JSON_OBJECT(dest, ringct, tx.rct_signatures);
 
   dest.EndObject();
@@ -303,6 +347,7 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::transaction& tx)
     tx.pruned = true;
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::block& b)
 {
   dest.StartObject();
@@ -315,6 +360,20 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::b
   INSERT_INTO_JSON_OBJECT(dest, miner_tx, b.miner_tx);
   INSERT_INTO_JSON_OBJECT(dest, tx_hashes, b.tx_hashes);
 
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::block& b)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, major_version, b.major_version);
+  INSERT_INTO_JSON_OBJECT(dest, minor_version, b.minor_version);
+  INSERT_INTO_JSON_OBJECT(dest, timestamp, b.timestamp);
+  INSERT_INTO_JSON_OBJECT(dest, prev_id, b.prev_id);
+  INSERT_INTO_JSON_OBJECT(dest, nonce, b.nonce);
+  INSERT_INTO_JSON_OBJECT(dest, miner_tx, b.miner_tx);
+  INSERT_INTO_JSON_OBJECT(dest, tx_hashes, b.tx_hashes);
+
+>>>>>>> origin/android-wallet
   dest.EndObject();
 }
 
@@ -335,14 +394,22 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::block& b)
   GET_FROM_JSON_OBJECT(val, b.tx_hashes, tx_hashes);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txin_v& txin)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::txin_v& txin)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
   struct add_input
   {
     using result_type = void;
 
+<<<<<<< HEAD
     rapidjson::Writer<epee::byte_stream>& dest;
+=======
+    rapidjson::Writer<rapidjson::StringBuffer>& dest;
+>>>>>>> origin/android-wallet
 
     void operator()(cryptonote::txin_to_key const& input) const
     {
@@ -407,7 +474,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::txin_v& txin)
   }
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txin_gen& txin)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::txin_gen& txin)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -426,6 +497,7 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::txin_gen& txin)
   GET_FROM_JSON_OBJECT(val, txin.height, height);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txin_to_script& txin)
 {
   dest.StartObject();
@@ -434,6 +506,16 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::t
   INSERT_INTO_JSON_OBJECT(dest, prevout, txin.prevout);
   INSERT_INTO_JSON_OBJECT(dest, sigset, txin.sigset);
 
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::txin_to_script& txin)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, prev, txin.prev);
+  INSERT_INTO_JSON_OBJECT(dest, prevout, txin.prevout);
+  INSERT_INTO_JSON_OBJECT(dest, sigset, txin.sigset);
+
+>>>>>>> origin/android-wallet
   dest.EndObject();
 }
 
@@ -451,6 +533,7 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::txin_to_script& txin
 }
 
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txin_to_scripthash& txin)
 {
   dest.StartObject();
@@ -460,6 +543,17 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::t
   INSERT_INTO_JSON_OBJECT(dest, script, txin.script);
   INSERT_INTO_JSON_OBJECT(dest, sigset, txin.sigset);
 
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::txin_to_scripthash& txin)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, prev, txin.prev);
+  INSERT_INTO_JSON_OBJECT(dest, prevout, txin.prevout);
+  INSERT_INTO_JSON_OBJECT(dest, script, txin.script);
+  INSERT_INTO_JSON_OBJECT(dest, sigset, txin.sigset);
+
+>>>>>>> origin/android-wallet
   dest.EndObject();
 }
 
@@ -477,7 +571,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::txin_to_scripthash& 
   GET_FROM_JSON_OBJECT(val, txin.sigset, sigset);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txin_to_key& txin)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::txin_to_key& txin)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -501,7 +599,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::txin_to_key& txin)
 }
 
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txout_to_script& txout)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::txout_to_script& txout)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -523,7 +625,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::txout_to_script& txo
 }
 
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txout_to_scripthash& txout)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::txout_to_scripthash& txout)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -543,7 +649,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::txout_to_scripthash&
 }
 
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txout_to_key& txout)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::txout_to_key& txout)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -562,7 +672,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::txout_to_key& txout)
   GET_FROM_JSON_OBJECT(val, txout.key, key);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::tx_out& txout)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::tx_out& txout)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
   INSERT_INTO_JSON_OBJECT(dest, amount, txout.amount);
@@ -571,7 +685,11 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::t
   {
     using result_type = void;
 
+<<<<<<< HEAD
     rapidjson::Writer<epee::byte_stream>& dest;
+=======
+    rapidjson::Writer<rapidjson::StringBuffer>& dest;
+>>>>>>> origin/android-wallet
 
     void operator()(cryptonote::txout_to_key const& output) const
     {
@@ -630,6 +748,7 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::tx_out& txout)
   }
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::connection_info& info)
 {
   dest.StartObject();
@@ -662,6 +781,40 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::c
   INSERT_INTO_JSON_OBJECT(dest, avg_upload, info.avg_upload);
   INSERT_INTO_JSON_OBJECT(dest, current_upload, info.current_upload);
 
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::connection_info& info)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, incoming, info.incoming);
+  INSERT_INTO_JSON_OBJECT(dest, localhost, info.localhost);
+  INSERT_INTO_JSON_OBJECT(dest, local_ip, info.local_ip);
+  INSERT_INTO_JSON_OBJECT(dest, address_type, info.address_type);
+
+  INSERT_INTO_JSON_OBJECT(dest, ip, info.ip);
+  INSERT_INTO_JSON_OBJECT(dest, port, info.port);
+  INSERT_INTO_JSON_OBJECT(dest, rpc_port, info.rpc_port);
+  INSERT_INTO_JSON_OBJECT(dest, rpc_credits_per_hash, info.rpc_credits_per_hash);
+
+  INSERT_INTO_JSON_OBJECT(dest, peer_id, info.peer_id);
+
+  INSERT_INTO_JSON_OBJECT(dest, recv_count, info.recv_count);
+  INSERT_INTO_JSON_OBJECT(dest, recv_idle_time, info.recv_idle_time);
+
+  INSERT_INTO_JSON_OBJECT(dest, send_count, info.send_count);
+  INSERT_INTO_JSON_OBJECT(dest, send_idle_time, info.send_idle_time);
+
+  INSERT_INTO_JSON_OBJECT(dest, state, info.state);
+
+  INSERT_INTO_JSON_OBJECT(dest, live_time, info.live_time);
+
+  INSERT_INTO_JSON_OBJECT(dest, avg_download, info.avg_download);
+  INSERT_INTO_JSON_OBJECT(dest, current_download, info.current_download);
+
+  INSERT_INTO_JSON_OBJECT(dest, avg_upload, info.avg_upload);
+  INSERT_INTO_JSON_OBJECT(dest, current_upload, info.current_upload);
+
+>>>>>>> origin/android-wallet
   dest.EndObject();
 }
 
@@ -702,6 +855,7 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::connection_info& inf
   GET_FROM_JSON_OBJECT(val, info.current_upload, current_upload);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::tx_blob_entry& tx)
 {
   dest.StartObject();
@@ -709,6 +863,15 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::t
   INSERT_INTO_JSON_OBJECT(dest, blob, tx.blob);
   INSERT_INTO_JSON_OBJECT(dest, prunable_hash, tx.prunable_hash);
 
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::tx_blob_entry& tx)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, blob, tx.blob);
+  INSERT_INTO_JSON_OBJECT(dest, prunable_hash, tx.prunable_hash);
+
+>>>>>>> origin/android-wallet
   dest.EndObject();
 }
 
@@ -723,7 +886,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::tx_blob_entry& tx)
   GET_FROM_JSON_OBJECT(val, tx.prunable_hash, prunable_hash);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::block_complete_entry& blk)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::block_complete_entry& blk)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -745,7 +912,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::block_complete_entry
   GET_FROM_JSON_OBJECT(val, blk.txs, transactions);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::block_with_transactions& blk)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::block_with_transactions& blk)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -767,7 +938,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::block_with_tran
   GET_FROM_JSON_OBJECT(val, blk.transactions, transactions);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::transaction_info& tx_info)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::transaction_info& tx_info)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -791,7 +966,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::transaction_inf
   GET_FROM_JSON_OBJECT(val, tx_info.transaction, transaction);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::output_key_and_amount_index& out)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::output_key_and_amount_index& out)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -813,7 +992,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_key_and_
   GET_FROM_JSON_OBJECT(val, out.key, key);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::amount_with_random_outputs& out)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::amount_with_random_outputs& out)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -835,7 +1018,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::amount_with_ran
   GET_FROM_JSON_OBJECT(val, out.outputs, outputs);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::peer& peer)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::peer& peer)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -867,7 +1054,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::peer& peer)
   GET_FROM_JSON_OBJECT(val, peer.pruning_seed, pruning_seed);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::tx_in_pool& tx)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::tx_in_pool& tx)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -914,7 +1105,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::tx_in_pool& tx)
   GET_FROM_JSON_OBJECT(val, tx.double_spend_seen, double_spend_seen);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::hard_fork_info& info)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::hard_fork_info& info)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -948,7 +1143,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::hard_fork_info&
   GET_FROM_JSON_OBJECT(val, info.earliest_height, earliest_height);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::output_amount_count& out)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::output_amount_count& out)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -974,7 +1173,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_amount_c
   GET_FROM_JSON_OBJECT(val, out.recent_count, recent_count);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::output_amount_and_index& out)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::output_amount_and_index& out)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -996,6 +1199,7 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_amount_a
   GET_FROM_JSON_OBJECT(val, out.index, index);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::output_key_mask_unlocked& out)
 {
   dest.StartObject();
@@ -1004,6 +1208,16 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::r
   INSERT_INTO_JSON_OBJECT(dest, mask, out.mask);
   INSERT_INTO_JSON_OBJECT(dest, unlocked, out.unlocked);
 
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::output_key_mask_unlocked& out)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, key, out.key);
+  INSERT_INTO_JSON_OBJECT(dest, mask, out.mask);
+  INSERT_INTO_JSON_OBJECT(dest, unlocked, out.unlocked);
+
+>>>>>>> origin/android-wallet
   dest.EndObject();
 }
 
@@ -1019,6 +1233,7 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_key_mask
   GET_FROM_JSON_OBJECT(val, out.unlocked, unlocked);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::error& err)
 {
   dest.StartObject();
@@ -1027,6 +1242,16 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::r
   INSERT_INTO_JSON_OBJECT(dest, error_str, err.error_str);
   INSERT_INTO_JSON_OBJECT(dest, message, err.message);
 
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::error& err)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, code, err.code);
+  INSERT_INTO_JSON_OBJECT(dest, error_str, err.error_str);
+  INSERT_INTO_JSON_OBJECT(dest, message, err.message);
+
+>>>>>>> origin/android-wallet
   dest.EndObject();
 }
 
@@ -1042,7 +1267,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::error& error)
   GET_FROM_JSON_OBJECT(val, error.message, message);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::BlockHeaderResponse& response)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::BlockHeaderResponse& response)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -1079,7 +1308,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::BlockHeaderResp
   GET_FROM_JSON_OBJECT(val, response.reward, reward);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::rctSig& sig)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const rct::rctSig& sig)
+>>>>>>> origin/android-wallet
 {
   using boost::adaptors::transform;
 
@@ -1149,6 +1382,7 @@ void fromJsonValue(const rapidjson::Value& val, rct::rctSig& sig)
   }
 }
 
+<<<<<<< HEAD
 void fromJsonValue(const rapidjson::Value& val, rct::ctkey& key)
 {
   key.dest = {};
@@ -1157,6 +1391,10 @@ void fromJsonValue(const rapidjson::Value& val, rct::ctkey& key)
 
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::ecdhTuple& tuple)
 {
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const rct::ecdhTuple& tuple)
+{
+>>>>>>> origin/android-wallet
   dest.StartObject();
   INSERT_INTO_JSON_OBJECT(dest, mask, tuple.mask);
   INSERT_INTO_JSON_OBJECT(dest, amount, tuple.amount);
@@ -1174,7 +1412,11 @@ void fromJsonValue(const rapidjson::Value& val, rct::ecdhTuple& tuple)
   GET_FROM_JSON_OBJECT(val, tuple.amount, amount);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::rangeSig& sig)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const rct::rangeSig& sig)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -1211,6 +1453,7 @@ void fromJsonValue(const rapidjson::Value& val, rct::rangeSig& sig)
   }
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::Bulletproof& p)
 {
   dest.StartObject();
@@ -1228,6 +1471,25 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::Bulletpr
   INSERT_INTO_JSON_OBJECT(dest, b, p.b);
   INSERT_INTO_JSON_OBJECT(dest, t, p.t);
 
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const rct::Bulletproof& p)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, V, p.V);
+  INSERT_INTO_JSON_OBJECT(dest, A, p.A);
+  INSERT_INTO_JSON_OBJECT(dest, S, p.S);
+  INSERT_INTO_JSON_OBJECT(dest, T1, p.T1);
+  INSERT_INTO_JSON_OBJECT(dest, T2, p.T2);
+  INSERT_INTO_JSON_OBJECT(dest, taux, p.taux);
+  INSERT_INTO_JSON_OBJECT(dest, mu, p.mu);
+  INSERT_INTO_JSON_OBJECT(dest, L, p.L);
+  INSERT_INTO_JSON_OBJECT(dest, R, p.R);
+  INSERT_INTO_JSON_OBJECT(dest, a, p.a);
+  INSERT_INTO_JSON_OBJECT(dest, b, p.b);
+  INSERT_INTO_JSON_OBJECT(dest, t, p.t);
+
+>>>>>>> origin/android-wallet
   dest.EndObject();
 }
 
@@ -1252,6 +1514,7 @@ void fromJsonValue(const rapidjson::Value& val, rct::Bulletproof& p)
   GET_FROM_JSON_OBJECT(val, p.t, t);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::boroSig& sig)
 {
   dest.StartObject();
@@ -1260,6 +1523,16 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::boroSig&
   INSERT_INTO_JSON_OBJECT(dest, s1, epee::span<const rct::key>{sig.s1});
   INSERT_INTO_JSON_OBJECT(dest, ee, sig.ee);
 
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const rct::boroSig& sig)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, s0, epee::span<const rct::key>{sig.s0});
+  INSERT_INTO_JSON_OBJECT(dest, s1, epee::span<const rct::key>{sig.s1});
+  INSERT_INTO_JSON_OBJECT(dest, ee, sig.ee);
+
+>>>>>>> origin/android-wallet
   dest.EndObject();
 }
 
@@ -1297,6 +1570,7 @@ void fromJsonValue(const rapidjson::Value& val, rct::boroSig& sig)
   GET_FROM_JSON_OBJECT(val, sig.ee, ee);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::mgSig& sig)
 {
   dest.StartObject();
@@ -1304,6 +1578,15 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::mgSig& s
   INSERT_INTO_JSON_OBJECT(dest, ss, sig.ss);
   INSERT_INTO_JSON_OBJECT(dest, cc, sig.cc);
 
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const rct::mgSig& sig)
+{
+  dest.StartObject();
+
+  INSERT_INTO_JSON_OBJECT(dest, ss, sig.ss);
+  INSERT_INTO_JSON_OBJECT(dest, cc, sig.cc);
+
+>>>>>>> origin/android-wallet
   dest.EndObject();
 }
 
@@ -1318,7 +1601,11 @@ void fromJsonValue(const rapidjson::Value& val, rct::mgSig& sig)
   GET_FROM_JSON_OBJECT(val, sig.cc, cc);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::DaemonInfo& info)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::DaemonInfo& info)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 
@@ -1343,7 +1630,10 @@ void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::r
   INSERT_INTO_JSON_OBJECT(dest, block_weight_limit, info.block_weight_limit);
   INSERT_INTO_JSON_OBJECT(dest, block_size_median, info.block_size_median);
   INSERT_INTO_JSON_OBJECT(dest, block_weight_median, info.block_weight_median);
+<<<<<<< HEAD
   INSERT_INTO_JSON_OBJECT(dest, adjusted_time, info.adjusted_time);
+=======
+>>>>>>> origin/android-wallet
   INSERT_INTO_JSON_OBJECT(dest, start_time, info.start_time);
 
   dest.EndObject();
@@ -1381,7 +1671,11 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::DaemonInfo& inf
   GET_FROM_JSON_OBJECT(val, info.start_time, start_time);
 }
 
+<<<<<<< HEAD
 void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::output_distribution& dist)
+=======
+void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::rpc::output_distribution& dist)
+>>>>>>> origin/android-wallet
 {
   dest.StartObject();
 

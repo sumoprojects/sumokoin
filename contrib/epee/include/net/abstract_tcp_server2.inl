@@ -46,6 +46,8 @@
 #include "net/local_ip.h"
 #include "pragma_comp_defs.h"
 
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+
 #include <sstream>
 #include <iomanip>
 #include <algorithm>

@@ -1300,9 +1300,12 @@ struct WalletManager
         std::string subdir,
         const char *buildtag = nullptr,
         const char *current_version = nullptr);
+<<<<<<< HEAD
 
     //! sets proxy address, empty string to disable
     virtual bool setProxy(const std::string &address) = 0;        
+=======
+>>>>>>> origin/android-wallet
 };
 
 

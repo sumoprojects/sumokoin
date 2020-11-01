@@ -26,6 +26,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+<<<<<<< HEAD
 #include <boost/preprocessor/stringize.hpp>
 #include <gtest/gtest.h>
 #include <rapidjson/document.h>
@@ -45,6 +46,13 @@
   if (!(__VA_ARGS__))                                                     \
     return testing::AssertionFailure() << BOOST_PP_STRINGIZE(__VA_ARGS__)
 
+=======
+#include <gtest/gtest.h>
+
+#include "rpc/message.h"
+#include "serialization/json_object.h"
+
+>>>>>>> origin/android-wallet
 TEST(ZmqFullMessage, InvalidRequest)
 {
   EXPECT_THROW(
@@ -67,6 +75,7 @@ TEST(ZmqFullMessage, Request)
   cryptonote::rpc::FullMessage parsed{request, true};
   EXPECT_STREQ("foo", parsed.getRequestType().c_str());
 }
+<<<<<<< HEAD
 
 namespace
 {
@@ -775,3 +784,5 @@ TEST_F(zmq_server, pub)
   EXPECT_TRUE(compare_minimal_txpool(epee::to_span(events), pubs.front()));
   EXPECT_TRUE(compare_minimal_block(200, epee::to_span(blocks), pubs.back()));
 }
+=======
+>>>>>>> origin/android-wallet

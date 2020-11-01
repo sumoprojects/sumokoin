@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // Copyright (c) 2014-2020, The Monero Project
+=======
+// Copyright (c) 2014-2019, The Monero Project
+>>>>>>> origin/android-wallet
 //
 // All rights reserved.
 //
@@ -156,6 +160,7 @@ namespace cryptonote
     bool set_persistent_rpc_client_id(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_auto_mine_for_rpc_payment_threshold(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_credits_target(const std::vector<std::string> &args = std::vector<std::string>());
+    bool help_advanced(const std::vector<std::string> &args = std::vector<std::string>());
     bool help(const std::vector<std::string> &args = std::vector<std::string>());
     bool search_command(const std::vector<std::string> &args);
     bool start_mining(const std::vector<std::string> &args);
@@ -174,7 +179,11 @@ namespace cryptonote
     bool locked_sweep_all(const std::vector<std::string> &args);
     bool sweep_main(uint32_t account, uint64_t below, bool locked, const std::vector<std::string> &args);
     bool sweep_all(const std::vector<std::string> &args);
+<<<<<<< HEAD
     bool sweep_account(const std::vector<std::string> &args);
+=======
+    bool sweep_account(const std::vector<std::string> &args);    
+>>>>>>> origin/android-wallet
     bool sweep_below(const std::vector<std::string> &args);
     bool sweep_single(const std::vector<std::string> &args);
     bool sweep_unmixable(const std::vector<std::string> &args);

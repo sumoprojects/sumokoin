@@ -45,7 +45,7 @@ for arch in ${archs[@]}; do
     OUTPUT_DIR=$base_dir/build/$build_type.$arch
     mkdir -p $OUTPUT_DIR
     cd $OUTPUT_DIR
-    
+
     export CXXFLAGS="-isystem /opt/android/build/libsodium/$arch/include" ${orig_cxx_flags}
     PATH=/opt/android/tool/$arch/$target_host/bin:/opt/android/tool/$arch/bin:$PATH \
     CC=clang CXX=clang++ \

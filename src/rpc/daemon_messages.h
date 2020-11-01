@@ -28,6 +28,10 @@
 
 #pragma once
 
+<<<<<<< HEAD
+=======
+#include <rapidjson/stringbuffer.h>
+>>>>>>> origin/android-wallet
 #include <rapidjson/writer.h>
 #include <unordered_map>
 #include <vector>
@@ -42,7 +46,11 @@
 #define BEGIN_RPC_MESSAGE_CLASS(classname) \
 class classname \
 { \
+<<<<<<< HEAD
   public:
+=======
+  public: 
+>>>>>>> origin/android-wallet
 
 #define BEGIN_RPC_MESSAGE_REQUEST \
     class Request final : public Message \
@@ -50,7 +58,11 @@ class classname \
       public: \
         Request() { } \
         ~Request() { } \
+<<<<<<< HEAD
         void doToJson(rapidjson::Writer<epee::byte_stream>& dest) const override final; \
+=======
+        void doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const override final; \
+>>>>>>> origin/android-wallet
         void fromJson(const rapidjson::Value& val) override final;
 
 #define BEGIN_RPC_MESSAGE_RESPONSE \
@@ -59,7 +71,11 @@ class classname \
       public: \
         Response() { } \
         ~Response() { } \
+<<<<<<< HEAD
         void doToJson(rapidjson::Writer<epee::byte_stream>& dest) const override final; \
+=======
+        void doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const override final; \
+>>>>>>> origin/android-wallet
         void fromJson(const rapidjson::Value& val) override final;
 
 #define END_RPC_MESSAGE_REQUEST };

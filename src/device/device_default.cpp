@@ -421,7 +421,7 @@ namespace hw {
             sc_mulsub(s.bytes,c.bytes,s0_add_z_mu_C.bytes,a.bytes);
 
             return true;
-        }        
+        }
 
         bool device_default::close_tx() {
             return true;

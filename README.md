@@ -1,4 +1,7 @@
 # Sumokoin
+## Android Wallet Branch
+(updated with master at all times)
+Instructions on how to build on ANDROID-BUILD.md
 
 Copyright (c) 2017-2020, Sumokoin Project
 

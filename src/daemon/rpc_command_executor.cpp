@@ -836,7 +836,7 @@ bool t_rpc_command_executor::print_connections() {
       std::string seed_3 = SEED_MAINNET_3; std::string seed3 = seed_3.erase(seed_3.length()-6); std::string seed_4 = SEED_MAINNET_4; std::string seed4 = seed_4.erase(seed_4.length()-6);
       std::string seed_5 = SEED_MAINNET_5; std::string seed5 = seed_5.erase(seed_5.length()-6); std::string seed_6 = SEED_MAINNET_6; std::string seed6 = seed_6.erase(seed_6.length()-6);
       std::string seed_7 = SEED_MAINNET_7; std::string seed7 = seed_7.erase(seed_7.length()-6); std::string seed_8 = SEED_MAINNET_8; std::string seed8 = seed_8.erase(seed_8.length()-6);
-      std::vector<std::string> seeds {seed1, seed2, seed3, seed4, seed5, seed6, seed7, seed8};     
+      std::vector<std::string> seeds {seed1, seed2, seed3, seed4, seed5, seed6, seed7, seed8};
       if (search_array(info.ip, seeds))
       {
         address += info.ip + ":" + info.port + "(seed)";
