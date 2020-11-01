@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 // Copyright (c) 2017-2020, The Monero Project
-=======
-// Copyright (c) 2017-2019, The Monero Project
->>>>>>> origin/android-wallet
 //
 // All rights reserved.
 //
@@ -32,14 +28,11 @@
 
 #include "daemon_handler.h"
 
-<<<<<<< HEAD
-=======
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
 
 #include <boost/uuid/nil_generator.hpp>
->>>>>>> origin/android-wallet
 // likely included by daemon_handler.h's includes,
 // but including here for clarity
 // #include "cryptonote_core/cryptonote_core.h"
@@ -52,11 +45,7 @@ namespace rpc
 {
   namespace
   {
-<<<<<<< HEAD
     using handler_function = epee::byte_slice(DaemonHandler& handler, const rapidjson::Value& id, const rapidjson::Value& msg);
-=======
-    using handler_function = std::string(DaemonHandler& handler, const rapidjson::Value& id, const rapidjson::Value& msg);
->>>>>>> origin/android-wallet
     struct handler_map
     {
       const char* method_name;
@@ -74,11 +63,7 @@ namespace rpc
     }
 
     template<typename Message>
-<<<<<<< HEAD
     epee::byte_slice handle_message(DaemonHandler& handler, const rapidjson::Value& id, const rapidjson::Value& parameters)
-=======
-    std::string handle_message(DaemonHandler& handler, const rapidjson::Value& id, const rapidjson::Value& parameters)
->>>>>>> origin/android-wallet
     {
       typename Message::Request request{};
       request.fromJson(parameters);
@@ -575,10 +560,6 @@ namespace rpc
   {
     const cryptonote::miner& lMiner = m_core.get_miner();
     res.active = lMiner.is_mining();
-<<<<<<< HEAD
-=======
-    res.is_background_mining_enabled = lMiner.get_is_background_mining_enabled();
->>>>>>> origin/android-wallet
 
     if ( lMiner.is_mining() ) {
       res.speed = lMiner.get_speed();
@@ -931,27 +912,18 @@ namespace rpc
 
     try
     {
-<<<<<<< HEAD
       FullMessage req_full(std::move(request), true);
-=======
-      FullMessage req_full(request, true);
->>>>>>> origin/android-wallet
 
       const std::string request_type = req_full.getRequestType();
       const auto matched_handler = std::lower_bound(std::begin(handlers), std::end(handlers), request_type);
       if (matched_handler == std::end(handlers) || matched_handler->method_name != request_type)
         return BAD_REQUEST(request_type, req_full.getID());
 
-<<<<<<< HEAD
       epee::byte_slice response = matched_handler->call(*this, req_full.getID(), req_full.getMessage());
 
       const boost::string_ref response_view{reinterpret_cast<const char*>(response.data()), response.size()};
       MDEBUG("Returning RPC response: " << response_view);
 
-=======
-      std::string response = matched_handler->call(*this, req_full.getID(), req_full.getMessage());
-      MDEBUG("Returning RPC response: " << response);
->>>>>>> origin/android-wallet
       return response;
     }
     catch (const std::exception& e)

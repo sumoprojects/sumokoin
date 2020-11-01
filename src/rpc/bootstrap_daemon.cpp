@@ -1,12 +1,6 @@
 #include "bootstrap_daemon.h"
-
-<<<<<<< HEAD
-=======
 #include <stdexcept>
-
 #include <boost/thread/locks.hpp>
-
->>>>>>> origin/android-wallet
 #include "crypto/crypto.h"
 #include "cryptonote_core/cryptonote_core.h"
 

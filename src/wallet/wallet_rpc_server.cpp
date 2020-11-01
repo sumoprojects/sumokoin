@@ -1938,8 +1938,6 @@ namespace tools
       er.message = "Command unavailable in restricted mode.";
       return false;
     }
-
-<<<<<<< HEAD
     tools::wallet2::message_signature_type_t signature_type = tools::wallet2::sign_with_spend_key;
     if (req.signature_type == "spend" || req.signature_type == "")
       signature_type = tools::wallet2::sign_with_spend_key;
@@ -1952,9 +1950,6 @@ namespace tools
       return false;
     }
     res.signature = m_wallet->sign(req.data, signature_type, {req.account_index, req.address_index});
-=======
-    res.signature = m_wallet->sign(req.data, {req.account_index, req.address_index});
->>>>>>> origin/android-wallet
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------

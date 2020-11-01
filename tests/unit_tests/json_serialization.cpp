@@ -2,13 +2,9 @@
 #include <boost/range/adaptor/indexed.hpp>
 #include <gtest/gtest.h>
 #include <rapidjson/document.h>
-<<<<<<< HEAD
-=======
-#include <rapidjson/stringbuffer.h>
->>>>>>> origin/android-wallet
 #include <rapidjson/writer.h>
 #include <vector>
-#include <boost/optional/optional.hpp>
+#include <optional>
 
 #include "byte_stream.h"
 #include "crypto/hash.h"
@@ -81,12 +77,11 @@ namespace test
         std::unordered_map<crypto::public_key, cryptonote::subaddress_index> subaddresses;
         subaddresses[from.m_account_address.m_spend_public_key] = {0,0};
 
-        if (!cryptonote::construct_tx_and_get_tx_key(from, subaddresses, actual_sources, to, boost::none, {}, tx, 0, tx_key, extra_keys, rct, { bulletproof ? rct::RangeProofBulletproof : rct::RangeProofBorromean, bulletproof ? 2 : 0 }))
+        if (!cryptonote::construct_tx_and_get_tx_key(from, subaddresses, actual_sources, to, std::nullopt, {}, tx, 0, tx_key, extra_keys, rct, { bulletproof ? rct::RangeProofBulletproof : rct::RangeProofBorromean, bulletproof ? 2 : 0 }))
             throw std::runtime_error{"transaction construction error"};
 
         return tx;
     }
-<<<<<<< HEAD
 }
 
 namespace
@@ -97,26 +92,12 @@ namespace
       epee::byte_stream buffer;
       {
         rapidjson::Writer<epee::byte_stream> dest{buffer};
-=======
-
-    template<typename T>
-    T test_json(const T& value)
-    {
-      rapidjson::StringBuffer buffer;
-      {
-        rapidjson::Writer<rapidjson::StringBuffer> dest{buffer};
->>>>>>> origin/android-wallet
         cryptonote::json::toJsonValue(dest, value);
       }
 
       rapidjson::Document doc;
-<<<<<<< HEAD
       doc.Parse(reinterpret_cast<const char*>(buffer.data()), buffer.size());
       if (doc.HasParseError())
-=======
-      doc.Parse(buffer.GetString());
-      if (doc.HasParseError() || !doc.IsObject())
->>>>>>> origin/android-wallet
       {
         throw cryptonote::json::PARSE_FAIL();
       }

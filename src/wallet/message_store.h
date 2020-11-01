@@ -44,12 +44,9 @@
 #include "common/command_line.h"
 #include "wipeable_string.h"
 #include "net/abstract_http_client.h"
-<<<<<<< HEAD
 #include "serialization/crypto.h"
 #include "serialization/string.h"
 #include "serialization/containers.h"
-=======
->>>>>>> origin/android-wallet
 #include "message_transporter.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY

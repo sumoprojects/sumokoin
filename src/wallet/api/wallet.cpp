@@ -1674,11 +1674,7 @@ void WalletImpl::disposeTransaction(PendingTransaction *t)
 uint64_t WalletImpl::estimateTransactionFee(const std::vector<std::pair<std::string, uint64_t>> &destinations,
                                             PendingTransaction::Priority priority) const
 {
-<<<<<<< HEAD
     const size_t pubkey_size = 33; // public key byte length + 1 "network" byte
-=======
-    const size_t pubkey_size = 33; // public key byte length + 1 "network" byte 
->>>>>>> origin/android-wallet
     const size_t encrypted_paymentid_size = 11;
     const size_t extra_size = pubkey_size + encrypted_paymentid_size;
 
@@ -1690,10 +1686,7 @@ uint64_t WalletImpl::estimateTransactionFee(const std::vector<std::pair<std::str
         destinations.size() + 1,
         extra_size,
         m_wallet->use_fork_rules(7, 0),
-<<<<<<< HEAD
-        m_wallet->use_fork_rules(HF_VERSION_CLSAG, 0),        
-=======
->>>>>>> origin/android-wallet
+        m_wallet->use_fork_rules(HF_VERSION_CLSAG, 0),
         m_wallet->get_base_fee(),
         m_wallet->get_fee_multiplier(m_wallet->adjust_priority(static_cast<uint32_t>(priority))),
         m_wallet->get_fee_quantization_mask());

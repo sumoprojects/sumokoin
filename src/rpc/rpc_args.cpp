@@ -29,13 +29,6 @@
 #include "rpc_args.h"
 
 #include <boost/algorithm/string.hpp>
-<<<<<<< HEAD
-// #include "common/command_line.h" // already #included in rpc/rpc_args.h
-=======
-#include <boost/asio/ip/address.hpp>
-#include <boost/bind/bind.hpp>
-#include "common/command_line.h"
->>>>>>> origin/android-wallet
 #include "common/i18n.h"
 #include "hex.h"
 
@@ -224,11 +217,7 @@ namespace cryptonote
       }
       std::vector<std::string> access_control_origins;
       boost::split(access_control_origins, access_control_origins_input, boost::is_any_of(","));
-<<<<<<< HEAD
       std::for_each(access_control_origins.begin(), access_control_origins.end(), std::bind(&boost::trim<std::string>, std::placeholders::_1, std::locale::classic()));
-=======
-      std::for_each(access_control_origins.begin(), access_control_origins.end(), boost::bind(&boost::trim<std::string>, boost::placeholders::_1, std::locale::classic()));
->>>>>>> origin/android-wallet
       config.access_control_origins = std::move(access_control_origins);
     }
 

@@ -135,7 +135,7 @@ namespace nodetool
       FIELD(adr)
       FIELD(id)
       FIELD(is_income)
-    END_SERIALIZE()    
+    END_SERIALIZE()
   };
   typedef connection_entry_base<epee::net_utils::network_address> connection_entry;
 
@@ -183,11 +183,7 @@ namespace nodetool
 
   struct basic_node_data
   {
-<<<<<<< HEAD
     uuid network_id;
-=======
-    uuid network_id;                   
->>>>>>> origin/android-wallet
     uint32_t my_port;
     uint16_t rpc_port;
     uint32_t rpc_credits_per_hash;
@@ -305,20 +301,11 @@ namespace nodetool
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(status)
         KV_SERIALIZE(peer_id)
-<<<<<<< HEAD
       END_KV_SERIALIZE_MAP()
-=======
-      END_KV_SERIALIZE_MAP()    
->>>>>>> origin/android-wallet
     };
     typedef epee::misc_utils::struct_init<response_t> response;
   };
 
-<<<<<<< HEAD
-
-=======
-  
->>>>>>> origin/android-wallet
   /************************************************************************/
   /*                                                                      */
   /************************************************************************/

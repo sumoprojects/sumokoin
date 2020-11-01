@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 // Copyright (c) 2016-2020, The Monero Project
-=======
-// Copyright (c) 2016-2019, The Monero Project
->>>>>>> origin/android-wallet
 //
 // All rights reserved.
 //
@@ -55,7 +51,6 @@ constexpr const char method_field[] = "method";
 constexpr const char params_field[] = "params";
 constexpr const char result_field[] = "result";
 
-<<<<<<< HEAD
 const rapidjson::Value& get_method_field(const rapidjson::Value& src)
 {
   const auto member = src.FindMember(method_field);
@@ -82,26 +77,6 @@ void Message::fromJson(const rapidjson::Value& val)
 
 FullMessage::FullMessage(std::string&& json_string, bool request)
   : contents(std::move(json_string)), doc()
-=======
-void Message::toJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
-{
-  dest.StartObject();
-  INSERT_INTO_JSON_OBJECT(dest, status, status);
-  INSERT_INTO_JSON_OBJECT(dest, error_details, error_details);
-  INSERT_INTO_JSON_OBJECT(dest, rpc_version, DAEMON_RPC_VERSION_ZMQ);
-  doToJson(dest);
-  dest.EndObject();
-}
-
-void Message::fromJson(const rapidjson::Value& val)
-{
-  GET_FROM_JSON_OBJECT(val, status, status);
-  GET_FROM_JSON_OBJECT(val, error_details, error_details);
-  GET_FROM_JSON_OBJECT(val, rpc_version, rpc_version);
-}
-
-FullMessage::FullMessage(const std::string& json_string, bool request)
->>>>>>> origin/android-wallet
 {
   /* Insitu parsing does not copy data from `contents` to DOM,
      accelerating string heavy content. */
@@ -173,19 +148,11 @@ cryptonote::rpc::error FullMessage::getError()
   return err;
 }
 
-<<<<<<< HEAD
 epee::byte_slice FullMessage::getRequest(const std::string& request, const Message& message, const unsigned id)
 {
   epee::byte_stream buffer;
   {
     rapidjson::Writer<epee::byte_stream> dest{buffer};
-=======
-std::string FullMessage::getRequest(const std::string& request, const Message& message, const unsigned id)
-{
-  rapidjson::StringBuffer buffer;
-  {
-    rapidjson::Writer<rapidjson::StringBuffer> dest{buffer};
->>>>>>> origin/android-wallet
 
     dest.StartObject();
     INSERT_INTO_JSON_OBJECT(dest, jsonrpc, (boost::string_ref{"2.0", 3}));
@@ -204,7 +171,6 @@ std::string FullMessage::getRequest(const std::string& request, const Message& m
     if (!dest.IsComplete())
       throw std::logic_error{"Invalid JSON tree generated"};
   }
-<<<<<<< HEAD
   return epee::byte_slice{std::move(buffer)};
 }
 
@@ -214,17 +180,6 @@ epee::byte_slice FullMessage::getResponse(const Message& message, const rapidjso
   epee::byte_stream buffer;
   {
     rapidjson::Writer<epee::byte_stream> dest{buffer};
-=======
-  return std::string{buffer.GetString(), buffer.GetSize()};
-}
-
-
-std::string FullMessage::getResponse(const Message& message, const rapidjson::Value& id)
-{
-  rapidjson::StringBuffer buffer;
-  {
-    rapidjson::Writer<rapidjson::StringBuffer> dest{buffer};
->>>>>>> origin/android-wallet
 
     dest.StartObject();
     INSERT_INTO_JSON_OBJECT(dest, jsonrpc, (boost::string_ref{"2.0", 3}));
@@ -251,11 +206,7 @@ std::string FullMessage::getResponse(const Message& message, const rapidjson::Va
     if (!dest.IsComplete())
       throw std::logic_error{"Invalid JSON tree generated"};
   }
-<<<<<<< HEAD
   return epee::byte_slice{std::move(buffer)};
-=======
-  return std::string{buffer.GetString(), buffer.GetSize()};
->>>>>>> origin/android-wallet
 }
 
 // convenience functions for bad input
@@ -265,11 +216,7 @@ epee::byte_slice BAD_REQUEST(const std::string& request)
   return BAD_REQUEST(request, invalid);
 }
 
-<<<<<<< HEAD
 epee::byte_slice BAD_REQUEST(const std::string& request, const rapidjson::Value& id)
-=======
-std::string BAD_REQUEST(const std::string& request, const rapidjson::Value& id)
->>>>>>> origin/android-wallet
 {
   Message fail;
   fail.status = Message::STATUS_BAD_REQUEST;

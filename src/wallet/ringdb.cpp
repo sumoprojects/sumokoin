@@ -33,11 +33,7 @@
 #include "misc_language.h"
 #include "wallet_errors.h"
 #include "ringdb.h"
-<<<<<<< HEAD
 #include "lmdb/db_drivers/liblmdb/lmdb.h"
-=======
-#include "cryptonote_config.h"
->>>>>>> origin/android-wallet
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "wallet.ringdb"

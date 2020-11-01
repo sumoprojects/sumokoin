@@ -1,10 +1,5 @@
-<<<<<<< HEAD
 // Copyright (c) 2017-2020, Sumokoin Project
 // Copyright (c) 2014-2020, The Monero Project
-=======
-// Copyright (c) 2017-2019, Sumokoin Project
-// Copyright (c) 2014-2019, The Monero Project
->>>>>>> origin/android-wallet
 //
 // All rights reserved.
 //
@@ -97,13 +92,8 @@ using namespace cryptonote;
 // used to target a given block weight (additional outputs may be added on top to build fee)
 #define TX_WEIGHT_TARGET(bytes) (bytes*2/3)
 
-<<<<<<< HEAD
 #define UNSIGNED_TX_PREFIX "Sumokoin unsigned tx set\005"
 #define SIGNED_TX_PREFIX "Sumokoin signed tx set\005"
-=======
-#define UNSIGNED_TX_PREFIX "Sumokoin unsigned tx set\004"
-#define SIGNED_TX_PREFIX "Sumokoin signed tx set\004"
->>>>>>> origin/android-wallet
 #define MULTISIG_UNSIGNED_TX_PREFIX "Sumokoin multisig unsigned tx set\001"
 
 #define GENERATE_RECENT_OUTPUT_RATIO (crypto::rand_range(2, 3)) // random percentage between 30% to 20% of outputs are from the recent zone
@@ -897,14 +887,11 @@ uint8_t get_bulletproof_fork()
   return HF_VERSION_BP;
 }
 
-<<<<<<< HEAD
 uint8_t get_clsag_fork()
 {
   return HF_VERSION_CLSAG;
 }
 
-=======
->>>>>>> origin/android-wallet
 uint64_t calculate_fee(bool use_per_byte_fee, const cryptonote::transaction &tx, size_t blob_size, uint64_t base_fee, uint64_t fee_multiplier, uint64_t fee_quantization_mask)
 {
   if (use_per_byte_fee)
@@ -961,11 +948,7 @@ uint32_t get_subaddress_clamped_sum(uint32_t idx, uint32_t extra)
 
 static void setup_shim(hw::wallet_shim * shim, tools::wallet2 * wallet)
 {
-<<<<<<< HEAD
   shim->get_tx_pub_key_from_received_outs = std::bind(&tools::wallet2::get_tx_pub_key_from_received_outs, wallet, std::placeholders::_1);
-=======
-  shim->get_tx_pub_key_from_received_outs = boost::bind(&tools::wallet2::get_tx_pub_key_from_received_outs, wallet, boost::placeholders::_1);
->>>>>>> origin/android-wallet
 }
 
 bool get_pruned_tx(const cryptonote::COMMAND_RPC_GET_TRANSACTIONS::entry &entry, cryptonote::transaction &tx, crypto::hash &tx_hash)
@@ -1340,14 +1323,11 @@ bool wallet2::set_daemon(std::string daemon_address, boost::optional<epee::net_u
     default_daemon_address = address;
   }
   return ret;
-<<<<<<< HEAD
 }
 //----------------------------------------------------------------------------------------------------
 bool wallet2::set_proxy(const std::string &address)
 {
   return m_http_client->set_proxy(address);
-=======
->>>>>>> origin/android-wallet
 }
 //----------------------------------------------------------------------------------------------------
 bool wallet2::init(std::string daemon_address, boost::optional<epee::net_utils::http::login> daemon_login, const std::string &proxy_address, uint64_t upper_transaction_weight_limit, bool trusted_daemon, epee::net_utils::ssl_options_t ssl_options)
@@ -1356,16 +1336,6 @@ bool wallet2::init(std::string daemon_address, boost::optional<epee::net_utils::
   m_checkpoints.init_default_checkpoints(m_nettype);
   m_is_initialized = true;
   m_upper_transaction_weight_limit = upper_transaction_weight_limit;
-<<<<<<< HEAD
-=======
-  if (proxy != boost::asio::ip::tcp::endpoint{})
-  {
-    epee::net_utils::http::abstract_http_client* abstract_http_client = m_http_client.get();
-    epee::net_utils::http::http_simple_client* http_simple_client = dynamic_cast<epee::net_utils::http::http_simple_client*>(abstract_http_client);
-    CHECK_AND_ASSERT_MES(http_simple_client != nullptr, false, "http_simple_client must be used to set proxy");
-    http_simple_client->set_connector(net::socks::connector{std::move(proxy)});
-  }
->>>>>>> origin/android-wallet
   return set_daemon(daemon_address, daemon_login, trusted_daemon, std::move(ssl_options));
 }
 //----------------------------------------------------------------------------------------------------
@@ -2988,7 +2958,7 @@ void wallet2::update_pool_state(std::vector<std::tuple<cryptonote::transaction, 
 
   // remove any pending tx that's not in the pool
   constexpr const std::chrono::seconds tx_propagation_timeout{CRYPTONOTE_DANDELIONPP_EMBARGO_AVERAGE * 3 / 2};
-  const auto now = std::chrono::system_clock::now();	
+  const auto now = std::chrono::system_clock::now();
   std::unordered_map<crypto::hash, wallet2::unconfirmed_transfer_details>::iterator it = m_unconfirmed_txs.begin();
   while (it != m_unconfirmed_txs.end())
   {
@@ -3790,11 +3760,7 @@ bool wallet2::store_keys(const std::string& keys_file_name, const epee::wipeable
 
   std::string tmp_file_name = keys_file_name + ".new";
   std::string buf;
-<<<<<<< HEAD
   bool r = ::serialization::dump_binary(keys_file_data.value(), buf);
-=======
-  bool r = ::serialization::dump_binary(keys_file_data.get(), buf);
->>>>>>> origin/android-wallet
   r = r && save_to_file(tmp_file_name, buf);
   CHECK_AND_ASSERT_MES(r, false, "failed to generate wallet keys file " << tmp_file_name);
 
@@ -4016,15 +3982,9 @@ boost::optional<wallet2::keys_file_data> wallet2::get_keys_file_data(const epee:
   // Encrypt the entire JSON object.
   std::string cipher;
   cipher.resize(account_data.size());
-<<<<<<< HEAD
   keys_file_data.value().iv = crypto::rand<crypto::chacha_iv>();
   crypto::chacha20(account_data.data(), account_data.size(), key, keys_file_data.value().iv, &cipher[0]);
   keys_file_data.value().account_data = cipher;
-=======
-  keys_file_data.get().iv = crypto::rand<crypto::chacha_iv>();
-  crypto::chacha20(account_data.data(), account_data.size(), key, keys_file_data.get().iv, &cipher[0]);
-  keys_file_data.get().account_data = cipher;
->>>>>>> origin/android-wallet
   return keys_file_data;
 }
 //----------------------------------------------------------------------------------------------------
@@ -4071,27 +4031,13 @@ bool wallet2::load_keys(const std::string& keys_file_name, const epee::wipeable_
 
   // Load keys from buffer
   boost::optional<crypto::chacha_key> keys_to_encrypt;
-<<<<<<< HEAD
   r = wallet2::load_keys_buf(keys_file_buf, password, keys_to_encrypt);
-=======
-  try {
-    r = wallet2::load_keys_buf(keys_file_buf, password, keys_to_encrypt);
-  } catch (const std::exception& e) {
-    std::size_t found = string(e.what()).find("failed to deserialize keys buffer");
-    THROW_WALLET_EXCEPTION_IF(found != std::string::npos, error::wallet_internal_error, "internal error: failed to deserialize \"" + keys_file_name + '\"');
-    throw e;
-  }
->>>>>>> origin/android-wallet
 
   // Rewrite with encrypted keys if unencrypted, ignore errors
   if (r && keys_to_encrypt != boost::none)
   {
     if (m_ask_password == AskPasswordToDecrypt && !m_unattended && !m_watch_only)
-<<<<<<< HEAD
       encrypt_keys(keys_to_encrypt.value());
-=======
-      encrypt_keys(keys_to_encrypt.get());
->>>>>>> origin/android-wallet
     bool saved_ret = store_keys(keys_file_name, password, m_watch_only);
     if (!saved_ret)
     {
@@ -4099,11 +4045,7 @@ bool wallet2::load_keys(const std::string& keys_file_name, const epee::wipeable_
       MERROR("Error saving keys file with encrypted keys, not fatal");
     }
     if (m_ask_password == AskPasswordToDecrypt && !m_unattended && !m_watch_only)
-<<<<<<< HEAD
       decrypt_keys(keys_to_encrypt.value());
-=======
-      decrypt_keys(keys_to_encrypt.get());
->>>>>>> origin/android-wallet
     m_keys_file_locker.reset();
   }
   return r;
@@ -5819,11 +5761,7 @@ void wallet2::load(const std::string& wallet_, const epee::wipeable_string& pass
   try
   {
     if (use_fs)
-<<<<<<< HEAD
       m_message_store.read_from_file(get_multisig_wallet_state(), m_mms_file, m_load_deprecated_formats);
-=======
-      m_message_store.read_from_file(get_multisig_wallet_state(), m_mms_file);
->>>>>>> origin/android-wallet
   }
   catch (const std::exception &e)
   {
@@ -5980,11 +5918,7 @@ void wallet2::store_to(const std::string &path, const epee::wipeable_string &pas
     // The price to pay is temporary higher memory consumption for string stream + binary archive
     std::ostringstream oss;
     binary_archive<true> oar(oss);
-<<<<<<< HEAD
     bool success = ::serialization::serialize(oar, cache_file_data.value());
-=======
-    bool success = ::serialization::serialize(oar, cache_file_data.get());
->>>>>>> origin/android-wallet
     if (success) {
         success = save_to_file(new_file, oss.str());
     }
@@ -5993,11 +5927,7 @@ void wallet2::store_to(const std::string &path, const epee::wipeable_string &pas
     std::ofstream ostr;
     ostr.open(new_file, std::ios_base::binary | std::ios_base::out | std::ios_base::trunc);
     binary_archive<true> oar(ostr);
-<<<<<<< HEAD
     bool success = ::serialization::serialize(oar, cache_file_data.value());
-=======
-    bool success = ::serialization::serialize(oar, cache_file_data.get());
->>>>>>> origin/android-wallet
     ostr.close();
     THROW_WALLET_EXCEPTION_IF(!success || !ostr.good(), error::file_save_error, new_file);
 #endif
@@ -6021,7 +5951,6 @@ boost::optional<wallet2::cache_file_data> wallet2::get_cache_file_data(const epe
   try
   {
     std::stringstream oss;
-<<<<<<< HEAD
     binary_archive<true> ar(oss);
     if (!::serialization::serialize(ar, *this))
       return boost::none;
@@ -6033,18 +5962,6 @@ boost::optional<wallet2::cache_file_data> wallet2::get_cache_file_data(const epe
     cache_file_data.value().iv = crypto::rand<crypto::chacha_iv>();
     crypto::chacha20(cache_file_data.value().cache_data.data(), cache_file_data.value().cache_data.size(), m_cache_key, cache_file_data.value().iv, &cipher[0]);
     cache_file_data.value().cache_data = cipher;
-=======
-    boost::archive::portable_binary_oarchive ar(oss);
-    ar << *this;
-
-    boost::optional<wallet2::cache_file_data> cache_file_data = (wallet2::cache_file_data) {};
-    cache_file_data.get().cache_data = oss.str();
-    std::string cipher;
-    cipher.resize(cache_file_data.get().cache_data.size());
-    cache_file_data.get().iv = crypto::rand<crypto::chacha_iv>();
-    crypto::chacha20(cache_file_data.get().cache_data.data(), cache_file_data.get().cache_data.size(), m_cache_key, cache_file_data.get().iv, &cipher[0]);
-    cache_file_data.get().cache_data = cipher;
->>>>>>> origin/android-wallet
     return cache_file_data;
   }
   catch(...)
@@ -7474,28 +7391,16 @@ bool wallet2::sign_multisig_tx_from_file(const std::string &filename, std::vecto
   return sign_multisig_tx_to_file(exported_txs, filename, txids);
 }
 //----------------------------------------------------------------------------------------------------
-<<<<<<< HEAD
 uint64_t wallet2::estimate_fee(bool use_per_byte_fee, bool use_rct, int n_inputs, int mixin, int n_outputs, size_t extra_size, bool bulletproof, bool clsag, uint64_t base_fee, uint64_t fee_multiplier, uint64_t fee_quantization_mask) const
 {
   if (use_per_byte_fee)
   {
     const size_t estimated_tx_weight = estimate_tx_weight(use_rct, n_inputs, mixin, n_outputs, extra_size, bulletproof, clsag);
-=======
-uint64_t wallet2::estimate_fee(bool use_per_byte_fee, bool use_rct, int n_inputs, int mixin, int n_outputs, size_t extra_size, bool bulletproof, uint64_t base_fee, uint64_t fee_multiplier, uint64_t fee_quantization_mask) const
-{
-  if (use_per_byte_fee)
-  {
-    const size_t estimated_tx_weight = estimate_tx_weight(use_rct, n_inputs, mixin, n_outputs, extra_size, bulletproof);
->>>>>>> origin/android-wallet
     return calculate_fee_from_weight(base_fee, estimated_tx_weight, fee_multiplier, fee_quantization_mask);
   }
   else
   {
-<<<<<<< HEAD
     const size_t estimated_tx_size = estimate_tx_size(use_rct, n_inputs, mixin, n_outputs, extra_size, bulletproof, clsag);
-=======
-    const size_t estimated_tx_size = estimate_tx_size(use_rct, n_inputs, mixin, n_outputs, extra_size, bulletproof);
->>>>>>> origin/android-wallet
     return calculate_fee(base_fee, estimated_tx_size, fee_multiplier);
   }
 }
@@ -10379,11 +10284,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_all(uint64_t below
   const size_t tx_weight_per_ring = tx_weight_two_rings - tx_weight_one_ring;
   const uint64_t fractional_threshold = (fee_multiplier * base_fee * tx_weight_per_ring) / (use_per_byte_fee ? 1 : 1024);
 
-<<<<<<< HEAD
   THROW_WALLET_EXCEPTION_IF(unlocked_balance(subaddr_account, false) == 0, error::wallet_internal_error, "No unlocked balance in the specified account");
-=======
-  THROW_WALLET_EXCEPTION_IF(unlocked_balance(subaddr_account, false) == 0, error::wallet_internal_error, "No unlocked balance in the entire account");
->>>>>>> origin/android-wallet
 
   std::map<uint32_t, std::pair<std::vector<size_t>, std::vector<size_t>>> unused_transfer_dust_indices_per_subaddr;
 
@@ -12249,7 +12150,6 @@ void wallet2::set_account_tag_description(const std::string& tag, const std::str
   m_account_tags.first[tag] = description;
 }
 
-<<<<<<< HEAD
 // Set up an address signature message hash
 // Hash data: domain separator, spend public key, view public key, mode identifier, payload data
 static crypto::hash get_message_hash(const std::string &data, const crypto::public_key &spend_key, const crypto::public_key &view_key, const uint8_t mode)
@@ -12266,10 +12166,6 @@ static crypto::hash get_message_hash(const std::string &data, const crypto::publ
   CHECK_AND_ASSERT_THROW_MES(ptr > len_buf && ptr <= len_buf + sizeof(len_buf), "Length overflow");
   keccak_update(&ctx, (const uint8_t*)len_buf, ptr - len_buf);
   keccak_update(&ctx, (const uint8_t*)data.data(), data.size());
-=======
-std::string wallet2::sign(const std::string &data, cryptonote::subaddress_index index) const
-{
->>>>>>> origin/android-wallet
   crypto::hash hash;
   keccak_finish(&ctx, (uint8_t*)&hash);
   return hash;
@@ -12281,7 +12177,6 @@ std::string wallet2::sign(const std::string &data, message_signature_type_t sign
 {
   const cryptonote::account_keys &keys = m_account.get_keys();
   crypto::signature signature;
-<<<<<<< HEAD
   crypto::secret_key skey, m;
   crypto::secret_key skey_spend, skey_view;
   crypto::public_key pkey;
@@ -12336,24 +12231,6 @@ std::string wallet2::sign(const std::string &data, message_signature_type_t sign
   }
   crypto::generate_signature(hash, pkey, skey, signature);
   return std::string("SigV2") + tools::base58::encode(std::string((const char *)&signature, sizeof(signature)));
-=======
-  crypto::secret_key skey;
-  crypto::public_key pkey;
-  if (index.is_zero())
-  {
-    skey = keys.m_spend_secret_key;
-    pkey = keys.m_account_address.m_spend_public_key;
-  }
-  else
-  {
-    skey = keys.m_spend_secret_key;
-    crypto::secret_key m = m_account.get_device().get_subaddress_secret_key(keys.m_view_secret_key, index);
-    sc_add((unsigned char*)&skey, (unsigned char*)&m, (unsigned char*)&skey);
-    secret_key_to_public_key(skey, pkey);
-  }
-  crypto::generate_signature(hash, pkey, skey, signature);
-  return std::string("SigV1") + tools::base58::encode(std::string((const char *)&signature, sizeof(signature)));
->>>>>>> origin/android-wallet
 }
 
 tools::wallet2::message_signature_result_t wallet2::verify(const std::string &data, const cryptonote::account_public_address &address, const std::string &signature) const
@@ -14212,14 +14089,9 @@ std::pair<size_t, uint64_t> wallet2::estimate_tx_size_and_weight(bool use_rct, i
     n_outputs = 2; // extra dummy output
 
   const bool bulletproof = use_fork_rules(get_bulletproof_fork(), 0);
-<<<<<<< HEAD
   const bool clsag = use_fork_rules(get_clsag_fork(), 0);
   size_t size = estimate_tx_size(use_rct, n_inputs, ring_size - 1, n_outputs, extra_size, bulletproof, clsag);
   uint64_t weight = estimate_tx_weight(use_rct, n_inputs, ring_size - 1, n_outputs, extra_size, bulletproof, clsag);
-=======
-  size_t size = estimate_tx_size(use_rct, n_inputs, ring_size - 1, n_outputs, extra_size, bulletproof);
-  uint64_t weight = estimate_tx_weight(use_rct, n_inputs, ring_size - 1, n_outputs, extra_size, bulletproof);
->>>>>>> origin/android-wallet
   return std::make_pair(size, weight);
 }
 //----------------------------------------------------------------------------------------------------
