@@ -96,9 +96,9 @@ jobs:
         sudo find . -type f -name "*.a" -exec rm -f {} \;
         sudo find . -type f -name "*.h" -exec rm -f {} \;
         sudo chmod u+x collect.sh
-        cd ..
-        cd ..
         ./collect.sh
+        cd ..
+        cd ..
         sudo cp -avr /opt/android/sumo-android-wallet/external-libs/ /home/external-libs/
     - name: upload libraries
       uses: actions/upload-artifact@v2
