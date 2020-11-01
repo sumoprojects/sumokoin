@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
+# Copyright (c) 2014-2020, The Monero Project
 #
 # All rights reserved.
 #
@@ -86,7 +86,8 @@ set(common_private_headers
   updates.h
   aligned.h
   timings.h
-  combinator.h)
+  combinator.h
+  utf8.h)
 
 monero_private_headers(common
   ${common_private_headers})
@@ -98,7 +99,7 @@ monero_add_library(common
 target_link_libraries(common
   PUBLIC
     cncrypto
-    ${UNBOUND_LIBRARY}
+    ${UNBOUND_LIBRARIES}
     ${LIBUNWIND_LIBRARIES}
     ${Boost_DATE_TIME_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}

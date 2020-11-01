@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -32,9 +32,11 @@
 
 #include <ctime>
 
+#include <boost/function.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>
 
+#include "cryptonote_basic/fwd.h"
 #include "cryptonote_core/i_core_events.h"
 #include "cryptonote_protocol/cryptonote_protocol_handler_common.h"
 #include "cryptonote_protocol/enums.h"
@@ -45,10 +47,10 @@
 #include "blockchain.h"
 #include "cryptonote_basic/miner.h"
 #include "cryptonote_basic/connection_context.h"
-#include "cryptonote_basic/cryptonote_stat_info.h"
 #include "warnings.h"
 #include "crypto/hash.h"
 #include "span.h"
+#include "rpc/fwd.h"
 
 PUSH_WARNINGS
 DISABLE_VS_WARNINGS(4355)
@@ -222,14 +224,14 @@ namespace cryptonote
       *
       * @return true if the block was added to the main chain, otherwise false
       */
-     virtual bool handle_block_found(block& b, block_verification_context &bvc);
+     virtual bool handle_block_found(block& b, block_verification_context &bvc) override;
 
      /**
       * @copydoc Blockchain::create_block_template
       *
       * @note see Blockchain::create_block_template
       */
-     virtual bool get_block_template(block& b, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce);
+     virtual bool get_block_template(block& b, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce) override;
      virtual bool get_block_template(block& b, const crypto::hash *prev_block, const account_public_address& adr, difficulty_type& diffic, uint64_t& height, uint64_t& expected_reward, const blobdata& ex_nonce);
 
      /**
@@ -447,6 +449,13 @@ namespace cryptonote
      void set_enforce_dns_checkpoints(bool enforce_dns);
 
      /**
+      * @brief set a listener for txes being added to the txpool
+      *
+      * @param callable to notify, or empty function to disable.
+      */
+     void set_txpool_listener(boost::function<void(std::vector<txpool_event>)> zmq_pub);
+
+     /**
       * @brief set whether or not to enable or disable DNS checkpoints
       *
       * @param disble whether to disable DNS checkpoints
@@ -558,15 +567,6 @@ namespace cryptonote
      bool find_blockchain_supplement(const uint64_t req_start_block, const std::list<crypto::hash>& qblock_ids, std::vector<std::pair<std::pair<cryptonote::blobdata, crypto::hash>, std::vector<std::pair<crypto::hash, cryptonote::blobdata> > > >& blocks, uint64_t& total_height, uint64_t& start_height, bool pruned, bool get_miner_tx_hash, size_t max_count) const;
 
      /**
-      * @brief gets some stats about the daemon
-      *
-      * @param st_inf return-by-reference container for the stats requested
-      *
-      * @return true
-      */
-     bool get_stat_info(core_stat_info& st_inf) const;
-
-     /**
       * @copydoc Blockchain::get_tx_outputs_gindexs
       *
       * @note see Blockchain::get_tx_outputs_gindexs
@@ -663,7 +663,7 @@ namespace cryptonote
       *
       * @param target_blockchain_height the target height
       */
-     uint64_t get_target_blockchain_height() const;
+     virtual uint64_t get_target_blockchain_height() const override;
 
      /**
       * @brief returns the newest hardfork version known to the blockchain
@@ -1002,18 +1002,6 @@ namespace cryptonote
      bool check_tx_inputs_keyimages_domain(const transaction& tx) const;
 
      /**
-      * @brief checks HardFork status and prints messages about it
-      *
-      * Checks the status of HardFork and logs/prints if an update to
-      * the daemon is necessary.
-      *
-      * @note see Blockchain::get_hard_fork_state and HardFork::State
-      *
-      * @return true
-      */
-     bool check_fork_time();
-
-     /**
       * @brief attempts to relay any transactions in the mempool which need it
       *
       * @return true
@@ -1044,9 +1032,16 @@ namespace cryptonote
      /**
       * @brief checks sync status
       *
-      * @return true on synchronized, false otherwise
+      * @return true on sucess, false otherwise
       */
      bool check_sync_status();
+
+     /**
+      * @brief checks current version against remote DNS TXT record of latest version (DNSSEC secured)
+      *
+      * @return true on sucess, false otherwise
+      */
+     bool check_version();
 
      bool m_test_drop_download = true; //!< whether or not to drop incoming blocks (for testing)
 
@@ -1067,13 +1062,13 @@ namespace cryptonote
      cryptonote_protocol_stub m_protocol_stub; //!< cryptonote protocol stub instance
 
      epee::math_helper::once_a_time_seconds<60*60*12, false> m_store_blockchain_interval; //!< interval for manual storing of Blockchain, if enabled
-     epee::math_helper::once_a_time_seconds<60*60*2, true> m_fork_moaner; //!< interval for checking HardFork status
      epee::math_helper::once_a_time_seconds<60*2, false> m_txpool_auto_relayer; //!< interval for checking re-relaying txpool transactions
      epee::math_helper::once_a_time_seconds<60*60*12, true> m_check_updates_interval; //!< interval for checking for new versions
      epee::math_helper::once_a_time_seconds<60*10, true> m_check_disk_space_interval; //!< interval for checking for disk space
      epee::math_helper::once_a_time_seconds<90, false> m_block_rate_interval; //!< interval for checking block rate
      epee::math_helper::once_a_time_seconds<60*60*5, true> m_blockchain_pruning_interval; //!< interval for incremental blockchain pruning
      epee::math_helper::once_a_time_seconds<60*30, true> m_ok_status; //!< interval for checking daemon status
+     epee::math_helper::once_a_time_seconds<60*15, true> m_version_check; //!< interval for checking version
 
      std::atomic<bool> m_starter_message_showed; //!< has the "daemon will sync now" message been shown?
 
@@ -1111,8 +1106,12 @@ namespace cryptonote
      bool m_fluffy_blocks_enabled;
      bool m_offline;
 
+     /* `boost::function` is used because the implementation never allocates if
+        the callable object has a single `std::shared_ptr` or `std::weap_ptr`
+        internally. Whereas, the libstdc++ `std::function` will allocate. */
 
      std::shared_ptr<tools::Notify> m_block_rate_notify;
+     boost::function<void(std::vector<txpool_event>)> m_zmq_pub;
    };
 }
 

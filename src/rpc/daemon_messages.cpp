@@ -1,21 +1,21 @@
-// Copyright (c) 2016-2019, The Monero Project
-// 
+// Copyright (c) 2016-2020, The Monero Project
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -34,14 +34,22 @@ namespace cryptonote
 
 namespace rpc
 {
+<<<<<<< HEAD
+void GetHeight::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetHeight::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void GetHeight::Request::fromJson(const rapidjson::Value& val)
 {
 }
 
+<<<<<<< HEAD
+void GetHeight::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetHeight::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, height, height);
 }
@@ -52,7 +60,11 @@ void GetHeight::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetBlocksFast::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetBlocksFast::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, block_ids, block_ids);
   INSERT_INTO_JSON_OBJECT(dest, start_height, start_height);
@@ -66,7 +78,11 @@ void GetBlocksFast::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, prune, prune);
 }
 
+<<<<<<< HEAD
+void GetBlocksFast::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetBlocksFast::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, blocks, blocks);
   INSERT_INTO_JSON_OBJECT(dest, start_height, start_height);
@@ -83,7 +99,11 @@ void GetBlocksFast::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetHashesFast::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetHashesFast::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, known_hashes, known_hashes);
   INSERT_INTO_JSON_OBJECT(dest, start_height, start_height);
@@ -95,7 +115,11 @@ void GetHashesFast::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, start_height, start_height);
 }
 
+<<<<<<< HEAD
+void GetHashesFast::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetHashesFast::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, hashes, hashes);
   INSERT_INTO_JSON_OBJECT(dest, start_height, start_height);
@@ -110,7 +134,11 @@ void GetHashesFast::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetTransactions::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetTransactions::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, tx_hashes, tx_hashes);
 }
@@ -120,7 +148,11 @@ void GetTransactions::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, tx_hashes, tx_hashes);
 }
 
+<<<<<<< HEAD
+void GetTransactions::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetTransactions::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, txs, txs);
   INSERT_INTO_JSON_OBJECT(dest, missed_hashes, missed_hashes);
@@ -133,7 +165,11 @@ void GetTransactions::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void KeyImagesSpent::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void KeyImagesSpent::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, key_images, key_images);
 }
@@ -143,7 +179,11 @@ void KeyImagesSpent::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, key_images, key_images);
 }
 
+<<<<<<< HEAD
+void KeyImagesSpent::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void KeyImagesSpent::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, spent_status, spent_status);
 }
@@ -154,7 +194,11 @@ void KeyImagesSpent::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetTxGlobalOutputIndices::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetTxGlobalOutputIndices::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, tx_hash, tx_hash);
 }
@@ -164,7 +208,11 @@ void GetTxGlobalOutputIndices::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, tx_hash, tx_hash);
 }
 
+<<<<<<< HEAD
+void GetTxGlobalOutputIndices::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetTxGlobalOutputIndices::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, output_indices, output_indices);
 }
@@ -174,7 +222,11 @@ void GetTxGlobalOutputIndices::Response::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, output_indices, output_indices);
 }
 
+<<<<<<< HEAD
+void SendRawTx::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void SendRawTx::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, tx, tx);
   INSERT_INTO_JSON_OBJECT(dest, relay, relay);
@@ -186,7 +238,11 @@ void SendRawTx::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, relay, relay);
 }
 
+<<<<<<< HEAD
+void SendRawTx::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void SendRawTx::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, relayed, relayed);
 }
@@ -197,7 +253,11 @@ void SendRawTx::Response::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, relayed, relayed);
 }
 
+<<<<<<< HEAD
+void SendRawTxHex::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void SendRawTxHex::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, tx_as_hex, tx_as_hex);
   INSERT_INTO_JSON_OBJECT(dest, relay, relay);
@@ -209,23 +269,32 @@ void SendRawTxHex::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, relay, relay);
 }
 
+<<<<<<< HEAD
+void StartMining::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+{
+  INSERT_INTO_JSON_OBJECT(dest, miner_address, miner_address);
+  INSERT_INTO_JSON_OBJECT(dest, threads_count, threads_count);
+=======
 void StartMining::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
 {
   INSERT_INTO_JSON_OBJECT(dest, miner_address, miner_address);
   INSERT_INTO_JSON_OBJECT(dest, threads_count, threads_count);
   INSERT_INTO_JSON_OBJECT(dest, do_background_mining, do_background_mining);
   INSERT_INTO_JSON_OBJECT(dest, ignore_battery, ignore_battery);
+>>>>>>> origin/android-wallet
 }
 
 void StartMining::Request::fromJson(const rapidjson::Value& val)
 {
   GET_FROM_JSON_OBJECT(val, miner_address, miner_address);
   GET_FROM_JSON_OBJECT(val, threads_count, threads_count);
-  GET_FROM_JSON_OBJECT(val, do_background_mining, do_background_mining);
-  GET_FROM_JSON_OBJECT(val, ignore_battery, ignore_battery);
 }
 
+<<<<<<< HEAD
+void StartMining::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void StartMining::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void StartMining::Response::fromJson(const rapidjson::Value& val)
@@ -233,14 +302,22 @@ void StartMining::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void StopMining::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void StopMining::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void StopMining::Request::fromJson(const rapidjson::Value& val)
 {
 }
 
+<<<<<<< HEAD
+void StopMining::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void StopMining::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void StopMining::Response::fromJson(const rapidjson::Value& val)
@@ -248,20 +325,31 @@ void StopMining::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void MiningStatus::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void MiningStatus::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void MiningStatus::Request::fromJson(const rapidjson::Value& val)
 {
 }
 
+<<<<<<< HEAD
+void MiningStatus::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void MiningStatus::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, active, active);
   INSERT_INTO_JSON_OBJECT(dest, speed, speed);
   INSERT_INTO_JSON_OBJECT(dest, threads_count, threads_count);
   INSERT_INTO_JSON_OBJECT(dest, address, address);
+<<<<<<< HEAD
+=======
   INSERT_INTO_JSON_OBJECT(dest, is_background_mining_enabled, is_background_mining_enabled);
+>>>>>>> origin/android-wallet
 }
 
 void MiningStatus::Response::fromJson(const rapidjson::Value& val)
@@ -270,18 +358,25 @@ void MiningStatus::Response::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, speed, speed);
   GET_FROM_JSON_OBJECT(val, threads_count, threads_count);
   GET_FROM_JSON_OBJECT(val, address, address);
-  GET_FROM_JSON_OBJECT(val, is_background_mining_enabled, is_background_mining_enabled);
 }
 
 
+<<<<<<< HEAD
+void GetInfo::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetInfo::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void GetInfo::Request::fromJson(const rapidjson::Value& val)
 {
 }
 
+<<<<<<< HEAD
+void GetInfo::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetInfo::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, info, info);
 }
@@ -292,14 +387,22 @@ void GetInfo::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void SaveBC::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void SaveBC::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void SaveBC::Request::fromJson(const rapidjson::Value& val)
 {
 }
 
+<<<<<<< HEAD
+void SaveBC::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void SaveBC::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void SaveBC::Response::fromJson(const rapidjson::Value& val)
@@ -307,7 +410,11 @@ void SaveBC::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetBlockHash::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetBlockHash::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, height, height);
 }
@@ -317,7 +424,11 @@ void GetBlockHash::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, height, height);
 }
 
+<<<<<<< HEAD
+void GetBlockHash::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetBlockHash::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, hash, hash);
 }
@@ -328,14 +439,22 @@ void GetBlockHash::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetLastBlockHeader::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetLastBlockHeader::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void GetLastBlockHeader::Request::fromJson(const rapidjson::Value& val)
 {
 }
 
+<<<<<<< HEAD
+void GetLastBlockHeader::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetLastBlockHeader::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, header, header);
 }
@@ -346,7 +465,11 @@ void GetLastBlockHeader::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetBlockHeaderByHash::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetBlockHeaderByHash::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, hash, hash);
 }
@@ -356,7 +479,11 @@ void GetBlockHeaderByHash::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, hash, hash);
 }
 
+<<<<<<< HEAD
+void GetBlockHeaderByHash::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetBlockHeaderByHash::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, header, header);
 }
@@ -367,7 +494,11 @@ void GetBlockHeaderByHash::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetBlockHeaderByHeight::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetBlockHeaderByHeight::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, height, height);
 }
@@ -377,7 +508,11 @@ void GetBlockHeaderByHeight::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, height, height);
 }
 
+<<<<<<< HEAD
+void GetBlockHeaderByHeight::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetBlockHeaderByHeight::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, header, header);
 }
@@ -388,7 +523,11 @@ void GetBlockHeaderByHeight::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetBlockHeadersByHeight::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetBlockHeadersByHeight::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, heights, heights);
 }
@@ -398,7 +537,11 @@ void GetBlockHeadersByHeight::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, heights, heights);
 }
 
+<<<<<<< HEAD
+void GetBlockHeadersByHeight::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetBlockHeadersByHeight::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, headers, headers);
 }
@@ -409,14 +552,22 @@ void GetBlockHeadersByHeight::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetPeerList::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetPeerList::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void GetPeerList::Request::fromJson(const rapidjson::Value& val)
 {
 }
 
+<<<<<<< HEAD
+void GetPeerList::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetPeerList::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, white_list, white_list);
   INSERT_INTO_JSON_OBJECT(dest, gray_list, gray_list);
@@ -429,7 +580,11 @@ void GetPeerList::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void SetLogLevel::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void SetLogLevel::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, level, level);
 }
@@ -439,7 +594,11 @@ void SetLogLevel::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, level, level);
 }
 
+<<<<<<< HEAD
+void SetLogLevel::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void SetLogLevel::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void SetLogLevel::Response::fromJson(const rapidjson::Value& val)
@@ -447,14 +606,22 @@ void SetLogLevel::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetTransactionPool::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetTransactionPool::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void GetTransactionPool::Request::fromJson(const rapidjson::Value& val)
 {
 }
 
+<<<<<<< HEAD
+void GetTransactionPool::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetTransactionPool::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, transactions, transactions);
   INSERT_INTO_JSON_OBJECT(dest, key_images, key_images);
@@ -467,7 +634,11 @@ void GetTransactionPool::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void HardForkInfo::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void HardForkInfo::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, version, version);
 }
@@ -477,7 +648,11 @@ void HardForkInfo::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, version, version);
 }
 
+<<<<<<< HEAD
+void HardForkInfo::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void HardForkInfo::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, info, info);
 }
@@ -488,7 +663,11 @@ void HardForkInfo::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetOutputHistogram::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetOutputHistogram::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, amounts, amounts);
   INSERT_INTO_JSON_OBJECT(dest, min_count, min_count);
@@ -506,7 +685,11 @@ void GetOutputHistogram::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, recent_cutoff, recent_cutoff);
 }
 
+<<<<<<< HEAD
+void GetOutputHistogram::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetOutputHistogram::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, histogram, histogram);
 }
@@ -517,7 +700,11 @@ void GetOutputHistogram::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetOutputKeys::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetOutputKeys::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, outputs, outputs);
 }
@@ -527,7 +714,11 @@ void GetOutputKeys::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, outputs, outputs);
 }
 
+<<<<<<< HEAD
+void GetOutputKeys::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetOutputKeys::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, keys, keys);
 }
@@ -538,14 +729,22 @@ void GetOutputKeys::Response::fromJson(const rapidjson::Value& val)
 }
 
 
+<<<<<<< HEAD
+void GetRPCVersion::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetRPCVersion::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {}
 
 void GetRPCVersion::Request::fromJson(const rapidjson::Value& val)
 {
 }
 
+<<<<<<< HEAD
+void GetRPCVersion::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetRPCVersion::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, version, version);
 }
@@ -555,7 +754,11 @@ void GetRPCVersion::Response::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, version, version);
 }
 
+<<<<<<< HEAD
+void GetFeeEstimate::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetFeeEstimate::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, num_grace_blocks, num_grace_blocks);
 }
@@ -565,7 +768,11 @@ void GetFeeEstimate::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, num_grace_blocks, num_grace_blocks);
 }
 
+<<<<<<< HEAD
+void GetFeeEstimate::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetFeeEstimate::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, estimated_base_fee, estimated_base_fee);
   INSERT_INTO_JSON_OBJECT(dest, fee_mask, fee_mask);
@@ -581,7 +788,11 @@ void GetFeeEstimate::Response::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, hard_fork_version, hard_fork_version);
 }
 
+<<<<<<< HEAD
+void GetOutputDistribution::Request::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetOutputDistribution::Request::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, amounts, amounts);
   INSERT_INTO_JSON_OBJECT(dest, from_height, from_height);
@@ -597,7 +808,11 @@ void GetOutputDistribution::Request::fromJson(const rapidjson::Value& val)
   GET_FROM_JSON_OBJECT(val, cumulative, cumulative);
 }
 
+<<<<<<< HEAD
+void GetOutputDistribution::Response::doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
 void GetOutputDistribution::Response::doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
 {
   INSERT_INTO_JSON_OBJECT(dest, status, status);
   INSERT_INTO_JSON_OBJECT(dest, distributions, distributions);

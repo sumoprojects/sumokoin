@@ -1,21 +1,21 @@
-// Copyright (c) 2017-2019, The Monero Project
-// 
+// Copyright (c) 2017-2020, The Monero Project
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -48,20 +48,60 @@ namespace hw {
 
     /* Minimal supported version */
     #define MINIMAL_APP_VERSION_MAJOR    1
-    #define MINIMAL_APP_VERSION_MINOR    3
-    #define MINIMAL_APP_VERSION_MICRO    1
+    #define MINIMAL_APP_VERSION_MINOR    6
+    #define MINIMAL_APP_VERSION_MICRO    0
 
     #define VERSION(M,m,u)       ((M)<<16|(m)<<8|(u))
     #define VERSION_MAJOR(v)     (((v)>>16)&0xFF)
     #define VERSION_MINOR(v)     (((v)>>8)&0xFF)
     #define VERSION_MICRO(v)     (((v)>>0)&0xFF)
-    
+
     #define MINIMAL_APP_VERSION   VERSION(MINIMAL_APP_VERSION_MAJOR, MINIMAL_APP_VERSION_MINOR, MINIMAL_APP_VERSION_MICRO)
 
     void register_all(std::map<std::string, std::unique_ptr<device>> &registry);
 
     #ifdef WITH_DEVICE_LEDGER
         
+    // Origin: https://github.com/LedgerHQ/ledger-app-monero/blob/master/src/monero_types.h
+    #define SW_BYTES_REMAINING_00                0x6100
+    #define SW_WARNING_STATE_UNCHANGED           0x6200
+    #define SW_STATE_TERMINATED                  0x6285
+    #define SW_MORE_DATA_AVAILABLE               0x6310
+    #define SW_WRONG_LENGTH                      0x6700
+    #define SW_LOGICAL_CHANNEL_NOT_SUPPORTED     0x6881
+    #define SW_SECURE_MESSAGING_NOT_SUPPORTED    0x6882
+    #define SW_LAST_COMMAND_EXPECTED             0x6883
+    #define SW_COMMAND_CHAINING_NOT_SUPPORTED    0x6884
+    #define SW_SECURITY_LOAD_KEY                 0x6900
+    #define SW_SECURITY_COMMITMENT_CONTROL       0x6911
+    #define SW_SECURITY_AMOUNT_CHAIN_CONTROL     0x6912
+    #define SW_SECURITY_COMMITMENT_CHAIN_CONTROL 0x6913
+    #define SW_SECURITY_OUTKEYS_CHAIN_CONTROL    0x6914
+    #define SW_SECURITY_MAXOUTPUT_REACHED        0x6915
+    #define SW_SECURITY_TRUSTED_INPUT            0x6916
+    #define SW_CLIENT_NOT_SUPPORTED              0x6930
+    #define SW_SECURITY_STATUS_NOT_SATISFIED     0x6982
+    #define SW_FILE_INVALID                      0x6983
+    #define SW_PIN_BLOCKED                       0x6983
+    #define SW_DATA_INVALID                      0x6984
+    #define SW_CONDITIONS_NOT_SATISFIED          0x6985
+    #define SW_COMMAND_NOT_ALLOWED               0x6986
+    #define SW_APPLET_SELECT_FAILED              0x6999
+    #define SW_WRONG_DATA                        0x6a80
+    #define SW_FUNC_NOT_SUPPORTED                0x6a81
+    #define SW_FILE_NOT_FOUND                    0x6a82
+    #define SW_RECORD_NOT_FOUND                  0x6a83
+    #define SW_FILE_FULL                         0x6a84
+    #define SW_INCORRECT_P1P2                    0x6a86
+    #define SW_REFERENCED_DATA_NOT_FOUND         0x6a88
+    #define SW_WRONG_P1P2                        0x6b00
+    #define SW_CORRECT_LENGTH_00                 0x6c00
+    #define SW_INS_NOT_SUPPORTED                 0x6d00
+    #define SW_CLA_NOT_SUPPORTED                 0x6e00
+    #define SW_UNKNOWN                           0x6f00
+    #define SW_OK                                0x9000
+    #define SW_ALGORITHM_UNSUPPORTED             0x9484
+
     // Origin: https://github.com/LedgerHQ/ledger-app-monero/blob/master/src/monero_types.h
     #define SW_BYTES_REMAINING_00                0x6100
     #define SW_WARNING_STATE_UNCHANGED           0x6200
@@ -200,7 +240,7 @@ namespace hw {
         // To speed up blockchain parsing the view key maybe handle here.
         crypto::secret_key viewkey;
         bool has_view_key;
-        
+
         //extra debug
         #ifdef DEBUG_HWDEVICE
         device *controle_device;
@@ -236,7 +276,7 @@ namespace hw {
 
         /* ======================================================================= */
         /*  LOCKER                                                                 */
-        /* ======================================================================= */ 
+        /* ======================================================================= */
         void lock(void)  override;
         void unlock(void) override;
         bool try_lock(void) override;
@@ -277,11 +317,13 @@ namespace hw {
         /* ======================================================================= */
         /*                               TRANSACTION                               */
         /* ======================================================================= */
-        void generate_tx_proof(const crypto::hash &prefix_hash, 
-                                   const crypto::public_key &R, const crypto::public_key &A, const boost::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r, 
+        void generate_tx_proof(const crypto::hash &prefix_hash,
+                                   const crypto::public_key &R, const crypto::public_key &A, const boost::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r,
                                    crypto::signature &sig) override;
-        
+
         bool  open_tx(crypto::secret_key &tx_key) override;
+
+        void get_transaction_prefix_hash(const cryptonote::transaction_prefix& tx, crypto::hash& h) override;
 
         bool  encrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &public_key, const crypto::secret_key &secret_key) override;
 
@@ -294,7 +336,7 @@ namespace hw {
                                              const cryptonote::tx_destination_entry &dst_entr, const boost::optional<cryptonote::account_public_address> &change_addr, const size_t output_index,
                                              const bool &need_additional_txkeys, const std::vector<crypto::secret_key> &additional_tx_keys,
                                              std::vector<crypto::public_key> &additional_tx_public_keys,
-                                             std::vector<rct::key> &amount_keys, 
+                                             std::vector<rct::key> &amount_keys,
                                              crypto::public_key &out_eph_public_key) override;
 
         bool  mlsag_prehash(const std::string &blob, size_t inputs_size, size_t outputs_size, const rct::keyV &hashes, const rct::ctkeyV &outPk, rct::key &prehash) override;
@@ -302,6 +344,11 @@ namespace hw {
         bool  mlsag_prepare(rct::key &a, rct::key &aG) override;
         bool  mlsag_hash(const rct::keyV &long_message, rct::key &c) override;
         bool  mlsag_sign( const rct::key &c, const rct::keyV &xx, const rct::keyV &alpha, const size_t rows, const size_t dsRows, rct::keyV &ss) override;
+
+        bool clsag_prepare(const rct::key &p, const rct::key &z, rct::key &I, rct::key &D, const rct::key &H, rct::key &a, rct::key &aG, rct::key &aH) override;
+        bool clsag_hash(const rct::keyV &data, rct::key &hash) override;
+        bool clsag_sign(const rct::key &c, const rct::key &a, const rct::key &p, const rct::key &z, const rct::key &mu_P, const rct::key &mu_C, rct::key &s) override;
+        
 
         bool  close_tx(void) override;
 
@@ -317,4 +364,3 @@ namespace hw {
   }
 
 }
-

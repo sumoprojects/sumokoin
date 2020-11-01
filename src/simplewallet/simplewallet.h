@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+// Copyright (c) 2014-2020, The Monero Project
+=======
 // Copyright (c) 2014-2019, The Monero Project
+>>>>>>> origin/android-wallet
 //
 // All rights reserved.
 //
@@ -53,7 +57,7 @@
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "wallet.simplewallet"
 // Hardcode Sumokoin's donation address
-constexpr const char SUMOKOIN_DONATION_ADDR[] = "Sumoo64zh7dRFyB8dgDWZMLmzKBgGXYWZCG4NBF2VcvzEuiSQpMjyyiYJ1Ra696pZu56PPFQNBDdB1r ZjyeX1RVKeWZgHg7pTxj";
+constexpr const char SUMOKOIN_DONATION_ADDR[] = "Sumoo64zh7dRFyB8dgDWZMLmzKBgGXYWZCG4NBF2VcvzEuiSQpMjyyiYJ1Ra696pZu56PPFQNBDdB1rZjyeX1RVKeWZgHg7pTxj";
 
 /*!
  * \namespace cryptonote
@@ -131,6 +135,7 @@ namespace cryptonote
     bool set_confirm_missing_payment_id(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_ask_password(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_unit(const std::vector<std::string> &args = std::vector<std::string>());
+    bool set_max_reorg_depth(const std::vector<std::string> &args = std::vector<std::string>());    
     bool set_min_output_count(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_min_output_value(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_merge_destinations(const std::vector<std::string> &args = std::vector<std::string>());
@@ -148,14 +153,16 @@ namespace cryptonote
     bool set_ignore_outputs_below(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_track_uses(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_inactivity_lock_timeout(const std::vector<std::string> &args = std::vector<std::string>());
-    bool set_setup_background_mining(const std::vector<std::string> &args = std::vector<std::string>());
+    bool disable_lock(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_device_name(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_export_format(const std::vector<std::string> &args = std::vector<std::string>());
+    bool set_load_deprecated_formats(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_persistent_rpc_client_id(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_auto_mine_for_rpc_payment_threshold(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_credits_target(const std::vector<std::string> &args = std::vector<std::string>());
     bool help_advanced(const std::vector<std::string> &args = std::vector<std::string>());
     bool help(const std::vector<std::string> &args = std::vector<std::string>());
+    bool search_command(const std::vector<std::string> &args);
     bool start_mining(const std::vector<std::string> &args);
     bool stop_mining(const std::vector<std::string> &args);
     bool set_daemon(const std::vector<std::string> &args);
@@ -172,7 +179,11 @@ namespace cryptonote
     bool locked_sweep_all(const std::vector<std::string> &args);
     bool sweep_main(uint32_t account, uint64_t below, bool locked, const std::vector<std::string> &args);
     bool sweep_all(const std::vector<std::string> &args);
+<<<<<<< HEAD
+    bool sweep_account(const std::vector<std::string> &args);
+=======
     bool sweep_account(const std::vector<std::string> &args);    
+>>>>>>> origin/android-wallet
     bool sweep_below(const std::vector<std::string> &args);
     bool sweep_single(const std::vector<std::string> &args);
     bool sweep_unmixable(const std::vector<std::string> &args);
@@ -258,6 +269,7 @@ namespace cryptonote
     bool rpc_payment_info(const std::vector<std::string> &args);
     bool start_mining_for_rpc(const std::vector<std::string> &args);
     bool stop_mining_for_rpc(const std::vector<std::string> &args);
+    bool show_qr_code(const std::vector<std::string> &args);
     bool net_stats(const std::vector<std::string>& args);
     bool public_nodes(const std::vector<std::string>& args);
     bool welcome(const std::vector<std::string>& args);
@@ -330,13 +342,6 @@ namespace cryptonote
      */
     void commit_or_save(std::vector<tools::wallet2::pending_tx>& ptx_vector, bool do_not_relay);
 
-    /*!
-     * \brief checks whether background mining is enabled, and asks to configure it if not
-     */
-    void check_background_mining(const epee::wipeable_string &password);
-    void start_background_mining();
-    void stop_background_mining();
-
     // idle thread workers
     bool check_inactivity();
     bool check_refresh();
@@ -349,11 +354,12 @@ namespace cryptonote
 
     //----------------- i_wallet2_callback ---------------------
     virtual void on_new_block(uint64_t height, const cryptonote::block& block);
-    virtual void on_money_received(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& tx, uint64_t amount, const cryptonote::subaddress_index& subaddr_index, uint64_t unlock_time);
+    virtual void on_money_received(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& tx, uint64_t amount, const cryptonote::subaddress_index& subaddr_index, bool is_change, uint64_t unlock_time);
     virtual void on_unconfirmed_money_received(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& tx, uint64_t amount, const cryptonote::subaddress_index& subaddr_index);
     virtual void on_money_spent(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& in_tx, uint64_t amount, const cryptonote::transaction& spend_tx, const cryptonote::subaddress_index& subaddr_index);
     virtual void on_skip_transaction(uint64_t height, const crypto::hash &txid, const cryptonote::transaction& tx);
     virtual boost::optional<epee::wipeable_string> on_get_password(const char *reason);
+    virtual boost::optional<std::string> on_get_message(const char *info);
     virtual void on_device_button_request(uint64_t code);
     virtual boost::optional<epee::wipeable_string> on_device_pin_request();
     virtual boost::optional<epee::wipeable_string> on_device_passphrase_request(bool on_device);
@@ -485,6 +491,7 @@ namespace cryptonote
     void ask_send_all_ready_messages();
     void check_for_messages();
     bool user_confirms(const std::string &question);
+    bool user_confirms_auto_config();
     bool get_message_from_arg(const std::string &arg, mms::message &m);
     bool get_number_from_arg(const std::string &arg, uint32_t &number, const uint32_t lower_bound, const uint32_t upper_bound);
 
@@ -505,6 +512,7 @@ namespace cryptonote
     void mms_help(const std::vector<std::string> &args);
     void mms_send_signer_config(const std::vector<std::string> &args);
     void mms_start_auto_config(const std::vector<std::string> &args);
+    void mms_config_checksum(const std::vector<std::string> &args);
     void mms_stop_auto_config(const std::vector<std::string> &args);
     void mms_auto_config(const std::vector<std::string> &args);
   };

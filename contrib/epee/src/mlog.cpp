@@ -41,7 +41,6 @@
 #include <boost/algorithm/string.hpp>
 #include "string_tools.h"
 #include "misc_os_dependent.h"
-#include "misc_log_ex.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "logging"
@@ -100,7 +99,7 @@ static const char *get_default_categories(int level)
   switch (level)
   {
     case 0:
-      categories = "*:WARNING,net:FATAL,net.http:FATAL,net.ssl:FATAL,net.p2p:FATAL,net.cn:FATAL,global:INFO,verify:FATAL,serialization:FATAL,daemon.rpc.payment:ERROR,stacktrace:INFO,logging:INFO,msgwriter:INFO";
+      categories = "*:WARNING,net:FATAL,net.http:FATAL,net.ssl:FATAL,net.p2p:FATAL,net.cn:FATAL,daemon.rpc:FATAL,global:INFO,verify:FATAL,serialization:FATAL,daemon.rpc.payment:ERROR,stacktrace:INFO,logging:INFO,msgwriter:INFO";
       break;
     case 1:
       categories = "*:INFO,global:INFO,stacktrace:INFO,logging:INFO,msgwriter:INFO,perf.*:DEBUG";
@@ -471,11 +470,18 @@ void reset_console_color() {
 }
 
 }
-
+// when did it became so hard to suppress a warning in clang?
+#if __GNUC__ && defined( __has_warning )
+#if __has_warning( "-Wuninitialized" )
+#define SUPPRESS
+#pragma GCC diagnostic push //GCC due to emulation
+#pragma GCC diagnostic ignored "-Wuninitialized" //GCC due to emulation
+#endif
+#endif
 static void mlog(el::Level level, const char *category, const char *format, va_list ap)
 {
   int size = 0;
-  char *p = NULL;
+  char *p;
   va_list apc;
 
   /* Determine required size */
@@ -500,6 +506,10 @@ static void mlog(el::Level level, const char *category, const char *format, va_l
   MCLOG(level, category, el::Color::Default, p);
   free(p);
 }
+#ifdef SUPPRESS
+#undef SUPPRESS
+#pragma GCC diagnostic pop //GCC due to emulation
+#endif
 
 void mfatal(const char *category, const char *fmt, ...) { va_list ap; va_start(ap, fmt); mlog(el::Level::Fatal, category, fmt, ap); va_end(ap); }
 void merror(const char *category, const char *fmt, ...) { va_list ap; va_start(ap, fmt); mlog(el::Level::Error, category, fmt, ap); va_end(ap); }

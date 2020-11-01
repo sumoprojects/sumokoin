@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2019, Sumokoin Project
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2017-2020, Sumokoin Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -37,23 +37,11 @@ using namespace epee;
 
 #include <unordered_set>
 #include "cryptonote_core.h"
-#include "common/util.h"
+#include "cryptonote_basic/events.h"
 #include "common/updates.h"
-#include "common/download.h"
 #include "common/threadpool.h"
-#include "common/command_line.h"
-#include "warnings.h"
-#include "crypto/crypto.h"
-#include "cryptonote_config.h"
-#include "misc_language.h"
-#include "file_io_utils.h"
-#include <csignal>
-#include "checkpoints/checkpoints.h"
-#include "ringct/rctTypes.h"
-#include "blockchain_db/blockchain_db.h"
-#include "ringct/rctSigs.h"
 #include "common/notify.h"
-#include "hardforks/hardforks.h"
+#include "common/dns_utils.h"
 #include "version.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
@@ -263,6 +251,13 @@ namespace cryptonote
   {
     m_blockchain_storage.set_enforce_dns_checkpoints(enforce_dns);
   }
+  //-----------------------------------------------------------------------------------
+  void core::set_txpool_listener(boost::function<void(std::vector<txpool_event>)> zmq_pub)
+  {
+    CRITICAL_REGION_LOCAL(m_incoming_tx_lock);
+    m_zmq_pub = std::move(zmq_pub);
+  }
+
   //-----------------------------------------------------------------------------------------------
   bool core::update_checkpoints(const bool skip_dns /* = false */)
   {
@@ -480,22 +475,6 @@ namespace cryptonote
     CHECK_AND_ASSERT_MES (boost::filesystem::exists(folder) || boost::filesystem::create_directories(folder), false,
       std::string("Failed to create directory ").append(folder.string()).c_str());
 
-    // check for blockchain.bin
-    try
-    {
-      const boost::filesystem::path old_files = folder;
-      if (boost::filesystem::exists(old_files / "blockchain.bin"))
-      {
-        MWARNING("Found old-style blockchain.bin in " << old_files.string());
-        MWARNING("Sumokoin now uses a new format. You can either remove blockchain.bin to start syncing");
-        MWARNING("the blockchain anew, or use sumo-blockchain-export and sumo-blockchain-import to");
-        MWARNING("convert your existing blockchain.bin to the new format. See README.md for instructions.");
-        return false;
-      }
-    }
-    // folder might not be a directory, etc, etc
-    catch (...) { }
-
     std::unique_ptr<BlockchainDB> db(new_db());
     if (db == NULL)
     {
@@ -615,7 +594,20 @@ namespace cryptonote
     try
     {
       if (!command_line::is_arg_defaulted(vm, arg_block_notify))
-        m_blockchain_storage.set_block_notify(std::shared_ptr<tools::Notify>(new tools::Notify(command_line::get_arg(vm, arg_block_notify).c_str())));
+      {
+        struct hash_notify
+        {
+          tools::Notify cmdline;
+
+          void operator()(std::uint64_t, epee::span<const block> blocks) const
+          {
+            for (const block bl : blocks)
+              cmdline.notify("%s", epee::string_tools::pod_to_hex(get_block_hash(bl)).c_str(), NULL);
+          }
+        };
+
+        m_blockchain_storage.add_block_notify(hash_notify{{command_line::get_arg(vm, arg_block_notify).c_str()}});
+      }
     }
     catch (const std::exception &e)
     {
@@ -651,7 +643,7 @@ namespace cryptonote
     r = m_blockchain_storage.init(db.release(), m_nettype, m_offline, regtest ? &regtest_test_options : test_options, fixed_difficulty, get_checkpoints);
     CHECK_AND_ASSERT_MES(r, false, "Failed to initialize blockchain storage");
 
-    r = m_mempool.init(max_txpool_weight);
+    r = m_mempool.init(max_txpool_weight, m_nettype == FAKECHAIN);
     CHECK_AND_ASSERT_MES(r, false, "Failed to initialize memory pool");
 
     // now that we have a valid m_blockchain_storage, we can clean out any
@@ -898,6 +890,7 @@ namespace cryptonote
           break;
         case rct::RCTTypeBulletproof:
         case rct::RCTTypeBulletproof2:
+        case rct::RCTTypeCLSAG:
           if (!is_canonical_bulletproof_layout(rv.p.bulletproofs))
           {
             MERROR_VER("Bulletproof does not have canonical form");
@@ -925,7 +918,7 @@ namespace cryptonote
       {
         if (!tx_info[n].result)
           continue;
-        if (tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof && tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof2)
+        if (tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof && tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof2 && tx_info[n].tx->rct_signatures.type != rct::RCTTypeCLSAG)
           continue;
         if (assumed_bad || !rct::verRctSemanticsSimple(tx_info[n].tx->rct_signatures))
         {
@@ -949,13 +942,12 @@ namespace cryptonote
       return false;
     }
 
-    struct result { bool res; cryptonote::transaction tx; crypto::hash hash; };
-    std::vector<result> results(tx_blobs.size());
+    std::vector<txpool_event> results(tx_blobs.size());
 
     CRITICAL_REGION_LOCAL(m_incoming_tx_lock);
 
     tools::threadpool& tpool = tools::threadpool::getInstance();
-    tools::threadpool::waiter waiter;
+    tools::threadpool::waiter waiter(tpool);
     epee::span<tx_blob_entry>::const_iterator it = tx_blobs.begin();
     for (size_t i = 0; i < tx_blobs.size(); i++, ++it) {
       tpool.submit(&waiter, [&, i, it] {
@@ -971,7 +963,8 @@ namespace cryptonote
         }
       });
     }
-    waiter.wait(&tpool);
+    if (!waiter.wait())
+      return false;
     it = tx_blobs.begin();
     std::vector<bool> already_have(tx_blobs.size(), false);
     for (size_t i = 0; i < tx_blobs.size(); i++, ++it) {
@@ -1003,7 +996,8 @@ namespace cryptonote
         });
       }
     }
-    waiter.wait(&tpool);
+    if (!waiter.wait())
+      return false;
 
     std::vector<tx_verification_batch_info> tx_info;
     tx_info.reserve(tx_blobs.size());
@@ -1015,6 +1009,7 @@ namespace cryptonote
     if (!tx_info.empty())
       handle_incoming_tx_accumulated_batch(tx_info, tx_relay == relay_method::block);
 
+    bool valid_events = false;
     bool ok = true;
     it = tx_blobs.begin();
     for (size_t i = 0; i < tx_blobs.size(); i++, ++it) {
@@ -1037,10 +1032,18 @@ namespace cryptonote
       {MERROR_VER("Transaction verification impossible: " << results[i].hash);}
 
       if(tvc[i].m_added_to_pool)
+      {
         MDEBUG("tx added: " << results[i].hash);
+        valid_events = true;
+      }
+      else
+        results[i].res = false;
     }
-    return ok;
 
+    if (valid_events && m_zmq_pub && matches_category(tx_relay, relay_category::legacy))
+      m_zmq_pub(std::move(results));
+
+    return ok;
     CATCH_ENTRY_L0("core::handle_incoming_txs()", false);
   }
   //-----------------------------------------------------------------------------------------------
@@ -1048,17 +1051,6 @@ namespace cryptonote
   {
     return handle_incoming_txs({std::addressof(tx_blob), 1}, {std::addressof(tvc), 1}, tx_relay, relayed);
   }
-  //-----------------------------------------------------------------------------------------------
-  bool core::get_stat_info(core_stat_info& st_inf) const
-  {
-    st_inf.mining_speed = m_miner.get_speed();
-    st_inf.alternative_blocks = m_blockchain_storage.get_alternative_blocks_count();
-    st_inf.blockchain_height = m_blockchain_storage.get_current_blockchain_height();
-    st_inf.tx_pool_size = m_mempool.get_transactions_count();
-    st_inf.top_block_id_str = epee::string_tools::pod_to_hex(m_blockchain_storage.get_tail_id());
-    return true;
-  }
-
   //-----------------------------------------------------------------------------------------------
   bool core::check_tx_semantic(const transaction& tx, bool keeped_by_block) const
   {
@@ -1094,18 +1086,6 @@ namespace cryptonote
       return false;
     }
 
-    if (tx.version == 1)
-    {
-      uint64_t amount_in = 0;
-      get_inputs_money_amount(tx, amount_in);
-      uint64_t amount_out = get_outs_money_amount(tx);
-
-      if(amount_in <= amount_out)
-      {
-        MERROR_VER("tx with wrong amounts: ins " << amount_in << ", outs " << amount_out << ", rejected for tx id= " << get_transaction_hash(tx));
-        return false;
-      }
-    }
     // for version > 1, ringct signatures check verifies amounts match
 
     if(!keeped_by_block && get_transaction_weight(tx) >= m_blockchain_storage.get_current_cumulative_block_weight_limit() - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE)
@@ -1155,10 +1135,8 @@ namespace cryptonote
   {
     if (block_sync_size > 0)
       return block_sync_size;
-    if (get_current_blockchain_height() <= ((95 * m_target_blockchain_height) / 100))
+
     return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
-    else
-    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4;
   }
   //-----------------------------------------------------------------------------------------------
   bool core::are_key_images_spent_in_pool(const std::vector<crypto::key_image>& key_im, std::vector<bool> &spent) const
@@ -1276,6 +1254,7 @@ namespace cryptonote
     {
       NOTIFY_NEW_TRANSACTIONS::request public_req{};
       NOTIFY_NEW_TRANSACTIONS::request private_req{};
+      NOTIFY_NEW_TRANSACTIONS::request stem_req{};
       for (auto& tx : txs)
       {
         switch (std::get<2>(tx))
@@ -1286,6 +1265,9 @@ namespace cryptonote
           case relay_method::local:
             private_req.txs.push_back(std::move(std::get<1>(tx)));
             break;
+          case relay_method::forward:
+          stem_req.txs.push_back(std::move(std::get<1>(tx)));
+          break;
           case relay_method::block:
           case relay_method::fluff:
           case relay_method::stem:
@@ -1303,6 +1285,8 @@ namespace cryptonote
         get_protocol()->relay_transactions(public_req, source, epee::net_utils::zone::public_, relay_method::fluff);
       if (!private_req.txs.empty())
         get_protocol()->relay_transactions(private_req, source, epee::net_utils::zone::invalid, relay_method::local);
+      if (!stem_req.txs.empty())
+        get_protocol()->relay_transactions(stem_req, source, epee::net_utils::zone::public_, relay_method::stem);
     }
     return true;
   }
@@ -1315,6 +1299,7 @@ namespace cryptonote
     cryptonote::transaction tx{};
     for (std::size_t i = 0; i < tx_blobs.size(); ++i)
     {
+      cryptonote::transaction tx{};
       if (!parse_and_validate_tx_from_blob(tx_blobs[i], tx, tx_hashes[i]))
       {
         LOG_ERROR("Failed to parse relayed transaction");
@@ -1659,13 +1644,13 @@ namespace cryptonote
       m_starter_message_showed = true;
     }
 
-    m_fork_moaner.do_call(boost::bind(&core::check_fork_time, this));
-    m_txpool_auto_relayer.do_call(boost::bind(&core::relay_txpool_transactions, this));
-    m_check_updates_interval.do_call(boost::bind(&core::check_updates, this));
-    m_check_disk_space_interval.do_call(boost::bind(&core::check_disk_space, this));
-    m_block_rate_interval.do_call(boost::bind(&core::check_block_rate, this));
-    m_blockchain_pruning_interval.do_call(boost::bind(&core::update_blockchain_pruning, this));
-    m_ok_status.do_call(boost::bind(&core::check_sync_status, this));
+    m_txpool_auto_relayer.do_call(std::bind(&core::relay_txpool_transactions, this));
+    m_check_updates_interval.do_call(std::bind(&core::check_updates, this));
+    m_check_disk_space_interval.do_call(std::bind(&core::check_disk_space, this));
+    m_block_rate_interval.do_call(std::bind(&core::check_block_rate, this));
+    m_blockchain_pruning_interval.do_call(std::bind(&core::update_blockchain_pruning, this));
+    m_ok_status.do_call(std::bind(&core::check_sync_status, this));
+    m_version_check.do_call(std::bind(&core::check_version, this));
     m_miner.on_idle();
     m_mempool.on_idle();
     return true;
@@ -1680,36 +1665,27 @@ namespace cryptonote
     hours = minutes / 60;
     if((get_blockchain_storage().get_current_blockchain_height() >= m_target_blockchain_height) && (m_target_blockchain_height > 0))
     {
+     std::string version = std::string(SUMOKOIN_VERSION) + " " + std::string(SUMOKOIN_RELEASE_NAME);
      MGINFO_GREEN(ENDL << "Sumokoin node is on idle and fully synchronized | Height: " << get_blockchain_storage().get_current_blockchain_height()
        << " | Uptime: " << int(hours) << " hours " << int(minutes%60) << " minutes "
-       << int(seconds%60) << " seconds" << ENDL);
+       << int(seconds%60) << " seconds" << " | Version: " << version << ENDL);
     }
    return true;
   }
   //-----------------------------------------------------------------------------------------------
-  bool core::check_fork_time()
+  bool core::check_version()
   {
-    if (m_nettype == FAKECHAIN)
-      return true;
+    bool avail, valid;
+    std::vector<std::string> version = tools::DNSResolver::instance().get_txt_record("sumoversion.pw", avail, valid);
+    std::string current_version = std::string(SUMOKOIN_VERSION) + " " + std::string(SUMOKOIN_RELEASE_NAME);
 
-    HardFork::State state = m_blockchain_storage.get_hard_fork_state();
-    el::Level level;
-    switch (state) {
-      case HardFork::LikelyForked:
-        level = el::Level::Warning;
-        MCLOG_RED(level, "global", "**********************************************************************");
-        MCLOG_RED(level, "global", "Last scheduled hard fork is too far in the past.");
-        MCLOG_RED(level, "global", "We are most likely forked from the network. Daemon update needed now.");
-        MCLOG_RED(level, "global", "**********************************************************************");
-        break;
-      case HardFork::UpdateNeeded:
-        level = el::Level::Info;
-        MCLOG(level, "global", el::Color::Default, "Last scheduled hard fork time suggests a daemon update will be released within the next couple months.");
-        break;
-      default:
-        break;
-    }
-    return true;
+   for (auto& ver : version)
+   {
+      if (current_version != ver)
+        MWARNING("Your current version of Sumokoin (" << current_version << ") is obsolete, please upgrade to the lastest version ("<< ver << ")" <<ENDL);
+   }
+
+   return true;
   }
   //-----------------------------------------------------------------------------------------------
   uint8_t core::get_ideal_hard_fork_version() const
@@ -1929,7 +1905,7 @@ namespace cryptonote
       MDEBUG("blocks in the last " << seconds[n] / 60 << " minutes: " << b << " (probability " << p << ")");
       if (p < threshold)
       {
-        MWARNING("There were " << b << (b == max_blocks_checked ? " or more" : "") << " blocks in the last " << seconds[n] / 60 << " minutes, there might be large hash rate changes, or we might be partitioned, cut off from the Sumokoin network or under attack, or your computer's time is off. Or it could be just sheer bad luck.");
+        MWARNING("There were " << b << (b == max_blocks_checked ? " or more" : "") << " blocks in the last " << seconds[n] / 60 << " minutes, there might be large hash rate changes, or we might be partitioned, cut off from the Sumokoin network or under attack, or your computer's time is off. Or it could be just a coincidence.");
 
         std::shared_ptr<tools::Notify> block_rate_notify = m_block_rate_notify;
         if (block_rate_notify)

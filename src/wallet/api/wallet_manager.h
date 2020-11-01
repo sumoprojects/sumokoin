@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -30,7 +30,7 @@
 
 
 #include "wallet/api/wallet2_api.h"
-#include "net/http_client.h"
+#include "net/http.h"
 #include <string>
 
 namespace Monero {
@@ -60,9 +60,9 @@ public:
     // next two methods are deprecated - use the above version which allow setting of a password
     virtual Wallet * recoveryWallet(const std::string &path, const std::string &mnemonic, NetworkType nettype, uint64_t restoreHeight) override;
     // deprecated: use createWalletFromKeys(..., password, ...) instead
-    virtual Wallet * createWalletFromKeys(const std::string &path, 
+    virtual Wallet * createWalletFromKeys(const std::string &path,
                                                     const std::string &language,
-                                                    NetworkType nettype, 
+                                                    NetworkType nettype,
                                                     uint64_t restoreHeight,
                                                     const std::string &addressString,
                                                     const std::string &viewKeyString,
@@ -89,14 +89,15 @@ public:
     double miningHashRate() override;
     uint64_t blockTarget() override;
     bool isMining() override;
-    bool startMining(const std::string &address, uint32_t threads = 1, bool background_mining = false, bool ignore_battery = true) override;
+    bool startMining(const std::string &address, uint32_t threads = 1) override;
     bool stopMining() override;
     std::string resolveOpenAlias(const std::string &address, bool &dnssec_valid) const override;
+    bool setProxy(const std::string &address) override;
 
 private:
     WalletManagerImpl() {}
     friend struct WalletManagerFactory;
-    epee::net_utils::http::http_simple_client m_http_client;
+    net::http::client m_http_client;
     std::string m_errorString;
 };
 

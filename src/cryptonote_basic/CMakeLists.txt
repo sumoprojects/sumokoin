@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
+# Copyright (c) 2014-2020, The Monero Project
 #
 # All rights reserved.
 #
@@ -26,16 +26,6 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-if(APPLE)
-  if(DEPENDS)
-    list(APPEND EXTRA_LIBRARIES "-framework Foundation -framework ApplicationServices -framework AppKit -framework IOKit")
-  else()
-    find_library(IOKIT_LIBRARY IOKit)
-    mark_as_advanced(IOKIT_LIBRARY)
-    list(APPEND EXTRA_LIBRARIES ${IOKIT_LIBRARY})
-  endif()
-endif()
-
 set(cryptonote_basic_sources
   account.cpp
   cryptonote_basic_impl.cpp
@@ -54,7 +44,6 @@ set(cryptonote_basic_private_headers
   cryptonote_basic_impl.h
   cryptonote_boost_serialization.h
   cryptonote_format_utils.h
-  cryptonote_stat_info.h
   difficulty.h
   hardfork.h
   miner.h
@@ -71,7 +60,6 @@ target_link_libraries(cryptonote_basic
   PUBLIC
     common
     cncrypto
-    checkpoints
     device
     ${Boost_DATE_TIME_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}

@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -32,7 +32,7 @@
 
 #include <boost/thread/locks.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/optional.hpp>
+#include <boost/optional/optional.hpp>
 #include <system_error>
 #include <csignal>
 #include <cstdio>

@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -27,8 +27,7 @@
 
 #include "error.h"
 
-#include <lmdb.h>
-#include <string>
+#include "lmdb/db_drivers/liblmdb/lmdb.h"
 
 namespace {
     struct category final : std::error_category
@@ -95,4 +94,3 @@ namespace lmdb
         return instance;
     }
 }
-

@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2019, The Monero Project
+// Copyright (c) 2016-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -196,6 +196,7 @@ namespace rpc
     uint64_t block_size_limit;
     uint64_t block_weight_limit;
     uint64_t block_size_median;
+    uint64_t adjusted_time;
     uint64_t block_weight_median;
     uint64_t start_time;
     std::string version;

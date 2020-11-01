@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -28,11 +28,7 @@
 
 #include "subaddress_account.h"
 #include "wallet.h"
-#include "crypto/hash.h"
-#include "wallet/wallet2.h"
-#include "common_defines.h"
-
-#include <vector>
+// #include "wallet/wallet2.h" // already #included in wallet/api/subaddress_account.h
 
 namespace Monero {
   

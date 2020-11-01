@@ -2,7 +2,7 @@
 /// @author rfree (current maintainer in monero.cc project)
 /// @brief implementaion for throttling of connection (count and rate-limit speed etc)
 
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -33,32 +33,16 @@
 /* rfree: implementation for throttle details */
 
 #include <string>
-#include <vector>
 #include <atomic>
 
 #include <boost/asio.hpp>
 
-#include <memory>
-
 #include "syncobj.h"
-
-#include "net/net_utils_base.h" 
 #include "misc_log_ex.h" 
-#include <boost/chrono.hpp>
-#include "misc_language.h"
-#include "pragma_comp_defs.h"
-#include <sstream>
-#include <iomanip>
-#include <algorithm>
 
-
-
-#include <boost/asio/basic_socket.hpp>
-#include <boost/asio/ip/unicast.hpp>
 #include "net/abstract_tcp_server2.h"
 
 // TODO:
-#include "net/network_throttle-detail.hpp"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "net.throttle"

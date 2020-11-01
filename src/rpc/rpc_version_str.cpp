@@ -1,4 +1,4 @@
-// Copyright (c) 2019, The Monero Project
+// Copyright (c) 2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -27,7 +27,6 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "rpc_version_str.h"
-#include "version.h"
 #include <regex>
 
 namespace cryptonote

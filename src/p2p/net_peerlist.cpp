@@ -28,20 +28,13 @@
 
 #include "net_peerlist.h"
 
-#include <algorithm>
-#include <functional>
-#include <fstream>
-#include <iterator>
-
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/portable_binary_oarchive.hpp>
 #include <boost/archive/portable_binary_iarchive.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/range/join.hpp>
-#include <boost/serialization/version.hpp>
 
 #include "net_peerlist_boost_serialization.h"
-
 
 namespace nodetool
 {

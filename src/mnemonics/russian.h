@@ -1,6 +1,6 @@
 // Word list created by Monero contributor sammy007
 // 
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -53,7 +53,7 @@ namespace Language
   public:
     Russian(): Base("русский язык", "Russian", {}, 4)
     {
-      static constexpr const char * const words[NWORDS] =
+      static constexpr std::string_view const words[NWORDS] =
       {
         "абажур",
         "абзац",

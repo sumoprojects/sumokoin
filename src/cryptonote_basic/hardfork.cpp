@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -29,9 +29,8 @@
 #include <algorithm>
 #include <cstdio>
 
-#include "cryptonote_basic/cryptonote_basic.h"
+// #include "cryptonote_basic/cryptonote_basic.h" // already #included in cryptonote_basic/hardfork.h
 #include "blockchain_db/blockchain_db.h"
-#include "hardfork.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "hardfork"

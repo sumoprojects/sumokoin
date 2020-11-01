@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -33,12 +33,6 @@
 #include "transaction_info.h"
 #include "wallet.h"
 
-#include "crypto/hash.h"
-#include "wallet/wallet2.h"
-
-
-#include <string>
-#include <list>
 
 using namespace epee;
 

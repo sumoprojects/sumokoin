@@ -1,4 +1,4 @@
-// Copyright (c) 2019, The Monero Project
+// Copyright (c) 2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -27,12 +27,6 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "socks_connect.h"
-
-#include <boost/system/error_code.hpp>
-#include <boost/system/system_error.hpp>
-#include <cstdint>
-#include <memory>
-#include <system_error>
 
 #include "net/error.h"
 #include "net/net_utils_base.h"

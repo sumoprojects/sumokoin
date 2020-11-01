@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2019, Sumokoin Project
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2017-2020, Sumokoin Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -35,12 +35,9 @@ using namespace epee;
 #include "cryptonote_basic_impl.h"
 #include "string_tools.h"
 #include "serialization/binary_utils.h"
-#include "serialization/container.h"
 #include "cryptonote_format_utils.h"
-#include "cryptonote_config.h"
-#include "misc_language.h"
 #include "common/base58.h"
-#include "crypto/hash.h"
+// #include "crypto/hash.h" // already #included in cryptonote_basic/cryptonote_basic_impl.h
 #include "int-util.h"
 #include "common/dns_utils.h"
 

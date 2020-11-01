@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2019, The Monero Project
+// Copyright (c) 2018-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -28,15 +28,10 @@
 
 #include "socks.h"
 
-#include <algorithm>
-#include <boost/asio/buffer.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/endian/arithmetic.hpp>
 #include <boost/endian/conversion.hpp>
-#include <cstring>
-#include <limits>
-#include <string>
 
 #include "net/net_utils_base.h"
 #include "net/tor_address.h"

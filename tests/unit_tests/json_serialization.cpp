@@ -1,12 +1,16 @@
 
-#include <boost/optional/optional.hpp>
 #include <boost/range/adaptor/indexed.hpp>
 #include <gtest/gtest.h>
 #include <rapidjson/document.h>
+<<<<<<< HEAD
+=======
 #include <rapidjson/stringbuffer.h>
+>>>>>>> origin/android-wallet
 #include <rapidjson/writer.h>
 #include <vector>
+#include <boost/optional/optional.hpp>
 
+#include "byte_stream.h"
 #include "crypto/hash.h"
 #include "cryptonote_basic/account.h"
 #include "cryptonote_basic/cryptonote_basic.h"
@@ -15,13 +19,13 @@
 #include "serialization/json_object.h"
 
 
-namespace
+namespace test
 {
     cryptonote::transaction
     make_miner_transaction(cryptonote::account_public_address const& to)
     {
         cryptonote::transaction tx{};
-        if (!cryptonote::construct_miner_tx(0, 0, 5000, 500, 500, to, tx))
+        if (!cryptonote::construct_miner_tx(cryptonote::network_type::MAINNET, 0, 0, 5000, 500, 500, to, tx))
             throw std::runtime_error{"transaction construction error"};
 
         crypto::hash id{0};
@@ -82,6 +86,18 @@ namespace
 
         return tx;
     }
+<<<<<<< HEAD
+}
+
+namespace
+{
+    template<typename T>
+    T test_json(const T& value)
+    {
+      epee::byte_stream buffer;
+      {
+        rapidjson::Writer<epee::byte_stream> dest{buffer};
+=======
 
     template<typename T>
     T test_json(const T& value)
@@ -89,12 +105,18 @@ namespace
       rapidjson::StringBuffer buffer;
       {
         rapidjson::Writer<rapidjson::StringBuffer> dest{buffer};
+>>>>>>> origin/android-wallet
         cryptonote::json::toJsonValue(dest, value);
       }
 
       rapidjson::Document doc;
+<<<<<<< HEAD
+      doc.Parse(reinterpret_cast<const char*>(buffer.data()), buffer.size());
+      if (doc.HasParseError())
+=======
       doc.Parse(buffer.GetString());
       if (doc.HasParseError() || !doc.IsObject())
+>>>>>>> origin/android-wallet
       {
         throw cryptonote::json::PARSE_FAIL();
       }
@@ -105,11 +127,26 @@ namespace
     }
 } // anonymous
 
+TEST(JsonSerialization, VectorBytes)
+{
+    EXPECT_EQ(std::vector<std::uint8_t>{}, test_json(std::vector<std::uint8_t>{}));
+    EXPECT_EQ(std::vector<std::uint8_t>{0x00}, test_json(std::vector<std::uint8_t>{0x00}));
+}
+
+TEST(JsonSerialization, InvalidVectorBytes)
+{
+    rapidjson::Document doc;
+    doc.SetString("1");
+
+    std::vector<std::uint8_t> out;
+    EXPECT_THROW(cryptonote::json::fromJsonValue(doc, out), cryptonote::json::BAD_INPUT);
+}
+
 TEST(JsonSerialization, MinerTransaction)
 {
     cryptonote::account_base acct;
     acct.generate();
-    const auto miner_tx = make_miner_transaction(acct.get_keys().m_account_address);
+    const auto miner_tx = test::make_miner_transaction(acct.get_keys().m_account_address);
 
     crypto::hash tx_hash{};
     ASSERT_TRUE(cryptonote::get_transaction_hash(miner_tx, tx_hash));
@@ -129,6 +166,8 @@ TEST(JsonSerialization, MinerTransaction)
     EXPECT_EQ(tx_bytes, tx_copy_bytes);
 }
 
+// Sumo doesnot have any non-encrypted transactions
+/*
 TEST(JsonSerialization, RegularTransaction)
 {
     cryptonote::account_base acct1;
@@ -137,8 +176,8 @@ TEST(JsonSerialization, RegularTransaction)
     cryptonote::account_base acct2;
     acct2.generate();
 
-    const auto miner_tx = make_miner_transaction(acct1.get_keys().m_account_address);
-    const auto tx = make_transaction(
+    const auto miner_tx = test::make_miner_transaction(acct1.get_keys().m_account_address);
+    const auto tx = test::make_transaction(
         acct1.get_keys(), {miner_tx}, {acct2.get_keys().m_account_address}, false, false
     );
 
@@ -159,6 +198,7 @@ TEST(JsonSerialization, RegularTransaction)
 
     EXPECT_EQ(tx_bytes, tx_copy_bytes);
 }
+*/
 
 TEST(JsonSerialization, RingctTransaction)
 {
@@ -168,8 +208,8 @@ TEST(JsonSerialization, RingctTransaction)
     cryptonote::account_base acct2;
     acct2.generate();
 
-    const auto miner_tx = make_miner_transaction(acct1.get_keys().m_account_address);
-    const auto tx = make_transaction(
+    const auto miner_tx = test::make_miner_transaction(acct1.get_keys().m_account_address);
+    const auto tx = test::make_transaction(
         acct1.get_keys(), {miner_tx}, {acct2.get_keys().m_account_address}, true, false
     );
 
@@ -199,8 +239,8 @@ TEST(JsonSerialization, BulletproofTransaction)
     cryptonote::account_base acct2;
     acct2.generate();
 
-    const auto miner_tx = make_miner_transaction(acct1.get_keys().m_account_address);
-    const auto tx = make_transaction(
+    const auto miner_tx = test::make_miner_transaction(acct1.get_keys().m_account_address);
+    const auto tx = test::make_transaction(
         acct1.get_keys(), {miner_tx}, {acct2.get_keys().m_account_address}, true, true
     );
 
@@ -221,4 +261,3 @@ TEST(JsonSerialization, BulletproofTransaction)
 
     EXPECT_EQ(tx_bytes, tx_copy_bytes);
 }
-

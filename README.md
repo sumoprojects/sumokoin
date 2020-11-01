@@ -1,5 +1,5 @@
-# Sumokoin 
-## Android Wallet Branch 
+# Sumokoin
+## Android Wallet Branch
 (updated with master at all times)
 Instructions on how to build on ANDROID-BUILD.md
 
@@ -9,6 +9,20 @@ Portions Copyright (c) 2014-2020, The Monero Project
 
 Portions Copyright (c) 2012-2013, The Cryptonote developers
 
+## Table of Contents
+  - [Development resources](#development-resources)
+  - [Coverage](#coverage)
+  - [Introduction](#introduction)
+  - [Coin Supply & Emission](#coin-supply-&-emission)
+  - [About this project](#about-this-project)
+  - [License](#license)
+  - [Compiling Sumokoin from source](#compiling-sumokoin-from-source)
+    - [Dependencies](#dependencies)
+  - [Using Tor](#using-tor)
+  - [Pruning](#Pruning)
+  - [Debugging](#Debugging)
+  - [Known issues](#known-issues)
+
 ## Development Resources
 
 - Web: [www.sumokoin.org](https://www.sumokoin.org)
@@ -16,15 +30,21 @@ Portions Copyright (c) 2012-2013, The Cryptonote developers
 
 Please note that code is developed on the [dev branch](https://github.com/sumoprojects/sumokoin/tree/dev), if you want to check out the latest updates, before they are merged on main branch, please refer there. Master branch will always point to a version that we consider stable, so you can download the code by simply typing `git clone https://github.com/sumoprojects/sumokoin.git`
 
+## Coverage
+
+| Type         |    Status |
+|--------------|-----------|
+|Workflows     | [![WorkFlow Status](https://github.com/sumoprojects/sumokoin/workflows/Continuous_Integration_Testing/badge.svg)](https://github.com/sumoprojects/sumokoin/actions)
+
 ## Introduction
 
 Sumokoin (スモコイン in Japanese) is a fork from Monero, one of the most respectable cryptocurrency well-known for **security, privacy, untraceability** and **active development**. Starting as an educational project, we found that it would be great to create a new coin with high level of privacy by (1) moving forward right away to **Ring Confidential Transactions (RingCT)**, (2) setting **minimum transaction _mixin_ to 12 (current minimum mixin set at 48)** that would greatly reduce chance of being attacked, traced or identified by (blockchain) statistical analysis.
 
 Sumokoin, therefore, is a new Monero without its legacy, a _truely fungible_ cryptocurrency among just a few ones in the market.
 
-## Coin Supply & Emission
+## Coin Supply & Emission<a name="coin-supply-&-emission" />
 
-- **Total supply**: **88,888,888** coins in first 20 years, then **263,000** coins each year for inflation. 
+- **Total supply**: **88,888,888** coins in first 20 years, then **263,000** coins each year for inflation.
 About 10% (~8.8 million) was premined to reserve for future development, i.e. **80 million coins available** for community mining.
 - **Coin symbol**: **SUMO**
 - **Coin Units**:
@@ -32,7 +52,7 @@ About 10% (~8.8 million) was premined to reserve for future development, i.e. **
   + 1 Sumokun = 0.000001 **SUMO** (10<sup>-6</sup>)
   + 1 Sumosan = 0.001 **SUMO** (10<sup>-3</sup>)
 - **Hash algorithm**: CryptoNight R (cnR, CNv4) (Proof-Of-Work)
-- **Emission scheme**: Sumokoin's block reward changes _every 6-months_ as the following "Camel" distribution* (inspired by _real-world mining production_ like of crude oil, coal etc. that is often slow at first, 
+- **Emission scheme**: Sumokoin's block reward changes _every 6-months_ as the following "Camel" distribution* (inspired by _real-world mining production_ like of crude oil, coal etc. that is often slow at first,
 accelerated in the next few years before declined and depleted). However, the emission path of Sumokoin is generally not far apart from what of Bitcoin (view charts below).
 
 ![](https://i.imgur.com/muvKFKg.jpg)
@@ -72,15 +92,16 @@ library archives (`.a`).
 
 | Dep          | Min. version  | Vendored | Debian/Ubuntu pkg    | Arch pkg     | Fedora              | Optional | Purpose         |
 | ------------ | ------------- | -------- | -------------------- | ------------ | ------------------- | -------- | --------------- |
-| GCC          | 4.7.3         | NO       | `build-essential`    | `base-devel` | `gcc`               | NO       |                 |
+| GCC          | 5.4.0         | NO       | `build-essential`    | `base-devel` | `gcc`               | NO       |                 |
 | CMake        | 3.5           | NO       | `cmake`              | `cmake`      | `cmake`             | NO       |                 |
 | pkg-config   | any           | NO       | `pkg-config`         | `base-devel` | `pkgconf`           | NO       |                 |
 | Boost        | 1.58          | NO       | `libboost-all-dev`   | `boost`      | `boost-devel`       | NO       | C++ libraries   |
 | OpenSSL      | basically any | NO       | `libssl-dev`         | `openssl`    | `openssl-devel`     | NO       | sha256 sum      |
 | libzmq       | 3.0.0         | NO       | `libzmq3-dev`        | `zeromq`     | `zeromq-devel`      | NO       | ZeroMQ library  |
 | OpenPGM      | ?             | NO       | `libpgm-dev`         | `libpgm`     | `openpgm-devel`     | NO       | For ZeroMQ      |
-| libnorm[2]   | ?             | NO       | `libnorm-dev`        |              |                     | YES      | For ZeroMQ      |
+| libnorm[2]   | ?             | NO       | `libnorm-dev`        |              |                     | YES      | For ZeroMQ      |    
 | libunbound   | 1.4.16        | YES      | `libunbound-dev`     | `unbound`    | `unbound-devel`     | NO       | DNS resolver    |
+| libevent     | ?             | NO       | `libevent-dev`       | `libevent`   | `libevent-devel`    | YES      | For unbound
 | libsodium    | ?             | NO       | `libsodium-dev`      | `libsodium`  | `libsodium-devel`   | NO       | cryptography    |
 | libunwind    | any           | NO       | `libunwind8-dev`     | `libunwind`  | `libunwind-devel`   | YES      | Stack traces    |
 | liblzma      | any           | NO       | `liblzma-dev`        | `xz`         | `xz-devel`          | YES      | For libunwind   |
@@ -90,11 +111,10 @@ library archives (`.a`).
 | GTest        | 1.5           | YES      | `libgtest-dev`[1]    | `gtest`      | `gtest-devel`       | YES      | Test suite      |
 | Doxygen      | any           | NO       | `doxygen`            | `doxygen`    | `doxygen`           | YES      | Documentation   |
 | Graphviz     | any           | NO       | `graphviz`           | `graphviz`   | `graphviz`          | YES      | Documentation   |
-| lrelease     | ?             | NO       | `qttools5-dev-tools` | `qt5-tools`  | `qt5-linguist`      | YES      | Translations    |
 | libhidapi    | ?             | NO       | `libhidapi-dev`      | `hidapi`     | `hidapi-devel`      | YES      | Hardware wallet |
-| libusb       | ?             | NO       | `libusb-dev`         | `libusb`     | `libusb-devel`      | YES      | Hardware wallet |
-| libprotobuf  | ?             | NO       | `libprotobuf-dev`    | `protobuf`   | `protobuf-devel`    | YES      | Hardware wallet |
+| libusb       | ?             | NO       | `libusb-1.0-0-dev`   | `libusb`     | `libusbx-devel`     | YES      | Hardware wallet |
 | protoc       | ?             | NO       | `protobuf-compiler`  | `protobuf`   | `protobuf-compiler` | YES      | Hardware wallet |
+| libudev      | ?             | No       | `libudev-dev`        | `systemd`    | `systemd-devel`     | YES      | Hardware wallet |
 
 
 [1] On Debian/Ubuntu `libgtest-dev` only includes sources and headers. You must
@@ -103,23 +123,17 @@ build the library binary manually. This can be done with the following command `
 
 Install all dependencies at once on Debian/Ubuntu:
 
-``` sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev libusb-dev libprotobuf-dev protobuf-compiler ```
+``` sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libevent-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev libhidapi-dev libusb-1.0-0-dev libudev-dev```
 
 Install all dependencies at once on macOS with the provided Brewfile:
 ``` brew update && brew bundle --file=contrib/brew/Brewfile ```
 
 FreeBSD one liner for required to build dependencies
-```pkg install git gmake cmake pkgconf boost-libs cppzmq libsodium```
+```pkg install git gmake cmake pkgconf boost-libs libzmq4 libsodium```
 
 ### Cloning the repository
 
-Clone recursively to pull-in needed submodule(s):
-
-`$ git clone --recursive https://github.com/sumoprojects/sumokoin`
-
-If you already have a repo cloned, initialize and update:
-
-`$ cd sumokoin && git submodule init && git submodule update`
+`$ git clone https://github.com/sumoprojects/sumokoin`
 
 ### Build instructions
 
@@ -132,22 +146,19 @@ invokes cmake commands as needed.
 
     \- On Ubuntu, essential dependencies can be installed with the following command:
 
-    	sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev
-    
+    	sudo apt update && sudo apt install build-essential cmake pkg-config libboost-all-dev libssl-dev libzmq3-dev libunbound-dev libsodium-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev libhidapi-dev libusb-dev
+
 * Change to the root of the source code directory and build:
 
-        ```bash
-        cd sumokoin
-        make
-        ```
+    ```bash
+    cd sumokoin
+    make
+    ```
 
     *Optional*: If your machine has several cores and enough memory, enable
     parallel build by running `make -j<number of threads>` instead of `make`. For
     this to be worthwhile, the machine should have one core and about 2GB of RAM
     available per thread.
-
-    *Note*: If cmake can not find zmq.hpp file on macOS, installing `zmq.hpp` from
-    https://github.com/zeromq/cppzmq to `/usr/local/include` should fix that error.
 
     *Note*: The instructions above will compile the most stable release of the
     Sumokoin software. If you would like to use and test the most recent software,
@@ -209,11 +220,13 @@ Tested on a Raspberry Pi Zero with a clean install of minimal Raspbian Stretch (
 * If using an external hard disk without an external power supply, ensure it gets enough power to avoid hardware issues when syncing, by adding the line "max_usb_current=1" to /boot/config.txt
 
 * Clone sumokoin and checkout most recent release version:
-```
-        git clone https://github.com/sumoprojects/sumokoin.git
-	cd sumokoin
-	git checkout tags/v0.6.1.0
-```
+
+    ```bash
+    git clone https://github.com/sumoprojects/sumokoin.git
+    cd sumokoin
+    git checkout tags/v0.7.0.0
+    ```
+
 * Build:
 
     ```bash
@@ -298,13 +311,13 @@ application.
     To build for 64-bit Windows:
 
     ```bash
-    pacman -S mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi
+    pacman -S mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-unbound
     ```
 
     To build for 32-bit Windows:
 
     ```bash
-    pacman -S mingw-w64-i686-toolchain make mingw-w64-i686-cmake mingw-w64-i686-boost mingw-w64-i686-openssl mingw-w64-i686-zeromq mingw-w64-i686-libsodium mingw-w64-i686-hidapi
+    pacman -S mingw-w64-i686-toolchain make mingw-w64-i686-cmake mingw-w64-i686-boost mingw-w64-i686-openssl mingw-w64-i686-zeromq mingw-w64-i686-libsodium mingw-w64-i686-hidapi mingw-w64-i686-unbound
     ```
 
 * Open the MingW shell via `MinGW-w64-Win64 Shell` shortcut on 64-bit Windows
@@ -316,7 +329,7 @@ application.
 * To git clone, run:
 
     ```bash
-    git clone --recursive https://github.com/sumoprojects/sumokoin.git
+    git clone https://github.com/sumoprojects/sumokoin.git
     ```
 
 **Building**
@@ -327,10 +340,10 @@ application.
     cd sumokoin
     ```
 
-* If you would like a specific [version/tag](https://github.com/sumoprojects/sumokoin/tags), do a git checkout for that version. eg. 'v0.6.1.0'. If you don't care about the version and just want binaries from master, skip this step:
-	
+* If you would like a specific [version/tag](https://github.com/sumoprojects/sumokoin/tags), do a git checkout for that version. eg. 'v0.7.0.0'. If you don't care about the version and just want binaries from master, skip this step:
+
     ```bash
-    git checkout v0.6.1.0
+    git checkout v0.7.0.0
     ```
 
 * If you are on a 64-bit system, run:
@@ -363,13 +376,12 @@ application.
 
 ### On FreeBSD:
 
-The project can be built from scratch by following instructions for Linux above(but use `gmake` instead of `make`). If you are running Sumokoin in a jail you need to add the flag: `allow.sysvipc=1` to your jail configuration, otherwise lmdb will throw the error message: `Failed to open lmdb environment: Function not implemented`.
-
-We expect to add Sumokoin into the ports tree in the near future, which will aid in managing installations using ports or packages.
+The project can be built from scratch by following instructions for Linux above(but use `gmake` instead of `make`).
+If you are running Sumokoin in a jail, you need to add `sysvsem="new"` to your jail configuration, otherwise lmdb will throw the error message: `Failed to open lmdb environment: Function not implemented`.
 
 ### On OpenBSD:
 
-You will need to add a few packages to your system. `pkg_add cmake gmake zeromq cppzmq libiconv boost`.
+You will need to add a few packages to your system. `pkg_add cmake gmake zeromq libiconv boost`.
 
 The `doxygen` and `graphviz` packages are optional and require the xbase set.
 Running the test suite also requires `py-requests` package.
@@ -378,23 +390,27 @@ Build sumokoin: `env DEVELOPER_LOCAL_TOOLS=1 BOOST_ROOT=/usr/local gmake release
 
 Note: you may encounter the following error, when compiling the latest version of sumokoin as a normal user:
 
-```
-LLVM ERROR: out of memory
-c++: error: unable to execute command: Abort trap (core dumped)
-```
+	LLVM ERROR: out of memory
+	c++: error: unable to execute command: Abort trap (core dumped)
 
 Then you need to increase the data ulimit size to 2GB and try again: `ulimit -d 2000000`
+
+### On NetBSD:
+
+Check that the dependencies are present: `pkg_info -c libexecinfo boost-headers boost-libs protobuf readline libusb1 zeromq git-base pkgconf gmake cmake | more`, and install any that are reported missing, using `pkg_add` or from your pkgsrc tree.  Readline is optional but worth having.
+
+Third-party dependencies are usually under `/usr/pkg/`, but if you have a custom setup, adjust the "/usr/pkg" (below) accordingly.
+
+Clone the sumokoin repository and checkout the most recent release as described above. Then build sumokoin: `gmake BOOST_ROOT=/usr/pkg LDFLAGS="-Wl,-R/usr/pkg/lib" release`.  The resulting executables can be found in `build/NetBSD/[Release version]/Release/bin/`.
 
 ### On Solaris:
 
 The default Solaris linker can't be used, you have to install GNU ld, then run cmake manually with the path to your copy of GNU ld:
 
-```bash
-mkdir -p build/release
-cd build/release
-cmake -DCMAKE_LINKER=/path/to/ld -D CMAKE_BUILD_TYPE=Release ../..
-cd ../..
-```
+	mkdir -p build/release
+	cd build/release
+	cmake -DCMAKE_LINKER=/path/to/ld -D CMAKE_BUILD_TYPE=Release ../..
+	cd ../..
 
 Then you can run make as usual.
 
@@ -413,12 +429,13 @@ By default, in either dynamically or statically linked builds, binaries target t
 ### Cross Compiling
 
 You can also cross-compile static binaries on Linux for Windows and macOS with the `depends` system.
+Read more at [contrib/depends/README.md](contrib/depends/README.md)
 
 * ```make depends target=x86_64-linux-gnu``` for 64-bit linux binaries.
 * ```make depends target=x86_64-w64-mingw32``` for 64-bit windows binaries.
   * Requires: `python3 g++-mingw-w64-x86-64 wine1.6 bc`
-* ```make depends target=x86_64-apple-darwin11``` for macOS binaries.
-  * Requires: `cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev` and `MacOSX10.11.sdk` (download and extract it to `contrib/depends/SDKs`)
+* ```make depends target=x86_64-apple-darwin14``` for macOS binaries.
+  * Requires: `cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python-pip`, and `pip install setuptools`
 * ```make depends target=i686-linux-gnu``` for 32-bit linux binaries.
   * Requires: `g++-multilib bc`
 * ```make depends target=i686-w64-mingw32``` for 32-bit windows binaries.
@@ -520,6 +537,17 @@ allow inbound connections. Full example:
         --data-dir /home/amnesia/Persistent/your/directory/to/the/blockchain
 ```
 
+## Pruning
+
+As of June 2020, the full Sumokoin blockchain file is on about 22 GB. One can store a pruned blockchain, which is **less than one
+fourth** in size from the full blockchain size (June 2020 4.6 GB).
+A pruned blockchain can only serve part of the historical chain data to other peers, but is otherwise identical in
+functionality to the full blockchain.
+To use a pruned blockchain, it is best to start the initial sync with --pruned-blockchain. However, it is also possible
+to prune an existing blockchain using the sumo-blockchain-prune tool or using the --pruned-blockchain sumokoind option
+with an existing chain. If an existing chain exists, pruning will temporarily require disk space to store both the full
+and pruned blockchains.
+
 # Debugging
 
 This section contains general instructions for debugging failed installs or problems encountered with Sumokoin. First, ensure you are running the latest version built from the Github repo.
@@ -535,7 +563,7 @@ Run the build.
 Once it stalls, enter the following command:
 
 ```bash
-gdb /path/to/sumokoind `pidof sumokoind` 
+gdb /path/to/sumokoind `pidof sumokoind`
 ```
 
 Type `thread apply all bt` within gdb in order to obtain the stack trace
@@ -597,7 +625,7 @@ Instructions for debugging suspected blockchain corruption as per @HYC
 There is an `mdb_stat` command in the LMDB source that can print statistics about the database but it's not routinely built. This can be built with the following command:
 
 ```bash
-cd ~/sumokoin/external/db_drivers/liblmdb && make
+cd ~/sumokoin/src/lmdb/db_drivers/liblmdb && make
 ```
 
 The output of `mdb_stat -ea <path to blockchain dir>` will indicate inconsistencies in the blocks, block_heights and block_info table.

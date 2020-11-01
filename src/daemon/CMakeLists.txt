@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
+# Copyright (c) 2014-2020, The Monero Project
 #
 # All rights reserved.
 #
@@ -73,13 +73,14 @@ target_link_libraries(daemon
     rpc
     blockchain_db
     cryptonote_core
+    cryptonote_basic
     cncrypto
     common
     p2p
     cryptonote_protocol
     daemonizer
     serialization
-    daemon_rpc_server
+    daemon_rpc_server 
     ${EPEE_READLINE}
     version
     ${Boost_CHRONO_LIBRARY}
@@ -88,7 +89,6 @@ target_link_libraries(daemon
     ${Boost_REGEX_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
-    ${ZMQ_LIB}
     ${GNU_READLINE_LIBRARY}
     ${EXTRA_LIBRARIES}
     ${Blocks})

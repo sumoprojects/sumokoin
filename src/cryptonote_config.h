@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2019, Sumokoin Project
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2017-2020, Sumokoin Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -34,12 +34,14 @@
 #include <stdexcept>
 #include <string>
 #include <boost/uuid/uuid.hpp>
-
-#define CRYPTONOTE_DNS_TIMEOUT_MS                       20000
+#include "p2p_config.h"
+#include "crypto_config.h"
+#include "seeds_config.h"
+#include "hardforks_checkpoints_config.h"
+#include "difficulty_config.h"
 
 #define CRYPTONOTE_MAX_BLOCK_NUMBER                     500000000
 #define CRYPTONOTE_MAX_BLOCK_WEIGHT                     500000000  // block header blob limit, never used!
-#define CRYPTONOTE_GETBLOCKTEMPLATE_MAX_BLOCK_SIZE      196608 //size of block (bytes) that is the maximum that miners will produce
 #define CRYPTONOTE_MAX_TX_SIZE                          1000000000
 #define CRYPTONOTE_MAX_TX_PER_BLOCK                     0x10000000
 #define CRYPTONOTE_PUBLIC_ADDRESS_TEXTBLOB_VER          0
@@ -50,13 +52,13 @@
 #define CURRENT_TRANSACTION_VERSION                     2
 #define MIN_TRANSACTION_VERSION                         2
 #define CRYPTONOTE_HEAVY_BLOCK_VERSION                  3
-#define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT              60*60*2
-#define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
-#define BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW               60
 
+#define CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE             10
+
+#define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT              60*60*2
+#define BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW               60
 #define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V2           60*24
 #define BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V2            12
-
 #define CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V3           60*5
 #define BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V3            BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V2
 
@@ -84,90 +86,18 @@
 
 #define ORPHANED_BLOCKS_MAX_COUNT                       100
 
-#define DIFFICULTY_TARGET                               240  // seconds
-#define DIFFICULTY_WINDOW                               720  // blocks
-#define DIFFICULTY_LAG                                  15   // !!!
-#define DIFFICULTY_CUT                                  60   // timestamps to cut after sorting
-#define DIFFICULTY_BLOCKS_COUNT                         DIFFICULTY_WINDOW + DIFFICULTY_LAG
-
-#define DIFFICULTY_WINDOW_V2                            17
-#define DIFFICULTY_CUT_V2                               6
-#define DIFFICULTY_BLOCKS_COUNT_V2                      DIFFICULTY_WINDOW_V2 + DIFFICULTY_CUT_V2*2
-
-#define DIFFICULTY_WINDOW_V3                            60
-#define DIFFICULTY_BLOCKS_COUNT_V3                      DIFFICULTY_WINDOW_V3 + 1
-
 #define CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS       1
 #define CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS      DIFFICULTY_TARGET * CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_BLOCKS
-
-#define DIFFICULTY_BLOCKS_ESTIMATE_TIMESPAN             DIFFICULTY_TARGET //just alias; used by tests
-
-#define BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT          10000  //by default, blocks ids count in synchronizing
-#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_PRE_V4       100    //by default, blocks count in blocks downloading
-#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              50     //by default, blocks count in blocks downloading
-#define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4           1      //by default, blocks count in blocks downloading at the end of the chain
-
-#define LAST_CHECKPOINT                                 405000
 
 #define CRYPTONOTE_MEMPOOL_TX_LIVETIME                  (86400*3) //seconds, three days
 #define CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME   604800 //seconds, one week
 
-#define CRYPTONOTE_DANDELIONPP_STEMS                    2 // number of outgoing stem connections per epoch
-#define CRYPTONOTE_DANDELIONPP_FLUFF_PROBABILITY        10 // out of 100
-#define CRYPTONOTE_DANDELIONPP_MIN_EPOCH                10 // minutes
-#define CRYPTONOTE_DANDELIONPP_EPOCH_RANGE              30 // seconds
-#define CRYPTONOTE_DANDELIONPP_FLUSH_AVERAGE            5 // seconds average for poisson distributed fluff flush
-#define CRYPTONOTE_DANDELIONPP_EMBARGO_AVERAGE          173 // seconds (see tx_pool.cpp for more info)
-
-// see src/cryptonote_protocol/levin_notify.cpp
-#define CRYPTONOTE_NOISE_MIN_EPOCH                      5      // minutes
-#define CRYPTONOTE_NOISE_EPOCH_RANGE                    30     // seconds
-#define CRYPTONOTE_NOISE_MIN_DELAY                      10     // seconds
-#define CRYPTONOTE_NOISE_DELAY_RANGE                    5      // seconds
-#define CRYPTONOTE_NOISE_BYTES                          3*1024 // 3 KiB
-#define CRYPTONOTE_NOISE_CHANNELS                       2      // Max outgoing connections per zone used for noise/covert sending
-
-#define CRYPTONOTE_MAX_FRAGMENTS                        20 // ~20 * NOISE_BYTES max payload size for covert/noise send
-
-#define COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT           1000
-
-#define P2P_LOCAL_WHITE_PEERLIST_LIMIT                  1000
-#define P2P_LOCAL_GRAY_PEERLIST_LIMIT                   5000
-
-#define P2P_DEFAULT_CONNECTIONS_COUNT_OUT               8
-#define P2P_DEFAULT_CONNECTIONS_COUNT_IN                32
-#define P2P_DEFAULT_HANDSHAKE_INTERVAL                  60           //seconds
-#define P2P_DEFAULT_PACKET_MAX_SIZE                     50000000     //50000000 bytes maximum packet size
-#define P2P_DEFAULT_PEERS_IN_HANDSHAKE                  150
-#define P2P_DEFAULT_CONNECTION_TIMEOUT                  5000       //5 seconds
-#define P2P_DEFAULT_SOCKS_CONNECT_TIMEOUT               45         // seconds
-#define P2P_DEFAULT_PING_CONNECTION_TIMEOUT             5000       //5 seconds
-#define P2P_DEFAULT_INVOKE_TIMEOUT                      60*2*1000  //2 minutes
-#define P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT            5000       //5 seconds
-#define P2P_DEFAULT_WHITELIST_CONNECTIONS_PERCENT       70
-#define P2P_DEFAULT_ANCHOR_CONNECTIONS_COUNT            4
-#define P2P_DEFAULT_SYNC_SEARCH_CONNECTIONS_COUNT       2
-#define P2P_DEFAULT_LIMIT_RATE_UP                       2048       // kB/s
-#define P2P_DEFAULT_LIMIT_RATE_DOWN                     8192       // kB/s
-
-#define P2P_FAILED_ADDR_FORGET_SECONDS                  (24*60*60)     //a day
-#define P2P_IP_BLOCKTIME                                (2*60*60*24)  //two days
-#define P2P_IP_FAILS_BEFORE_BLOCK                       5
-#define P2P_IDLE_CONNECTION_KILL_INTERVAL               (30) //30 seconds
-
-#define P2P_SUPPORT_FLAG_FLUFFY_BLOCKS                  0x01
-#define P2P_SUPPORT_FLAGS                               P2P_SUPPORT_FLAG_FLUFFY_BLOCKS
-
-#define RPC_IP_FAILS_BEFORE_BLOCK                       3
-
 #define CRYPTONOTE_NAME                                 "sumokoin"
-#define CRYPTONOTE_POOLDATA_FILENAME                    "poolstate.bin"
 #define CRYPTONOTE_BLOCKCHAINDATA_FILENAME              "data.mdb"
 #define CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME         "lock.mdb"
 #define P2P_NET_DATA_FILENAME                           "p2pstate.bin"
 #define RPC_PAYMENTS_DATA_FILENAME                      "rpcpayments.bin"
 #define MINER_CONFIG_FILE_NAME                          "miner_conf.json"
-
 
 // coin emission change interval/speed configs
 #define COIN_EMISSION_MONTH_INTERVAL                    6  // months to change emission speed
@@ -182,16 +112,6 @@
 #define TRANSACTION_WEIGHT_LIMIT                        ((uint64_t) ((CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 110 / 100) - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE))
 #define BLOCK_SIZE_GROWTH_FAVORED_ZONE                  ((uint64_t) (CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 4))
 
-
-#define HF_VERSION_DYNAMIC_FEE                            1
-#define HF_VERSION_PER_BYTE_FEE                           7
-#define HF_VERSION_BP                                     7   // Bulletproof HF
-#define HF_VERSION_SMALLER_BP                             7
-#define HF_VERSION_LONG_TERM_BLOCK_WEIGHT                 8
-#define HF_VERSION_MIN_2_OUTPUTS                          9
-#define HF_VERSION_ENFORCE_MIN_AGE                        9
-#define HF_VERSION_EFFECTIVE_SHORT_TERM_MEDIAN_IN_PENALTY 9
-
 #define PER_KB_FEE_QUANTIZATION_DECIMALS                 6
 #define HASH_OF_HASHES_STEP                              512
 #define BULLETPROOF_MAX_OUTPUTS                          16
@@ -203,37 +123,12 @@
 
 #define RPC_CREDITS_PER_HASH_SCALE                       ((float)(1<<24))
 
-// New constants are intended to go here
 namespace config
 {
   uint64_t const DEFAULT_FEE_ATOMIC_XMR_PER_KB = 500; // Just a placeholder!  Change me!
   uint8_t const FEE_CALCULATION_MAX_RETRIES = 10;
   uint64_t const DEFAULT_DUST_THRESHOLD = ((uint64_t)10000000); // pow(10, 7)
   uint64_t const BASE_REWARD_CLAMP_THRESHOLD = ((uint64_t)100000); // pow(10, 5)
-
-  uint64_t const CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX = 0x2bb39a;  // Sumo
-  uint64_t const CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX = 0x29339a; //Sumi
-  uint64_t const CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX = 0x8319a; // Subo
-  uint16_t const P2P_DEFAULT_PORT = 19733;
-  uint16_t const RPC_DEFAULT_PORT = 19734;
-  uint16_t const ZMQ_RPC_DEFAULT_PORT = 19735;
-
-  boost::uuids::uuid const NETWORK_ID = { {
-      0x04, 0x06, 0xdf, 0xce, 0xfc, 0x7c, 0x27, 0x4a, 0x24, 0xd4, 0xf3, 0x8d, 0x42, 0x44, 0x60, 0xa8
-    } }; // Bender's nightmare
-  std::string const GENESIS_TX = "023c01ff0001808098d0daf1d00f028be379aa57a70fa19c0ee5765fdc3d2aae0b1034158f4963e157d9042c24fbec21013402fc7071230f1f86f33099119105a7b1f64a898526060ab871e685059c223100";
-  uint32_t const GENESIS_NONCE = 10000;
-
-  // Hash domain separators
-  const char HASH_KEY_BULLETPROOF_EXPONENT[] = "bulletproof";
-  const char HASH_KEY_RINGDB[] = "ringdsb";
-  const char HASH_KEY_SUBADDRESS[] = "SubAddr";
-  const unsigned char HASH_KEY_ENCRYPTED_PAYMENT_ID = 0x8d;
-  const unsigned char HASH_KEY_WALLET = 0x8c;
-  const unsigned char HASH_KEY_WALLET_CACHE = 0x8d;
-  const unsigned char HASH_KEY_RPC_PAYMENT_NONCE = 0x58;
-  const unsigned char HASH_KEY_MEMORY = 'k';
-  const unsigned char HASH_KEY_MULTISIG[] = {'M', 'u', 'l', 't' , 'i', 's', 'i', 'g', 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
   // Funding for exchange burned coins
   static constexpr const char* EXCHANGE_FUND_ADDRESS = "Sumoo2y7AAteNGJ5yepUUFX3taqDRfM5eYHmCc1qnhwx6cJp3htcjTbKWH7NxkcADcT82pRwns9Us7NdCmuw3gx8bnzYGg14L2o";
@@ -244,17 +139,17 @@ namespace config
   static constexpr uint64_t EXCHANGE_FUND_AMOUNT = EXCHANGE_BURNED_AMOUNT; // fund amount = burned coins
   static constexpr uint64_t EXCHANGE_FUND_RELEASE_HEIGHT = 199800;  // equal v6 hardfork
 
+  uint64_t const CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX = 0x2bb39a;  // Sumo
+  uint64_t const CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX = 0x29339a; //Sumi
+  uint64_t const CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX = 0x8319a; // Subo
+  std::string const GENESIS_TX = "023c01ff0001808098d0daf1d00f028be379aa57a70fa19c0ee5765fdc3d2aae0b1034158f4963e157d9042c24fbec21013402fc7071230f1f86f33099119105a7b1f64a898526060ab871e685059c223100";
+  uint32_t const GENESIS_NONCE = 10000;
+
   namespace testnet
   {
     uint64_t const CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX = 0x37751a; // Suto
     uint64_t const CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX = 0x34f51a; // Suti
     uint64_t const CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX = 0x1d351a; // Susu
-    uint16_t const P2P_DEFAULT_PORT = 29733;
-    uint16_t const RPC_DEFAULT_PORT = 29734;
-    uint16_t const ZMQ_RPC_DEFAULT_PORT = 29735;
-    boost::uuids::uuid const NETWORK_ID = { {
-        0x12, 0x04, 0x06, 0xdf, 0xce, 0xfc, 0x7c, 0x27, 0x4a, 0x24, 0xd4, 0xf3, 0x8d, 0x42, 0x44, 0x60
-      } }; // Bender's daydream
     std::string const GENESIS_TX = "023c01ff0001808098d0daf1d00f028be379aa57a70fa19c0ee5765fdc3d2aae0b1034158f4963e157d9042c24fbec21013402fc7071230f1f86f33099119105a7b1f64a898526060ab871e685059c223100";
     uint32_t const GENESIS_NONCE = 10001;
   }
@@ -264,12 +159,6 @@ namespace config
     uint64_t const CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX = 0x37751a; // Suto
     uint64_t const CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX = 0x34f51a; // Suti
     uint64_t const CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX = 0x1d351a; // Susu
-    uint16_t const P2P_DEFAULT_PORT = 39733;
-    uint16_t const RPC_DEFAULT_PORT = 39734;
-    uint16_t const ZMQ_RPC_DEFAULT_PORT = 39735;
-    boost::uuids::uuid const NETWORK_ID = { {
-        0x12, 0x04, 0x06, 0xdf, 0xce, 0xfc, 0x7c, 0x27, 0x4a, 0x24, 0xd4, 0xf3, 0x8d, 0x42, 0x44, 0x60
-      } }; // Bender's daydream
     std::string const GENESIS_TX = "023c01ff0001808098d0daf1d00f028d7bbb5a23ab085e05230bd45d938c71f669f94c2a170b96b64827b7bc2cbde521012b6ed837a56ef72f57b4e46410bdea82e382c43ae8797a0f3e8419b5d4f8e6fe00";
     uint32_t const GENESIS_NONCE = 10002;
   }
@@ -340,5 +229,5 @@ namespace cryptonote
       case FAKECHAIN: return mainnet;
       default: throw std::runtime_error("Invalid network type");
     }
-  };
+  }
 }

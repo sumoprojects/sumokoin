@@ -1,21 +1,21 @@
-// Copyright (c) 2016-2019, The Monero Project
-// 
+// Copyright (c) 2016-2020, The Monero Project
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -29,10 +29,18 @@
 #pragma once
 
 #include <rapidjson/document.h>
+<<<<<<< HEAD
+#include <rapidjson/writer.h>
+#include <string>
+
+#include "byte_slice.h"
+#include "byte_stream.h"
+=======
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include <string>
 
+>>>>>>> origin/android-wallet
 #include "rpc/message_data_structs.h"
 
 namespace cryptonote
@@ -43,7 +51,11 @@ namespace rpc
 
   class Message
   {
+<<<<<<< HEAD
+      virtual void doToJson(rapidjson::Writer<epee::byte_stream>& dest) const
+=======
       virtual void doToJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const
+>>>>>>> origin/android-wallet
       {}
 
     public:
@@ -57,7 +69,11 @@ namespace rpc
 
       virtual ~Message() { }
 
+<<<<<<< HEAD
+      void toJson(rapidjson::Writer<epee::byte_stream>& dest) const;
+=======
       void toJson(rapidjson::Writer<rapidjson::StringBuffer>& dest) const;
+>>>>>>> origin/android-wallet
 
       virtual void fromJson(const rapidjson::Value& val);
 
@@ -71,9 +87,13 @@ namespace rpc
     public:
       ~FullMessage() { }
 
+<<<<<<< HEAD
+      FullMessage(std::string&& json_string, bool request=false);
+=======
       FullMessage(FullMessage&& rhs) noexcept : doc(std::move(rhs.doc)) { }
 
       FullMessage(const std::string& json_string, bool request=false);
+>>>>>>> origin/android-wallet
 
       std::string getRequestType() const;
 
@@ -85,24 +105,37 @@ namespace rpc
 
       cryptonote::rpc::error getError();
 
+<<<<<<< HEAD
+      static epee::byte_slice getRequest(const std::string& request, const Message& message, unsigned id);
+      static epee::byte_slice getResponse(const Message& message, const rapidjson::Value& id);
+=======
       static std::string getRequest(const std::string& request, const Message& message, unsigned id);
       static std::string getResponse(const Message& message, const rapidjson::Value& id);
+>>>>>>> origin/android-wallet
     private:
 
       FullMessage() = default;
+      FullMessage(const FullMessage&) = delete;
+      FullMessage& operator=(const FullMessage&) = delete;
 
       FullMessage(const std::string& request, Message* message);
       FullMessage(Message* message);
 
+      std::string contents;
       rapidjson::Document doc;
   };
 
 
   // convenience functions for bad input
+<<<<<<< HEAD
+  epee::byte_slice BAD_REQUEST(const std::string& request);
+  epee::byte_slice BAD_REQUEST(const std::string& request, const rapidjson::Value& id);
+=======
   std::string BAD_REQUEST(const std::string& request);
   std::string BAD_REQUEST(const std::string& request, const rapidjson::Value& id);
+>>>>>>> origin/android-wallet
 
-  std::string BAD_JSON(const std::string& error_details);
+  epee::byte_slice BAD_JSON(const std::string& error_details);
 
 
 }  // namespace rpc

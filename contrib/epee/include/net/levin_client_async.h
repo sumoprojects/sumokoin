@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,12 +22,11 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 #pragma once
 
-#include ""
 #include "net_helper.h"
 #include "levin_base.h"
 
@@ -41,10 +40,10 @@ namespace levin
 {
 
   /************************************************************************
-  *    levin_client_async - probably it is not really fast implementation, 
-  *                each handler thread could make up to 30 ms latency. 
+  *    levin_client_async - probably it is not really fast implementation,
+  *                each handler thread could make up to 30 ms latency.
   *                But, handling events in reader thread will cause dead locks in
-  *                case of recursive call (call invoke() to the same connection 
+  *                case of recursive call (call invoke() to the same connection
   *                on reader thread on remote invoke() handler)
   ***********************************************************************/
 
@@ -77,10 +76,10 @@ namespace levin
 		};
 		std::list<packet_entry> m_recieved_packets;
     /*
-       m_current_connection_index needed when some connection was broken and reconnected - in this 
-                  case we could have some received packets in que, which shoud not be handled 
+       m_current_connection_index needed when some connection was broken and reconnected - in this
+                  case we could have some received packets in que, which shoud not be handled
     */
-		volatile uint32_t m_current_connection_index; 
+		volatile uint32_t m_current_connection_index;
 		::critical_section m_invoke_lock;
 		::critical_section m_reciev_packet_lock;
     ::critical_section m_connection_lock;
@@ -120,15 +119,15 @@ namespace levin
 			CRITICAL_REGION_BEGIN(m_reciev_packet_lock);
 			CRITICAL_REGION_BEGIN(m_send_lock);
 			res = levin_client_impl::connect(ip, port, timeout);
-			boost::interprocess::ipcdetail::atomic_inc32(&m_current_connection_index); 
+			boost::interprocess::ipcdetail::atomic_inc32(&m_current_connection_index);
 			CRITICAL_REGION_END();
 			CRITICAL_REGION_END();
 			if(res && !boost::interprocess::ipcdetail::atomic_read32(&m_threads_count) )
 			{
 				//boost::interprocess::ipcdetail::atomic_write32(&m_is_stop, 0);//m_is_stop = false;
-				boost::thread( boost::bind(&levin_duplex_client::reciever_thread, this) );
-				boost::thread( boost::bind(&levin_duplex_client::handler_thread, this) );
-				boost::thread( boost::bind(&levin_duplex_client::handler_thread, this) );
+				boost::thread( std::bind(&levin_duplex_client::reciever_thread, this) );
+				boost::thread( std::bind(&levin_duplex_client::handler_thread, this) );
+				boost::thread( std::bind(&levin_duplex_client::handler_thread, this) );
 			}
 
 			return res;
@@ -158,7 +157,7 @@ namespace levin
 		}
 
 		//------------------------------------------------------------------------------
-		inline 
+		inline
 			bool recv_n(SOCKET s, char* pbuff, size_t cb)
 		{
 			while(cb)
@@ -192,7 +191,7 @@ namespace levin
 		//------------------------------------------------------------------------------
 		inline
 			bool recv_n(SOCKET s, std::string& buff)
-		{	
+		{
 			size_t cb_remain = buff.size();
 			char*  m_current_ptr = (char*)buff.data();
 			return recv_n(s, m_current_ptr, cb_remain);
@@ -202,7 +201,7 @@ namespace levin
 		{
 			//boost::interprocess::ipcdetail::atomic_write32(&m_is_stop, 1);//m_is_stop = true;
 			loop_call_guard();
-			critical_region cr(m_cs);			
+			critical_region cr(m_cs);
 			levin_client_impl::disconnect();
 
 			CRITICAL_REGION_BEGIN(m_local_invoke_buff_lock);
@@ -231,11 +230,11 @@ namespace levin
 
 			boost::interprocess::ipcdetail::atomic_write32(&m_invoke_is_active, 1);
 			boost::interprocess::ipcdetail::atomic_write32(&m_invoke_data_ready, 0);
-			misc_utils::destr_ptr hdlr = misc_utils::add_exit_scope_handler(boost::bind(&levin_duplex_client::on_leave_invoke, this));
+			misc_utils::destr_ptr hdlr = misc_utils::add_exit_scope_handler(std::bind(&levin_duplex_client::on_leave_invoke, this));
 
 			loop_call_guard();
-			
-			if(!check_connection())				
+
+			if(!check_connection())
 				return LEVIN_ERROR_CONNECTION_DESTROYED;
 
 
@@ -279,19 +278,19 @@ namespace levin
 			size_t timeout_count = 0;
 			boost::unique_lock<boost::mutex> lock(m_invoke_event);
 
-			while(!boost::interprocess::ipcdetail::atomic_read32(&m_invoke_data_ready))    
+			while(!boost::interprocess::ipcdetail::atomic_read32(&m_invoke_data_ready))
 			{
 				if(!m_invoke_cond.timed_wait(lock, timeout))
 				{
 					if(timeout_count < 10)
 					{
-						//workaround to avoid freezing at timed_wait called after notify_all. 
+						//workaround to avoid freezing at timed_wait called after notify_all.
 						timeout = boost::get_system_time()+ boost::posix_time::milliseconds(100);
 						++timeout_count;
 						continue;
 					}else if(timeout_count == 10)
 					{
-						//workaround to avoid freezing at timed_wait called after notify_all. 
+						//workaround to avoid freezing at timed_wait called after notify_all.
 						timeout = boost::get_system_time()+ boost::posix_time::minutes(10);
 						++timeout_count;
 						continue;
@@ -299,18 +298,18 @@ namespace levin
 					{
 						LOG_PRINT("[" << m_socket <<"] Timeout on waiting invoke result. ", LOG_LEVEL_0);
 						//disconnect();
-						return LEVIN_ERROR_CONNECTION_TIMEDOUT;	
+						return LEVIN_ERROR_CONNECTION_TIMEDOUT;
 					}
 				}
 			}
-			
-			
+
+
 			CRITICAL_REGION_BEGIN(m_local_invoke_buff_lock);
 			buff_out.swap(m_local_invoke_buff);
 			m_local_invoke_buff.clear();
 			CRITICAL_REGION_END();
 			return m_invoke_res;
-		}	
+		}
 
 		int notify(const GUID& target, int command, const std::string& in_buff)
 		{
@@ -353,7 +352,7 @@ namespace levin
 			return 1;
 		}
 
-		
+
 	private:
 		bool have_some_data(SOCKET sock, int interval = 1)
 		{
@@ -412,15 +411,15 @@ namespace levin
 
 			conn_index = boost::interprocess::ipcdetail::atomic_read32(&m_current_connection_index);
 
-			if(head.m_signature!=LEVIN_SIGNATURE) 
+			if(head.m_signature!=LEVIN_SIGNATURE)
 			{
 				LOG_ERROR("Signature mismatch in response");
 				return false;
 			}
-			
+
 			is_request = (head.m_protocol_version == LEVIN_PROTOCOL_VER_1 && head.m_flags&LEVIN_PACKET_REQUEST);
-			
-			
+
+
 			local_buff.resize((size_t)head.m_cb);
 			if(!recv_n(m_socket, local_buff))
 			{
@@ -446,14 +445,14 @@ namespace levin
 				*/
 			}else
 			{//this is some response
-				
+
 				CRITICAL_REGION_BEGIN(m_local_invoke_buff_lock);
 				m_local_invoke_buff.swap(local_buff);
 				m_invoke_res = head.m_return_code;
 				CRITICAL_REGION_END();
 				boost::interprocess::ipcdetail::atomic_write32(&m_invoke_data_ready, 1); //m_invoke_data_ready = true;
 				m_invoke_cond.notify_all();
-				
+
 			}
 			return true;
 		}
@@ -488,7 +487,7 @@ namespace levin
 					}
 				}
 			}
-			
+
 			boost::interprocess::ipcdetail::atomic_dec32(&m_threads_count);
 			LOG_PRINT_L3("[" << m_socket <<"] Socket reciever thread stopped.[m_threads_count=" << m_threads_count << "]");
 			return true;
@@ -504,7 +503,7 @@ namespace levin
 				std::string return_buff;
 				if(m_pcommands_handler)
 					head.m_return_code = m_pcommands_handler->invoke(head.m_id, head.m_command, local_buff, return_buff, conn_context);
-				else 
+				else
 					head.m_return_code = LEVIN_ERROR_CONNECTION_HANDLER_NOT_DEFINED;
 
 
@@ -568,7 +567,7 @@ namespace levin
 				if(have_some_work)
 				{
 					process_recieved_packet(bh, local_buff, conn_index);
-				}else 
+				}else
 				{
 					//Idle when no work
 					Sleep(30);

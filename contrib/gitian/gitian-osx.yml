@@ -1,5 +1,5 @@
 ---
-name: "sumokoin-osx-0.6"
+name: "sumokoin-osx-0.7"
 enable_cache: true
 suites:
 - "bionic"
@@ -27,10 +27,10 @@ remotes:
 - "url": "https://github.com/sumoprojects/sumokoin.git"
   "dir": "sumokoin"
 files:
-- "MacOSX10.11.sdk.tar.gz"
+- "Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz"
 script: |
   WRAP_DIR=$HOME/wrapped
-  HOSTS="x86_64-apple-darwin11"
+  HOSTS="x86_64-apple-darwin14"
   FAKETIME_HOST_PROGS=""
   FAKETIME_PROGS="ar ranlib date dmg genisoimage python"
 
@@ -88,7 +88,7 @@ script: |
   BASEPREFIX=`pwd`/contrib/depends
 
   mkdir -p ${BASEPREFIX}/SDKs
-  tar -C ${BASEPREFIX}/SDKs -xf ${BUILD_DIR}/MacOSX10.11.sdk.tar.gz
+  tar -C ${BASEPREFIX}/SDKs -xf ${BUILD_DIR}/Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz
 
   # Build dependencies for each host
   export TAR_OPTIONS=--mtime=2000-01-01T12:00:00
@@ -119,4 +119,3 @@ script: |
     cd ..
     rm -rf build
   done
-

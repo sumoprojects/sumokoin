@@ -5,9 +5,8 @@ Public domain.
 */
 
 #include <memory.h>
-#include <stdio.h>
+
 #ifndef _MSC_VER
-#include <sys/param.h>
 #endif
 
 #include "chacha.h"

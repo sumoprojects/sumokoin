@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
+# Copyright (c) 2014-2020, The Monero Project
 #
 # All rights reserved.
 #
@@ -83,6 +83,7 @@ set(unit_tests_sources
   test_peerlist.cpp
   test_protocol_pack.cpp
   threadpool.cpp
+  tx_proof.cpp  
   hardfork.cpp
   unbound.cpp
 #  uri.cpp (unimportant test no need fixing it, it ll never change and it works for sumo anyhow)
@@ -109,6 +110,10 @@ target_link_libraries(unit_tests
     cryptonote_protocol
     cryptonote_core
     daemon_messages
+<<<<<<< HEAD
+    daemon_rpc_server    
+=======
+>>>>>>> origin/android-wallet
     blockchain_db
     lmdb_lib
     rpc

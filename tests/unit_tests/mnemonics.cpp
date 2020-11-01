@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -49,9 +49,7 @@
 #include "mnemonics/esperanto.h"
 #include "mnemonics/lojban.h"
 #include "mnemonics/english_old.h"
-#include "mnemonics/language_base.h"
 #include "mnemonics/singleton.h"
-#include <boost/algorithm/string.hpp>
 
 namespace
 {

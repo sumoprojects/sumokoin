@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -25,21 +25,24 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifndef _WIN32
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+#endif
+
 #include "db_lmdb.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/circular_buffer.hpp>
-#include <boost/optional.hpp>
-#include <memory>  // std::unique_ptr
-#include <cstring>  // memcpy
 
 #include "string_tools.h"
 #include "file_io_utils.h"
 #include "common/util.h"
 #include "common/pruning.h"
 #include "cryptonote_basic/cryptonote_format_utils.h"
-#include "crypto/crypto.h"
 #include "profile_tools.h"
 #include "ringct/rctOps.h"
 
@@ -574,11 +577,11 @@ void BlockchainLMDB::do_resize(uint64_t increase_size)
   int result = mdb_env_set_mapsize(m_env, new_mapsize);
   if (result)
     throw0(DB_ERROR(lmdb_error("Failed to set new mapsize: ", result).c_str()));
-	
+
   boost::filesystem::path path(m_folder);
   boost::filesystem::space_info si = boost::filesystem::space(path);
   boost::optional<uint64_t> space_available = si.available;
-	
+
   if (space_available)
   {
    if ((*space_available / (1024 * 1024)) < 4294)
@@ -586,7 +589,7 @@ void BlockchainLMDB::do_resize(uint64_t increase_size)
    else if ((*space_available / (1024 * 1024)) >= 4294)
      MGINFO("LMDB Mapsize increased." << "  Old: " << mei.me_mapsize / (1024 * 1024) << "MiB" << ", New: " << new_mapsize / (1024 * 1024) << "MiB" << ", Available disk remaining: " << *space_available / (1024 * 1024) << "MiB" );
   }
-  else 
+  else
   {
     MGINFO("LMDB Mapsize increased." << "  Old: " << mei.me_mapsize / (1024 * 1024) << "MiB" << ", New: " << new_mapsize / (1024 * 1024) << "MiB");
   }
@@ -669,7 +672,7 @@ void BlockchainLMDB::check_and_resize_for_batch(uint64_t batch_num_blocks, uint6
   // size-based check
   if (need_resize(threshold_size))
   {
-    MGINFO("\033[K[batch] DB resize needed\033[0m");
+    MGINFO("[batch] DB resize needed");
     do_resize(increase_size);
   }
 }
@@ -864,7 +867,7 @@ void BlockchainLMDB::remove_block()
       throw1(DB_ERROR(lmdb_error("Failed to add removal of block info to db transaction: ", result).c_str()));
 }
 
-uint64_t BlockchainLMDB::add_transaction_data(const crypto::hash& blk_hash, const std::pair<transaction, blobdata>& txp, const crypto::hash& tx_hash, const crypto::hash& tx_prunable_hash)
+uint64_t BlockchainLMDB::add_transaction_data(const crypto::hash& blk_hash, const std::pair<transaction, blobdata_ref>& txp, const crypto::hash& tx_hash, const crypto::hash& tx_prunable_hash)
 {
   LOG_PRINT_L3("BlockchainLMDB::" << __func__);
   check_open();
@@ -904,7 +907,7 @@ uint64_t BlockchainLMDB::add_transaction_data(const crypto::hash& blk_hash, cons
   if (result)
     throw0(DB_ERROR(lmdb_error("Failed to add tx data to db transaction: ", result).c_str()));
 
-  const cryptonote::blobdata &blob = txp.second;
+  const cryptonote::blobdata_ref &blob = txp.second;
   MDB_val_sized(blobval, blob);
 
   unsigned int unprunable_size = tx.unprunable_size;
@@ -1302,6 +1305,26 @@ BlockchainLMDB::BlockchainLMDB(bool batch_transactions): BlockchainDB()
   m_hardfork = nullptr;
 }
 
+void BlockchainLMDB::check_mmap_support()
+{
+#ifndef _WIN32
+  const boost::filesystem::path mmap_test_file = m_folder / boost::filesystem::unique_path();
+  int mmap_test_fd = ::open(mmap_test_file.string().c_str(), O_RDWR | O_CREAT, 0600);
+  if (mmap_test_fd < 0)
+    throw0(DB_ERROR((std::string("Failed to check for mmap support: open failed: ") + strerror(errno)).c_str()));
+  epee::misc_utils::auto_scope_leave_caller scope_exit_handler = epee::misc_utils::create_scope_leave_handler([mmap_test_fd, &mmap_test_file]() {
+    ::close(mmap_test_fd);
+    boost::filesystem::remove(mmap_test_file.string());
+  });
+  if (write(mmap_test_fd, "mmaptest", 8) != 8)
+    throw0(DB_ERROR((std::string("Failed to check for mmap support: write failed: ") + strerror(errno)).c_str()));
+  void *mmap_res = mmap(NULL, 8, PROT_READ, MAP_SHARED, mmap_test_fd, 0);
+  if (mmap_res == MAP_FAILED)
+    throw0(DB_ERROR("This filesystem does not support mmap: use --data-dir to place the blockchain on a filesystem which does"));
+  munmap(mmap_res, 8);
+#endif
+}
+
 void BlockchainLMDB::open(const std::string& filename, const int db_flags)
 {
   int result;
@@ -1342,6 +1365,8 @@ void BlockchainLMDB::open(const std::string& filename, const int db_flags)
   }
 
   m_folder = filename;
+
+ check_mmap_support();
 
 #ifdef __OpenBSD__
   if ((mdb_flags & MDB_WRITEMAP) == 0) {
@@ -1742,7 +1767,7 @@ void BlockchainLMDB::unlock()
       auto_txn.commit(); \
   } while(0)
 
-void BlockchainLMDB::add_txpool_tx(const crypto::hash &txid, const cryptonote::blobdata &blob, const txpool_tx_meta_t &meta)
+void BlockchainLMDB::add_txpool_tx(const crypto::hash &txid, const cryptonote::blobdata_ref &blob, const txpool_tx_meta_t &meta)
 {
   LOG_PRINT_L3("BlockchainLMDB::" << __func__);
   check_open();
@@ -1930,7 +1955,7 @@ bool BlockchainLMDB::get_txpool_tx_blob(const crypto::hash& txid, cryptonote::bl
   // if filtering, make sure those requirements are met before copying blob
   if (tx_category != relay_category::all)
   {
-    RCURSOR(txpool_meta)	  
+    RCURSOR(txpool_meta)
     auto result = mdb_cursor_get(m_cur_txpool_meta, &k, &v, MDB_SET);
     if (result == MDB_NOTFOUND)
       return false;
@@ -2294,7 +2319,7 @@ bool BlockchainLMDB::check_pruning()
   return prune_worker(prune_mode_check, 0);
 }
 
-bool BlockchainLMDB::for_all_txpool_txes(std::function<bool(const crypto::hash&, const txpool_tx_meta_t&, const cryptonote::blobdata*)> f, bool include_blob, relay_category category) const
+bool BlockchainLMDB::for_all_txpool_txes(std::function<bool(const crypto::hash&, const txpool_tx_meta_t&, const cryptonote::blobdata_ref*)> f, bool include_blob, relay_category category) const
 {
   LOG_PRINT_L3("BlockchainLMDB::" << __func__);
   check_open();
@@ -2320,8 +2345,7 @@ bool BlockchainLMDB::for_all_txpool_txes(std::function<bool(const crypto::hash&,
     const txpool_tx_meta_t &meta = *(const txpool_tx_meta_t*)v.mv_data;
     if (!meta.matches(category))
       continue;
-    const cryptonote::blobdata *passed_bd = NULL;
-    cryptonote::blobdata bd;
+    cryptonote::blobdata_ref bd;
     if (include_blob)
     {
       MDB_val b;
@@ -2330,11 +2354,10 @@ bool BlockchainLMDB::for_all_txpool_txes(std::function<bool(const crypto::hash&,
         throw0(DB_ERROR("Failed to find txpool tx blob to match metadata"));
       if (result)
         throw0(DB_ERROR(lmdb_error("Failed to enumerate txpool tx blob: ", result).c_str()));
-      bd.assign(reinterpret_cast<const char*>(b.mv_data), b.mv_size);
-      passed_bd = &bd;
+      bd = {reinterpret_cast<const char*>(b.mv_data), b.mv_size};
     }
 
-    if (!f(txid, meta, passed_bd)) {
+    if (!f(txid, meta, &bd)) {
       ret = false;
       break;
     }
@@ -2345,7 +2368,7 @@ bool BlockchainLMDB::for_all_txpool_txes(std::function<bool(const crypto::hash&,
   return ret;
 }
 
-bool BlockchainLMDB::for_all_alt_blocks(std::function<bool(const crypto::hash&, const alt_block_data_t&, const cryptonote::blobdata*)> f, bool include_blob) const
+bool BlockchainLMDB::for_all_alt_blocks(std::function<bool(const crypto::hash&, const alt_block_data_t&, const cryptonote::blobdata_ref*)> f, bool include_blob) const
 {
   LOG_PRINT_L3("BlockchainLMDB::" << __func__);
   check_open();
@@ -2370,15 +2393,13 @@ bool BlockchainLMDB::for_all_alt_blocks(std::function<bool(const crypto::hash&, 
     if (v.mv_size < sizeof(alt_block_data_t))
       throw0(DB_ERROR("alt_blocks record is too small"));
     const alt_block_data_t *data = (const alt_block_data_t*)v.mv_data;
-    const cryptonote::blobdata *passed_bd = NULL;
-    cryptonote::blobdata bd;
+    cryptonote::blobdata_ref bd;
     if (include_blob)
     {
-      bd.assign(reinterpret_cast<const char*>(v.mv_data) + sizeof(alt_block_data_t), v.mv_size - sizeof(alt_block_data_t));
-      passed_bd = &bd;
+      bd = {reinterpret_cast<const char*>(v.mv_data) + sizeof(alt_block_data_t), v.mv_size - sizeof(alt_block_data_t)};
     }
 
-    if (!f(blkid, *data, passed_bd)) {
+    if (!f(blkid, *data, &bd)) {
       ret = false;
       break;
     }
@@ -3220,7 +3241,7 @@ bool BlockchainLMDB::get_blocks_from(uint64_t start_height, size_t min_count, si
 
   return true;
 }
-    
+
 bool BlockchainLMDB::get_prunable_tx_blob(const crypto::hash& h, cryptonote::blobdata &bd) const
 {
   LOG_PRINT_L3("BlockchainLMDB::" << __func__);
@@ -3552,8 +3573,7 @@ bool BlockchainLMDB::for_blocks_range(const uint64_t& h1, const uint64_t& h2, st
     if (ret)
       throw0(DB_ERROR("Failed to enumerate blocks"));
     uint64_t height = *(const uint64_t*)k.mv_data;
-    blobdata bd;
-    bd.assign(reinterpret_cast<char*>(v.mv_data), v.mv_size);
+    blobdata_ref bd{reinterpret_cast<char*>(v.mv_data), v.mv_size};
     block b;
     if (!parse_and_validate_block_from_blob(bd, b))
       throw0(DB_ERROR("Failed to parse block from blob retrieved from the db"));
@@ -3608,15 +3628,16 @@ bool BlockchainLMDB::for_all_transactions(std::function<bool(const crypto::hash&
     if (ret)
       throw0(DB_ERROR(lmdb_error("Failed to enumerate transactions: ", ret).c_str()));
     transaction tx;
-    blobdata bd;
-    bd.assign(reinterpret_cast<char*>(v.mv_data), v.mv_size);
     if (pruned)
     {
+      blobdata_ref bd{reinterpret_cast<char*>(v.mv_data), v.mv_size};
       if (!parse_and_validate_tx_base_from_blob(bd, tx))
         throw0(DB_ERROR("Failed to parse tx from blob retrieved from the db"));
     }
     else
     {
+      blobdata bd;
+      bd.assign(reinterpret_cast<char*>(v.mv_data), v.mv_size);
       ret = mdb_cursor_get(m_cur_txs_prunable, &k, &v, MDB_SET);
       if (ret)
         throw0(DB_ERROR(lmdb_error("Failed to get prunable tx data the db: ", ret).c_str()));
@@ -4350,7 +4371,7 @@ uint8_t BlockchainLMDB::get_hard_fork_version(uint64_t height) const
   return ret;
 }
 
-void BlockchainLMDB::add_alt_block(const crypto::hash &blkid, const cryptonote::alt_block_data_t &data, const cryptonote::blobdata &blob)
+void BlockchainLMDB::add_alt_block(const crypto::hash &blkid, const cryptonote::alt_block_data_t &data, const cryptonote::blobdata_ref &blob)
 {
   LOG_PRINT_L3("BlockchainLMDB::" << __func__);
   check_open();
@@ -4917,7 +4938,7 @@ void BlockchainLMDB::migrate_0_1()
     }
 
     MDB_dbi o_txs;
-    blobdata bd;
+    blobdata_ref bd;
     block b;
     MDB_val hk;
 
@@ -4999,7 +5020,7 @@ void BlockchainLMDB::migrate_0_1()
       } else if (result)
         throw0(DB_ERROR(lmdb_error("Failed to get a record from blocks: ", result).c_str()));
 
-      bd.assign(reinterpret_cast<char*>(v.mv_data), v.mv_size);
+      bd = {reinterpret_cast<char*>(v.mv_data), v.mv_size};
       if (!parse_and_validate_block_from_blob(bd, b))
         throw0(DB_ERROR("Failed to parse block from blob retrieved from the db"));
 
@@ -5010,7 +5031,7 @@ void BlockchainLMDB::migrate_0_1()
         result = mdb_cursor_get(c_txs, &hk, &v, MDB_SET);
         if (result)
           throw0(DB_ERROR(lmdb_error("Failed to get record from txs: ", result).c_str()));
-        bd.assign(reinterpret_cast<char*>(v.mv_data), v.mv_size);
+        bd = {reinterpret_cast<char*>(v.mv_data), v.mv_size};
         if (!parse_and_validate_tx_from_blob(bd, tx))
           throw0(DB_ERROR("Failed to parse tx from blob retrieved from the db"));
         add_transaction(null_hash, std::make_pair(std::move(tx), bd), &b.tx_hashes[j]);
@@ -5132,8 +5153,7 @@ void BlockchainLMDB::migrate_1_2()
       else if (result)
         throw0(DB_ERROR(lmdb_error("Failed to get a record from txs: ", result).c_str()));
 
-      cryptonote::blobdata bd;
-      bd.assign(reinterpret_cast<char*>(v.mv_data), v.mv_size);
+      cryptonote::blobdata bd{reinterpret_cast<char*>(v.mv_data), v.mv_size};
       transaction tx;
       if (!parse_and_validate_tx_from_blob(bd, tx))
         throw0(DB_ERROR("Failed to parse tx from blob retrieved from the db"));

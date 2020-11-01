@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
+# Copyright (c) 2014-2020, The Monero Project
 #
 # All rights reserved.
 #
@@ -47,7 +47,6 @@ set(daemon_rpc_server_sources
   daemon_handler.cpp
   zmq_server.cpp)
 
-
 set(rpc_base_headers
   rpc_args.h
   rpc_payment_signature.h
@@ -57,8 +56,8 @@ set(rpc_headers
   rpc_version_str.h
   rpc_handler.h)
 
-set(daemon_rpc_server_headers)
 
+set(daemon_rpc_server_headers)
 
 set(rpc_daemon_private_headers
   bootstrap_daemon.h
@@ -146,10 +145,7 @@ target_link_libraries(daemon_rpc_server
     daemon_messages
     serialization
     ${Boost_CHRONO_LIBRARY}
-    ${Boost_REGEX_LIBRARY}
+    ${Boost_REGEX_LIBRARY} 
     ${Boost_SYSTEM_LIBRARY}
     ${Boost_THREAD_LIBRARY}
-    ${ZMQ_LIB}
     ${EXTRA_LIBRARIES})
-target_include_directories(daemon_rpc_server PUBLIC ${ZMQ_INCLUDE_PATH})
-target_include_directories(obj_daemon_rpc_server PUBLIC ${ZMQ_INCLUDE_PATH})

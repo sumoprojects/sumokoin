@@ -1,21 +1,21 @@
-// Copyright (c) 2014-2019, The Monero Project
-// 
+// Copyright (c) 2014-2020, The Monero Project
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
@@ -47,7 +47,11 @@
 // advance which version they will stop working with
 // Don't go over 32767 for any of these
 #define WALLET_RPC_VERSION_MAJOR 1
+<<<<<<< HEAD
+#define WALLET_RPC_VERSION_MINOR 21
+=======
 #define WALLET_RPC_VERSION_MINOR 18
+>>>>>>> origin/android-wallet
 #define MAKE_WALLET_RPC_VERSION(major,minor) (((major)<<16)|(minor))
 #define WALLET_RPC_VERSION MAKE_WALLET_RPC_VERSION(WALLET_RPC_VERSION_MAJOR, WALLET_RPC_VERSION_MINOR)
 namespace tools
@@ -84,6 +88,7 @@ namespace wallet_rpc
       std::string label;
       uint64_t num_unspent_outputs;
       uint64_t blocks_to_unlock;
+      uint64_t time_to_unlock;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(account_index)
@@ -94,6 +99,7 @@ namespace wallet_rpc
         KV_SERIALIZE(label)
         KV_SERIALIZE(num_unspent_outputs)
         KV_SERIALIZE(blocks_to_unlock)
+        KV_SERIALIZE(time_to_unlock)
       END_KV_SERIALIZE_MAP()
     };
 
@@ -104,6 +110,7 @@ namespace wallet_rpc
       bool       multisig_import_needed;
       std::vector<per_subaddress_info> per_subaddress;
       uint64_t   blocks_to_unlock;
+      uint64_t   time_to_unlock;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(balance)
@@ -111,6 +118,7 @@ namespace wallet_rpc
         KV_SERIALIZE(multisig_import_needed)
         KV_SERIALIZE(per_subaddress)
         KV_SERIALIZE(blocks_to_unlock)
+        KV_SERIALIZE(time_to_unlock)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;
@@ -997,7 +1005,7 @@ namespace wallet_rpc
     };
     typedef epee::misc_utils::struct_init<response_t> response;
   };
-  
+
   struct transfer_details
   {
     uint64_t amount;
@@ -1616,11 +1624,19 @@ namespace wallet_rpc
       std::string data;
       uint32_t account_index;
       uint32_t address_index;
+<<<<<<< HEAD
+      std::string signature_type;
+=======
+>>>>>>> origin/android-wallet
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(data)
         KV_SERIALIZE_OPT(account_index, 0u)
         KV_SERIALIZE_OPT(address_index, 0u)
+<<<<<<< HEAD
+        KV_SERIALIZE(signature_type)
+=======
+>>>>>>> origin/android-wallet
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<request_t> request;
@@ -1655,9 +1671,15 @@ namespace wallet_rpc
     struct response_t
     {
       bool good;
+      unsigned version;
+      bool old;
+      std::string signature_type;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(good);
+        KV_SERIALIZE(version);
+        KV_SERIALIZE(old);
+        KV_SERIALIZE(signature_type);
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;
@@ -2023,13 +2045,9 @@ namespace wallet_rpc
     struct request_t
     {
       uint64_t    threads_count;
-      bool        do_background_mining;
-      bool        ignore_battery;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(threads_count)
-        KV_SERIALIZE(do_background_mining)        
-        KV_SERIALIZE(ignore_battery)        
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<request_t> request;
@@ -2266,7 +2284,7 @@ namespace wallet_rpc
     };
     typedef epee::misc_utils::struct_init<response_t> response;
   };
-  
+
   struct COMMAND_RPC_IS_MULTISIG
   {
     struct request_t

@@ -44,6 +44,12 @@
 #include "common/command_line.h"
 #include "wipeable_string.h"
 #include "net/abstract_http_client.h"
+<<<<<<< HEAD
+#include "serialization/crypto.h"
+#include "serialization/string.h"
+#include "serialization/containers.h"
+=======
+>>>>>>> origin/android-wallet
 #include "message_transporter.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
@@ -112,6 +118,24 @@ namespace mms
     uint32_t round;
     uint32_t signature_count;
     std::string transport_id;
+
+    BEGIN_SERIALIZE_OBJECT()
+      VERSION_FIELD(0)
+      VARINT_FIELD(id)
+      VARINT_FIELD(type)
+      VARINT_FIELD(direction)
+      FIELD(content)
+      VARINT_FIELD(created)
+      VARINT_FIELD(modified)
+      VARINT_FIELD(sent)
+      VARINT_FIELD(signer_index)
+      FIELD(hash)
+      VARINT_FIELD(state)
+      VARINT_FIELD(wallet_height)
+      VARINT_FIELD(round)
+      VARINT_FIELD(signature_count)
+      FIELD(transport_id)
+    END_SERIALIZE()
   };
   // "wallet_height" (for lack of a short name that would describe what it is about)
   // is the number of transfers present in the wallet at the time of message
@@ -131,6 +155,21 @@ namespace mms
     crypto::secret_key auto_config_secret_key;
     std::string auto_config_transport_address;
     bool auto_config_running;
+
+    BEGIN_SERIALIZE_OBJECT()
+      VERSION_FIELD(0)
+      FIELD(label)
+      FIELD(transport_address)
+      FIELD(monero_address_known)
+      FIELD(monero_address)
+      FIELD(me)
+      VARINT_FIELD(index)
+      FIELD(auto_config_token)
+      FIELD(auto_config_public_key)
+      FIELD(auto_config_secret_key)
+      FIELD(auto_config_transport_address)
+      FIELD(auto_config_running)
+    END_SERIALIZE()
 
     authorized_signer()
     {
@@ -158,12 +197,19 @@ namespace mms
     crypto::public_key encryption_public_key;
     message internal_message;
   };
-  
+
   struct auto_config_data
   {
     std::string label;
     std::string transport_address;
     cryptonote::account_public_address monero_address;
+
+    BEGIN_SERIALIZE_OBJECT()
+      VERSION_FIELD(0)
+      FIELD(label)
+      FIELD(transport_address)
+      FIELD(monero_address)
+    END_SERIALIZE()
   };
 
   // Overal .mms file structure, with the "message_store" object serialized to and
@@ -174,6 +220,13 @@ namespace mms
     uint32_t file_version;
     crypto::chacha_iv iv;
     std::string encrypted_data;
+
+    BEGIN_SERIALIZE_OBJECT()
+      FIELD(magic_string)
+      FIELD(file_version)
+      FIELD(iv)
+      FIELD(encrypted_data)
+    END_SERIALIZE()
   };
 
     // The following struct provides info about the current state of a "wallet2" object
@@ -198,6 +251,19 @@ namespace mms
     uint32_t multisig_rounds_passed;
     size_t num_transfer_details;
     std::string mms_file;
+
+    BEGIN_SERIALIZE_OBJECT()
+      VERSION_FIELD(0)
+      FIELD(address)
+      VARINT_FIELD(nettype)
+      FIELD(view_secret_key)
+      FIELD(multisig)
+      FIELD(multisig_is_ready)
+      FIELD(has_multisig_partial_key_images)
+      VARINT_FIELD(multisig_rounds_passed)
+      VARINT_FIELD(num_transfer_details)
+      FIELD(mms_file)
+    END_SERIALIZE()
   };
 
   class message_store
@@ -242,6 +308,7 @@ namespace mms
     size_t add_auto_config_data_message(const multisig_wallet_state &state,
                                         const std::string &auto_config_token);
     void process_auto_config_data_message(uint32_t id);
+    std::string get_config_checksum() const;
     void stop_auto_config();
 
     // Process data just created by "me" i.e. the own local wallet, e.g. as the result of a "prepare_multisig" command
@@ -275,14 +342,14 @@ namespace mms
     void set_message_processed_or_sent(uint32_t id);
     void delete_message(uint32_t id);
     void delete_all_messages();
-    void get_sanitized_message_text(const message &m, std::string &sanitized_text) const;
+    void get_sanitized_text(const std::string &text, size_t max_length, std::string &sanitized_text) const;
 
     void send_message(const multisig_wallet_state &state, uint32_t id);
     bool check_for_messages(const multisig_wallet_state &state, std::vector<message> &messages);
     void stop() { m_run.store(false, std::memory_order_relaxed); m_transporter.stop(); }
 
     void write_to_file(const multisig_wallet_state &state, const std::string &filename);
-    void read_from_file(const multisig_wallet_state &state, const std::string &filename);
+    void read_from_file(const multisig_wallet_state &state, const std::string &filename, bool load_deprecated_formats = false);
 
     template <class t_archive>
     inline void serialize(t_archive &a, const unsigned int ver)
@@ -297,11 +364,23 @@ namespace mms
       a & m_auto_send;
     }
 
+    BEGIN_SERIALIZE_OBJECT()
+      VERSION_FIELD(0)
+      FIELD(m_active)
+      VARINT_FIELD(m_num_authorized_signers)
+      VARINT_FIELD(m_nettype)
+      VARINT_FIELD(m_num_required_signers)
+      FIELD(m_signers)
+      FIELD(m_messages)
+      VARINT_FIELD(m_next_message_id)
+      FIELD(m_auto_send)
+    END_SERIALIZE()
+
     static const char* message_type_to_string(message_type type);
     static const char* message_direction_to_string(message_direction direction);
     static const char* message_state_to_string(message_state state);
     std::string signer_to_string(const authorized_signer &signer, uint32_t max_width);
-    
+
     static const char *tr(const char *str) { return i18n_translate(str, "tools::mms"); }
     static void init_options(boost::program_options::options_description& desc_params);
 
@@ -393,7 +472,7 @@ namespace boost
       a & x.auto_config_public_key;
       a & x.auto_config_secret_key;
       a & x.auto_config_transport_address;
-      a & x.auto_config_running;  
+      a & x.auto_config_running;
     }
 
     template <class Archive>

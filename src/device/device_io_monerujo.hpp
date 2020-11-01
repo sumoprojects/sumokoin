@@ -85,4 +85,8 @@ namespace hw {
   };
 };
 
+<<<<<<< HEAD
 #endif //#if defined(HAVE_MONERUJO)
+=======
+#endif //#if defined(HAVE_MONERUJO)
+>>>>>>> origin/android-wallet

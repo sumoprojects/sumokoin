@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -58,7 +58,7 @@ namespace Language
   public:
     Lojban(): Base("Lojban", "Lojban", {}, 4)
     {
-      static constexpr const char * const words[NWORDS] =
+      static constexpr std::string_view const words[NWORDS] =
       {
       "backi",
       "bacru",

@@ -6,7 +6,7 @@
 
 */
 
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -78,6 +78,10 @@ public:
   bool show_status(const std::vector<std::string>& args);
 
   bool print_connections(const std::vector<std::string>& args);
+
+  bool print_open_rpc(const std::vector<std::string>& args);
+
+  bool print_checkpoints(const std::vector<std::string>& args);
 
   bool print_blockchain_info(const std::vector<std::string>& args);
 

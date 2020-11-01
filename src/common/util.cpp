@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -58,24 +58,20 @@
 
 #include "include_base_utils.h"
 #include "file_io_utils.h"
-#include "wipeable_string.h"
 #include "misc_os_dependent.h"
 using namespace epee;
 
 #include "crypto/crypto.h"
 #include "util.h"
-#include "stack_trace.h"
-#include "memwipe.h"
 #include "cryptonote_config.h"
 #include "net/http_client.h"                        // epee::net_utils::...
-#include "readline_buffer.h"
 
 #ifdef WIN32
 #ifndef STRSAFE_NO_DEPRECATE
 #define STRSAFE_NO_DEPRECATE
 #endif
-  #include <windows.h>
-  #include <shlobj.h>
+
+#include <shlobj.h>
   #include <strsafe.h>
 #else 
   #include <sys/file.h>
@@ -86,7 +82,6 @@ using namespace epee;
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/format.hpp>
-#include <openssl/sha.h>
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "util"
@@ -1114,7 +1109,7 @@ std::string get_nix_version_display_string()
     static constexpr const byte_map sizes[] =
     {
         {"%.0f B", 1024},
-        {"%.2f KB", 1024 * 1024},
+        {"%.2f kB", 1024 * 1024},
         {"%.2f MB", std::uint64_t(1024) * 1024 * 1024},
         {"%.2f GB", std::uint64_t(1024) * 1024 * 1024 * 1024},
         {"%.2f TB", std::uint64_t(1024) * 1024 * 1024 * 1024 * 1024}

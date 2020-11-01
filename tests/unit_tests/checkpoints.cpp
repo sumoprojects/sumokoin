@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -30,7 +30,7 @@
 
 #include "gtest/gtest.h"
 
-#include "checkpoints/checkpoints.cpp"
+#include "cryptonote_core/blockchain.cpp"
 
 using namespace cryptonote;
 

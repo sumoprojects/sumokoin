@@ -140,4 +140,4 @@ void ZmqServer::stop()
 
 }  // namespace cryptonote
 
-}  // namespace rpc
+}  // namespace rpc 

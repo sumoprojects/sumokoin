@@ -21,7 +21,7 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
-// Code surrounding the word list is Copyright (c) 2014-2019, The Monero Project
+// Code surrounding the word list is Copyright (c) 2014-2020, The Monero Project
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -73,7 +73,7 @@ namespace Language
   public:
     Japanese(): Base("日本語", "Japanese", {}, 3)
     {
-      static constexpr const char * const words[NWORDS] =
+      static constexpr std::string_view const words[NWORDS] =
       {
         "あいこくしん",
         "あいさつ",

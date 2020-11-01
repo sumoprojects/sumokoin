@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+// Copyright (c) 2014-2020, The Monero Project
+=======
 // Copyright (c) 2014-2019, The Monero Project
+>>>>>>> origin/android-wallet
 //
 // All rights reserved.
 //
@@ -88,7 +92,11 @@ namespace cryptonote
 // advance which version they will stop working with
 // Don't go over 32767 for any of these
 #define CORE_RPC_VERSION_MAJOR 3
+<<<<<<< HEAD
+#define CORE_RPC_VERSION_MINOR 3
+=======
 #define CORE_RPC_VERSION_MINOR 2
+>>>>>>> origin/android-wallet
 #define MAKE_CORE_RPC_VERSION(major,minor) (((major)<<16)|(minor))
 #define CORE_RPC_VERSION MAKE_CORE_RPC_VERSION(CORE_RPC_VERSION_MAJOR, CORE_RPC_VERSION_MINOR)
 
@@ -680,15 +688,16 @@ namespace cryptonote
     {
       std::string miner_address;
       uint64_t    threads_count;
-      bool        do_background_mining;
-      bool        ignore_battery;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE_PARENT(rpc_request_base)
         KV_SERIALIZE(miner_address)
         KV_SERIALIZE(threads_count)
+<<<<<<< HEAD
+=======
         KV_SERIALIZE(do_background_mining)
         KV_SERIALIZE(ignore_battery)
+>>>>>>> origin/android-wallet
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<request_t> request;
@@ -740,6 +749,7 @@ namespace cryptonote
       uint64_t block_weight_limit;
       uint64_t block_size_median;
       uint64_t block_weight_median;
+      uint64_t adjusted_time;
       uint64_t start_time;
       uint64_t free_space;
       bool offline;
@@ -778,6 +788,7 @@ namespace cryptonote
         KV_SERIALIZE_OPT(block_weight_limit, (uint64_t)0)
         KV_SERIALIZE(block_size_median)
         KV_SERIALIZE_OPT(block_weight_median, (uint64_t)0)
+        KV_SERIALIZE(adjusted_time)
         KV_SERIALIZE(start_time)
         KV_SERIALIZE(free_space)
         KV_SERIALIZE(offline)
@@ -865,10 +876,8 @@ namespace cryptonote
       uint32_t threads_count;
       std::string address;
       std::string pow_algorithm;
-      bool is_background_mining_enabled;
       uint8_t bg_idle_threshold;
       uint8_t bg_min_idle_seconds;
-      bool bg_ignore_battery;
       uint8_t bg_target;
       uint32_t block_target;
       uint64_t block_reward;
@@ -883,10 +892,8 @@ namespace cryptonote
         KV_SERIALIZE(threads_count)
         KV_SERIALIZE(address)
         KV_SERIALIZE(pow_algorithm)
-        KV_SERIALIZE(is_background_mining_enabled)
         KV_SERIALIZE(bg_idle_threshold)
         KV_SERIALIZE(bg_min_idle_seconds)
-        KV_SERIALIZE(bg_ignore_battery)
         KV_SERIALIZE(bg_target)
         KV_SERIALIZE(block_target)
         KV_SERIALIZE(block_reward)

@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -141,7 +141,7 @@ TEST(parse_and_validate_tx_extra, is_valid_tx_extra_parsed)
   cryptonote::account_base acc;
   acc.generate();
   cryptonote::blobdata b = "dsdsdfsdfsf";
-  ASSERT_TRUE(cryptonote::construct_miner_tx(0, 0, 10000000000000, 1000, TEST_FEE, acc.get_keys().m_account_address, tx, b, 1));
+  ASSERT_TRUE(cryptonote::construct_miner_tx(cryptonote::network_type::MAINNET, 0, 0, 10000000000000, 1000, TEST_FEE, acc.get_keys().m_account_address, tx, b, 1));
   crypto::public_key tx_pub_key = cryptonote::get_tx_pub_key_from_extra(tx);
   ASSERT_NE(tx_pub_key, crypto::null_pkey);
 }
@@ -151,7 +151,7 @@ TEST(parse_and_validate_tx_extra, fails_on_big_extra_nonce)
   cryptonote::account_base acc;
   acc.generate();
   cryptonote::blobdata b(TX_EXTRA_NONCE_MAX_COUNT + 1, 0);
-  ASSERT_FALSE(cryptonote::construct_miner_tx(0, 0, 10000000000000, 1000, TEST_FEE, acc.get_keys().m_account_address, tx, b, 1));
+  ASSERT_FALSE(cryptonote::construct_miner_tx(cryptonote::network_type::MAINNET, 0, 0, 10000000000000, 1000, TEST_FEE, acc.get_keys().m_account_address, tx, b, 1));
 }
 TEST(parse_and_validate_tx_extra, fails_on_wrong_size_in_extra_nonce)
 {
@@ -167,11 +167,11 @@ TEST(validate_parse_amount_case, validate_parse_amount)
   uint64_t res = 0;
   bool r = cryptonote::parse_amount(res, "0.0001");
   ASSERT_TRUE(r);
-  ASSERT_EQ(res, 100000000);
+  ASSERT_EQ(res, 100000);
 
   r = cryptonote::parse_amount(res, "100.0001");
   ASSERT_TRUE(r);
-  ASSERT_EQ(res, 100000100000000);
+  ASSERT_EQ(res, 100000100000);
 
   r = cryptonote::parse_amount(res, "000.0000");
   ASSERT_TRUE(r);
@@ -184,11 +184,11 @@ TEST(validate_parse_amount_case, validate_parse_amount)
 
   r = cryptonote::parse_amount(res, "   100.0001    ");
   ASSERT_TRUE(r);
-  ASSERT_EQ(res, 100000100000000);
+  ASSERT_EQ(res, 100000100000);
 
   r = cryptonote::parse_amount(res, "   100.0000    ");
   ASSERT_TRUE(r);
-  ASSERT_EQ(res, 100000000000000);
+  ASSERT_EQ(res, 100000000000);
 
   r = cryptonote::parse_amount(res, "   100. 0000    ");
   ASSERT_FALSE(r);

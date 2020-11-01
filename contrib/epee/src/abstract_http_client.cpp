@@ -1,5 +1,4 @@
 #include "net/abstract_http_client.h"
-#include "net/http_base.h"
 #include "net/net_parse_helpers.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
@@ -136,6 +135,11 @@ namespace http
     CHECK_AND_ASSERT_MES(r, false, "failed to parse url: " << address);
     set_server(std::move(parsed.host), std::to_string(parsed.port), std::move(user), std::move(ssl_options));
     return true;
+  }
+
+  bool epee::net_utils::http::abstract_http_client::set_proxy(const std::string& address)
+  {
+    return false;
   }
 }
 }

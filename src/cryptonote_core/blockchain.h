@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2019, Sumokoin Project
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2017-2020, Sumokoin Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -31,6 +31,10 @@
 
 #pragma once
 #include <boost/asio/io_service.hpp>
+#include <boost/function/function_fwd.hpp>
+#if BOOST_VERSION >= 107400
+#include <boost/serialization/library_version_type.hpp>
+#endif
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/list.hpp>
@@ -42,6 +46,7 @@
 #include <functional>
 #include <unordered_map>
 #include <unordered_set>
+#include <map>
 
 #include "span.h"
 #include "syncobj.h"
@@ -55,14 +60,170 @@
 #include "cryptonote_tx_utils.h"
 #include "cryptonote_basic/verification_context.h"
 #include "crypto/hash.h"
-#include "checkpoints/checkpoints.h"
 #include "cryptonote_basic/hardfork.h"
 #include "blockchain_db/blockchain_db.h"
+#include "misc_log_ex.h"
+#include "cryptonote_config.h"
+
+#define ADD_CHECKPOINT(h, hash)  CHECK_AND_ASSERT(add_checkpoint(h,  hash), false);
+#define JSON_HASH_FILE_NAME "checkpoints.json"
 
 namespace tools { class Notify; }
 
 namespace cryptonote
 {
+
+// checkpoints
+  /**
+   * @brief A container for blockchain checkpoints
+   *
+   * A checkpoint is a pre-defined hash for the block at a given height.
+   * Some of these are compiled-in, while others can be loaded at runtime
+   * either from a json file or via DNS from a checkpoint-hosting server.
+   */
+  class checkpoints
+  {
+  public:
+
+    /**
+     * @brief default constructor
+     */
+    checkpoints();
+
+    /**
+     * @brief adds a checkpoint to the container
+     *
+     * @param height the height of the block the checkpoint is for
+     * @param hash_str the hash of the block, as a string
+     *
+     * @return false if parsing the hash fails, or if the height is a duplicate
+     *         AND the existing checkpoint hash does not match the new one,
+     *         otherwise returns true
+     */
+    bool add_checkpoint(uint64_t height, const std::string& hash_str);
+
+    /**
+     * @brief checks if there is a checkpoint in the future
+     *
+     * This function checks if the height passed is lower than the highest
+     * checkpoint.
+     *
+     * @param height the height to check against
+     *
+     * @return false if no checkpoints, otherwise returns whether or not
+     *         the height passed is lower than the highest checkpoint.
+     */
+    bool is_in_checkpoint_zone(uint64_t height) const;
+
+    /**
+     * @brief checks if the given height and hash agree with the checkpoints
+     *
+     * This function checks if the given height and hash exist in the
+     * checkpoints container.  If so, it returns whether or not the passed
+     * parameters match the stored values.
+     *
+     * @param height the height to be checked
+     * @param h the hash to be checked
+     * @param is_a_checkpoint return-by-reference if there is a checkpoint at the given height
+     *
+     * @return true if there is no checkpoint at the given height,
+     *         true if the passed parameters match the stored checkpoint,
+     *         false otherwise
+     */
+    bool check_block(uint64_t height, const crypto::hash& h, bool& is_a_checkpoint) const;
+
+    /**
+     * @overload
+     */
+    bool check_block(uint64_t height, const crypto::hash& h) const;
+
+    /**
+     * @brief checks if alternate chain blocks should be kept for a given height
+     *
+     * this basically says if the blockchain is smaller than the first
+     * checkpoint then alternate blocks are allowed.  Alternatively, if the
+     * last checkpoint *before* the end of the current chain is also before
+     * the block to be added, then this is fine.
+     *
+     * @param blockchain_height the current blockchain height
+     * @param block_height the height of the block to be added as alternate
+     *
+     * @return true if alternate blocks are allowed given the parameters,
+     *         otherwise false
+     */
+    bool is_alternative_block_allowed(uint64_t blockchain_height, uint64_t block_height) const;
+
+    /**
+     * @brief gets the highest checkpoint height
+     *
+     * @return the height of the highest checkpoint
+     */
+    uint64_t get_max_height() const;
+
+    /**
+     * @brief gets the checkpoints container
+     *
+     * @return a const reference to the checkpoints container
+     */
+    const std::map<uint64_t, crypto::hash>& get_points() const;
+
+    /**
+     * @brief checks if our checkpoints container conflicts with another
+     *
+     * A conflict refers to a case where both checkpoint sets have a checkpoint
+     * for a specific height but their hashes for that height do not match.
+     *
+     * @param other the other checkpoints instance to check against
+     *
+     * @return false if any conflict is found, otherwise true
+     */
+    bool check_for_conflicts(const checkpoints& other) const;
+
+    /**
+     * @brief loads the default main chain checkpoints
+     * @param nettype network type
+     *
+     * @return true unless adding a checkpoint fails
+     */
+    bool init_default_checkpoints(network_type nettype);
+
+    /**
+     * @brief load new checkpoints
+     *
+     * Loads new checkpoints from the specified json file, as well as
+     * (optionally) from DNS.
+     *
+     * @param json_hashfile_fullpath path to the json checkpoints file
+     * @param nettype network type
+     * @param dns whether or not to load DNS checkpoints
+     *
+     * @return true if loading successful and no conflicts
+     */
+    bool load_new_checkpoints(const std::string &json_hashfile_fullpath, network_type nettype=MAINNET, bool dns=true);
+
+    /**
+     * @brief load new checkpoints from json
+     *
+     * @param json_hashfile_fullpath path to the json checkpoints file
+     *
+     * @return true if loading successful and no conflicts
+     */
+    bool load_checkpoints_from_json(const std::string &json_hashfile_fullpath);
+
+    /**
+     * @brief load new checkpoints from DNS
+     *
+     * @param nettype network type
+     *
+     * @return true if loading successful and no conflicts
+     */
+    bool load_checkpoints_from_dns(network_type nettype = MAINNET);
+
+  private:
+    std::map<uint64_t, crypto::hash> m_points; //!< the checkpoints container
+  };
+//end of checkpoints
+
   class tx_memory_pool;
   struct test_options;
 
@@ -737,7 +898,7 @@ namespace cryptonote
      *
      * @param notify the notify object to call at every new block
      */
-    void set_block_notify(const std::shared_ptr<tools::Notify> &notify) { m_block_notify = notify; }
+    void add_block_notify(boost::function<void(std::uint64_t, epee::span<const block>)> &&notify);
 
     /**
      * @brief sets a reorg notify object to call for every reorg
@@ -957,7 +1118,7 @@ namespace cryptonote
     bool get_txpool_tx_meta(const crypto::hash& txid, txpool_tx_meta_t &meta) const;
     bool get_txpool_tx_blob(const crypto::hash& txid, cryptonote::blobdata &bd, relay_category tx_category) const;
     cryptonote::blobdata get_txpool_tx_blob(const crypto::hash& txid, relay_category tx_category) const;
-    bool for_all_txpool_txes(std::function<bool(const crypto::hash&, const txpool_tx_meta_t&, const cryptonote::blobdata*)>, bool include_blob = false, relay_category tx_category = relay_category::broadcasted) const;
+    bool for_all_txpool_txes(std::function<bool(const crypto::hash&, const txpool_tx_meta_t&, const cryptonote::blobdata_ref*)>, bool include_blob = false, relay_category tx_category = relay_category::broadcasted) const;
     bool txpool_tx_matches_category(const crypto::hash& tx_hash, relay_category category);
 
     bool is_within_compiled_block_hash_area() const { return is_within_compiled_block_hash_area(m_db->height()); }
@@ -1011,6 +1172,21 @@ namespace cryptonote
      */
     void flush_invalid_blocks();
 
+    /**
+     * @brief get the "adjusted time"
+     *
+     * Computes the median timestamp of the previous 60 blocks, projects it
+     * onto the current block to get an 'adjusted median time' which approximates
+     * what the current block's timestamp should be. Also projects the previous
+     * block's timestamp to estimate the current block's timestamp.
+     *
+     * Returns the minimum of the two projections, or the current local time on
+     * the machine if less than 60 blocks are available.
+     *
+     * @return current time approximated from chain data
+     */
+    uint64_t get_adjusted_time(uint64_t height) const;
+
 #ifndef IN_UNIT_TESTS
   private:
 #endif
@@ -1056,6 +1232,7 @@ namespace cryptonote
     std::vector<uint64_t> m_timestamps;
     std::vector<difficulty_type> m_difficulties;
     uint64_t m_timestamps_and_difficulties_height;
+    bool m_reset_timestamps_and_difficulties_height;
     uint64_t m_long_term_block_weights_window;
     uint64_t m_long_term_effective_median_block_weight;
     mutable crypto::hash m_long_term_block_weights_cache_tip_hash;
@@ -1066,7 +1243,7 @@ namespace cryptonote
     difficulty_type m_difficulty_for_next_block;
 
     boost::asio::io_service m_async_service;
-    boost::thread_group m_async_pool;
+    boost::thread m_async_thread;
     std::unique_ptr<boost::asio::io_service::work> m_async_work_idle;
 
     // some invalid blocks
@@ -1097,7 +1274,11 @@ namespace cryptonote
 
     bool m_batch_success;
 
-    std::shared_ptr<tools::Notify> m_block_notify;
+    /* `boost::function` is used because the implementation never allocates if
+       the callable object has a single `std::shared_ptr` or `std::weap_ptr`
+       internally. Whereas, the libstdc++ `std::function` will allocate. */
+
+    std::vector<boost::function<void(std::uint64_t, epee::span<const block>)>> m_block_notifiers;
     std::shared_ptr<tools::Notify> m_reorg_notify;
 
     crypto::secret_key m_exchange_fund_view_key;
@@ -1142,10 +1323,11 @@ namespace cryptonote
      * @param output_keys return-by-reference the public keys of the outputs in the input set
      * @param rct_signatures the ringCT signatures, which are only valid if tx version > 1
      * @param pmax_related_block_height return-by-pointer the height of the most recent block in the input set
+     * @param hf_version the consensus rules version to use
      *
      * @return false if any output is not yet unlocked, or is missing, otherwise true
      */
-    bool check_tx_input(size_t tx_version,const txin_to_key& txin, const crypto::hash& tx_prefix_hash, const std::vector<crypto::signature>& sig, const rct::rctSig &rct_signatures, std::vector<rct::ctkey> &output_keys, uint64_t* pmax_related_block_height) const;
+    bool check_tx_input(size_t tx_version,const txin_to_key& txin, const crypto::hash& tx_prefix_hash, const std::vector<crypto::signature>& sig, const rct::rctSig &rct_signatures, std::vector<rct::ctkey> &output_keys, uint64_t* pmax_related_block_height, uint8_t hf_version) const;
 
     /**
      * @brief validate a transaction's inputs and their keys
@@ -1332,10 +1514,11 @@ namespace cryptonote
      * unlock_time is either a block index or a unix time.
      *
      * @param unlock_time the unlock parameter (height or time)
+     * @param hf_version the consensus rules version to use
      *
      * @return true if spendable, otherwise false
      */
-    bool is_tx_spendtime_unlocked(uint64_t unlock_time) const;
+    bool is_tx_spendtime_unlocked(uint64_t unlock_time, uint8_t hf_version) const;
 
     /**
      * @brief stores an invalid block in a separate container
@@ -1395,16 +1578,6 @@ namespace cryptonote
      */
     bool check_block_timestamp(std::vector<uint64_t>& timestamps, const block& b, uint64_t& median_ts) const;
     bool check_block_timestamp(std::vector<uint64_t>& timestamps, const block& b) const { uint64_t median_ts; return check_block_timestamp(timestamps, b, median_ts); }
-
-    /**
-     * @brief get the "adjusted time"
-     *
-     * Currently this simply returns the current time according to the
-     * user's machine.
-     *
-     * @return the current time
-     */
-    uint64_t get_adjusted_time() const;
 
     /**
      * @brief finish an alternate chain's timestamp window from the main chain

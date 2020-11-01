@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -30,13 +30,11 @@
 // check local first (in the event of static or in-source compilation of libunbound)
 #include "unbound.h"
 
-#include <stdlib.h>
 #include "include_base_utils.h"
 #include "common/threadpool.h"
 #include "crypto/crypto.h"
-#include <boost/thread/mutex.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/optional.hpp>
+
 using namespace epee;
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
@@ -47,7 +45,7 @@ static const char *DEFAULT_DNS_PUBLIC_ADDR[] =
 // OpenNIC DNS Servers for more privacy https://www.opennic.org + https://dns.watch/index
 // As recently added as possible and with no logs kept declaration + DNScrypt, added many cause they are sponsored
   "89.40.116.230",       // Germany opennic
-  "104.238.186.189",     // UK opennic	
+  "104.238.186.189",     // UK opennic
   "192.71.245.208",      // Italy opennic
   "5.132.191.104",       // Austria opennic
   "162.248.241.94",      // US opennic
@@ -61,7 +59,7 @@ static const char *DEFAULT_DNS_PUBLIC_ADDR[] =
   "80.67.169.12",        // FDN (France - This is not OpenNIC but its still an independent anticensorship group https://www.fdn.fr/)
   "142.4.204.111",       // Canada opennic
   "5.189.170.196",       // Germany opennic
-  "51.15.98.97",         // Netherlands opennic	
+  "51.15.98.97",         // Netherlands opennic
   "142.4.205.47",        // Canada opennic
   "66.70.228.164",       // Canada opennic
   "50.116.17.96",        // US opennic
@@ -77,7 +75,7 @@ namespace
 /*
  * The following two functions were taken from unbound-anchor.c, from
  * the unbound library packaged with this source.  The license and source
- * can be found in $PROJECT_ROOT/external/unbound
+ * can be found in $PROJECT_ROOT/thirdparty/unbound
  */
 
 /* Cert builtin commented out until it's used, as the compiler complains
@@ -146,7 +144,6 @@ static const char *get_record_name(int record_type)
   }
 }
 
-// fuck it, I'm tired of dealing with getnameinfo()/inet_ntop/etc
 boost::optional<std::string> ipv4_to_string(const char* src, size_t len)
 {
   if (len < 4)
@@ -450,9 +447,9 @@ std::string address_from_txt_record(const std::string& s)
   return {};
 }
 /**
- * @brief gets a monero address from the TXT record of a DNS entry
+ * @brief gets a sumokoin address from the TXT record of a DNS entry
  *
- * gets the monero address from the TXT record of the DNS entry associated
+ * gets the sumokoin address from the TXT record of the DNS entry associated
  * with <url>.  If this lookup fails, or the TXT record does not contain an
  * XMR address in the correct format, returns an empty string.  <dnssec_valid>
  * will be set true or false according to whether or not the DNS query passes
@@ -461,7 +458,7 @@ std::string address_from_txt_record(const std::string& s)
  * @param url the url to look up
  * @param dnssec_valid return-by-reference for DNSSEC status of query
  *
- * @return a monero address (as a string) or an empty string
+ * @return a sumokoin address (as a string) or an empty string
  */
 std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec_valid)
 {
@@ -478,7 +475,7 @@ std::vector<std::string> addresses_from_url(const std::string& url, bool& dnssec
   }
   else dnssec_valid = false;
 
-  // for each txt record, try to find a monero address in it.
+  // for each txt record, try to find a sumokoin address in it.
   for (auto& rec : records)
   {
     std::string addr = address_from_txt_record(rec);
@@ -539,14 +536,14 @@ bool load_txt_records_from_dns(std::vector<std::string> &good_records, const std
   // send all requests in parallel
   std::deque<bool> avail(dns_urls.size(), false), valid(dns_urls.size(), false);
   tools::threadpool& tpool = tools::threadpool::getInstance();
-  tools::threadpool::waiter waiter;
+  tools::threadpool::waiter waiter(tpool);
   for (size_t n = 0; n < dns_urls.size(); ++n)
   {
     tpool.submit(&waiter,[n, dns_urls, &records, &avail, &valid](){
-      records[n] = tools::DNSResolver::instance().get_txt_record(dns_urls[n], avail[n], valid[n]); 
+      records[n] = tools::DNSResolver::instance().get_txt_record(dns_urls[n], avail[n], valid[n]);
     });
   }
-  waiter.wait(&tpool);
+  waiter.wait();
 
   size_t cur_index = first_index;
   do

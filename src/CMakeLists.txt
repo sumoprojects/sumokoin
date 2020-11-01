@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
+# Copyright (c) 2014-2020, The Monero Project
 #
 # All rights reserved.
 #
@@ -106,7 +106,6 @@ monero_add_library(version SOURCES ${CMAKE_BINARY_DIR}/version.cpp DEPENDS genve
 add_subdirectory(common)
 add_subdirectory(crypto)
 add_subdirectory(ringct)
-add_subdirectory(checkpoints)
 add_subdirectory(cryptonote_basic)
 add_subdirectory(cryptonote_core)
 add_subdirectory(lmdb)
@@ -126,15 +125,14 @@ endif()
 add_subdirectory(cryptonote_protocol)
 if(NOT IOS)
   add_subdirectory(simplewallet)
-  add_subdirectory(gen_multisig)
   add_subdirectory(gen_ssl_cert)
   add_subdirectory(daemonizer)
   add_subdirectory(daemon)
-  add_subdirectory(blockchain_utilities)
+  add_subdirectory(utilities/blockchain_utilities)
 endif()
 
-if(BUILD_DEBUG_UTILITIES)
-  add_subdirectory(debug_utilities)
+if(DEFAULT_BUILD_DEBUG_UTILITIES AND NOT IOS)
+  add_subdirectory(utilities/debug_utilities)
 endif()
 
 if(PER_BLOCK_CHECKPOINT)
@@ -142,4 +140,3 @@ if(PER_BLOCK_CHECKPOINT)
 endif()
 
 add_subdirectory(device)
-add_subdirectory(device_trezor)

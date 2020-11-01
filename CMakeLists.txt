@@ -1,4 +1,5 @@
-# Copyright (c) 2014-2019, The Monero Project
+# Copyright (c) 2014-2020, The Monero Project
+# Copyright (c) 2017-2020, Sumokoin Projects
 #
 # All rights reserved.
 #
@@ -28,10 +29,54 @@
 #
 # Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
+cmake_minimum_required(VERSION 2.8.7)
+message(STATUS "CMake version ${CMAKE_VERSION}")
+
+cmake_host_system_information(RESULT freememsys QUERY AVAILABLE_PHYSICAL_MEMORY)
+cmake_host_system_information(RESULT freememvirt QUERY AVAILABLE_VIRTUAL_MEMORY)
+message(STATUS "Total available physical memory: ${freememsys} Mib")
+message(STATUS "Total available virtual memory: ${freememvirt} Mib")
+math(EXPR totalmemavail "${freememsys} + ${freememvirt}")
+message(STATUS "Total available memory: ${totalmemavail}  Mib")
+if (totalmemavail LESS 3500) #sumokoin needs on about 3 Gb of available memory to compile, give it 500 Mb slack
+  message(FATAL_ERROR "Sumokoin needs at least 3.5 Gb of available memory (physical+virtual) to compile!")
+endif()
+
+set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
+set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+  message(STATUS "Setting default build type: ${CMAKE_BUILD_TYPE}")
+endif()
+string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if (STATIC AND NOT (APPLE OR FREEBSD OR OPENBSD OR DRAGONFLY ))
+  find_program(CCACHE_PROG ccache)
+  if (CCACHE_PROG)
+      message("ccache was found...launching it")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROG}")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK    "${CCACHE_PROG}")
+  else()
+      message("ccache was NOT found")
+  endif()
+endif()
+
+if (NOT STATIC)
+  find_program(CCACHE_PROG ccache)
+  if (CCACHE_PROG)
+      message("ccache was found...launching it")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_PROG}")
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK    "${CCACHE_PROG}")
+  else()
+      message("ccache was NOT found")
+  endif()
+endif()
+
 list(INSERT CMAKE_MODULE_PATH 0
-  "${CMAKE_SOURCE_DIR}/cmake")
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 include(CheckLinkerFlag)
@@ -43,10 +88,13 @@ if (IOS)
     INCLUDE(CmakeLists_IOS.txt)
 endif()
 
-cmake_minimum_required(VERSION 2.8.7)
-message(STATUS "CMake version ${CMAKE_VERSION}")
-
 project(sumokoin)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0.0 AND NOT DEPENDS)
+    message(FATAL_ERROR "GCC version must be at least 7.0!")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0.0 AND NOT ANDROID)
+    message(FATAL_ERROR "Clang version must be at least 8.0!")
+endif()
 
 enable_language(C ASM)
 
@@ -103,12 +151,6 @@ function (add_definition_if_library_exists library function header var)
     add_definitions("-D${var}")
   endif()
 endfunction()
-
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
-  message(STATUS "Setting default build type: ${CMAKE_BUILD_TYPE}")
-endif()
-string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 
 # ARCH defines the target architecture, either by an explicit identifier or
 # one of the following two keywords. By default, ARCH a value of 'native':
@@ -196,17 +238,8 @@ if(NOT MANUAL_SUBMODULES)
         message(FATAL_ERROR "Submodule '${relative_path}' is not up-to-date. Please update all submodules with\ngit submodule update --init --force\nor run cmake with -DMANUAL_SUBMODULES=1\n")
       endif()
     endfunction ()
-    
-    message(STATUS "Checking submodules")
-    check_submodule(external/miniupnp)
-    check_submodule(external/unbound)
-    check_submodule(external/rapidjson)
-    check_submodule(external/trezor-common)
   endif()
 endif()
-
-set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
-set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
 
 # set this to 0 if per-block checkpoint needs to be disabled
 set(PER_BLOCK_CHECKPOINT 1)
@@ -252,12 +285,19 @@ enable_testing()
 
 option(BUILD_DOCUMENTATION "Build the Doxygen documentation." ON)
 option(BUILD_TESTS "Build tests." OFF)
+
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(DEFAULT_BUILD_DEBUG_UTILITIES ON)
 else()
   set(DEFAULT_BUILD_DEBUG_UTILITIES OFF)
 endif()
-option(BUILD_DEBUG_UTILITIES "Build debug utilities." DEFAULT_BUILD_DEBUG_UTILITIES)
+
+if(DEFAULT_BUILD_DEBUG_UTILITIES)
+  message(STATUS "This is a debug build")
+  message(STATUS "Building debug utilities")
+else()
+  message(STATUS "Not building debug utilities")
+endif()
 
 # Check whether we're on a 32-bit or 64-bit system
 if(CMAKE_SIZEOF_VOID_P EQUAL "8")
@@ -297,7 +337,7 @@ endif()
 # elseif(CMAKE_SYSTEM_NAME MATCHES ".*BSDI.*")
 #   set(BSDI TRUE)
 
-include_directories(external/rapidjson/include external/easylogging++ src contrib/epee/include external)
+include_directories(thirdparty/rapidjson/include thirdparty/easylogging++ src contrib/epee/include thirdparty thirdparty/supercop/include include)
 
 if(APPLE)
   include_directories(SYSTEM /usr/include/malloc)
@@ -308,10 +348,34 @@ endif()
 
 if(MSVC OR MINGW)
   set(DEFAULT_STATIC true)
+  add_compile_options("-Wa,-mbig-obj")
+  add_definitions(-O2)
 else()
   set(DEFAULT_STATIC false)
 endif()
 option(STATIC "Link libraries statically" ${DEFAULT_STATIC})
+
+if(MINGW)
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wa,-mbig-obj")
+  set(EXTRA_LIBRARIES mswsock;ws2_32;iphlpapi;crypt32;bcrypt)
+  if(DEPENDS)
+    set(ICU_LIBRARIES icuio icui18n icuuc icudata icutu iconv)
+  else()
+    set(ICU_LIBRARIES icuio icuin icuuc icudt icutu iconv)
+  endif()
+elseif(APPLE OR OPENBSD OR ANDROID)
+  set(EXTRA_LIBRARIES "")
+elseif(FREEBSD)
+  set(EXTRA_LIBRARIES execinfo)
+elseif(DRAGONFLY)
+  find_library(COMPAT compat)
+  set(EXTRA_LIBRARIES execinfo ${COMPAT})
+elseif(CMAKE_SYSTEM_NAME MATCHES "(SunOS|Solaris)")
+  set(EXTRA_LIBRARIES socket nsl resolv)
+elseif(NOT MSVC AND NOT DEPENDS)
+  find_library(RT rt)
+  set(EXTRA_LIBRARIES ${RT})
+endif()
 
 # This is a CMake built-in switch that concerns internal libraries
 if (NOT DEFINED BUILD_SHARED_LIBS AND NOT STATIC AND CMAKE_BUILD_TYPE_LOWER STREQUAL "debug")
@@ -416,7 +480,7 @@ if (CMAKE_SYSTEM_NAME MATCHES "(SunOS|Solaris)")
 endif ()
 
 if (APPLE AND NOT IOS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -fvisibility=default -std=c++11")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64 -fvisibility=default -std=c++17")
   if (NOT OpenSSL_DIR)
       EXECUTE_PROCESS(COMMAND brew --prefix openssl
         OUTPUT_VARIABLE OPENSSL_ROOT_DIR
@@ -426,11 +490,19 @@ if (APPLE AND NOT IOS)
 endif()
 
 find_package(OpenSSL REQUIRED)
-message(STATUS "Using OpenSSL include dir at ${OPENSSL_INCLUDE_DIR}")
-include_directories(${OPENSSL_INCLUDE_DIR})
-if(STATIC AND NOT IOS)
-  if(UNIX)
-    set(OPENSSL_LIBRARIES "${OPENSSL_LIBRARIES};${CMAKE_DL_LIBS};${CMAKE_THREAD_LIBS_INIT}")
+
+if (NOT OPENSSL_FOUND)
+  find_package(PkgConfig REQUIRED)
+  pkg_search_module(OPENSSL openssl)
+endif()
+
+if (OPENSSL_FOUND)
+  message(STATUS "Using OpenSSL include dir at ${OPENSSL_INCLUDE_DIR}")
+  include_directories(${OPENSSL_INCLUDE_DIR})
+  if(STATIC AND NOT IOS)
+    if(UNIX)
+      set(OPENSSL_LIBRARIES "${OPENSSL_LIBRARIES};${CMAKE_DL_LIBS};${CMAKE_THREAD_LIBS_INIT}")
+    endif()
   endif()
 endif()
 
@@ -445,10 +517,24 @@ add_definition_if_function_found(strptime HAVE_STRPTIME)
 
 add_definitions(-DAUTO_INITIALIZE_EASYLOGGINGPP)
 
-add_subdirectory(external)
+set(MONERO_GENERATED_HEADERS_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated_include")
+include_directories(${MONERO_GENERATED_HEADERS_DIR})
+
+# Generate header for embedded translations
+# Generate header for embedded translations, use target toolchain if depends, otherwise use the
+# lrelease and lupdate binaries from the host
+# include(ExternalProject)
+# ExternalProject_Add(generate_translations_header
+#  SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/translations"
+#  BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/translations"
+#  STAMP_DIR ${LRELEASE_PATH}
+#  CMAKE_ARGS -DLRELEASE_PATH=${LRELEASE_PATH}
+#  INSTALL_COMMAND cmake -E echo "")
+# include_directories("${CMAKE_CURRENT_BINARY_DIR}/translations")
+add_subdirectory(thirdparty)
 
 # Final setup for libunbound
-include_directories(${UNBOUND_INCLUDE})
+include_directories(${UNBOUND_INCLUDE_DIRS})
 link_directories(${UNBOUND_LIBRARY_DIRS})
 
 # Final setup for easylogging++
@@ -463,7 +549,7 @@ include_directories(${LIBUNWIND_INCLUDE})
 link_directories(${LIBUNWIND_LIBRARY_DIRS})
 
 # Final setup for hid
-if (HIDAPI_FOUND) 
+if (HIDAPI_FOUND)
   message(STATUS "Using HIDAPI include dir at ${HIDAPI_INCLUDE_DIR}")
   add_definitions(-DHAVE_HIDAPI)
   include_directories(${HIDAPI_INCLUDE_DIR})
@@ -471,9 +557,6 @@ if (HIDAPI_FOUND)
 else (HIDAPI_FOUND)
   message(STATUS "Could not find HIDAPI")
 endif()
-
-# Trezor support check
-include(CheckTrezor)
 
 if(MSVC)
   add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN /DGTEST_HAS_TR1_TUPLE=0 /FIinline_c.h /D__SSE4_1__")
@@ -484,7 +567,7 @@ if(MSVC)
       string(REPLACE "/MD" "/MT" ${VAR} "${${VAR}}")
     endforeach()
   endif()
-  include_directories(SYSTEM src/platform/msc)
+  include_directories(SYSTEM src/common/platform/msc)
 else()
   include(TestCXXAcceptsFlag)
   if (NOT ARCH)
@@ -549,8 +632,11 @@ else()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH_FLAG}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH_FLAG}")
-
-  set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Wno-error=extra -Wno-error=deprecated-declarations -Wno-unused-lambda-capture -Wno-unused-command-line-argument -Wno-unused-parameter -Wno-unused-variable -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Wno-error=extra -Wno-error=deprecated-declarations -Wno-unused-lambda-capture -Wno-unused-parameter -Wno-unused-variable -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized")
+  else()
+    set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Wno-error=extra -Wno-error=deprecated-declarations -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized")
+  endif()
   if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
     if(ARM)
       set(WARNINGS "${WARNINGS} -Wno-error=inline-asm")
@@ -559,10 +645,10 @@ else()
     set(WARNINGS "${WARNINGS} -Wlogical-op -Wno-error=maybe-uninitialized -Wno-unknown-warning -Wno-error=cpp")
   endif()
   if(MINGW)
-    set(WARNINGS "${WARNINGS} -Wno-misleading-indentation -Wno-maybe-uninitialized -Wno-error=unused-value -Wno-error=unused-but-set-variable")
+    set(WARNINGS "${WARNINGS} -Wno-misleading-indentation -Wno-unused-function -Wno-maybe-uninitialized -Wno-error=unused-value -Wno-error=unused-but-set-variable")
     set(MINGW_FLAG "${MINGW_FLAG} -DWIN32_LEAN_AND_MEAN")
     set(Boost_THREADAPI win32)
-    include_directories(SYSTEM src/platform/mingw)
+    include_directories(SYSTEM src/common/platform/mingw)
     # mingw doesn't support LTO (multiple definition errors at link time)
     set(USE_LTO_DEFAULT false)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--stack,10485760")
@@ -579,7 +665,7 @@ else()
     set(STATIC_ASSERT_FLAG "-Dstatic_assert=_Static_assert")
   endif()
 
-  try_compile(STATIC_ASSERT_CPP_RES "${CMAKE_CURRENT_BINARY_DIR}/static-assert" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/test-static-assert.cpp" COMPILE_DEFINITIONS "-std=c++11")
+  try_compile(STATIC_ASSERT_CPP_RES "${CMAKE_CURRENT_BINARY_DIR}/static-assert" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/test-static-assert.cpp" COMPILE_DEFINITIONS "-std=c++17")
   if(STATIC_ASSERT_CPP_RES)
     set(STATIC_ASSERT_CPP_FLAG "")
   else()
@@ -635,9 +721,12 @@ else()
   endif()
 
   # linker
-  if (NOT WIN32 AND NOT (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_LESS 9.1))
+  if (NOT WIN32 AND NOT (CMAKE_C_COMPILER_ID STREQUAL "Clang") AND NOT (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_LESS 9.1))
     # Windows binaries die on startup with PIE when compiled with GCC <9.x
     add_linker_flag_if_supported(-pie LD_SECURITY_FLAGS)
+  endif()
+  if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    add_linker_flag_if_supported(-Wl, -pie LD_SECURITY_FLAGS)
   endif()
   add_linker_flag_if_supported(-Wl,-z,relro LD_SECURITY_FLAGS)
   add_linker_flag_if_supported(-Wl,-z,now LD_SECURITY_FLAGS)
@@ -663,12 +752,32 @@ else()
     add_linker_flag_if_supported(-Wl,--high-entropy-va LD_SECURITY_FLAGS)
   endif()
 
+  # cleanup bins
+  if (NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    set(LINKER_OPTIONS "${LINKER_OPTIONS} -ffunction-sections -fdata-sections -Wl,--gc-sections")
+  endif()
+  if (CMAKE_C_COMPILER_ID STREQUAL "Clang" AND APPLE)
+    set(LINKER_OPTIONS "${LINKER_OPTIONS} -ffunction-sections -fdata-sections -Wl,-dead_strip")
+  # silence warning in link cases dead_strip cannot be used
+    set(WARNINGS "${WARNINGS} -Wno-unused-command-line-argument")
+  endif()
+  if (DEPENDS OR MINGW AND NOT FREEBSD AND NOT APPLE)
+    set(CMAKE_EXE_LINKER_OPTIONS_FLAGS "${CMAKE_EXE_LINKER_OPTIONS_FLAGS} -Wl,-s")
+  endif()
+
   message(STATUS "Using C security hardening flags: ${C_SECURITY_FLAGS}")
   message(STATUS "Using C++ security hardening flags: ${CXX_SECURITY_FLAGS}")
   message(STATUS "Using linker security hardening flags: ${LD_SECURITY_FLAGS}")
 
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -D_GNU_SOURCE ${MINGW_FLAG} ${STATIC_ASSERT_FLAG} ${WARNINGS} ${C_WARNINGS} ${COVERAGE_FLAGS} ${PIC_FLAG} ${C_SECURITY_FLAGS}")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -D_GNU_SOURCE ${MINGW_FLAG} ${STATIC_ASSERT_CPP_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${COVERAGE_FLAGS} ${PIC_FLAG} ${CXX_SECURITY_FLAGS}")
+  if (NOT (DEPENDS OR MINGW))
+    message(STATUS "Using linker elimination of unused data flags: ${LINKER_OPTIONS}")
+  else()
+    message(STATUS "Using linker elimination of unused data flags: ${LINKER_OPTIONS}")
+    message(STATUS "Using exe linker elimination of unused data flags: ${CMAKE_EXE_LINKER_OPTIONS_FLAGS}")
+  endif()
+
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -D_GNU_SOURCE ${MINGW_FLAG} ${STATIC_ASSERT_FLAG} ${WARNINGS} ${C_WARNINGS} ${COVERAGE_FLAGS} ${PIC_FLAG} ${C_SECURITY_FLAGS} ${LINKER_OPTIONS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -D_GNU_SOURCE ${MINGW_FLAG} ${STATIC_ASSERT_CPP_FLAG} ${WARNINGS} ${CXX_WARNINGS} ${COVERAGE_FLAGS} ${PIC_FLAG} ${CXX_SECURITY_FLAGS} ${LINKER_OPTIONS} ${CMAKE_EXE_LINKER_OPTIONS_FLAGS}")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LD_SECURITY_FLAGS} ${LD_BACKCOMPAT_FLAGS}")
 
   # With GCC 6.1.1 the compiled binary malfunctions due to aliasing. Until that
@@ -758,7 +867,7 @@ else()
   endif(ARM)
 
   if(ANDROID AND NOT BUILD_GUI_DEPS STREQUAL "ON" OR IOS)
-    #From Android 5: "only position independent executables (PIE) are supported" 
+    #From Android 5: "only position independent executables (PIE) are supported"
     message(STATUS "Enabling PIE executable")
     set(PIC_FLAG "")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIE")
@@ -777,7 +886,7 @@ else()
     set(DEBUG_FLAGS "${DEBUG_FLAGS} -O0 ")
   endif()
 
-  # At least some CLANGs default to not enough for monero
+  # At least some CLANGs default to not enough for sumokoin
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=900")
 
   if(NOT DEFINED USE_LTO_DEFAULT)
@@ -844,51 +953,22 @@ if(STATIC)
   set(Boost_USE_STATIC_LIBS ON)
   set(Boost_USE_STATIC_RUNTIME ON)
 endif()
-if(MINGW)
-find_package(Boost 1.58 QUIET REQUIRED COMPONENTS system filesystem thread date_time chrono locale regex serialization program_options)
-else()
-find_package(Boost 1.58 QUIET REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options)
-endif()
+find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time chrono regex serialization program_options)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 set(CMAKE_FIND_LIBRARY_SUFFIXES ${OLD_LIB_SUFFIXES})
 if(NOT Boost_FOUND)
-  die("Could not find Boost libraries, please make sure you have installed Boost or libboost-all-dev (>=1.58) or the equivalent")
+  die("Could not find Boost libraries, please make sure you have installed Boost or libboost-all-dev (>=1.62) or the equivalent")
 elseif(Boost_FOUND)
-  message(STATUS "Found Boost Version: ${Boost_VERSION}")
-  if (Boost_VERSION VERSION_LESS 10 AND Boost_VERSION VERSION_LESS 1.62.0 AND NOT (OPENSSL_VERSION VERSION_LESS 1.1))
+  if (Boost_VERSION VERSION_LESS 10 AND Boost_VERSION VERSION_LESS 1.62.0)
     set(BOOST_BEFORE_1_62 true)
   endif()
-  if (NOT Boost_VERSION VERSION_LESS 10 AND Boost_VERSION VERSION_LESS 106200 AND NOT (OPENSSL_VERSION VERSION_LESS 1.1))
+  if (NOT Boost_VERSION VERSION_LESS 10 AND Boost_VERSION VERSION_LESS 106200)
     set(BOOST_BEFORE_1_62 true)
   endif()
   if (BOOST_BEFORE_1_62)
-      message(FATAL_ERROR "Boost ${Boost_VERSION} (older than 1.62) is too old to link with OpenSSL ${OPENSSL_VERSION} (1.1 or newer) found at ${OPENSSL_INCLUDE_DIR} and ${OPENSSL_LIBRARIES}. "
-                          "Update Boost or install OpenSSL 1.0 and set path to it when running cmake: "
-                          "cmake -DOPENSSL_ROOT_DIR='/usr/include/openssl-1.0'")
+      message(FATAL_ERROR "Very old boost version please update your boost version to at least 1.62.0")
   endif()
-endif()
-
-include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-if(MINGW)
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wa,-mbig-obj")
-  set(EXTRA_LIBRARIES mswsock;ws2_32;iphlpapi;crypt32;bcrypt)
-  if(DEPENDS)
-    set(ICU_LIBRARIES icuio icui18n icuuc icudata icutu iconv)
-  else()
-    set(ICU_LIBRARIES icuio icuin icuuc icudt icutu iconv)
-  endif()
-elseif(APPLE OR OPENBSD OR ANDROID)
-  set(EXTRA_LIBRARIES "")
-elseif(FREEBSD)
-  set(EXTRA_LIBRARIES execinfo)
-elseif(DRAGONFLY)
-  find_library(COMPAT compat)
-  set(EXTRA_LIBRARIES execinfo ${COMPAT})
-elseif(CMAKE_SYSTEM_NAME MATCHES "(SunOS|Solaris)")
-  set(EXTRA_LIBRARIES socket nsl resolv)
-elseif(NOT MSVC AND NOT DEPENDS)
-  find_library(RT rt)
-  set(EXTRA_LIBRARIES ${RT})
 endif()
 
 list(APPEND EXTRA_LIBRARIES ${CMAKE_DL_LIBS})
@@ -941,22 +1021,31 @@ if(CMAKE_C_COMPILER_ID STREQUAL "Clang" AND ARCH_WIDTH EQUAL "32" AND NOT IOS AN
   endif()
 endif()
 
-# uncomment the below two lines to get release builds
-# find_path(ZMQ_INCLUDE_PATH zmq.hpp)
-# find_library(ZMQ_LIB zmq)
-
-
+if(NOT ANDROID)
+find_path(ZMQ_INCLUDE_PATH zmq.h)
+find_library(ZMQ_LIB zmq)
+endif()
 find_library(PGM_LIBRARY pgm)
 find_library(NORM_LIBRARY norm)
+find_library(GSSAPI_LIBRARY gssapi_krb5)
 find_library(PROTOLIB_LIBRARY protolib)
 find_library(SODIUM_LIBRARY sodium)
 include_directories(${LIBSODIUM_INCLUDE_DIR})
 
+if(NOT ZMQ_INCLUDE_PATH AND NOT ANDROID)
+  message(FATAL_ERROR "Could not find required header zmq.h")
+endif()
+if(NOT ZMQ_LIB AND NOT ANDROID)
+  message(FATAL_ERROR "Could not find required libzmq")
+endif()
 if(PGM_LIBRARY)
   set(ZMQ_LIB "${ZMQ_LIB};${PGM_LIBRARY}")
 endif()
 if(NORM_LIBRARY)
   set(ZMQ_LIB "${ZMQ_LIB};${NORM_LIBRARY}")
+endif()
+if(GSSAPI_LIBRARY)
+  set(ZMQ_LIB "${ZMQ_LIB};${GSSAPI_LIBRARY}")
 endif()
 if(PROTOLIB_LIBRARY)
   set(ZMQ_LIB "${ZMQ_LIB};${PROTOLIB_LIBRARY}")
@@ -965,6 +1054,7 @@ if(SODIUM_LIBRARY)
   set(ZMQ_LIB "${ZMQ_LIB};${SODIUM_LIBRARY}")
 endif()
 
+include(thirdparty/supercop/functions.cmake) # place after setting flags and before src directory inclusion
 add_subdirectory(contrib)
 add_subdirectory(src)
 
@@ -974,12 +1064,6 @@ if(BUILD_TESTS)
   add_subdirectory(tests)
 else()
   message(STATUS "Not building tests")
-endif()
-
-if(BUILD_DEBUG_UTILITIES)
-  message(STATUS "Building debug utilities")
-else()
-  message(STATUS "Not building debug utilities")
 endif()
 
 if(BUILD_DOCUMENTATION)

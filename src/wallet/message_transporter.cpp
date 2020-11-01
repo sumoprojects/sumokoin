@@ -30,9 +30,7 @@
 #include "string_coding.h"
 #include <boost/format.hpp>
 #include "wallet_errors.h"
-#include "net/http_client.h"
-#include "net/net_parse_helpers.h"
-#include <algorithm>
+// #include "net/http_client.h" already #included in /wallet/message_transporter.h
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "wallet.mms"

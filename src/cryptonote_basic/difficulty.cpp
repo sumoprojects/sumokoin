@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2019, Sumokoin Project
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2017-2020, Sumokoin Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -31,13 +31,12 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstddef>
 #include <cstdint>
 #include <vector>
 #include <boost/math/special_functions/round.hpp>
 
 #include "int-util.h"
-#include "crypto/hash.h"
+// #include "crypto/hash.h" // already #included in cryptonote_basic/difficulty.h
 #include "cryptonote_config.h"
 #include "difficulty.h"
 #include "misc_language.h"
@@ -451,7 +450,7 @@ namespace cryptonote {
     difficulty_type total_work = cumulative_difficulties[cut_end - 1] - cumulative_difficulties[cut_begin];
     assert(total_work > 0);
 
-    boost::multiprecision::uint256_t res = (boost::multiprecision::uint256_t(total_work) + adjusted_total_timespan - 1) / adjusted_total_timespan;
+    boost::multiprecision::uint256_t res = (boost::multiprecision::uint256_t(total_work) * target_seconds + adjusted_total_timespan - 1) / adjusted_total_timespan;
     if (res > max128bit)
       return 0; // to behave like previous implementation, may be better return max128bit?
     return res.convert_to<difficulty_type>();

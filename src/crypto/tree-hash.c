@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -29,7 +29,6 @@
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include <assert.h>
-#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -83,7 +82,7 @@ void tree_hash(const char (*hashes)[HASH_SIZE], size_t count, char *root_hash) {
 
     size_t cnt = tree_hash_cnt( count );
 
-    char *ints = calloc(cnt, HASH_SIZE);  // zero out as extra protection for using uninitialized mem
+    char *ints = calloc(cnt, 2 * HASH_SIZE);  // zero out as extra protection for using uninitialized mem
     assert(ints);
 
     memcpy(ints, hashes, (2 * cnt - count) * HASH_SIZE);

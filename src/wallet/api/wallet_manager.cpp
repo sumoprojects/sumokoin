@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -31,14 +31,10 @@
 
 #include "wallet_manager.h"
 #include "wallet.h"
-#include "common_defines.h"
 #include "common/dns_utils.h"
-#include "common/util.h"
 #include "common/updates.h"
 #include "version.h"
-#include "net/http_client.h"
-#include <boost/filesystem.hpp>
-#include <boost/regex.hpp>
+// #include "net/http_client.h" // already #included in wallet/api/wallet_manager.h
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "WalletAPI"
@@ -67,7 +63,7 @@ Wallet *WalletManagerImpl::openWallet(const std::string &path, const std::string
 
     wallet->open(path, password);
     //Refresh addressBook
-    wallet->addressBook()->refresh(); 
+    wallet->addressBook()->refresh();
     return wallet;
 }
 
@@ -107,7 +103,7 @@ Wallet *WalletManagerImpl::recoveryWallet(const std::string &path,
 Wallet *WalletManagerImpl::createWalletFromKeys(const std::string &path,
                                                 const std::string &password,
                                                 const std::string &language,
-                                                NetworkType nettype, 
+                                                NetworkType nettype,
                                                 uint64_t restoreHeight,
                                                 const std::string &addressString,
                                                 const std::string &viewKeyString,
@@ -309,15 +305,13 @@ bool WalletManagerImpl::isMining()
     return mres.active;
 }
 
-bool WalletManagerImpl::startMining(const std::string &address, uint32_t threads, bool background_mining, bool ignore_battery)
+bool WalletManagerImpl::startMining(const std::string &address, uint32_t threads)
 {
     cryptonote::COMMAND_RPC_START_MINING::request mreq;
     cryptonote::COMMAND_RPC_START_MINING::response mres;
 
     mreq.miner_address = address;
     mreq.threads_count = threads;
-    mreq.ignore_battery = ignore_battery;
-    mreq.do_background_mining = background_mining;
 
     if (!epee::net_utils::invoke_http_json("/start_mining", mreq, mres, m_http_client))
       return false;
@@ -375,6 +369,10 @@ std::tuple<bool, std::string, std::string, std::string, std::string> WalletManag
     return std::make_tuple(false, "", "", "", "");
 }
 
+bool WalletManagerImpl::setProxy(const std::string &address)
+{
+    return m_http_client.set_proxy(address);
+}
 
 ///////////////////// WalletManagerFactory implementation //////////////////////
 WalletManager *WalletManagerFactory::getWalletManager()

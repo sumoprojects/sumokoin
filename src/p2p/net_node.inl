@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -31,7 +31,6 @@
 // IP blocking adapted from Boolberry
 
 #include <algorithm>
-#include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/optional/optional.hpp>
@@ -43,6 +42,9 @@
 #include <memory>
 #include <tuple>
 #include <vector>
+#include<iostream>
+#include<string>
+#include<fstream>
 
 #include "version.h"
 #include "string_tools.h"
@@ -116,6 +118,7 @@ namespace nodetool
     command_line::add_arg(desc, arg_no_sync);
     command_line::add_arg(desc, arg_no_igd);
     command_line::add_arg(desc, arg_igd);
+    command_line::add_arg(desc, arg_same_version);
     command_line::add_arg(desc, arg_out_peers);
     command_line::add_arg(desc, arg_in_peers);
     command_line::add_arg(desc, arg_tos_flag);
@@ -252,8 +255,15 @@ namespace nodetool
 
       conns.clear();
     }
+<<<<<<< HEAD
+    if (seconds >= 500 * P2P_IP_BLOCKTIME)
+      MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked permanently.");
+    else
+      MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << seconds << " seconds.");
+=======
 
     MCLOG_CYAN(el::Level::Info, "global", "Host " << addr.host_str() << " blocked for " << P2P_IP_BLOCKTIME << " seconds.");
+>>>>>>> origin/android-wallet
     return true;
   }
   //-----------------------------------------------------------------------------------
@@ -322,15 +332,15 @@ namespace nodetool
   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
-  bool node_server<t_payload_net_handler>::add_host_fail(const epee::net_utils::network_address &address, unsigned int score)
+  bool node_server<t_payload_net_handler>::add_host_fail(const epee::net_utils::network_address &address, uint64_t score)
   {
     if(!address.is_blockable())
       return false;
 
     CRITICAL_REGION_LOCAL(m_host_fails_score_lock);
-    uint64_t fails = m_host_fails_score[address.host_str()] += score;
-    MDEBUG("Host " << address.host_str() << " fail score=" << fails);
-    if(fails > P2P_IP_FAILS_BEFORE_BLOCK)
+    score = ++m_host_fails_score[address.host_str()];
+    MDEBUG("Host " << address.host_str() << " fail score=" << score);
+    if(score > P2P_IP_FAILS_BEFORE_BLOCK)
     {
       auto it = m_host_fails_score.find(address.host_str());
       CHECK_AND_ASSERT_MES(it != m_host_fails_score.end(), false, "internal error");
@@ -361,6 +371,7 @@ namespace nodetool
     m_allow_local_ip = command_line::get_arg(vm, arg_p2p_allow_local_ip);
     const bool has_no_igd = command_line::get_arg(vm, arg_no_igd);
     const std::string sigd = command_line::get_arg(vm, arg_igd);
+
     if (sigd == "enabled")
     {
       if (has_no_igd)
@@ -392,7 +403,11 @@ namespace nodetool
     m_use_ipv6 = command_line::get_arg(vm, arg_p2p_use_ipv6);
     m_require_ipv4 = !command_line::get_arg(vm, arg_p2p_ignore_ipv4);
     public_zone.m_notifier = cryptonote::levin::notify{
+<<<<<<< HEAD
+      public_zone.m_net_server.get_io_service(), public_zone.m_net_server.get_config_shared(), nullptr, true, pad_txs, m_payload_handler.get_core()
+=======
       public_zone.m_net_server.get_io_service(), public_zone.m_net_server.get_config_shared(), nullptr, true, pad_txs
+>>>>>>> origin/android-wallet
     };
 
     if (command_line::has_arg(vm, arg_p2p_add_peer))
@@ -447,6 +462,9 @@ namespace nodetool
 
     if(command_line::has_arg(vm, arg_p2p_hide_my_port))
       m_hide_my_port = true;
+
+    if(command_line::has_arg(vm, arg_same_version))
+      m_same_version = true;
 
     if (command_line::has_arg(vm, arg_no_sync))
       m_payload_handler.set_no_sync(true);
@@ -503,7 +521,11 @@ namespace nodetool
       }
 
       zone.m_notifier = cryptonote::levin::notify{
+<<<<<<< HEAD
+        zone.m_net_server.get_io_service(), zone.m_net_server.get_config_shared(), std::move(this_noise), false, pad_txs, m_payload_handler.get_core()
+=======
         zone.m_net_server.get_io_service(), zone.m_net_server.get_config_shared(), std::move(this_noise), false, pad_txs
+>>>>>>> origin/android-wallet
       };
     }
 
@@ -607,6 +629,32 @@ namespace nodetool
     std::set<std::string> full_addrs;
     if (nettype == cryptonote::TESTNET)
     {
+<<<<<<< HEAD
+      full_addrs.insert(SEED_TESTNET_1);
+      full_addrs.insert(SEED_TESTNET_2);
+      full_addrs.insert(SEED_TESTNET_3);
+      full_addrs.insert(SEED_TESTNET_4);
+      full_addrs.insert(SEED_TESTNET_5);
+      full_addrs.insert(SEED_TESTNET_6);
+    }
+    else if (nettype == cryptonote::STAGENET)
+    {
+      full_addrs.insert(SEED_STAGENET_1);
+      full_addrs.insert(SEED_STAGENET_2);
+      full_addrs.insert(SEED_STAGENET_3);
+      full_addrs.insert(SEED_STAGENET_4);
+    }
+    else
+    {
+      full_addrs.insert(SEED_MAINNET_1);
+      full_addrs.insert(SEED_MAINNET_2);
+      full_addrs.insert(SEED_MAINNET_3);
+      full_addrs.insert(SEED_MAINNET_4);
+      full_addrs.insert(SEED_MAINNET_5);
+      full_addrs.insert(SEED_MAINNET_6);
+      full_addrs.insert(SEED_MAINNET_7);
+      full_addrs.insert(SEED_MAINNET_8);
+=======
       full_addrs.insert("144.217.164.165:29733");
       full_addrs.insert("217.182.76.94:29733");
       full_addrs.insert("139.99.40.69:29733");
@@ -631,6 +679,7 @@ namespace nodetool
       full_addrs.insert("157.245.14.220:19733"); // NY
       full_addrs.insert("134.209.109.190:19733"); // Singapore
       full_addrs.insert("167.172.44.84:19733"); // Amsterdam
+>>>>>>> origin/android-wallet
     }
     return full_addrs;
   }
@@ -654,6 +703,48 @@ namespace nodetool
     bool res = handle_command_line(vm);
     CHECK_AND_ASSERT_MES(res, false, "Failed to handle command line");
 
+    // insert permanent banned ips if any
+
+    std::string b_ips;
+    std::ifstream permanently_banned_ips("bannedips");
+    while(getline(permanently_banned_ips, b_ips))
+    {
+      using namespace boost::asio;
+
+      std::string host = b_ips;
+      std::string port = std::to_string(19733);
+      size_t colon_pos = b_ips.find_last_of(':');
+      size_t dot_pos = b_ips.find_last_of('.');
+      size_t square_brace_pos = b_ips.find('[');
+      if ((std::string::npos != colon_pos && std::string::npos != dot_pos) || std::string::npos != square_brace_pos)
+      {
+        net::get_network_address_host_and_port(b_ips, host, port);
+      }
+      io_service io_srv;
+      ip::tcp::resolver resolver(io_srv);
+      ip::tcp::resolver::query query(host, port, boost::asio::ip::tcp::resolver::query::canonical_name);
+      boost::system::error_code ec;
+      ip::tcp::resolver::iterator i = resolver.resolve(query, ec);
+      CHECK_AND_ASSERT_MES(!ec, false, "Failed to resolve host name '" << host << "': " << ec.message() << ':' << ec.value());
+
+      ip::tcp::resolver::iterator iend;
+      for (; i != iend; ++i)
+      {
+        ip::tcp::endpoint endpoint = *i;
+        if (endpoint.address().is_v4())
+        {
+          epee::net_utils::network_address na{epee::net_utils::ipv4_network_address{boost::asio::detail::socket_ops::host_to_network_long(endpoint.address().to_v4().to_ulong()), endpoint.port()}};
+          block_host(na, std::numeric_limits<time_t>::max());
+        }
+        else
+        {
+          epee::net_utils::network_address na{epee::net_utils::ipv6_network_address{endpoint.address().to_v6(), endpoint.port()}};
+          block_host(na, std::numeric_limits<time_t>::max());
+        }
+      }
+    }
+    permanently_banned_ips.close();
+
     m_fallback_seed_nodes_added = false;
     if (m_nettype == cryptonote::TESTNET)
     {
@@ -668,6 +759,12 @@ namespace nodetool
     else
     {
       memcpy(&m_network_id, &::config::NETWORK_ID, 16);
+<<<<<<< HEAD
+       for (const auto &peer: get_seed_nodes(cryptonote::MAINNET))
+        full_addrs.insert(peer);
+       m_fallback_seed_nodes_added = true;
+    }
+=======
       if (m_exclusive_peers.empty() && !m_offline)
       {
 /*
@@ -762,6 +859,7 @@ namespace nodetool
       }
     }
 //  }
+>>>>>>> origin/android-wallet
 
     for (const auto& full_addr : full_addrs)
     {
@@ -898,7 +996,8 @@ namespace nodetool
           unsigned int number_of_out_peers = 0;
           zone.second.m_net_server.get_config_object().foreach_connection([&](const p2p_connection_context& cntxt)
           {
-            if (cntxt.m_is_income)
+            // dont count lingering backpings
+            if (cntxt.m_is_income && !(cntxt.m_state == p2p_connection_context::state_before_handshake && std::time(NULL) > cntxt.m_started + 10))
             {
               ++number_of_in_peers;
             }
@@ -920,8 +1019,8 @@ namespace nodetool
     })); // lambda
 
     network_zone& public_zone = m_network_zones.at(epee::net_utils::zone::public_);
-    public_zone.m_net_server.add_idle_handler(boost::bind(&node_server<t_payload_net_handler>::idle_worker, this), 1000);
-    public_zone.m_net_server.add_idle_handler(boost::bind(&t_payload_net_handler::on_idle, &m_payload_handler), 1000);
+    public_zone.m_net_server.add_idle_handler(std::bind(&node_server<t_payload_net_handler>::idle_worker, this), 1000);
+    public_zone.m_net_server.add_idle_handler(std::bind(&t_payload_net_handler::on_idle, &m_payload_handler), 1000);
 
     //here you can set worker threads count
     int thrds_count = 10;
@@ -1032,8 +1131,20 @@ namespace nodetool
       if(code < 0)
       {
         LOG_WARNING_CC(context, "COMMAND_HANDSHAKE invoke failed. (" << code <<  ", " << epee::levin::get_err_descr(code) << ")");
+<<<<<<< HEAD
+        if (code == LEVIN_ERROR_CONNECTION_DESTROYED)
+        {
+          timeout = true;
+        }
+        if (code == LEVIN_ERROR_CONNECTION_TIMEDOUT)
+        {
+          timeout = true;
+          add_host_fail(context.m_remote_address);
+        }
+=======
         if (code == LEVIN_ERROR_CONNECTION_TIMEDOUT || code == LEVIN_ERROR_CONNECTION_DESTROYED)
           timeout = true;
+>>>>>>> origin/android-wallet
         return;
       }
       std::string remote_version = rsp.node_data.version.substr(0,12);
@@ -1452,7 +1563,11 @@ namespace nodetool
       }
 
       std::deque<size_t> filtered;
+<<<<<<< HEAD
+      const size_t limit = use_white_list ? 30 : std::numeric_limits<size_t>::max();
+=======
       const size_t limit = use_white_list ? 20 : std::numeric_limits<size_t>::max();
+>>>>>>> origin/android-wallet
       for (int step = 0; step < 2; ++step)
       {
         bool skip_duplicate_class_B = step == 0;
@@ -1673,7 +1788,7 @@ namespace nodetool
 
     if (start_conn_count == get_public_outgoing_connections_count() && start_conn_count < m_network_zones.at(zone_type::public_).m_config.m_net_config.max_out_connection_count)
     {
-      MINFO("Failed to connect to any, trying seeds");
+      MINFO("No previous stored connections, trying seeds");
       if (!connect_to_seed())
         return false;
     }
@@ -1815,11 +1930,11 @@ namespace nodetool
   template<class t_payload_net_handler>
   bool node_server<t_payload_net_handler>::idle_worker()
   {
-    m_peer_handshake_idle_maker_interval.do_call(boost::bind(&node_server<t_payload_net_handler>::peer_sync_idle_maker, this));
-    m_connections_maker_interval.do_call(boost::bind(&node_server<t_payload_net_handler>::connections_maker, this));
-    m_gray_peerlist_housekeeping_interval.do_call(boost::bind(&node_server<t_payload_net_handler>::gray_peerlist_housekeeping, this));
-    m_peerlist_store_interval.do_call(boost::bind(&node_server<t_payload_net_handler>::store_config, this));
-    m_incoming_connections_interval.do_call(boost::bind(&node_server<t_payload_net_handler>::check_incoming_connections, this));
+    m_peer_handshake_idle_maker_interval.do_call(std::bind(&node_server<t_payload_net_handler>::peer_sync_idle_maker, this));
+    m_connections_maker_interval.do_call(std::bind(&node_server<t_payload_net_handler>::connections_maker, this));
+    m_gray_peerlist_housekeeping_interval.do_call(std::bind(&node_server<t_payload_net_handler>::gray_peerlist_housekeeping, this));
+    m_peerlist_store_interval.do_call(std::bind(&node_server<t_payload_net_handler>::store_config, this));
+    m_incoming_connections_interval.do_call(std::bind(&node_server<t_payload_net_handler>::check_incoming_connections, this));
     return true;
   }
   //-----------------------------------------------------------------------------------
@@ -1994,6 +2109,15 @@ namespace nodetool
   }
   //-----------------------------------------------------------------------------------
   template<class t_payload_net_handler>
+<<<<<<< HEAD
+  epee::net_utils::zone node_server<t_payload_net_handler>::send_txs(std::vector<cryptonote::blobdata> txs, const epee::net_utils::zone origin, const boost::uuids::uuid& source, const cryptonote::relay_method tx_relay)
+  {
+    namespace enet = epee::net_utils;
+
+    const auto send = [&txs, &source, tx_relay] (std::pair<const enet::zone, network_zone>& network)
+    {
+      if (network.second.m_notifier.send_txs(std::move(txs), source, tx_relay))
+=======
   epee::net_utils::zone node_server<t_payload_net_handler>::send_txs(std::vector<cryptonote::blobdata> txs, const epee::net_utils::zone origin, const boost::uuids::uuid& source, cryptonote::i_core_events& core, const cryptonote::relay_method tx_relay)
   {
     namespace enet = epee::net_utils;
@@ -2001,6 +2125,7 @@ namespace nodetool
     const auto send = [&txs, &source, &core, tx_relay] (std::pair<const enet::zone, network_zone>& network)
     {
       if (network.second.m_notifier.send_txs(std::move(txs), source, core, tx_relay))
+>>>>>>> origin/android-wallet
         return network.first;
       return enet::zone::invalid;
     };
@@ -2095,7 +2220,7 @@ namespace nodetool
 
     const epee::net_utils::network_address na = context.m_remote_address;
     std::string ip;
-    uint32_t ipv4_addr;
+    uint32_t ipv4_addr = 0;
     boost::asio::ip::address_v6 ipv6_addr;
     bool is_ipv4;
     if (na.get_type_id() == epee::net_utils::ipv4_network_address::get_type_id())
@@ -2259,14 +2384,39 @@ namespace nodetool
   int node_server<t_payload_net_handler>::handle_handshake(int command, typename COMMAND_HANDSHAKE::request& arg, typename COMMAND_HANDSHAKE::response& rsp, p2p_connection_context& context)
   {
     std::string r_version = arg.node_data.version.substr(0,12);
+<<<<<<< HEAD
+    if(!m_same_version)
+=======
     if (arg.node_data.version.size() == 0)
+>>>>>>> origin/android-wallet
     {
-      MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
-    }
+      if (arg.node_data.version.size() == 0)
+      {
+        MINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier");
+      }
 
-    if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
+      if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
+      {
+        MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << r_version);
+      }
+    }
+    else
     {
+<<<<<<< HEAD
+      if (arg.node_data.version.size() == 0)
+      {
+        MGINFO("Peer " << context.m_remote_address.str() << " did not provide version information it must be Morioka 0.5.1.1 or earlier. Blocking!");
+        block_host(context.m_remote_address);
+      }
+
+      if (arg.node_data.version.size() != 0 && arg.node_data.version != SUMOKOIN_VERSION)
+      {
+        MGINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << r_version << " Blocking!");
+        block_host(context.m_remote_address);
+      }
+=======
       MINFO("Peer " << context.m_remote_address.str() << " has a different version than ours: " << r_version);
+>>>>>>> origin/android-wallet
     }
 
     if(arg.node_data.network_id != m_network_id)
@@ -2733,13 +2883,9 @@ namespace nodetool
     int result;
     const int ipv6_arg = ipv6 ? 1 : 0;
 
-#if MINIUPNPC_API_VERSION > 13
     // default according to miniupnpc.h
     unsigned char ttl = 2;
     UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, ttl, &result);
-#else
-    UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, &result);
-#endif
     UPNPUrls urls;
     IGDdatas igdData;
     char lanAddress[64];
@@ -2793,7 +2939,6 @@ namespace nodetool
     if (ipv6) add_upnp_port_mapping_v6(port);
   }
 
-
   template<class t_payload_net_handler>
   void node_server<t_payload_net_handler>::delete_upnp_port_mapping_impl(uint32_t port, bool ipv6)
   {
@@ -2801,13 +2946,9 @@ namespace nodetool
     MDEBUG("Attempting to delete IGD port mapping " << ipversion << ".");
     int result;
     const int ipv6_arg = ipv6 ? 1 : 0;
-#if MINIUPNPC_API_VERSION > 13
     // default according to miniupnpc.h
     unsigned char ttl = 2;
     UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, ttl, &result);
-#else
-    UPNPDev* deviceList = upnpDiscover(1000, NULL, NULL, 0, ipv6_arg, &result);
-#endif
     UPNPUrls urls;
     IGDdatas igdData;
     char lanAddress[64];

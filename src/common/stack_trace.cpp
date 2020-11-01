@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2019, The Monero Project
+// Copyright (c) 2016-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -167,9 +167,17 @@ void log_stack_trace(const char *msg)
   ss << el::base::debug::StackTrace();
   std::vector<std::string> lines;
   std::string s = ss.str();
+  std::string s1 = "9ZmqServer5serveEv";
+  if (s.find(s1) != std::string::npos)
+  {
+   ST_LOG("Exiting and severing ZMQ thread, system error logged is due to that and can be ignored");
+  }
+  else
+  {
   boost::split(lines, s, boost::is_any_of("\n"));
   for (const auto &line: lines)
     ST_LOG(line);
+  }
 #endif
 }
 

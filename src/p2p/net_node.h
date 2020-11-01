@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -246,6 +246,7 @@ namespace nodetool
         m_allow_local_ip(false),
         m_hide_my_port(false),
         m_igd(no_igd),
+        m_same_version(false),
         m_offline(false),
         is_closing(false),
         m_network_id()
@@ -290,14 +291,6 @@ namespace nodetool
     virtual void remove_used_stripe_peer(const typename t_payload_net_handler::connection_context &context);
     virtual void clear_used_stripe_peers();
 
-  private:
-    const std::vector<std::string> m_seed_nodes_list =
-    { "seeds.sumoseeds.bid"
-    , "seeds.sumoseeds.win"
-    , "seeds.sumoseeds.stream"
-    , "seeds.sumoseeds.download"
-    };
-
     bool islimitup=false;
     bool islimitdown=false;
 
@@ -334,14 +327,18 @@ namespace nodetool
     virtual void callback(p2p_connection_context& context);
     //----------------- i_p2p_endpoint -------------------------------------------------------------
     virtual bool relay_notify_to_list(int command, const epee::span<const uint8_t> data_buff, std::vector<std::pair<epee::net_utils::zone, boost::uuids::uuid>> connections);
+<<<<<<< HEAD
+    virtual epee::net_utils::zone send_txs(std::vector<cryptonote::blobdata> txs, const epee::net_utils::zone origin, const boost::uuids::uuid& source, cryptonote::relay_method tx_relay);
+=======
     virtual epee::net_utils::zone send_txs(std::vector<cryptonote::blobdata> txs, const epee::net_utils::zone origin, const boost::uuids::uuid& source, cryptonote::i_core_events& core, cryptonote::relay_method tx_relay);
+>>>>>>> origin/android-wallet
     virtual bool invoke_command_to_peer(int command, const epee::span<const uint8_t> req_buff, std::string& resp_buff, const epee::net_utils::connection_context_base& context);
     virtual bool invoke_notify_to_peer(int command, const epee::span<const uint8_t> req_buff, const epee::net_utils::connection_context_base& context);
     virtual bool drop_connection(const epee::net_utils::connection_context_base& context);
     virtual void request_callback(const epee::net_utils::connection_context_base& context);
     virtual void for_each_connection(std::function<bool(typename t_payload_net_handler::connection_context&, peerid_type, uint32_t)> f);
     virtual bool for_connection(const boost::uuids::uuid&, std::function<bool(typename t_payload_net_handler::connection_context&, peerid_type, uint32_t)> f);
-    virtual bool add_host_fail(const epee::net_utils::network_address &address, unsigned int score = 1);
+    virtual bool add_host_fail(const epee::net_utils::network_address &address, uint64_t score = 1);
     //----------------- i_connection_filter  --------------------------------------------------------
     virtual bool is_remote_host_allowed(const epee::net_utils::network_address &address, time_t *t = NULL);
     //-----------------------------------------------------------------------------------------------
@@ -447,6 +444,7 @@ namespace nodetool
     bool m_allow_local_ip;
     bool m_hide_my_port;
     igd_t m_igd;
+    bool m_same_version;
     bool m_offline;
     bool m_use_ipv6;
     bool m_require_ipv4;
@@ -462,7 +460,7 @@ namespace nodetool
     epee::math_helper::once_a_time_seconds<1> m_connections_maker_interval;
     epee::math_helper::once_a_time_seconds<60*10, false> m_peerlist_store_interval;
     epee::math_helper::once_a_time_seconds<10> m_gray_peerlist_housekeeping_interval;
-    epee::math_helper::once_a_time_seconds<3600, false> m_incoming_connections_interval;
+    epee::math_helper::once_a_time_seconds<600, false> m_incoming_connections_interval;
 
     std::list<epee::net_utils::network_address>   m_priority_peers;
     std::vector<epee::net_utils::network_address> m_exclusive_peers;
@@ -525,6 +523,7 @@ namespace nodetool
 
     extern const command_line::arg_descriptor<bool>        arg_no_igd;
     extern const command_line::arg_descriptor<std::string> arg_igd;
+    extern const command_line::arg_descriptor<bool>        arg_same_version;
     extern const command_line::arg_descriptor<bool>        arg_offline;
     extern const command_line::arg_descriptor<int64_t>     arg_out_peers;
     extern const command_line::arg_descriptor<int64_t>     arg_in_peers;
@@ -534,6 +533,10 @@ namespace nodetool
     extern const command_line::arg_descriptor<int64_t> arg_limit_rate_down;
     extern const command_line::arg_descriptor<int64_t> arg_limit_rate;
     extern const command_line::arg_descriptor<bool> arg_pad_transactions;
+<<<<<<< HEAD
+
+=======
+>>>>>>> origin/android-wallet
 }
 
 POP_WARNINGS

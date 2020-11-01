@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2019, Sumokoin Project
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2017-2020, Sumokoin Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -32,21 +32,12 @@
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <unordered_set>
-#include <vector>
 
 #include "tx_pool.h"
 #include "cryptonote_tx_utils.h"
 #include "cryptonote_basic/cryptonote_boost_serialization.h"
-#include "cryptonote_config.h"
 #include "blockchain.h"
 #include "blockchain_db/locked_txn.h"
-#include "blockchain_db/blockchain_db.h"
-#include "common/boost_serialization_helper.h"
-#include "int-util.h"
-#include "misc_language.h"
-#include "warnings.h"
-#include "common/perf_timer.h"
-#include "crypto/hash.h"
 #include "crypto/duration.h"
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
@@ -90,6 +81,8 @@ namespace cryptonote
     time_t const MAX_RELAY_TIME = (60 * 60 * 4); // at most that many seconds between resends
     float const ACCEPT_THRESHOLD = 1.0f;
 
+    constexpr const std::chrono::seconds forward_delay_average{CRYPTONOTE_FORWARD_DELAY_AVERAGE};
+
     // a kind of increasing backoff within min/max bounds
     uint64_t get_relay_delay(time_t now, time_t received)
     {
@@ -116,8 +109,7 @@ namespace cryptonote
     }
   }
   //---------------------------------------------------------------------------------
-  //---------------------------------------------------------------------------------
-  tx_memory_pool::tx_memory_pool(Blockchain& bchs): m_blockchain(bchs), m_txpool_max_weight(DEFAULT_TXPOOL_MAX_WEIGHT), m_txpool_weight(0), m_cookie(0)
+  tx_memory_pool::tx_memory_pool(Blockchain& bchs): m_blockchain(bchs), m_cookie(0), m_txpool_max_weight(DEFAULT_TXPOOL_MAX_WEIGHT), m_txpool_weight(0), m_mine_stem_txes(false)
   {
 
   }
@@ -312,8 +304,14 @@ namespace cryptonote
 
         if (meta.upgrade_relay_method(tx_relay) || !existing_tx) // synchronize with embargo timer or stem/fluff out-of-order messages
         {
+          using clock = std::chrono::system_clock;
+          auto last_relayed_time = std::numeric_limits<decltype(meta.last_relayed_time)>::max();
+          if (tx_relay == relay_method::forward)
+            last_relayed_time = clock::to_time_t(clock::now() + crypto::random_poisson_seconds{forward_delay_average}());
+          // else the `set_relayed` function will adjust the time accordingly later
+
           //update transactions container
-          meta.last_relayed_time = std::numeric_limits<decltype(meta.last_relayed_time)>::max();
+          meta.last_relayed_time = last_relayed_time;
           meta.receive_time = receive_time;
           meta.weight = tx_weight;
           meta.fee = fee;
@@ -346,7 +344,7 @@ namespace cryptonote
       tvc.m_added_to_pool = true;
 
       static_assert(unsigned(relay_method::none) == 0, "expected relay_method::none value to be zero");
-      if(meta.fee > 0)
+      if(meta.fee > 0 && tx_relay != relay_method::forward)
         tvc.m_relay = tx_relay;
     }
 
@@ -618,7 +616,7 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL(m_transactions_lock);
     CRITICAL_REGION_LOCAL1(m_blockchain);
 
-    m_blockchain.for_all_txpool_txes([this, &hashes, &txes](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata*) {
+    m_blockchain.for_all_txpool_txes([this, &hashes, &txes](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref*) {
       const auto tx_relay_method = meta.get_relay_method();
       if (tx_relay_method != relay_method::block && tx_relay_method != relay_method::fluff)
         return true;
@@ -666,7 +664,7 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL(m_transactions_lock);
     CRITICAL_REGION_LOCAL1(m_blockchain);
     std::list<std::pair<crypto::hash, uint64_t>> remove;
-    m_blockchain.for_all_txpool_txes([this, &remove](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata*) {
+    m_blockchain.for_all_txpool_txes([this, &remove](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref*) {
       uint64_t tx_age = time(nullptr) - meta.receive_time;
 
       if((tx_age > CRYPTONOTE_MEMPOOL_TX_LIVETIME && !meta.kept_by_block) ||
@@ -726,28 +724,46 @@ namespace cryptonote
   //TODO: investigate whether boolean return is appropriate
   bool tx_memory_pool::get_relayable_transactions(std::vector<std::tuple<crypto::hash, cryptonote::blobdata, relay_method>> &txs) const
   {
+    std::vector<std::pair<crypto::hash, txpool_tx_meta_t>> change_timestamps;
+    const uint64_t now = time(NULL);
+
     CRITICAL_REGION_LOCAL(m_transactions_lock);
     CRITICAL_REGION_LOCAL1(m_blockchain);
-    const uint64_t now = time(NULL);
+    LockedTXN lock(m_blockchain.get_db());
     txs.reserve(m_blockchain.get_txpool_tx_count());
-    m_blockchain.for_all_txpool_txes([this, now, &txs](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata *){
+    m_blockchain.for_all_txpool_txes([this, now, &txs, &change_timestamps](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref *){
       // 0 fee transactions are never relayed
       if(!meta.pruned && meta.fee > 0 && !meta.do_not_relay)
       {
-        if (!meta.dandelionpp_stem && now - meta.last_relayed_time <= get_relay_delay(now, meta.receive_time))
-          return true;
-        if (meta.dandelionpp_stem && meta.last_relayed_time < now) // for dandelion++ stem, this value is the embargo timeout
-          return true;
+        const relay_method tx_relay = meta.get_relay_method();
+        switch (tx_relay)
+        {
+          case relay_method::stem:
+          case relay_method::forward:
+            if (meta.last_relayed_time > now)
+              return true; // continue to next tx
+            change_timestamps.emplace_back(txid, meta);
+            break;
+            default:
+            case relay_method::none:
+             return true;
+            case relay_method::local:
+            case relay_method::fluff:
+            case relay_method::block:
+              if (now - meta.last_relayed_time <= get_relay_delay(now, meta.receive_time))
+                return true; // continue to next tx
+              break;
+         }
 
         // if the tx is older than half the max lifetime, we don't re-relay it, to avoid a problem
         // mentioned by smooth where nodes would flush txes at slightly different times, causing
         // flushed txes to be re-added when received from a node which was just about to flush it
-        uint64_t max_age = meta.kept_by_block ? CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME : CRYPTONOTE_MEMPOOL_TX_LIVETIME;
+        uint64_t max_age = (tx_relay == relay_method::block) ? CRYPTONOTE_MEMPOOL_TX_FROM_ALT_BLOCK_LIVETIME : CRYPTONOTE_MEMPOOL_TX_LIVETIME;
         if (now - meta.receive_time <= max_age / 2)
         {
           try
           {
-            txs.emplace_back(txid, m_blockchain.get_txpool_tx_blob(txid, relay_category::all), meta.get_relay_method());
+            txs.emplace_back(txid, m_blockchain.get_txpool_tx_blob(txid, relay_category::all), tx_relay);
           }
           catch (const std::exception &e)
           {
@@ -758,6 +774,18 @@ namespace cryptonote
       }
       return true;
     }, false, relay_category::relayable);
+
+    for (auto& elem : change_timestamps)
+    {
+      /* These transactions are still in forward or stem state, so the field
+         represents the next time a relay should be attempted. Will be
+         overwritten when the state is upgraded to stem, fluff or block. This
+         function is only called every ~2 minutes, so this resetting should be
+         unnecessary, but is primarily a precaution against potential changes
+	 to the callback routines. */
+      elem.second.last_relayed_time = now + get_relay_delay(now, elem.second.receive_time);
+      m_blockchain.update_txpool_tx(elem.first, elem.second);
+    }
     return true;
   }
   //---------------------------------------------------------------------------------
@@ -810,7 +838,7 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL1(m_blockchain);
     const relay_category category = include_sensitive ? relay_category::all : relay_category::broadcasted;
     txs.reserve(m_blockchain.get_txpool_tx_count(include_sensitive));
-    m_blockchain.for_all_txpool_txes([&txs](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata *bd){
+    m_blockchain.for_all_txpool_txes([&txs](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref *bd){
       transaction tx;
       if (!(meta.pruned ? parse_and_validate_tx_base_from_blob(*bd, tx) : parse_and_validate_tx_from_blob(*bd, tx)))
       {
@@ -830,7 +858,7 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL1(m_blockchain);
     const relay_category category = include_sensitive ? relay_category::all : relay_category::broadcasted;
     txs.reserve(m_blockchain.get_txpool_tx_count(include_sensitive));
-    m_blockchain.for_all_txpool_txes([&txs](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata *bd){
+    m_blockchain.for_all_txpool_txes([&txs](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref *bd){
       txs.push_back(txid);
       return true;
     }, false, category);
@@ -843,7 +871,7 @@ namespace cryptonote
     const uint64_t now = time(NULL);
     const relay_category category = include_sensitive ? relay_category::all : relay_category::broadcasted;
     backlog.reserve(m_blockchain.get_txpool_tx_count(include_sensitive));
-    m_blockchain.for_all_txpool_txes([&backlog, now](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata *bd){
+    m_blockchain.for_all_txpool_txes([&backlog, now](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref *bd){
       backlog.push_back({meta.weight, meta.fee, meta.receive_time - now});
       return true;
     }, false, category);
@@ -859,7 +887,7 @@ namespace cryptonote
     stats.txs_total = m_blockchain.get_txpool_tx_count(include_sensitive);
     std::vector<uint32_t> weights;
     weights.reserve(stats.txs_total);
-    m_blockchain.for_all_txpool_txes([&stats, &weights, now, &agebytes](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata *bd){
+    m_blockchain.for_all_txpool_txes([&stats, &weights, now, &agebytes](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref *bd){
       weights.push_back(meta.weight);
       stats.bytes_total += meta.weight;
       if (!stats.bytes_min || meta.weight < stats.bytes_min)
@@ -945,10 +973,10 @@ namespace cryptonote
     const size_t count = m_blockchain.get_txpool_tx_count(include_sensitive_data);
     tx_infos.reserve(count);
     key_image_infos.reserve(count);
-    m_blockchain.for_all_txpool_txes([&tx_infos, key_image_infos, include_sensitive_data](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata *bd){
+    m_blockchain.for_all_txpool_txes([&tx_infos, key_image_infos, include_sensitive_data](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref *bd){
       tx_info txi;
       txi.id_hash = epee::string_tools::pod_to_hex(txid);
-      txi.tx_blob = *bd;
+      txi.tx_blob = blobdata(bd->data(), bd->size());
       transaction tx;
       if (!(meta.pruned ? parse_and_validate_tx_base_from_blob(*bd, tx) : parse_and_validate_tx_from_blob(*bd, tx)))
       {
@@ -1002,7 +1030,7 @@ namespace cryptonote
     CRITICAL_REGION_LOCAL1(m_blockchain);
     tx_infos.reserve(m_blockchain.get_txpool_tx_count());
     key_image_infos.reserve(m_blockchain.get_txpool_tx_count());
-    m_blockchain.for_all_txpool_txes([&tx_infos, key_image_infos](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata *bd){
+    m_blockchain.for_all_txpool_txes([&tx_infos, key_image_infos](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref *bd){
       cryptonote::rpc::tx_in_pool txi;
       txi.tx_hash = txid;
       if (!(meta.pruned ? parse_and_validate_tx_base_from_blob(*bd, txi.tx) : parse_and_validate_tx_from_blob(*bd, txi.tx)))
@@ -1126,7 +1154,7 @@ namespace cryptonote
       // See `insert_key_images`.
       if (1 < found->second.size() || *(found->second.cbegin()) != txid)
         return true;
-      return m_blockchain.txpool_tx_matches_category(txid, relay_category::broadcasted);
+      return m_blockchain.txpool_tx_matches_category(txid, relay_category::legacy);
     }
     return false;
   }
@@ -1298,7 +1326,7 @@ namespace cryptonote
     std::stringstream ss;
     CRITICAL_REGION_LOCAL(m_transactions_lock);
     CRITICAL_REGION_LOCAL1(m_blockchain);
-    m_blockchain.for_all_txpool_txes([&ss, short_format](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata *txblob) {
+    m_blockchain.for_all_txpool_txes([&ss, short_format](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref *txblob) {
       ss << "id: " << txid << std::endl;
       if (!short_format) {
         cryptonote::transaction tx;
@@ -1354,13 +1382,21 @@ namespace cryptonote
     for (; sorted_it != m_txs_by_fee_and_receive_time.end(); ++sorted_it)
     {
       txpool_tx_meta_t meta;
-      if (!m_blockchain.get_txpool_tx_meta(sorted_it->second, meta) && !meta.matches(relay_category::legacy))
+      if (!m_blockchain.get_txpool_tx_meta(sorted_it->second, meta))
       {
-        MERROR("  failed to find tx meta");
+        static bool warned = false;
+        if (!warned)
+          MERROR("  failed to find tx meta: " << sorted_it->second << " (will only print once)");
+        warned = true;
         continue;
       }
-      LOG_PRINT_L2("Considering " << sorted_it->second << ", weight " << meta.weight << ", current block weight " << total_weight << "/" << max_total_weight << ", current coinbase " << print_money(best_coinbase));
+      LOG_PRINT_L2("Considering " << sorted_it->second << ", weight " << meta.weight << ", current block weight " << total_weight << "/" << max_total_weight << ", current coinbase " << print_money(best_coinbase) << ", relay method " << (unsigned)meta.get_relay_method());
 
+      if (!meta.matches(relay_category::legacy) && !(m_mine_stem_txes && meta.get_relay_method() == relay_method::stem))
+      {
+        LOG_PRINT_L2("  tx relay method is " << (unsigned)meta.get_relay_method());
+        continue;
+      }
       if (meta.pruned)
       {
         LOG_PRINT_L2("  tx is pruned");
@@ -1440,7 +1476,40 @@ namespace cryptonote
     }
     lock.commit();
 
-    expected_reward = best_coinbase;
+#if (__GNUC__ && defined( __has_warning ))
+#if __has_warning( "-Wtautological-constant-out-of-range-compare" )
+#define SUPPRESS
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtautological-constant-out-of-range-compare"
+#endif
+#endif
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
+
+//this need updating before block 657450 is reached
+    if (height < 460215)
+    {
+     expected_reward = 42930000000 + best_coinbase;
+    }
+    if (height >= 460215 && height < 525960)
+    {
+     expected_reward = 53890000000 + best_coinbase;
+    }
+    if (height >= 525960 && height < 591705)
+    {
+     expected_reward = 65920000000 + best_coinbase;
+    }
+    if (height >= 591705 && height < 657450)
+    {
+     expected_reward = 53150000000 + best_coinbase;
+    }
+
+#pragma GCC diagnostic pop
+#ifdef SUPPRESS
+#undef SUPPRESS
+#pragma GCC diagnostic pop
+#endif
+
     LOG_PRINT_L2("Block template filled with " << bl.tx_hashes.size() << " txes, weight "
         << total_weight << "/" << max_total_weight << ", coinbase " << print_money(best_coinbase)
         << " (including " << print_money(fee) << " in fees)");
@@ -1455,7 +1524,7 @@ namespace cryptonote
     std::unordered_set<crypto::hash> remove;
 
     m_txpool_weight = 0;
-    m_blockchain.for_all_txpool_txes([this, &remove, tx_weight_limit](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata*) {
+    m_blockchain.for_all_txpool_txes([this, &remove, tx_weight_limit](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref*) {
       m_txpool_weight += meta.weight;
       if (meta.weight > tx_weight_limit) {
         LOG_PRINT_L1("Transaction " << txid << " is too big (" << meta.weight << " bytes), removing it from pool");
@@ -1511,7 +1580,7 @@ namespace cryptonote
     return n_removed;
   }
   //---------------------------------------------------------------------------------
-  bool tx_memory_pool::init(size_t max_txpool_weight)
+  bool tx_memory_pool::init(size_t max_txpool_weight, bool mine_stem_txes)
   {
     CRITICAL_REGION_LOCAL(m_transactions_lock);
     CRITICAL_REGION_LOCAL1(m_blockchain);
@@ -1527,7 +1596,7 @@ namespace cryptonote
     for (int pass = 0; pass < 2; ++pass)
     {
       const bool kept = pass == 1;
-      bool r = m_blockchain.for_all_txpool_txes([this, &remove, kept](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata *bd) {
+      bool r = m_blockchain.for_all_txpool_txes([this, &remove, kept](const crypto::hash &txid, const txpool_tx_meta_t &meta, const cryptonote::blobdata_ref *bd) {
         if (!!kept != !!meta.kept_by_block)
           return true;
         cryptonote::transaction_prefix tx;
@@ -1569,6 +1638,7 @@ namespace cryptonote
       lock.commit();
     }
 
+    m_mine_stem_txes = mine_stem_txes;
     m_cookie = 0;
 
     // Ignore deserialization error

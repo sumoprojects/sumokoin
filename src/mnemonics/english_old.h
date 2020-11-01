@@ -1,6 +1,6 @@
 // Word list originally created as part of the Electrum project, Copyright (C) 2014 Thomas Voegtlin
 // 
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -53,7 +53,7 @@ namespace Language
   public:
     EnglishOld(): Base("EnglishOld", "English (old)", {}, 4)
     {
-      static constexpr const char * const words[NWORDS] =
+      static constexpr std::string_view const words[NWORDS] =
       {
         "like",
         "just",

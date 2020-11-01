@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019, The Monero Project
+# Copyright (c) 2017-2020, The Monero Project
 #
 # All rights reserved.
 #
@@ -50,3 +50,32 @@ target_link_libraries(multisig
     cncrypto
   PRIVATE
     ${EXTRA_LIBRARIES})
+
+if(NOT IOS)
+set(gen_multisig_sources
+  gen_multisig.cpp)
+
+monero_add_executable(gen_multisig
+  ${gen_multisig_sources})
+target_link_libraries(gen_multisig
+  PRIVATE
+    wallet
+    cryptonote_core
+    cncrypto
+    common
+    epee
+    ${EPEE_READLINE}
+    ${Boost_CHRONO_LIBRARY}
+    ${Boost_PROGRAM_OPTIONS_LIBRARY}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_THREAD_LIBRARY}
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${GNU_READLINE_LIBRARY}
+    ${EXTRA_LIBRARIES})
+add_dependencies(gen_multisig
+  version)
+set_property(TARGET gen_multisig
+  PROPERTY
+    OUTPUT_NAME "sumo-gen-trusted-multisig")
+install(TARGETS gen_multisig DESTINATION bin)
+endif()

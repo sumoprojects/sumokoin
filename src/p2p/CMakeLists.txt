@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2019, The Monero Project
+# Copyright (c) 2014-2020, The Monero Project
 #
 # All rights reserved.
 #
@@ -36,12 +36,15 @@ source_group(p2p FILES ${P2P})
 
 #monero_private_headers(p2p ${P2P})
 monero_add_library(p2p ${P2P})
+target_include_directories(p2p
+  PUBLIC
+    ${MINIUPNPC_INCLUDE_DIRS})
 target_link_libraries(p2p
   PUBLIC
     version
     cryptonote_core
     net
-    ${UPNP_LIBRARIES}
+    ${MINIUPNPC_LIBRARIES}
     ${Boost_CHRONO_LIBRARY}
     ${Boost_PROGRAM_OPTIONS_LIBRARY}
     ${Boost_FILESYSTEM_LIBRARY}
@@ -50,3 +53,4 @@ target_link_libraries(p2p
     ${Boost_SERIALIZATION_LIBRARY}
   PRIVATE
     ${EXTRA_LIBRARIES})
+    

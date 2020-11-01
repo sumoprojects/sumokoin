@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -28,9 +28,7 @@
 // 
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
-#include <assert.h>
 #include <stdint.h>
-
 #include "crypto/crypto-ops.h"
 
 //DISABLE_VS_WARNINGS(4146 4244)

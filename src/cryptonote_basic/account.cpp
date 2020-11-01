@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -33,7 +33,7 @@
 #include "include_base_utils.h"
 #include "account.h"
 #include "warnings.h"
-#include "crypto/crypto.h"
+// #include "crypto/crypto.h"  // already #included in cryptonote_basic/account.h'
 extern "C"
 {
 #include "crypto/keccak.h"

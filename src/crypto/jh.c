@@ -216,13 +216,13 @@ static void F8(hashState *state)
       uint64  i;
 
       /*xor the 512-bit message with the fist half of the 1024-bit hash state*/
-      for (i = 0; i < 8; i++)  state->x[i >> 1][i & 1] ^= ((uint64*)state->buffer)[i];
+      for (i = 0; i < 8; i++)  ((uint64*)state->x)[i] ^= ((uint64*)state->buffer)[i];
 
       /*the bijective function E8 */
       E8(state);
 
       /*xor the 512-bit message with the second half of the 1024-bit hash state*/
-      for (i = 0; i < 8; i++)  state->x[(8+i) >> 1][(8+i) & 1] ^= ((uint64*)state->buffer)[i];
+      for (i = 0; i < 8; i++)  ((uint64*)state->x)[8+i] ^= ((uint64*)state->buffer)[i];
 }
 
 /*before hashing a message, initialize the hash state as H0 */

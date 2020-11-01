@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019, The Monero Project
+// Copyright (c) 2017-2020, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -176,15 +176,6 @@ TEST(bulletproofs, invalid_31)
   rct::key invalid_amount = rct::zero();
   invalid_amount[31] = 1;
   rct::Bulletproof proof = bulletproof_PROVE(invalid_amount, rct::skGen());
-  ASSERT_FALSE(rct::bulletproof_VERIFY(proof));
-}
-
-TEST(bulletproofs, invalid_gamma_0)
-{
-  rct::key invalid_amount = rct::zero();
-  invalid_amount[8] = 1;
-  rct::key gamma = rct::zero();
-  rct::Bulletproof proof = bulletproof_PROVE(invalid_amount, gamma);
   ASSERT_FALSE(rct::bulletproof_VERIFY(proof));
 }
 

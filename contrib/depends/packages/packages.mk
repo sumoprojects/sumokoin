@@ -2,8 +2,7 @@ packages:=boost openssl zeromq libiconv
 
 native_packages := native_ccache
 
-hardware_packages := hidapi protobuf libusb
-hardware_native_packages := native_protobuf
+hardware_packages := hidapi libusb
 
 android_native_packages = android_ndk
 android_packages = ncurses readline sodium
@@ -17,7 +16,6 @@ freebsd_packages = ncurses readline sodium
 
 linux_packages = eudev ncurses readline sodium $(hardware_packages)
 linux_native_packages = $(hardware_native_packages)
-qt_packages = qt
 
 ifeq ($(build_tests),ON)
 packages += gtest

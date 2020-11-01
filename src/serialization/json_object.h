@@ -31,9 +31,16 @@
 #include <boost/utility/string_ref.hpp>
 #include <cstring>
 #include <rapidjson/document.h>
+<<<<<<< HEAD
+#include <rapidjson/writer.h>
+#include <vector>
+
+#include "byte_stream.h"
+=======
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 
+>>>>>>> origin/android-wallet
 #include "cryptonote_basic/cryptonote_basic.h"
 #include "rpc/message_data_structs.h"
 #include "cryptonote_protocol/cryptonote_protocol_defs.h"
@@ -123,7 +130,11 @@ void read_hex(const rapidjson::Value& val, epee::span<std::uint8_t> dest);
 
 // POD to json key
 template <class Type>
+<<<<<<< HEAD
+inline typename std::enable_if<is_to_hex<Type>()>::type toJsonKey(rapidjson::Writer<epee::byte_stream>& dest, const Type& pod)
+=======
 inline typename std::enable_if<is_to_hex<Type>()>::type toJsonKey(rapidjson::Writer<rapidjson::StringBuffer>& dest, const Type& pod)
+>>>>>>> origin/android-wallet
 {
   const auto hex = epee::to_hex::array(pod);
   dest.Key(hex.data(), hex.size());
@@ -131,7 +142,11 @@ inline typename std::enable_if<is_to_hex<Type>()>::type toJsonKey(rapidjson::Wri
 
 // POD to json value
 template <class Type>
+<<<<<<< HEAD
+inline typename std::enable_if<is_to_hex<Type>()>::type toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const Type& pod)
+=======
 inline typename std::enable_if<is_to_hex<Type>()>::type toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const Type& pod)
+>>>>>>> origin/android-wallet
 {
   const auto hex = epee::to_hex::array(pod);
   dest.String(hex.data(), hex.size());
@@ -144,16 +159,30 @@ inline typename std::enable_if<is_to_hex<Type>()>::type fromJsonValue(const rapi
   json::read_hex(val, epee::as_mut_byte_span(t));
 }
 
+<<<<<<< HEAD
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rapidjson::Value& src);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, boost::string_ref i);
+inline void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const std::string& i)
+=======
 void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const rapidjson::Value& src);
 
 void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, boost::string_ref i);
 inline void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const std::string& i)
+>>>>>>> origin/android-wallet
 {
   toJsonValue(dest, boost::string_ref{i});
 }
 void fromJsonValue(const rapidjson::Value& val, std::string& str);
 
+<<<<<<< HEAD
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const std::vector<std::uint8_t>&);
+void fromJsonValue(const rapidjson::Value& src, std::vector<std::uint8_t>& i);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, bool i);
+=======
 void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, bool i);
+>>>>>>> origin/android-wallet
 void fromJsonValue(const rapidjson::Value& val, bool& b);
 
 // integers overloads for toJsonValue are not needed for standard promotions
@@ -168,6 +197,22 @@ void fromJsonValue(const rapidjson::Value& val, unsigned short& i);
 
 void fromJsonValue(const rapidjson::Value& val, short& i);
 
+<<<<<<< HEAD
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const unsigned i);
+void fromJsonValue(const rapidjson::Value& val, unsigned& i);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const int);
+void fromJsonValue(const rapidjson::Value& val, int& i);
+
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const unsigned long long i);
+void fromJsonValue(const rapidjson::Value& val, unsigned long long& i);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const long long i);
+void fromJsonValue(const rapidjson::Value& val, long long& i);
+
+inline void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const unsigned long i) {
+=======
 void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const unsigned i);
 void fromJsonValue(const rapidjson::Value& val, unsigned& i);
 
@@ -182,17 +227,133 @@ void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const long lo
 void fromJsonValue(const rapidjson::Value& val, long long& i);
 
 inline void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const unsigned long i) {
+>>>>>>> origin/android-wallet
     toJsonValue(dest, static_cast<unsigned long long>(i));
 }
 void fromJsonValue(const rapidjson::Value& val, unsigned long& i);
 
+<<<<<<< HEAD
+inline void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const long i) {
+=======
 inline void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const long i) {
+>>>>>>> origin/android-wallet
     toJsonValue(dest, static_cast<long long>(i));
 }
 void fromJsonValue(const rapidjson::Value& val, long& i);
 
 // end integers
 
+<<<<<<< HEAD
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::transaction& tx);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::transaction& tx);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::block& b);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::block& b);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txin_v& txin);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::txin_v& txin);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txin_gen& txin);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::txin_gen& txin);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txin_to_script& txin);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::txin_to_script& txin);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txin_to_scripthash& txin);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::txin_to_scripthash& txin);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txin_to_key& txin);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::txin_to_key& txin);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txout_target_v& txout);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::txout_target_v& txout);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txout_to_script& txout);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::txout_to_script& txout);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txout_to_scripthash& txout);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::txout_to_scripthash& txout);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::txout_to_key& txout);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::txout_to_key& txout);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::tx_out& txout);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::tx_out& txout);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::connection_info& info);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::connection_info& info);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::tx_blob_entry& tx);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::tx_blob_entry& tx);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::block_complete_entry& blk);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::block_complete_entry& blk);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::block_with_transactions& blk);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::block_with_transactions& blk);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::transaction_info& tx_info);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::transaction_info& tx_info);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::output_key_and_amount_index& out);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_key_and_amount_index& out);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::amount_with_random_outputs& out);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::amount_with_random_outputs& out);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::peer& peer);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::peer& peer);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::tx_in_pool& tx);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::tx_in_pool& tx);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::hard_fork_info& info);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::hard_fork_info& info);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::output_amount_count& out);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_amount_count& out);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::output_amount_and_index& out);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_amount_and_index& out);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::output_key_mask_unlocked& out);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_key_mask_unlocked& out);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::error& err);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::error& error);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::BlockHeaderResponse& response);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::BlockHeaderResponse& response);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::rctSig& i);
+void fromJsonValue(const rapidjson::Value& val, rct::rctSig& sig);
+
+void fromJsonValue(const rapidjson::Value& val, rct::ctkey& key);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::ecdhTuple& tuple);
+void fromJsonValue(const rapidjson::Value& val, rct::ecdhTuple& tuple);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::rangeSig& sig);
+void fromJsonValue(const rapidjson::Value& val, rct::rangeSig& sig);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::Bulletproof& p);
+void fromJsonValue(const rapidjson::Value& val, rct::Bulletproof& p);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::boroSig& sig);
+void fromJsonValue(const rapidjson::Value& val, rct::boroSig& sig);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const rct::mgSig& sig);
+void fromJsonValue(const rapidjson::Value& val, rct::mgSig& sig);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::DaemonInfo& info);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::DaemonInfo& info);
+
+void toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const cryptonote::rpc::output_distribution& dist);
+void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_distribution& dist);
+
+template <typename Map>
+typename std::enable_if<sfinae::is_map_like<Map>::value, void>::type toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const Map& map);
+=======
 void toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const cryptonote::transaction& tx);
 void fromJsonValue(const rapidjson::Value& val, cryptonote::transaction& tx);
 
@@ -300,12 +461,17 @@ void fromJsonValue(const rapidjson::Value& val, cryptonote::rpc::output_distribu
 
 template <typename Map>
 typename std::enable_if<sfinae::is_map_like<Map>::value, void>::type toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const Map& map);
+>>>>>>> origin/android-wallet
 
 template <typename Map>
 typename std::enable_if<sfinae::is_map_like<Map>::value, void>::type fromJsonValue(const rapidjson::Value& val, Map& map);
 
 template <typename Vec>
+<<<<<<< HEAD
+typename std::enable_if<sfinae::is_vector_like<Vec>::value, void>::type toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const Vec &vec);
+=======
 typename std::enable_if<sfinae::is_vector_like<Vec>::value, void>::type toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const Vec &vec);
+>>>>>>> origin/android-wallet
 
 template <typename Vec>
 typename std::enable_if<sfinae::is_vector_like<Vec>::value, void>::type fromJsonValue(const rapidjson::Value& val, Vec& vec);
@@ -315,7 +481,11 @@ typename std::enable_if<sfinae::is_vector_like<Vec>::value, void>::type fromJson
 // unfortunately because of how templates work they have to be here.
 
 template <typename Map>
+<<<<<<< HEAD
+inline typename std::enable_if<sfinae::is_map_like<Map>::value, void>::type toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const Map& map)
+=======
 inline typename std::enable_if<sfinae::is_map_like<Map>::value, void>::type toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const Map& map)
+>>>>>>> origin/android-wallet
 {
   using key_type = typename Map::key_type;
   static_assert(std::is_same<std::string, key_type>() || is_to_hex<key_type>(), "invalid map key type");
@@ -339,6 +509,7 @@ inline typename std::enable_if<sfinae::is_map_like<Map>::value, void>::type from
 
   auto itr = val.MemberBegin();
 
+  map.clear();
   while (itr != val.MemberEnd())
   {
     typename Map::key_type k;
@@ -351,27 +522,58 @@ inline typename std::enable_if<sfinae::is_map_like<Map>::value, void>::type from
 }
 
 template <typename Vec>
+<<<<<<< HEAD
+inline typename std::enable_if<sfinae::is_vector_like<Vec>::value, void>::type toJsonValue(rapidjson::Writer<epee::byte_stream>& dest, const Vec &vec)
+{
+  using value_type = typename Vec::value_type;
+  static_assert(!std::is_same<value_type, char>::value, "encoding an array of chars is faster as hex");
+  static_assert(!std::is_same<value_type, unsigned char>::value, "encoding an array of unsigned char is faster as hex");
+
+  dest.StartArray();
+  for (const auto& t : vec)
+    toJsonValue(dest, t);
+  dest.EndArray();
+}
+
+namespace traits
+{
+  template<typename T>
+  void reserve(const T&, std::size_t)
+  {}
+
+  template<typename T>
+  void reserve(std::vector<T>& vec, const std::size_t count)
+  {
+    vec.reserve(count);
+  }
+=======
 inline typename std::enable_if<sfinae::is_vector_like<Vec>::value, void>::type toJsonValue(rapidjson::Writer<rapidjson::StringBuffer>& dest, const Vec &vec)
 {
   dest.StartArray();
   for (const auto& t : vec)
     toJsonValue(dest, t);
   dest.EndArray(vec.size());
+>>>>>>> origin/android-wallet
 }
 
 template <typename Vec>
 inline typename std::enable_if<sfinae::is_vector_like<Vec>::value, void>::type fromJsonValue(const rapidjson::Value& val, Vec& vec)
 {
+  using value_type = typename Vec::value_type;
+  static_assert(!std::is_same<value_type, char>::value, "encoding a vector of chars is faster as hex");
+  static_assert(!std::is_same<value_type, unsigned char>::value, "encoding a vector of unsigned char is faster as hex");
+    
   if (!val.IsArray())
   {
     throw WRONG_TYPE("json array");
   }
 
+  vec.clear();
+  traits::reserve(vec, val.Size());
   for (rapidjson::SizeType i=0; i < val.Size(); i++)
   {
-    typename Vec::value_type v;
-    fromJsonValue(val[i], v);
-    vec.push_back(v);
+    vec.emplace_back();
+    fromJsonValue(val[i], vec.back());
   }
 }
 

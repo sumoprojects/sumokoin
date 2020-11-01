@@ -1,21 +1,21 @@
-// Copyright (c) 2018-2019, The Monero Project
-// 
+// Copyright (c) 2018-2020, The Monero Project
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -27,7 +27,6 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <boost/archive/portable_binary_iarchive.hpp>
-#include <boost/archive/portable_binary_oarchive.hpp>
 #include "cryptonote_config.h"
 #include "include_base_utils.h"
 #include "string_tools.h"
@@ -35,11 +34,9 @@
 #include "int-util.h"
 #include "crypto/hash.h"
 #include "common/util.h"
-#include "serialization/crypto.h"
 #include "common/unordered_containers_boost_serialization.h"
 #include "cryptonote_basic/cryptonote_boost_serialization.h"
 #include "cryptonote_basic/cryptonote_format_utils.h"
-#include "cryptonote_basic/difficulty.h"
 #include "core_rpc_server_error_codes.h"
 #include "rpc_payment.h"
 
@@ -93,6 +90,7 @@ namespace cryptonote
 
   uint64_t rpc_payment::balance(const crypto::public_key &client, int64_t delta)
   {
+    boost::lock_guard<boost::mutex> lock(mutex);
     client_info &info = m_client_info[client]; // creates if not found
     uint64_t credits = info.credits;
     if (delta > 0 && credits > std::numeric_limits<uint64_t>::max() - delta)
@@ -108,6 +106,7 @@ namespace cryptonote
 
   bool rpc_payment::pay(const crypto::public_key &client, uint64_t ts, uint64_t payment, const std::string &rpc, bool same_ts, uint64_t &credits)
   {
+    boost::lock_guard<boost::mutex> lock(mutex);
     client_info &info = m_client_info[client]; // creates if not found
     if (ts < info.last_request_timestamp || (ts == info.last_request_timestamp && !same_ts))
     {
@@ -131,6 +130,7 @@ namespace cryptonote
 
   bool rpc_payment::get_info(const crypto::public_key &client, const std::function<bool(const cryptonote::blobdata&, cryptonote::block&, uint64_t &seed_height, crypto::hash &seed_hash)> &get_block_template, cryptonote::blobdata &hashing_blob, uint64_t &seed_height, crypto::hash &seed_hash, const crypto::hash &top, uint64_t &diff, uint64_t &credits_per_hash_found, uint64_t &credits, uint32_t &cookie)
   {
+    boost::lock_guard<boost::mutex> lock(mutex);
     client_info &info = m_client_info[client]; // creates if not found
     const uint64_t now = time(NULL);
     bool need_template = top != info.top || now >= info.block_template_update_time + STALE_THRESHOLD;
@@ -181,6 +181,7 @@ namespace cryptonote
 
   bool rpc_payment::submit_nonce(const crypto::public_key &client, uint32_t nonce, const crypto::hash &top, int64_t &error_code, std::string &error_message, uint64_t &credits, crypto::hash &hash, cryptonote::block &block, uint32_t cookie, bool &stale)
   {
+    boost::lock_guard<boost::mutex> lock(mutex);
     client_info &info = m_client_info[client]; // creates if not found
     if (cookie != info.cookie && cookie != info.cookie - 1)
     {
@@ -232,6 +233,21 @@ namespace cryptonote
 
     block = is_current ? info.block : info.previous_block;
     *(uint32_t*)(hashing_blob.data() + 39) = SWAP32LE(nonce);
+<<<<<<< HEAD
+
+    crypto::cn_slow_hash_type cn_type = crypto::cn_slow_hash_type::cn_original;
+    const uint8_t major_version = hashing_blob[0];
+    if (major_version == CRYPTONOTE_HEAVY_BLOCK_VERSION)
+    {
+      cn_type = crypto::cn_slow_hash_type::cn_heavy;
+    }
+    else if (major_version >= HF_VERSION_BP){
+      cn_type = crypto::cn_slow_hash_type::cn_r;
+    }
+    const int cn_variant = major_version >= HF_VERSION_BP ? major_version - 3 : 0;
+    crypto::cn_slow_hash(hashing_blob.data(), hashing_blob.size(), hash, cn_variant, cryptonote::get_block_height(block), cn_type);
+
+=======
     
 //    crypto::cn_slow_hash_type cn_type = crypto::cn_slow_hash_type::cn_original;
 //    const uint8_t major_version = hashing_blob[0];
@@ -245,6 +261,7 @@ namespace cryptonote
 //    const int cn_variant = major_version >= HF_VERSION_BP ? major_version - 3 : 0;
 //    crypto::cn_slow_hash(hashing_blob.data(), hashing_blob.size(), hash, cn_variant, cryptonote::get_block_height(block), cn_type);
    
+>>>>>>> origin/android-wallet
     if (!check_hash(hash, m_diff))
     {
       MWARNING("Payment too low");
@@ -274,6 +291,7 @@ namespace cryptonote
 
   bool rpc_payment::foreach(const std::function<bool(const crypto::public_key &client, const client_info &info)> &f) const
   {
+    boost::lock_guard<boost::mutex> lock(mutex);
     for (std::unordered_map<crypto::public_key, client_info>::const_iterator i = m_client_info.begin(); i != m_client_info.end(); ++i)
     {
       if (!f(i->first, i->second))
@@ -285,21 +303,36 @@ namespace cryptonote
   bool rpc_payment::load(std::string directory)
   {
     TRY_ENTRY();
+    boost::lock_guard<boost::mutex> lock(mutex);
     m_directory = std::move(directory);
-    std::string state_file_path = directory + "/" + RPC_PAYMENTS_DATA_FILENAME;
+    std::string state_file_path = m_directory + "/" + RPC_PAYMENTS_DATA_FILENAME;
     MINFO("loading rpc payments data from " << state_file_path);
     std::ifstream data;
     data.open(state_file_path, std::ios_base::binary | std::ios_base::in);
     if (!data.fail())
     {
+      bool loaded = false;
       try
       {
-        boost::archive::portable_binary_iarchive a(data);
-        a >> *this;
+        binary_archive<false> ar(data);
+        if (::serialization::serialize(ar, *this))
+          if (::serialization::check_stream_state(ar))
+            loaded = true;
       }
-      catch (const std::exception &e)
+      catch (...) {}
+      if (!loaded)
       {
-        MERROR("Failed to load RPC payments file: " << e.what());
+        try
+        {
+          boost::archive::portable_binary_iarchive a(data);
+          a >> *this;
+          loaded = true;
+        }
+        catch (...) {}
+      }
+      if (!loaded)
+      {
+        MERROR("Failed to load RPC payments file");
         m_client_info.clear();
       }
     }
@@ -315,6 +348,7 @@ namespace cryptonote
   bool rpc_payment::store(const std::string &directory_) const
   {
     TRY_ENTRY();
+    boost::lock_guard<boost::mutex> lock(mutex);
     const std::string &directory = directory_.empty() ? m_directory : directory_;
     MDEBUG("storing rpc payments data to " << directory);
     if (!tools::create_directories_if_necessary(directory))
@@ -339,14 +373,16 @@ namespace cryptonote
       MWARNING("Failed to save RPC payments to file " << state_file_path);
       return false;
     };
-    boost::archive::portable_binary_oarchive a(data);
-    a << *this;
+    binary_archive<true> ar(data);
+    if (!::serialization::serialize(ar, *const_cast<rpc_payment*>(this)))
+      return false;
     return true;
     CATCH_ENTRY_L0("rpc_payment::store", false);
   }
 
   unsigned int rpc_payment::flush_by_age(time_t seconds)
   {
+    boost::lock_guard<boost::mutex> lock(mutex);
     unsigned int count = 0;
     const time_t now = time(NULL);
     time_t seconds0 = seconds;
@@ -360,7 +396,7 @@ namespace cryptonote
     for (std::unordered_map<crypto::public_key, client_info>::iterator i = m_client_info.begin(); i != m_client_info.end(); )
     {
       std::unordered_map<crypto::public_key, client_info>::iterator j = i++;
-      const time_t t = std::max(j->second.last_request_timestamp, j->second.update_time);
+      const time_t t = std::max(j->second.last_request_timestamp / 1000000, j->second.update_time);
       const bool erase = t < ((j->second.credits == 0) ? threshold0 : threshold);
       if (erase)
       {
@@ -374,6 +410,7 @@ namespace cryptonote
 
   uint64_t rpc_payment::get_hashes(unsigned int seconds) const
   {
+    boost::lock_guard<boost::mutex> lock(mutex);
     const uint64_t now = time(NULL);
     uint64_t hashes = 0;
     for (std::map<uint64_t, uint64_t>::const_reverse_iterator i = m_hashrate.crbegin(); i != m_hashrate.crend(); ++i)
@@ -387,6 +424,7 @@ namespace cryptonote
 
   void rpc_payment::prune_hashrate(unsigned int seconds)
   {
+    boost::lock_guard<boost::mutex> lock(mutex);
     const uint64_t now = time(NULL);
     std::map<uint64_t, uint64_t>::iterator i;
     for (i = m_hashrate.begin(); i != m_hashrate.end(); ++i)

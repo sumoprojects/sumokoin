@@ -2,7 +2,7 @@
 /// @author rfree (current maintainer/user in monero.cc project - most of code is from CryptoNote)
 /// @brief This is the original cryptonote protocol network-events handler, modified by us
 
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -45,13 +45,11 @@
 #include "block_queue.h"
 #include "common/perf_timer.h"
 #include "cryptonote_basic/connection_context.h"
-#include "cryptonote_basic/cryptonote_stat_info.h"
 #include <boost/circular_buffer.hpp>
 
 PUSH_WARNINGS
 DISABLE_VS_WARNINGS(4355)
 
-#define LOCALHOST_INT 2130706433
 #define CURRENCY_PROTOCOL_MAX_OBJECT_REQUEST_COUNT 250
 
 namespace cryptonote
@@ -77,7 +75,6 @@ namespace cryptonote
   {
   public:
     typedef cryptonote_connection_context connection_context;
-    typedef core_stat_info stat_info;
     typedef t_cryptonote_protocol_handler<t_core> cryptonote_protocol_handler;
     typedef CORE_SYNC_DATA payload_type;
 
@@ -103,7 +100,6 @@ namespace cryptonote
     bool process_payload_sync_data(const CORE_SYNC_DATA& hshd, cryptonote_connection_context& context, bool is_inital);
     bool get_payload_sync_data(blobdata& data);
     bool get_payload_sync_data(CORE_SYNC_DATA& hshd);
-    bool get_stat_info(core_stat_info& stat_inf);
     bool on_callback(cryptonote_connection_context& context);
     t_core& get_core(){return m_core;}
     bool is_synchronized(){return m_synchronized;}
@@ -142,7 +138,7 @@ namespace cryptonote
     bool should_download_next_span(cryptonote_connection_context& context, bool standby);
     bool should_ask_for_pruned_data(cryptonote_connection_context& context, uint64_t first_block_height, uint64_t nblocks, bool check_block_weights) const;
     void drop_connection(cryptonote_connection_context &context, bool add_fail, bool flush_all_spans);
-    void drop_connection_with_score(cryptonote_connection_context &context, unsigned int score, bool flush_all_spans);
+    void drop_connection_with_score(cryptonote_connection_context &context, uint64_t score, bool flush_all_spans);
     bool kick_idle_peers();
     bool check_standby_peers();
     bool update_sync_search();

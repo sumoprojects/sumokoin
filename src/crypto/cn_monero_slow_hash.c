@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -41,9 +41,6 @@
 #include "variant2_int_sqrt.h"
 #include "variant4_random_math.h"
 #include "CryptonightR_JIT.h"
-
-#include <errno.h>
-#include <string.h>
 
 #define MEMORY         (1 << 21) // 2MB scratchpad
 #define ITER           (1 << 20)

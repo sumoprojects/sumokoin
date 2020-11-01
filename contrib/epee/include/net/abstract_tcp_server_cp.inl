@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -34,7 +34,7 @@ namespace epee
 {
 namespace net_utils
 {
-template<class TProtocol> 
+template<class TProtocol>
 cp_server_impl<TProtocol>::cp_server_impl():
 									m_port(0), m_stop(false),
 									m_worker_thread_counter(0), m_listen_socket(INVALID_SOCKET)
@@ -47,11 +47,11 @@ cp_server_impl<TProtocol>::~cp_server_impl()
 	deinit_server();
 }
 //-------------------------------------------------------------
-template<class TProtocol> 
+template<class TProtocol>
 bool cp_server_impl<TProtocol>::init_server(int port_no)
 {
 	m_port = port_no;
-	
+
 	WSADATA wsad = {0};
 	int err = ::WSAStartup(MAKEWORD(2,2), &wsad);
 	if ( err != 0  || LOBYTE( wsad.wVersion ) != 2 || HIBYTE( wsad.wVersion ) != 2 )
@@ -59,7 +59,7 @@ bool cp_server_impl<TProtocol>::init_server(int port_no)
 		LOG_ERROR("Could not find a usable WinSock DLL, err = " << err << " \"" << socket_errors::get_socket_error_text(err) <<"\"");
 		return false;
 	}
-	
+
 	m_initialized = true;
 
 	m_listen_socket = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -133,7 +133,7 @@ static int CALLBACK CPConditionFunc(
 		LOG_PRINT("Maximum connections count overfull.", LOG_LEVEL_2);
 		return CF_REJECT;
 	}*/
-	
+
 	return  CF_ACCEPT;
 }
 //-------------------------------------------------------------
@@ -154,7 +154,7 @@ unsigned CALLBACK cp_server_impl<TProtocol>::worker_thread(void* param)
 	return 1;
 }
 //-------------------------------------------------------------
-template<class TProtocol> 
+template<class TProtocol>
 bool cp_server_impl<TProtocol>::worker_thread_member()
 {
 	LOG_PRINT("Worker thread STARTED", LOG_LEVEL_1);
@@ -165,7 +165,7 @@ bool cp_server_impl<TProtocol>::worker_thread_member()
 		DWORD bytes_transfered = 0;
 		connection<TProtocol>* pconnection = 0;
 		io_data_base* pio_data = 0;
-		
+
 		{
 			PROFILE_FUNC("[worker_thread]GetQueuedCompletionStatus");
 			BOOL res = ::GetQueuedCompletionStatus (m_completion_port, &bytes_transfered ,	(PULONG_PTR)&pconnection, (LPOVERLAPPED *)&pio_data, INFINITE);
@@ -238,7 +238,7 @@ bool cp_server_impl<TProtocol>::worker_thread_member()
 
 		}
 
-		//preparing new request, 
+		//preparing new request,
 
 		{
 			PROFILE_FUNC("[worker_thread]RECV Request small loop");
@@ -291,23 +291,23 @@ bool cp_server_impl<TProtocol>::worker_thread_member()
 		}
 	}
 
-	
+
 	LOG_PRINT("Worker thread STOPED", LOG_LEVEL_1);
 	::InterlockedDecrement(&m_worker_thread_counter);
 	return true;
 }
 //-------------------------------------------------------------
-template<class TProtocol> 
+template<class TProtocol>
 bool cp_server_impl<TProtocol>::shutdown_connection(connection<TProtocol>* pconn)
 {
 	PROFILE_FUNC("[shutdown_connection]");
-	
+
 	if(!pconn)
 	{
 		LOG_ERROR("Attempt to remove null pptr connection!");
 		return false;
 	}
-	else 
+	else
 	{
 		LOG_PRINT("Shutting down connection ("<< pconn << ")", LOG_LEVEL_3);
 	}
@@ -355,7 +355,7 @@ bool cp_server_impl<TProtocol>::shutdown_connection(connection<TProtocol>* pconn
 	return true;
 }
 //-------------------------------------------------------------
-template<class TProtocol> 
+template<class TProtocol>
 bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 {
 	int err = listen(m_listen_socket, 100);
@@ -374,7 +374,7 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 	}
 	for(int i = 0; i != threads_count; i++)
 	{
-		boost::thread(boost::bind(&cp_server_impl::worker_thread_member, this));
+		boost::thread(std::bind(&cp_server_impl::worker_thread_member, this));
 		//HANDLE h_thread = threads_helper::create_thread(worker_thread, this);
 		InterlockedIncrement(&m_worker_thread_counter);
 		//::CloseHandle(h_thread);
@@ -397,7 +397,7 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 			PROFILE_FUNC("[run_server] select");
 			select_res = select(0, &sock_set, &sock_set, NULL, &tv);
 		}
-		
+
 		if(SOCKET_ERROR == select_res)
 		{
 			err = ::WSAGetLastError();
@@ -418,7 +418,7 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 				PROFILE_FUNC("[run_server] WSAAccept");
 				new_sock = ::WSAAccept(m_listen_socket, (sockaddr *)&adr_from, &adr_len, CPConditionFunc, (DWORD_PTR)this);
 			}
-			
+
 			if(INVALID_SOCKET == new_sock)
 			{
 				if(m_stop)
@@ -432,7 +432,7 @@ bool cp_server_impl<TProtocol>::run_server(int threads_count = 0)
 				PROFILE_FUNC("[run_server] Add new connection");
 				add_new_connection(new_sock, adr_from.sin_addr.s_addr, adr_from.sin_port);
 			}
-			
+
 		}
 
 	}
@@ -474,11 +474,11 @@ template<class TProtocol>
 bool cp_server_impl<TProtocol>::add_new_connection(SOCKET new_sock, const network_address &address_from)
 {
 	PROFILE_FUNC("[add_new_connection]");
-	
+
 	LOG_PRINT("Add new connection zone: entering lock", LOG_LEVEL_3);
 	m_connections_lock.lock();
 
-	boost::shared_ptr<connection<TProtocol> > ptr;
+	std::shared_ptr<connection<TProtocol> > ptr;
 	ptr.reset(new connection<TProtocol>(m_config));
 
 	connection<TProtocol>& conn = *ptr.get();
@@ -535,7 +535,7 @@ bool cp_server_impl<TProtocol>::add_new_connection(SOCKET new_sock, const networ
 				//shutdown_connection(&conn);
 				break;
 			}
-			
+
 
 			break;
 			/*else if(0 == res)
@@ -600,7 +600,7 @@ bool cp_server_impl<TProtocol>::send_stop_signal()
 template<class TProtocol>
 bool cp_server_impl<TProtocol>::is_stop_signal()
 {
-	return m_stop?true:false;	
+	return m_stop?true:false;
 }
 //-------------------------------------------------------------
 }

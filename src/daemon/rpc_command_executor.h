@@ -6,7 +6,7 @@
 
 */
 
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -89,6 +89,10 @@ public:
 
   bool print_connections();
 
+  bool print_open_rpc();
+
+ bool print_checkpoints();
+
   bool print_blockchain_info(int64_t start_block_index, uint64_t end_block_index);
 
   bool set_log_level(int8_t level);
@@ -111,7 +115,7 @@ public:
 
   bool print_transaction_pool_stats();
 
-  bool start_mining(cryptonote::account_public_address address, uint64_t num_threads, cryptonote::network_type nettype, bool do_background_mining = false, bool ignore_battery = false);
+  bool start_mining(cryptonote::account_public_address address, uint64_t num_threads, cryptonote::network_type nettype);
 
   bool stop_mining();
 
