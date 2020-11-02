@@ -6,7 +6,7 @@ jobs:
   build-macos-native:
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: install dependencies
       run: brew install boost hidapi zmq libpgm ldns expat libunwind-headers protobuf
     - name: build
@@ -15,7 +15,7 @@ jobs:
   macOS-cross-on-bionic:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
       with:
         submodules: recursive
     - name: remove bundled boost
@@ -54,7 +54,7 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - uses: msys2/setup-msys2@v2
       with:
         update: true
@@ -65,7 +65,7 @@ jobs:
   Windows64-cross-on-bionic:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -88,7 +88,7 @@ jobs:
   build-ubuntu-bionic-native:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -106,7 +106,7 @@ jobs:
   build-bionic-debug-native:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -124,7 +124,7 @@ jobs:
   build-ubuntu-focal-fossa-native:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -142,7 +142,7 @@ jobs:
   build-ubuntu-bionic-static-native:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -188,7 +188,7 @@ jobs:
   FreeBSD-cross-on-bionic:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -211,7 +211,7 @@ jobs:
   cross-build-linux-x64-binaries-on-xenial:
     runs-on: ubuntu-16.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -241,7 +241,7 @@ jobs:
   cross-build-armv8-binaries-on-xenial:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -264,7 +264,7 @@ jobs:
   cross-build-RISCV64-binaries-on-bionic:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -288,7 +288,7 @@ jobs:
     needs: build-ubuntu-bionic-native
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v1
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
