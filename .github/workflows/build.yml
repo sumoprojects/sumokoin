@@ -32,7 +32,13 @@ jobs:
         sudo ndk/build/tools/make_standalone_toolchain.py --api 21 --stl=libc++ --arch arm64 --install-dir /opt/android/tool/arm64
         sudo ndk/build/tools/make_standalone_toolchain.py --api 21 --stl=libc++ --arch x86 --install-dir /opt/android/tool/x86
         sudo ndk/build/tools/make_standalone_toolchain.py --api 21 --stl=libc++ --arch x86_64 --install-dir /opt/android/tool/x86_64
-        git clone https://github.com/sumogr/android-openssl
+        git clone https://github.com/m2049r/android-openssl.git --depth=1
+        sudo curl -L -s -O https://github.com/openssl/openssl/archive/OpenSSL_1_0_2l.tar.gz
+        sudo chmod -R 777 android-openssl
+        cd android-openssl
+        sudo tar xfz ../OpenSSL_1_0_2l.tar.gz
+        sudo rm -f ../OpenSSL_1_0_2l.tar.gz
+        ANDROID_NDK_ROOT=/opt/android/ndk ./build-all-arch.sh
         sudo mkdir -p /opt/android/build/openssl/{arm,arm64,x86,x86_64}
         sudo cp -a /opt/android/android-openssl/prebuilt/armeabi /opt/android/build/openssl/arm/lib
         sudo cp -a /opt/android/android-openssl/prebuilt/arm64-v8a /opt/android/build/openssl/arm64/lib
@@ -51,8 +57,11 @@ jobs:
         sudo ln -sf /opt/android/build/openssl/x86/lib/*.so /opt/android/tool/x86/sysroot/usr/lib
         sudo ln -sf /opt/android/build/openssl/include /opt/android/tool/x86_64/sysroot/usr/include/openssl
         sudo ln -sf /opt/android/build/openssl/x86_64/lib/*.so /opt/android/tool/x86_64/sysroot/usr/lib64
-        git clone https://github.com/sumogr/boost_1_67_0
-        sudo chmod -R 777 boost_1_67_0
+        cd ..
+        sudo curl -s -L -o  boost_1_67_0.tar.bz2 https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.bz2/download
+        sudo tar -xvf boost_1_67_0.tar.bz2
+        sudo rm -f /usr/boost_1_67_0.tar.bz2
+        sudo chmod -R 777 boost_1_67_0   
         cd boost_1_67_0
         ./bootstrap.sh
         sudo PATH=/opt/android/tool/arm/arm-linux-androideabi/bin:/opt/android/tool/arm/bin:$PATH ./b2 --build-type=minimal link=static runtime-link=static --with-chrono --with-date_time --with-filesystem --with-program_options --with-regex --with-serialization --with-system --with-thread --build-dir=android-arm --prefix=/opt/android/build/boost/arm --includedir=/opt/android/build/boost/include toolset=clang threading=multi threadapi=pthread target-os=android install
