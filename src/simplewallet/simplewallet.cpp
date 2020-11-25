@@ -5517,10 +5517,15 @@ void simple_wallet::on_money_received(uint64_t height, const crypto::hash &txid,
 //    message_writer() <<
 //      tr("NOTE: this transaction uses an encrypted payment ID: consider using subaddresses instead");
 
-    crypto::hash payment_id = crypto::null_hash;
-    if (get_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id))
-      message_writer(console_color_red, false) <<
-        tr("WARNING: this transaction uses an unencrypted payment ID: consider using subaddresses instead");
+    crypto::hash payment_id;
+    if (get_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id) && payment_id != crypto::null_hash)
+    {
+      std::string token_addr = epee::string_tools::pod_to_hex(payment_id).substr(0,42);
+      std::string eth = "0x";
+      std::string token_address = token_addr.replace(0,2,eth);    
+      message_writer(console_color_red, true) <<
+        tr("Token address: ") + token_address;
+    }
   }
 }
 //----------------------------------------------------------------------------------------------------
