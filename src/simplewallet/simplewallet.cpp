@@ -8743,10 +8743,23 @@ bool simple_wallet::show_transfers(const std::vector<std::string> &args_)
 
    if (!transfer.payment_id.empty() && transfer.payment_id != "0000000000000000")
     {
-     payment_id = "payment id: "+transfer.payment_id;
-     auto formatter = boost::format("%s");
-     message_writer(color, false) << "                " << formatter
-       % payment_id;
+      if (transfer.payment_id.length() > 16)
+      {
+        std::string payment_id1 = transfer.payment_id.substr(0,42);
+        std::string eth = "0x";
+        std::string token_address = payment_id1.replace(0,2,eth);    
+        payment_id = "Token address: "+token_address;
+        auto formatter = boost::format("%s");
+        message_writer(color, false) << "                " << formatter
+         % payment_id;
+      }
+      else
+      {
+        payment_id = "payment id: "+transfer.payment_id;
+        auto formatter = boost::format("%s");
+        message_writer(color, false) << "                " << formatter
+         % payment_id;
+      }
     }
   }
 
