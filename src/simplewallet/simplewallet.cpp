@@ -6411,6 +6411,8 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
   if (!local_args.empty())
   {
     std::string payment_id_str = local_args.back();
+    if (payment_id_str.size() < 64)
+    payment_id_str+=string(64-payment_id_str.length(),'0');
     crypto::hash payment_id;
     bool r = true;
     if (tools::wallet2::parse_long_payment_id(payment_id_str, payment_id))
