@@ -113,14 +113,6 @@ typedef cryptonote::simple_wallet sw;
 
 #define PRINT_USAGE(usage_help) fail_msg_writer() << boost::format(tr("usage: %s")) % usage_help;
 
-#define LONG_PAYMENT_ID_SUPPORT_CHECK() \
-  do { \
-    fail_msg_writer() << tr("Error: Long payment IDs are obsolete."); \
-    fail_msg_writer() << tr("Long payment IDs were not encrypted on the blockchain and would harm your privacy."); \
-    fail_msg_writer() << tr("If the party you're sending to still requires a long payment ID, please notify them."); \
-    return true; \
-  } while(0)
-
 #define REFRESH_PERIOD 90 // seconds
 
 #define CREDITS_TARGET 50000
@@ -170,13 +162,13 @@ namespace
   const char* USAGE_PAYMENTS("payments <PID_1> [<PID_2> ... <PID_N>]");
   const char* USAGE_PAYMENT_ID("payment_id");
   const char* USAGE_TRANSFER("transfer [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] (<URI> | <address> <amount>) [<payment_id>]");
-  const char* USAGE_LOCKED_TRANSFER("locked_transfer [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] (<URI> | <addr> <amount>) <lockblocks> [<payment_id (obsolete)>]");
-  const char* USAGE_LOCKED_SWEEP_ALL("locked_sweep_all [index=<N1>[,<N2>,...] | index=all] [<priority>] [<ring_size>] <address> <lockblocks> [<payment_id (obsolete)>]");
-  const char* USAGE_SWEEP_ALL("sweep_all [index=<N1>[,<N2>,...] | index=all] [<priority>] [<ring_size>] [outputs=<N>] <address> [<payment_id (obsolete)>]");
-  const char* USAGE_SWEEP_ACCOUNT("sweep_account <account> [index=<N1>[,<N2>,...] | index=all] [<priority>] [<ring_size>] [outputs=<N>] <address> [<payment_id (obsolete)>]");
-  const char* USAGE_SWEEP_BELOW("sweep_below <amount_threshold> [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] <address> [<payment_id (obsolete)>]");
-  const char* USAGE_SWEEP_SINGLE("sweep_single [<priority>] [<ring_size>] [outputs=<N>] <key_image> <address> [<payment_id (obsolete)>]");
-  const char* USAGE_DONATE("donate [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] <amount> [<payment_id (obsolete)>]");
+  const char* USAGE_LOCKED_TRANSFER("locked_transfer [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] (<URI> | <addr> <amount>) <lockblocks> [<payment_id>]");
+  const char* USAGE_LOCKED_SWEEP_ALL("locked_sweep_all [index=<N1>[,<N2>,...] | index=all] [<priority>] [<ring_size>] <address> <lockblocks> [<payment_id>]");
+  const char* USAGE_SWEEP_ALL("sweep_all [index=<N1>[,<N2>,...] | index=all] [<priority>] [<ring_size>] [outputs=<N>] <address> [<payment_id>]");
+  const char* USAGE_SWEEP_ACCOUNT("sweep_account <account> [index=<N1>[,<N2>,...] | index=all] [<priority>] [<ring_size>] [outputs=<N>] <address> [<payment_id>]");
+  const char* USAGE_SWEEP_BELOW("sweep_below <amount_threshold> [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] <address> [<payment_id>]");
+  const char* USAGE_SWEEP_SINGLE("sweep_single [<priority>] [<ring_size>] [outputs=<N>] <key_image> <address> [<payment_id>]");
+  const char* USAGE_DONATE("donate [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] <amount> [<payment_id>]");
   const char* USAGE_SIGN_TRANSFER("sign_transfer [export_raw]");
   const char* USAGE_SET_LOG("set_log <level>|{+,-,}<categories>");
   const char* USAGE_ACCOUNT("account\n"
@@ -907,7 +899,16 @@ bool simple_wallet::change_password(const std::vector<std::string> &args)
 
 bool simple_wallet::payment_id(const std::vector<std::string> &args/* = std::vector<std::string>()*/)
 {
-  LONG_PAYMENT_ID_SUPPORT_CHECK();
+
+  crypto::hash payment_id;
+  if (args.size() > 0)
+  {
+    PRINT_USAGE(USAGE_PAYMENT_ID);
+    return true;
+  }
+  payment_id = crypto::rand<crypto::hash>();
+  success_msg_writer() << tr("Random payment ID: ") << payment_id;
+  return true;
 }
 
 bool simple_wallet::print_fee_info(const std::vector<std::string> &args/* = std::vector<std::string>()*/)
@@ -2607,6 +2608,20 @@ bool simple_wallet::set_refresh_type(const std::vector<std::string> &args/* = st
   return true;
 }
 
+bool simple_wallet::set_confirm_missing_payment_id(const std::vector<std::string> &args/* = std::vector<std::string>()*/)
+{
+
+  const auto pwd_container = get_and_verify_password();
+  if (pwd_container)
+  {
+    parse_bool_and_use(args[1], [&](bool r) {
+      m_wallet->confirm_missing_payment_id(r);
+      m_wallet->rewrite(m_wallet_file, pwd_container->password());
+    });
+  }
+  return true;
+}
+
 bool simple_wallet::set_ask_password(const std::vector<std::string> &args/* = std::vector<std::string>()*/)
 {
   const auto pwd_container = get_and_verify_password();
@@ -3495,7 +3510,7 @@ simple_wallet::simple_wallet()
   m_cmd_binder.set_handler("payment_id",
                            std::bind(&simple_wallet::on_command, this, &simple_wallet::payment_id, std::placeholders::_1),
                            tr(USAGE_PAYMENT_ID),
-                           tr("Generate a new random full size payment id (obsolete). These will be unencrypted on the blockchain, see integrated_address for encrypted short payment ids."));
+                           tr("Generate a new random full size payment id. These will be unencrypted on the blockchain, see integrated_address for encrypted short payment ids."));
   m_cmd_binder.set_handler("fee",
                            std::bind(&simple_wallet::on_command, this, &simple_wallet::print_fee_info, std::placeholders::_1),
                            tr("Print the information about the current fee and transaction backlog."));
@@ -3740,6 +3755,7 @@ bool simple_wallet::set_variable(const std::vector<std::string> &args)
     success_msg_writer() << "auto-refresh = " << m_wallet->auto_refresh();
     success_msg_writer() << "refresh-type = " << get_refresh_type_name(m_wallet->get_refresh_type());
     success_msg_writer() << "priority = " << priority<< " (" << priority_string << ")";
+    success_msg_writer() << "confirm-missing-payment-id = " << m_wallet->confirm_missing_payment_id();
     success_msg_writer() << "ask-password = " << m_wallet->ask_password() << " (" << ask_password_string << ")";
     success_msg_writer() << "unit = " << cryptonote::get_unit(cryptonote::get_default_decimal_point());
     success_msg_writer() << "max-reorg-depth = " << m_wallet->max_reorg_depth();
@@ -3810,9 +3826,10 @@ bool simple_wallet::set_variable(const std::vector<std::string> &args)
     CHECK_SIMPLE_VARIABLE("auto-refresh", set_auto_refresh, tr("0 or 1"));
     CHECK_SIMPLE_VARIABLE("refresh-type", set_refresh_type, tr("full (slowest, no assumptions); optimize-coinbase (fast, assumes the whole coinbase is paid to a single address); no-coinbase (fastest, assumes we receive no coinbase transaction), default (same as optimize-coinbase)"));
     CHECK_SIMPLE_VARIABLE("priority", set_default_priority, tr("0, 1, 2, 3, or 4"));
+    CHECK_SIMPLE_VARIABLE("confirm-missing-payment-id", set_confirm_missing_payment_id, tr("0 or 1"));
     CHECK_SIMPLE_VARIABLE("ask-password", set_ask_password, tr("0|1|2 (or never|action|decrypt)"));
     CHECK_SIMPLE_VARIABLE("unit", set_unit, tr("sumo, sumosan, sumokun, sumoshi"));
-    CHECK_SIMPLE_VARIABLE("max-reorg-depth", set_max_reorg_depth, tr("unsigned integer"));    
+    CHECK_SIMPLE_VARIABLE("max-reorg-depth", set_max_reorg_depth, tr("unsigned integer"));
     CHECK_SIMPLE_VARIABLE("min-outputs-count", set_min_output_count, tr("unsigned integer"));
     CHECK_SIMPLE_VARIABLE("min-outputs-value", set_min_output_value, tr("amount"));
     CHECK_SIMPLE_VARIABLE("merge-destinations", set_merge_destinations, tr("0 or 1"));
@@ -5503,7 +5520,7 @@ void simple_wallet::on_money_received(uint64_t height, const crypto::hash &txid,
     crypto::hash payment_id = crypto::null_hash;
     if (get_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id))
       message_writer(console_color_red, false) <<
-        tr("WARNING: this transaction uses an unencrypted payment ID: these are obsolete and ignored. Use subaddresses instead.");
+        tr("WARNING: this transaction uses an unencrypted payment ID: consider using subaddresses instead");
   }
 }
 //----------------------------------------------------------------------------------------------------
@@ -6398,7 +6415,12 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
     bool r = true;
     if (tools::wallet2::parse_long_payment_id(payment_id_str, payment_id))
     {
-      LONG_PAYMENT_ID_SUPPORT_CHECK();
+      std::string extra_nonce;
+      set_payment_id_to_tx_extra_nonce(extra_nonce, payment_id);
+      r = add_extra_nonce_to_tx_extra(extra, extra_nonce);
+      local_args.pop_back();
+      payment_id_seen = true;
+      message_writer() << tr("Unencrypted payment IDs are bad for privacy: ask the recipient to use subaddresses instead");
     }
     if(!r)
     {
@@ -6506,7 +6528,8 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
       }
       else if (tools::wallet2::parse_payment_id(payment_id_uri, payment_id))
       {
-        LONG_PAYMENT_ID_SUPPORT_CHECK();
+        set_payment_id_to_tx_extra_nonce(extra_nonce, payment_id);
+        message_writer() << tr("Unencrypted payment IDs are bad for privacy: ask the recipient to use subaddresses instead");
       }
       else
       {
@@ -6523,6 +6546,20 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
     }
 
     dsts.push_back(de);
+  }
+
+  // prompt is there is no payment id and confirmation is required
+  if (!payment_id_seen && m_wallet->confirm_missing_payment_id() && dsts.size() > num_subaddresses)
+  {
+     std::string accepted = input_line(tr("No payment id is included with this transaction. Is this okay?"), true);
+     if (std::cin.eof())
+       return false;
+     if (!command_line::is_yes(accepted))
+     {
+       fail_msg_writer() << tr("transaction cancelled.");
+
+       return false;
+     }
   }
 
   SCOPED_WALLET_UNLOCK_ON_BAD_PASSWORD(return false;);
@@ -7064,7 +7101,10 @@ bool simple_wallet::sweep_main(uint32_t account, uint64_t below, bool locked, co
     bool r = tools::wallet2::parse_long_payment_id(payment_id_str, payment_id);
     if(r)
     {
-      LONG_PAYMENT_ID_SUPPORT_CHECK();
+      std::string extra_nonce;
+      set_payment_id_to_tx_extra_nonce(extra_nonce, payment_id);
+      r = add_extra_nonce_to_tx_extra(extra, extra_nonce);
+      payment_id_seen = true;
     }
 
     if(!r && local_args.size() == 3)
@@ -7102,6 +7142,20 @@ bool simple_wallet::sweep_main(uint32_t account, uint64_t below, bool locked, co
       return true;
     }
     payment_id_seen = true;
+  }
+
+  // prompt is there is no payment id and confirmation is required
+  if (!payment_id_seen && m_wallet->confirm_missing_payment_id() && !info.is_subaddress)
+  {
+     std::string accepted = input_line(tr("No payment id is included with this transaction. Is this okay?"), true);
+     if (std::cin.eof())
+       return true;
+     if (!command_line::is_yes(accepted))
+     {
+       fail_msg_writer() << tr("transaction cancelled.");
+
+       return true;
+     }
   }
 
   SCOPED_WALLET_UNLOCK();
@@ -7308,7 +7362,7 @@ bool simple_wallet::sweep_single(const std::vector<std::string> &args_)
     std::string extra_nonce;
     if (tools::wallet2::parse_long_payment_id(local_args.back(), payment_id))
     {
-      LONG_PAYMENT_ID_SUPPORT_CHECK();
+      set_payment_id_to_tx_extra_nonce(extra_nonce, payment_id);
     }
     else
     {
@@ -7362,6 +7416,22 @@ bool simple_wallet::sweep_single(const std::vector<std::string> &args_)
       return true;
     }
     payment_id_seen = true;
+  }
+
+  // prompt if there is no payment id and confirmation is required
+  if (!payment_id_seen && m_wallet->confirm_missing_payment_id() && !info.is_subaddress)
+  {
+     std::string accepted = input_line(tr("No payment id is included with this transaction. Is this okay?"), true);
+     if (std::cin.eof())
+       return true;
+     if (!command_line::is_yes(accepted))
+     {
+       fail_msg_writer() << tr("transaction cancelled.");
+
+       // would like to return false, because no tx made, but everything else returns true
+       // and I don't know what returning false might adversely affect.  *sigh*
+       return true;
+     }
   }
 
   SCOPED_WALLET_UNLOCK();
@@ -7601,7 +7671,6 @@ bool simple_wallet::accept_loaded_tx(const std::function<size_t()> get_num_txes,
           if (!payment_id_string.empty())
             payment_id_string += ", ";
           payment_id_string += std::string("unencrypted payment ID ") + epee::string_tools::pod_to_hex(payment_id);
-          payment_id_string += " (OBSOLETE)";
         }
       }
     }
