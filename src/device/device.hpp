@@ -207,10 +207,19 @@ namespace hw {
         virtual void get_transaction_prefix_hash(const cryptonote::transaction_prefix& tx, crypto::hash& h) = 0;
 
         virtual bool  encrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &public_key, const crypto::secret_key &secret_key) = 0;
+
+        virtual bool  encrypt_payment_id_long(crypto::hash &payment_id, const crypto::public_key &public_key, const crypto::secret_key &secret_key) = 0;
+  
         bool  decrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &public_key, const crypto::secret_key &secret_key)
         {
             // Encryption and decryption are the same operation (xor with a key)
             return encrypt_payment_id(payment_id, public_key, secret_key);
+        }
+
+        bool  decrypt_payment_id_long(crypto::hash &payment_id, const crypto::public_key &public_key, const crypto::secret_key &secret_key)
+        {
+            // Encryption and decryption are the same operation (xor with a key)
+            return encrypt_payment_id_long(payment_id, public_key, secret_key);
         }
 
         virtual rct::key genCommitmentMask(const rct::key &amount_key) = 0;
@@ -234,7 +243,7 @@ namespace hw {
         virtual bool clsag_prepare(const rct::key &p, const rct::key &z, rct::key &I, rct::key &D, const rct::key &H, rct::key &a, rct::key &aG, rct::key &aH) = 0;
         virtual bool clsag_hash(const rct::keyV &data, rct::key &hash) = 0;
         virtual bool clsag_sign(const rct::key &c, const rct::key &a, const rct::key &p, const rct::key &z, const rct::key &mu_P, const rct::key &mu_C, rct::key &s) = 0;
-        
+
         virtual bool  close_tx(void) = 0;
 
         virtual bool  has_ki_cold_sync(void) const { return false; }

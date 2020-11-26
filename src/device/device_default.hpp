@@ -116,6 +116,8 @@ namespace hw {
 
             bool  encrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &public_key, const crypto::secret_key &secret_key) override;
 
+            bool  encrypt_payment_id_long(crypto::hash &payment_id, const crypto::public_key &public_key, const crypto::secret_key &secret_key) override;
+
             rct::key genCommitmentMask(const rct::key &amount_key) override;
 
             bool  ecdhEncode(rct::ecdhTuple & unmasked, const rct::key & sharedSec, bool short_amount) override;
@@ -136,7 +138,7 @@ namespace hw {
 
             bool clsag_prepare(const rct::key &p, const rct::key &z, rct::key &I, rct::key &D, const rct::key &H, rct::key &a, rct::key &aG, rct::key &aH) override;
             bool clsag_hash(const rct::keyV &data, rct::key &hash) override;
-            bool clsag_sign(const rct::key &c, const rct::key &a, const rct::key &p, const rct::key &z, const rct::key &mu_P, const rct::key &mu_C, rct::key &s) override;            
+            bool clsag_sign(const rct::key &c, const rct::key &a, const rct::key &p, const rct::key &z, const rct::key &mu_P, const rct::key &mu_C, rct::key &s) override;
 
             bool  close_tx(void) override;
         };

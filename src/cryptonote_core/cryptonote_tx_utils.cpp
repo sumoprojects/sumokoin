@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2020, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include <unordered_set>
@@ -115,7 +115,7 @@ namespace cryptonote
     out.amount = block_reward;
     out.target = tk;
     tx.vout.push_back(out);
-        
+
     if (nettype == MAINNET && height == config::EXCHANGE_FUND_RELEASE_HEIGHT){
       crypto::key_derivation derivation = AUTO_VAL_INIT(derivation);
       crypto::public_key out_eph_public_key = AUTO_VAL_INIT(out_eph_public_key);
@@ -137,9 +137,9 @@ namespace cryptonote
       out.target = tk;
       tx.vout.push_back(out);
     }
-    
+
     tx.version = 2;
-    
+
     //lock
     tx.unlock_time = height + CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW;
     tx.vin.push_back(in);
@@ -236,6 +236,31 @@ namespace cryptonote
         }
         else if (get_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id))
         {
+         // if we have a long payment id, find it and encrypt it with the tx key
+          add_dummy_payment_id = false;
+          LOG_PRINT_L2("Encrypting payment id " << payment_id);
+          crypto::public_key view_key_pub = get_destination_view_key_pub(destinations, change_addr);
+          if (view_key_pub == null_pkey)
+          {
+            LOG_ERROR("Destinations have to have exactly one output to support encrypted payment ids");
+            return false;
+          }
+
+          if (!hwdev.encrypt_payment_id_long(payment_id, view_key_pub, tx_key))
+          {
+            LOG_ERROR("Failed to encrypt payment id");
+            return false;
+          }
+
+          std::string extra_nonce;
+          set_payment_id_to_tx_extra_nonce(extra_nonce, payment_id);
+          remove_field_from_tx_extra(tx.extra, typeid(tx_extra_nonce));
+          if (!add_extra_nonce_to_tx_extra(tx.extra, extra_nonce))
+          {
+            LOG_ERROR("Failed to add encrypted payment id to tx extra");
+            return false;
+          }
+          LOG_PRINT_L1("Encrypted payment ID: " << payment_id);
           add_dummy_payment_id = false;
         }
       }

@@ -2412,8 +2412,10 @@ void wallet2::process_new_transaction(const crypto::hash &txid, const cryptonote
       }
       else if (get_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id))
       {
-        LOG_PRINT_L2("Found unencrypted payment ID: " << payment_id);
-        MWARNING("Found unencrypted payment ID: these are bad for privacy, consider using subaddresses instead");
+        if (!m_account.get_device().decrypt_payment_id_long(payment_id, tx_pub_key, m_account.get_keys().m_view_secret_key))
+        {
+          LOG_PRINT_L0("Failed to decrypt payment ID: " << payment_id);
+        }
       }
     }
 
@@ -6487,9 +6489,17 @@ crypto::hash wallet2::get_payment_id(const pending_tx &ptx) const
         memcpy(payment_id.data, payment_id8.data, 8);
       }
     }
-    else if (!get_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id))
+    else if (get_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id))
     {
-      payment_id = crypto::null_hash;
+      if (ptx.dests.empty())
+      {
+        MWARNING("Encrypted payment id found, but no destinations public key, cannot decrypt");
+        return crypto::null_hash;
+      }
+      if (m_account.get_device().decrypt_payment_id_long(payment_id, ptx.dests[0].addr.m_view_public_key, ptx.tx_key))
+      {
+        memcpy(payment_id.data, payment_id.data, 32);
+      }
     }
   }
   return payment_id;

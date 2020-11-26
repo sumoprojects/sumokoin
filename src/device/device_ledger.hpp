@@ -279,6 +279,8 @@ namespace hw {
 
         bool  encrypt_payment_id(crypto::hash8 &payment_id, const crypto::public_key &public_key, const crypto::secret_key &secret_key) override;
 
+        bool  encrypt_payment_id_long (crypto::hash &payment_id, const crypto::public_key &public_key, const crypto::secret_key &secret_key) override;
+
         rct::key genCommitmentMask(const rct::key &amount_key) override;
 
         bool  ecdhEncode(rct::ecdhTuple & unmasked, const rct::key & sharedSec, bool short_format) override;

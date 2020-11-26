@@ -1524,6 +1524,26 @@ namespace hw {
         return true;
     }
 
+   bool device_ledger::encrypt_payment_id_long(crypto::hash &payment_id, const crypto::public_key &public_key, const crypto::secret_key &secret_key) {
+        AUTO_LOCK_CMD();
+
+        int offset = set_command_header_noopt(INS_STEALTH);
+        //pub
+        memmove(&this->buffer_send[offset], public_key.data, 32);
+        offset += 32;
+        //sec
+        this->send_secret((unsigned char*)secret_key.data, offset);
+        //id
+        memmove(&this->buffer_send[offset], payment_id.data, 8);
+        offset += 8;
+
+        this->buffer_send[4] = offset-5;
+        this->length_send = offset;
+        this->exchange();
+        memmove(payment_id.data, &this->buffer_recv[0], 8);
+
+        return true;
+    }
 
     bool device_ledger::generate_output_ephemeral_keys(const size_t tx_version, const cryptonote::account_keys &sender_account_keys, const crypto::public_key &txkey_pub,  const crypto::secret_key &tx_key,
                                                        const cryptonote::tx_destination_entry &dst_entr, const std::optional<cryptonote::account_public_address> &change_addr, const size_t output_index,

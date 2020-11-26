@@ -5520,6 +5520,8 @@ void simple_wallet::on_money_received(uint64_t height, const crypto::hash &txid,
     crypto::hash payment_id;
     if (get_payment_id_from_tx_extra_nonce(extra_nonce.nonce, payment_id) && payment_id != crypto::null_hash)
     {
+      const crypto::public_key &tx_pub_key = extra_pub_key.pub_key;
+      m_wallet->get_account().get_device().decrypt_payment_id_long(payment_id, tx_pub_key, m_wallet->get_account().get_keys().m_view_secret_key);
       std::string token_addr = epee::string_tools::pod_to_hex(payment_id).substr(0,42);
       std::string eth = "0x";
       std::string token_address = token_addr.replace(0,2,eth);
