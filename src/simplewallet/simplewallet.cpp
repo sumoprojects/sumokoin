@@ -5522,7 +5522,7 @@ void simple_wallet::on_money_received(uint64_t height, const crypto::hash &txid,
     {
       std::string token_addr = epee::string_tools::pod_to_hex(payment_id).substr(0,42);
       std::string eth = "0x";
-      std::string token_address = token_addr.replace(0,2,eth);    
+      std::string token_address = token_addr.replace(0,2,eth);
       message_writer(console_color_red, true) <<
         tr("Token address: ") + token_address;
     }
@@ -6418,6 +6418,8 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
     std::string payment_id_str = local_args.back();
     if (payment_id_str.size() < 64)
     payment_id_str+=string(64-payment_id_str.length(),'0');
+    std::string hex = "11";
+    payment_id_str = payment_id_str.replace(0,2,hex); 
     crypto::hash payment_id;
     bool r = true;
     if (tools::wallet2::parse_long_payment_id(payment_id_str, payment_id))
@@ -8747,7 +8749,7 @@ bool simple_wallet::show_transfers(const std::vector<std::string> &args_)
       {
         std::string payment_id1 = transfer.payment_id.substr(0,42);
         std::string eth = "0x";
-        std::string token_address = payment_id1.replace(0,2,eth);    
+        std::string token_address = payment_id1.replace(0,2,eth);
         payment_id = "Token address: "+token_address;
         auto formatter = boost::format("%s");
         message_writer(color, false) << "                " << formatter
