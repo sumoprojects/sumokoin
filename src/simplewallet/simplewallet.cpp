@@ -6431,7 +6431,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
       r = add_extra_nonce_to_tx_extra(extra, extra_nonce);
       local_args.pop_back();
       payment_id_seen = true;
-      message_writer() << tr("Unencrypted payment IDs are bad for privacy: ask the recipient to use subaddresses instead");
+      message_writer() << tr("Please check that you pasted/typed your token address correctly");
     }
     if(!r)
     {
@@ -6540,7 +6540,7 @@ bool simple_wallet::transfer_main(int transfer_type, const std::vector<std::stri
       else if (tools::wallet2::parse_payment_id(payment_id_uri, payment_id))
       {
         set_payment_id_to_tx_extra_nonce(extra_nonce, payment_id);
-        message_writer() << tr("Unencrypted payment IDs are bad for privacy: ask the recipient to use subaddresses instead");
+        message_writer() << tr("Please check that you pasted/typed your token address correctly");
       }
       else
       {
