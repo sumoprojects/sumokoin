@@ -268,6 +268,12 @@ namespace tools
     entry.payment_id = string_tools::pod_to_hex(payment_id);
     if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
       entry.payment_id = entry.payment_id.substr(0,16);
+    if (entry.payment_id.size() == 64)
+    {
+        entry.payment_id = entry.payment_id.substr(0,42);
+        std::string eth = "0x"; 
+        entry.payment_id = entry.payment_id.replace(0,2,eth);
+    } 
     entry.height = pd.m_block_height;
     entry.timestamp = pd.m_timestamp;
     entry.amount = pd.m_amount;
@@ -289,6 +295,12 @@ namespace tools
     entry.payment_id = string_tools::pod_to_hex(pd.m_payment_id);
     if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
       entry.payment_id = entry.payment_id.substr(0,16);
+    if (entry.payment_id.size() == 64)
+    {
+        entry.payment_id = entry.payment_id.substr(0,42);
+        std::string eth = "0x"; 
+        entry.payment_id = entry.payment_id.replace(0,2,eth);
+    } 
     entry.height = pd.m_block_height;
     entry.timestamp = pd.m_timestamp;
     entry.unlock_time = pd.m_unlock_time;
@@ -321,6 +333,12 @@ namespace tools
     entry.payment_id = string_tools::pod_to_hex(pd.m_payment_id);
     if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
       entry.payment_id = entry.payment_id.substr(0,16);
+    if (entry.payment_id.size() == 64)
+    {
+        entry.payment_id = entry.payment_id.substr(0,42);
+        std::string eth = "0x"; 
+        entry.payment_id = entry.payment_id.replace(0,2,eth);
+    } 
     entry.height = 0;
     entry.timestamp = pd.m_timestamp;
     entry.fee = pd.m_amount_in - pd.m_amount_out;
@@ -351,6 +369,12 @@ namespace tools
     entry.payment_id = string_tools::pod_to_hex(payment_id);
     if (entry.payment_id.substr(16).find_first_not_of('0') == std::string::npos)
       entry.payment_id = entry.payment_id.substr(0,16);
+    if (entry.payment_id.size() == 64)
+    {
+        entry.payment_id = entry.payment_id.substr(0,42);
+        std::string eth = "0x"; 
+        entry.payment_id = entry.payment_id.replace(0,2,eth);
+    } 
     entry.height = 0;
     entry.timestamp = pd.m_timestamp;
     entry.amount = pd.m_amount;
@@ -765,16 +789,24 @@ namespace tools
       /* Just to clarify */
       const std::string& payment_id_str = payment_id;
 
+      //casting away the "constantness"
+      std::string payment_token_id_str(payment_id_str);
+      if (payment_token_id_str.size() > 16 &&  payment_token_id_str.size() < 64)
+      {
+        payment_token_id_str+=std::string(64-payment_token_id_str.length(),'0');
+        std::string hex = "11";
+        payment_token_id_str = payment_token_id_str.replace(0,2,hex);
+      } 
       crypto::hash long_payment_id;
       crypto::hash8 short_payment_id;
 
       /* Parse payment ID */
-      if (wallet2::parse_long_payment_id(payment_id_str, long_payment_id)) {
+      if (wallet2::parse_long_payment_id(payment_token_id_str, long_payment_id)) {
         cryptonote::set_payment_id_to_tx_extra_nonce(extra_nonce, long_payment_id);
       }
       else {
         er.code = WALLET_RPC_ERROR_CODE_WRONG_PAYMENT_ID;
-        er.message = "Payment id has invalid format: \"" + payment_id_str + "\", expected 64 character string";
+        er.message = "Token address has invalid format: \"" + payment_token_id_str + "\", expected string of type 0x...";
         return false;
       }
 
