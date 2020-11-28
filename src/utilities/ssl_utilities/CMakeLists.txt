@@ -26,6 +26,8 @@
 # STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 # THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/ssl_utilities)
+
 set(gen_ssl_cert_sources
   gen_ssl_cert.cpp)
 
@@ -47,3 +49,11 @@ set_property(TARGET gen_ssl_cert
   PROPERTY
     OUTPUT_NAME "sumo-gen-ssl-cert")
 install(TARGETS gen_ssl_cert DESTINATION bin)
+if (UNIX)
+add_custom_command(TARGET gen_ssl_cert POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-gen-ssl-cert ${CMAKE_BINARY_DIR}/bin/ssl_utilities/sumo-gen-ssl-cert)
+endif()
+if (WIN32)
+add_custom_command(TARGET gen_ssl_cert POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/bin/sumo-gen-ssl-cert.exe ${CMAKE_BINARY_DIR}/bin/ssl_utilities/sumo-gen-ssl-cert.exe)
+endif()
