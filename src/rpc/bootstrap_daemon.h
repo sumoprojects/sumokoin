@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <map>
+#include <utility>
 
 #include <optional>
 #include <boost/thread/mutex.hpp>
@@ -27,7 +28,7 @@ namespace cryptonote
       bool rpc_payment_enabled);
 
     std::string address() const noexcept;
-    std::optional<uint64_t> get_height();
+    std::optional<std::pair<uint64_t, uint64_t>> get_height();
     bool handle_result(bool success, const std::string &status);
 
     template <class t_request, class t_response>
