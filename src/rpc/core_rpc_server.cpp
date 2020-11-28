@@ -510,7 +510,7 @@ namespace cryptonote
     if (use_bootstrap_daemon)
     {
       return use_bootstrap_daemon_if_necessary<COMMAND_RPC_GET_BLOCKS_FAST>(invoke_http_mode::BIN, "/getblocks.bin", req, res, r);
-    }      
+    }
 
     CHECK_PAYMENT(req, res, 1);
 
@@ -1295,7 +1295,7 @@ namespace cryptonote
     {
       bool ok;
       use_bootstrap_daemon_if_necessary<COMMAND_RPC_SEND_RAW_TX>(invoke_http_mode::JON, "/sendrawtransaction", req, res, ok);
-    }    
+    }
 
     const bool restricted = m_restricted && ctx;
 
@@ -1311,6 +1311,10 @@ namespace cryptonote
       {
         CHECK_CORE_READY();
       }
+    }
+    else
+    {
+      CHECK_CORE_READY();
     }
 
     CHECK_PAYMENT_MIN1(req, res, COST_PER_TX_RELAY, false);
@@ -2964,9 +2968,9 @@ namespace cryptonote
   {
     RPC_TRACKER(relay_tx);
     CHECK_PAYMENT_MIN1(req, res, req.txids.size() * COST_PER_TX_RELAY, false);
-    
+
     const bool restricted = m_restricted && ctx;
-    
+
     bool failed = false;
     res.status = "";
     for (const auto &str: req.txids)
@@ -2985,7 +2989,7 @@ namespace cryptonote
       cryptonote::blobdata txblob;
       if ((broadcasted = m_core.get_pool_transaction(txid, txblob, relay_category::broadcasted)) || (!restricted && m_core.get_pool_transaction(txid, txblob, relay_category::all)))
       {
-        // The settings below always choose i2p/tor if enabled. Otherwise, do fluff iff previously relayed else dandelion++ stem.        
+        // The settings below always choose i2p/tor if enabled. Otherwise, do fluff iff previously relayed else dandelion++ stem.
         NOTIFY_NEW_TRANSACTIONS::request r;
         r.txs.push_back(std::move(txblob));
         const auto tx_relay = broadcasted ? relay_method::fluff : relay_method::local;
