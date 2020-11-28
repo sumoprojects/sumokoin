@@ -13,7 +13,7 @@ jobs:
       run: make -j3
 
   macOS-cross-on-bionic:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
       with:
@@ -63,7 +63,7 @@ jobs:
       run: make release-static-win64 -j2
 
   Windows64-cross-on-bionic:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled boost
@@ -86,7 +86,7 @@ jobs:
         path: build/**/bin/
 
   build-ubuntu-bionic-native:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled boost
@@ -104,7 +104,7 @@ jobs:
       run: make -j 3
 
   build-bionic-debug-native:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled boost
@@ -140,7 +140,7 @@ jobs:
       run: make -j 3
 
   build-ubuntu-bionic-static-native:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled boost
@@ -186,7 +186,7 @@ jobs:
       run: make release-static -j 3
 
   FreeBSD-cross-on-bionic:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled boost
@@ -239,7 +239,7 @@ jobs:
         path: build/**/bin/
 
   cross-build-armv8-binaries-on-xenial:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled boost
@@ -262,7 +262,7 @@ jobs:
         path: build/**/bin/
 
   cross-build-RISCV64-binaries-on-bionic:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled boost
@@ -286,7 +286,7 @@ jobs:
 
   test-ubuntu:
     needs: build-ubuntu-bionic-native
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled boost
