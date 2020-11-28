@@ -1429,6 +1429,11 @@ namespace cryptonote
     return true;
   }
   //-----------------------------------------------------------------------------------------------
+  bool core::is_synchronized() const
+  {
+    return m_pprotocol != nullptr && m_pprotocol->is_synchronized();
+  }
+  //-----------------------------------------------------------------------------------------------  
   void core::on_synchronized()
   {
     m_miner.on_synchronized();
