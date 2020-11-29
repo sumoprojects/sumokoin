@@ -1,21 +1,21 @@
 # Copyright (c) 2014-2020, The Monero Project
-# 
+#
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without modification, are
 # permitted provided that the following conditions are met:
-# 
+#
 # 1. Redistributions of source code must retain the above copyright notice, this list of
 #    conditions and the following disclaimer.
-# 
+#
 # 2. Redistributions in binary form must reproduce the above copyright notice, this list
 #    of conditions and the following disclaimer in the documentation and/or other
 #    materials provided with the distribution.
-# 
+#
 # 3. Neither the name of the copyright holder nor the names of its contributors may be
 #    used to endorse or promote products derived from this software without specific
 #    prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -33,10 +33,10 @@ foreach(BLOB_NAME checkpoints)
     list(APPEND GENERATED_SOURCES ${OUTPUT_C_SOURCE})
     set(INPUT_DAT_FILE "${BLOB_NAME}.dat")
     add_custom_command(
-        OUTPUT ${OUTPUT_C_SOURCE} 
-        MAIN_DEPENDENCY ${INPUT_DAT_FILE} 
-        COMMAND 
-            cd ${CMAKE_CURRENT_BINARY_DIR} && 
+        OUTPUT ${OUTPUT_C_SOURCE}
+        MAIN_DEPENDENCY ${INPUT_DAT_FILE}
+        COMMAND
+            cd ${CMAKE_CURRENT_BINARY_DIR} &&
             echo "'#include\t<stddef.h>'" > ${OUTPUT_C_SOURCE} &&
             echo "'const\tunsigned\tchar\t${BLOB_NAME}[]={'" >> ${OUTPUT_C_SOURCE} &&
             od -v -An -tx1 ${CMAKE_CURRENT_SOURCE_DIR}/${INPUT_DAT_FILE} | sed -e "'s/[0-9a-fA-F]\\{1,\\}/0x&,/g'" -e "'$$s/.$$//'" >> ${OUTPUT_C_SOURCE} &&
@@ -45,4 +45,4 @@ foreach(BLOB_NAME checkpoints)
     )
 endforeach()
 
-add_library(blocks STATIC blocks.cpp ${GENERATED_SOURCES})
+monero_add_library(blocks blocks.cpp ${GENERATED_SOURCES})

@@ -45,12 +45,6 @@ endif()
 set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG ${OPT_FLAGS_RELEASE}")
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
-  message(STATUS "Setting default build type: ${CMAKE_BUILD_TYPE}")
-endif()
-string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (STATIC AND NOT (APPLE OR FREEBSD OR OPENBSD OR DRAGONFLY ))
@@ -158,6 +152,30 @@ function (add_definition_if_library_exists library function header var)
     add_definitions("-D${var}")
   endif()
 endfunction()
+
+option(RELINK_TARGETS "Relink targets, when just a dependant .so changed, but not its header?" OFF)
+function (monero_set_target_no_relink target)
+  if (RELINK_TARGETS MATCHES OFF)
+    # Will not relink the target, when just its dependant .so has changed, but not it's interface
+    set_target_properties("${target}" PROPERTIES LINK_DEPENDS_NO_SHARED true)
+  endif()
+endfunction()
+
+function (monero_add_minimal_executable name)
+  source_group("${name}"
+    FILES
+      ${ARGN})
+
+  add_executable("${name}"
+    ${ARGN})
+    monero_set_target_no_relink( ${name} )
+endfunction()
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+  message(STATUS "Setting default build type: ${CMAKE_BUILD_TYPE}")
+endif()
+string(TOLOWER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_LOWER)
 
 # ARCH defines the target architecture, either by an explicit identifier or
 # one of the following two keywords. By default, ARCH a value of 'native':
