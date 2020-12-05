@@ -4,11 +4,11 @@ $(package)_download_path=https://github.com/tpoechtrager/cctools-port/archive
 $(package)_file_name=$($(package)_version).tar.gz
 $(package)_sha256_hash=e51995a843533a3dac155dd0c71362dd471597a2d23f13dff194c6285362f875
 $(package)_build_subdir=cctools
-$(package)_clang_version=8.0.0
-$(package)_clang_download_path=https://releases.llvm.org/$($(package)_clang_version)
+$(package)_clang_version=8.0.1
+$(package)_clang_download_path=https://github.com/llvm/llvm-project/releases/download/llvmorg-$($(package)_clang_version)/
 $(package)_clang_download_file=clang+llvm-$($(package)_clang_version)-x86_64-linux-gnu-ubuntu-14.04.tar.xz
 $(package)_clang_file_name=clang-llvm-$($(package)_clang_version)-x86_64-linux-gnu-ubuntu-14.04.tar.xz
-$(package)_clang_sha256_hash=9ef854b71949f825362a119bf2597f744836cb571131ae6b721cd102ffea8cd0
+$(package)_clang_sha256_hash=0eb70c888c5a67f61e62ae502f4c935e3116e79e5cb3371a3be260f345fe1f16
 
 $(package)_libtapi_version=3efb201881e7a76a21e0554906cf306432539cef
 $(package)_libtapi_download_path=https://github.com/tpoechtrager/apple-libtapi/archive
