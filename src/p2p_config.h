@@ -60,7 +60,8 @@ namespace config
 #define P2P_DEFAULT_CONNECTIONS_COUNT_IN                28
 #define P2P_DEFAULT_HANDSHAKE_INTERVAL                  60           //seconds
 #define P2P_DEFAULT_PACKET_MAX_SIZE                     50000000     //50000000 bytes maximum packet size
-#define P2P_DEFAULT_PEERS_IN_HANDSHAKE                  150
+#define P2P_DEFAULT_PEERS_IN_HANDSHAKE                  250
+#define P2P_MAX_PEERS_IN_HANDSHAKE                      250
 #define P2P_DEFAULT_CONNECTION_TIMEOUT                  5000       //5 seconds
 #define P2P_DEFAULT_SOCKS_CONNECT_TIMEOUT               45         // seconds
 #define P2P_DEFAULT_PING_CONNECTION_TIMEOUT             5000       //5 seconds
