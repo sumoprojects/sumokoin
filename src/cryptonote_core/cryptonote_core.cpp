@@ -1429,6 +1429,11 @@ namespace cryptonote
     return true;
   }
   //-----------------------------------------------------------------------------------------------
+  bool core::is_synchronized() const
+  {
+    return m_pprotocol != nullptr && m_pprotocol->is_synchronized();
+  }
+  //-----------------------------------------------------------------------------------------------  
   void core::on_synchronized()
   {
     m_miner.on_synchronized();
@@ -1644,7 +1649,7 @@ namespace cryptonote
       m_starter_message_showed = true;
     }
 
-    m_txpool_auto_relayer.do_call(std::bind(&core::relay_txpool_transactions, this));
+    relay_txpool_transactions(); // txpool handles periodic DB checking
     m_check_updates_interval.do_call(std::bind(&core::check_updates, this));
     m_check_disk_space_interval.do_call(std::bind(&core::check_disk_space, this));
     m_block_rate_interval.do_call(std::bind(&core::check_block_rate, this));

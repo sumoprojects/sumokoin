@@ -2934,7 +2934,7 @@ mdb_txn_env(MDB_txn *txn)
 	return txn->mt_env;
 }
 
-size_t
+mdb_size_t
 mdb_txn_id(MDB_txn *txn)
 {
     if(!txn) return 0;
@@ -4063,7 +4063,7 @@ mdb_env_map(MDB_env *env, void *addr)
 }
 
 int ESECT
-mdb_env_set_mapsize(MDB_env *env, size_t size)
+mdb_env_set_mapsize(MDB_env *env, mdb_size_t size)
 {
 	/* If env is already open, caller is responsible for making
 	 * sure there are no active txns.
@@ -7699,7 +7699,7 @@ mdb_cursor_renew(MDB_txn *txn, MDB_cursor *mc)
 
 /* Return the count of duplicate data items for the current key */
 int
-mdb_cursor_count(MDB_cursor *mc, size_t *countp)
+mdb_cursor_count(MDB_cursor *mc, mdb_size_t *countp)
 {
 	MDB_node	*leaf;
 

@@ -56,11 +56,12 @@ namespace config
 #define P2P_LOCAL_WHITE_PEERLIST_LIMIT                  1000
 #define P2P_LOCAL_GRAY_PEERLIST_LIMIT                   5000
 
-#define P2P_DEFAULT_CONNECTIONS_COUNT_OUT               8
-#define P2P_DEFAULT_CONNECTIONS_COUNT_IN                32
+#define P2P_DEFAULT_CONNECTIONS_COUNT_OUT               12
+#define P2P_DEFAULT_CONNECTIONS_COUNT_IN                28
 #define P2P_DEFAULT_HANDSHAKE_INTERVAL                  60           //seconds
 #define P2P_DEFAULT_PACKET_MAX_SIZE                     50000000     //50000000 bytes maximum packet size
-#define P2P_DEFAULT_PEERS_IN_HANDSHAKE                  150
+#define P2P_DEFAULT_PEERS_IN_HANDSHAKE                  250
+#define P2P_MAX_PEERS_IN_HANDSHAKE                      250
 #define P2P_DEFAULT_CONNECTION_TIMEOUT                  5000       //5 seconds
 #define P2P_DEFAULT_SOCKS_CONNECT_TIMEOUT               45         // seconds
 #define P2P_DEFAULT_PING_CONNECTION_TIMEOUT             5000       //5 seconds
@@ -83,11 +84,11 @@ namespace config
 #define RPC_IP_FAILS_BEFORE_BLOCK                       3
 
 #define CRYPTONOTE_DANDELIONPP_STEMS                    2 // number of outgoing stem connections per epoch
-#define CRYPTONOTE_DANDELIONPP_FLUFF_PROBABILITY        10 // out of 100
+#define CRYPTONOTE_DANDELIONPP_FLUFF_PROBABILITY        20 // out of 100
 #define CRYPTONOTE_DANDELIONPP_MIN_EPOCH                10 // minutes
 #define CRYPTONOTE_DANDELIONPP_EPOCH_RANGE              30 // seconds
 #define CRYPTONOTE_DANDELIONPP_FLUSH_AVERAGE            5 // seconds average for poisson distributed fluff flush
-#define CRYPTONOTE_DANDELIONPP_EMBARGO_AVERAGE          173 // seconds (see tx_pool.cpp for more info)
+#define CRYPTONOTE_DANDELIONPP_EMBARGO_AVERAGE          39 // seconds (see tx_pool.cpp for more info)
 
 // see src/cryptonote_protocol/levin_notify.cpp
 #define CRYPTONOTE_NOISE_MIN_EPOCH                      5      // minutes
@@ -126,4 +127,3 @@ namespace config
       } }; // Bender's daydream
   }
 }
-
