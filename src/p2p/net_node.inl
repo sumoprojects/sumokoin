@@ -247,8 +247,8 @@ namespace nodetool
       limit = std::numeric_limits<time_t>::max();
     else
       limit = now + seconds;
-      const std::string host_str = addr.host_str();
-      m_blocked_hosts[host_str] = limit;
+    const std::string host_str = addr.host_str();
+    m_blocked_hosts[host_str] = limit;
 
     // drop any connection to that address. This should only have to look into
     // the zone related to the connection, but really make sure everything is
