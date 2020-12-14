@@ -2263,8 +2263,7 @@ skip:
         uint64_t start_height;
         std::vector<cryptonote::block_complete_entry> blocks;
         boost::uuids::uuid span_connection_id;
-        bool filled = false;
-        if (m_block_queue.get_next_span(start_height, blocks, span_connection_id, filled) && filled)
+        if (m_block_queue.get_next_span(start_height, blocks, span_connection_id, true))
         {
           LOG_DEBUG_CC(context, "No other thread is adding blocks, resuming");
           MLOG_PEER_STATE("will try to add blocks next");
@@ -2578,7 +2577,7 @@ skip:
       MERROR("Negative score hit");
       return;
     }
-    context.m_score -= score;  
+    context.m_score -= score;
   if (context.m_score <= DROP_PEERS_ON_SCORE)
     drop_connection_with_score(context, 5, false);
 }
