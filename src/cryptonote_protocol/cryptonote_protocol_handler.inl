@@ -1249,7 +1249,7 @@ namespace cryptonote
       const boost::posix_time::time_duration dt = now - request_time;
       const float rate = size * 1e6 / (dt.total_microseconds() + 1);
       MDEBUG(context << " adding span: " << arg.blocks.size() << " at height " << start_height << ", " << dt.total_microseconds()/1e6 << " seconds, " << (rate/1024) << " kB/s, size now " << (m_block_queue.get_data_size() + blocks_size) / 1048576.f << " MB");
-      m_block_queue.add_blocks(start_height, arg.blocks, context.m_connection_id, rate, blocks_size);
+      m_block_queue.add_blocks(start_height, arg.blocks, context.m_connection_id, context.m_remote_address, rate, blocks_size);
 
       const crypto::hash last_block_hash = cryptonote::get_block_hash(b);
       context.m_last_known_hash = last_block_hash;
@@ -1298,7 +1298,8 @@ namespace cryptonote
           uint64_t start_height;
           std::vector<cryptonote::block_complete_entry> blocks;
           boost::uuids::uuid span_connection_id;
-          if (!m_block_queue.get_next_span(start_height, blocks, span_connection_id))
+          epee::net_utils::network_address span_origin;
+          if (!m_block_queue.get_next_span(start_height, blocks, span_connection_id, span_origin))
           {
             MDEBUG(context << " no next span found, going back to download");
             break;
@@ -1395,6 +1396,7 @@ namespace cryptonote
           if (!m_core.prepare_handle_incoming_blocks(blocks, pblocks))
           {
             LOG_ERROR_CCONTEXT("Failure in prepare_handle_incoming_blocks");
+            drop_connections(span_origin);
             return 1;
           }
           if (!pblocks.empty() && pblocks.size() != blocks.size())
@@ -1434,6 +1436,7 @@ namespace cryptonote
             {
               if(tvc[i].m_verifivation_failed)
               {
+                drop_connections(span_origin);
                 if (!m_p2p->for_connection(span_connection_id, [&](cryptonote_connection_context& context, nodetool::peerid_type peer_id, uint32_t f)->bool{
                   cryptonote::transaction tx;
                   crypto::hash txid;
@@ -1475,6 +1478,7 @@ namespace cryptonote
 
             if(bvc.m_verifivation_failed)
             {
+              drop_connections(span_origin);
               if (!m_p2p->for_connection(span_connection_id, [&](cryptonote_connection_context& context, nodetool::peerid_type peer_id, uint32_t f)->bool{
                 LOG_PRINT_CCONTEXT_L1("Block verification failed, dropping connection");
                 drop_connection_with_score(context, bvc.m_bad_pow ? P2P_IP_FAILS_BEFORE_BLOCK : 1, true);
@@ -1494,6 +1498,7 @@ namespace cryptonote
             }
             if(bvc.m_marked_as_orphaned)
             {
+              drop_connections(span_origin);
               if (!m_p2p->for_connection(span_connection_id, [&](cryptonote_connection_context& context, nodetool::peerid_type peer_id, uint32_t f)->bool{
                 LOG_PRINT_CCONTEXT_L1("Block received at sync phase was marked as orphaned, dropping connection");
                 drop_connection(context, true, true);
@@ -2127,7 +2132,7 @@ skip:
         const uint64_t first_block_height = context.m_last_response_height - context.m_needed_objects.size() + 1;
         static const uint64_t bp_fork_height = m_core.get_earliest_ideal_height_for_version(7);
         bool sync_pruned_blocks = m_sync_pruned_blocks && first_block_height >= bp_fork_height && m_core.get_blockchain_pruning_seed();
-        span = m_block_queue.reserve_span(first_block_height, context.m_last_response_height, count_limit, context.m_connection_id, sync_pruned_blocks, m_core.get_blockchain_pruning_seed(), context.m_pruning_seed, context.m_remote_blockchain_height, context.m_needed_objects);
+        span = m_block_queue.reserve_span(first_block_height, context.m_last_response_height, count_limit, context.m_connection_id, context.m_remote_address, sync_pruned_blocks, m_core.get_blockchain_pruning_seed(), context.m_pruning_seed, context.m_remote_blockchain_height, context.m_needed_objects);
         MDEBUG(context << " span from " << first_block_height << ": " << span.first << "/" << span.second);
         if (span.second > 0)
         {
@@ -2263,7 +2268,8 @@ skip:
         uint64_t start_height;
         std::vector<cryptonote::block_complete_entry> blocks;
         boost::uuids::uuid span_connection_id;
-        if (m_block_queue.get_next_span(start_height, blocks, span_connection_id, true))
+        epee::net_utils::network_address span_origin;
+        if (m_block_queue.get_next_span(start_height, blocks, span_connection_id, span_origin, true))
         {
           LOG_DEBUG_CC(context, "No other thread is adding blocks, resuming");
           MLOG_PEER_STATE("will try to add blocks next");
@@ -2685,6 +2691,29 @@ template<class t_core>
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>
+  void t_cryptonote_protocol_handler<t_core>::drop_connections(const epee::net_utils::network_address address)
+  {
+    MWARNING("dropping connections to " << address.str());
+
+    m_p2p->add_host_fail(address, 5);
+
+    std::vector<boost::uuids::uuid> drop;
+    m_p2p->for_each_connection([&](const connection_context& cntxt, nodetool::peerid_type peer_id, uint32_t support_flags) {
+      if (address.is_same_host(cntxt.m_remote_address))
+        drop.push_back(cntxt.m_connection_id);
+      return true;
+    });
+    for (const boost::uuids::uuid &id: drop)
+    {
+      m_block_queue.flush_spans(id, true);
+      m_p2p->for_connection(id, [&](cryptonote_connection_context& context, nodetool::peerid_type peer_id, uint32_t f)->bool{
+        drop_connection(context, true, false);
+        return true;
+      });
+    }
+  }
+  //------------------------------------------------------------------------------------------------------------------------
+  template<class t_core>  
   void t_cryptonote_protocol_handler<t_core>::on_connection_close(cryptonote_connection_context &context)
   {
     uint64_t target = 0;

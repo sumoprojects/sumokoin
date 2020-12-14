@@ -139,6 +139,7 @@ namespace cryptonote
     bool should_ask_for_pruned_data(cryptonote_connection_context& context, uint64_t first_block_height, uint64_t nblocks, bool check_block_weights) const;
     void drop_connection(cryptonote_connection_context &context, bool add_fail, bool flush_all_spans);
     void drop_connection_with_score(cryptonote_connection_context &context, uint64_t score, bool flush_all_spans);
+    void drop_connections(const epee::net_utils::network_address address);		
     bool kick_idle_peers();
     bool check_standby_peers();
     bool update_sync_search();
@@ -175,7 +176,7 @@ namespace cryptonote
     double get_avg_block_size();
     boost::circular_buffer<size_t> m_avg_buffer = boost::circular_buffer<size_t>(10);
 
-    boost::mutex m_bad_peer_check_lock;		
+    boost::mutex m_bad_peer_check_lock;
 
     template<class t_parameter>
       bool post_notify(typename t_parameter::request& arg, cryptonote_connection_context& context)
