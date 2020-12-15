@@ -7,14 +7,14 @@ jobs:
     runs-on: macOS-latest
     env:
       CCACHE_COMPRESS: 1
-      CCACHE_TEMPDIR: /tmp/.ccache-temp    
+      CCACHE_TEMPDIR: /tmp/.ccache-temp
     steps:
     - uses: actions/checkout@v1
     - uses: actions/cache@v2
       with:
         path: ~/.ccache
         key: ccache-macos-build-${{ github.sha }}
-        restore-keys: ccache-macos-build-      
+        restore-keys: ccache-macos-build-
     - name: install dependencies
       run: brew install boost hidapi zmq libpgm ldns expat libunwind-headers protobuf ccache
     - name: build
@@ -99,14 +99,14 @@ jobs:
     runs-on: ubuntu-18.04
     env:
       CCACHE_COMPRESS: 1
-      CCACHE_TEMPDIR: /tmp/.ccache-temp    
+      CCACHE_TEMPDIR: /tmp/.ccache-temp
     steps:
     - uses: actions/checkout@v1
     - uses: actions/cache@v2
       with:
         path: ~/.ccache
         key: ccache-ubuntu-bionic-build-${{ github.sha }}
-        restore-keys: ccache-ubuntu-bionic-build-      
+        restore-keys: ccache-ubuntu-bionic-build-
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -131,7 +131,7 @@ jobs:
       with:
         path: ~/.ccache
         key: ccache-ubuntu-debug-build-${{ github.sha }}
-        restore-keys: ccache-ubuntu-debug-build-      
+        restore-keys: ccache-ubuntu-debug-build-
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -156,7 +156,7 @@ jobs:
       with:
         path: ~/.ccache
         key: ccache-ubuntu-focal-build-${{ github.sha }}
-        restore-keys: ccache-ubuntu-focal-build-      
+        restore-keys: ccache-ubuntu-focal-build-
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -181,7 +181,7 @@ jobs:
       with:
         path: ~/.ccache
         key: ccache-ubuntu-bionic-static-build-${{ github.sha }}
-        restore-keys: ccache-ubuntu-bionic-static-build-      
+        restore-keys: ccache-ubuntu-bionic-static-build-
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
