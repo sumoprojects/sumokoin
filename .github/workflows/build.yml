@@ -5,12 +5,22 @@ on: [push, pull_request]
 jobs:
   build-macos-native:
     runs-on: macOS-latest
+    env:
+      CCACHE_COMPRESS: 1
+      CCACHE_TEMPDIR: /tmp/.ccache-temp    
     steps:
     - uses: actions/checkout@v1
+    - uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ccache-macos-build-${{ github.sha }}
+        restore-keys: ccache-macos-build-      
     - name: install dependencies
-      run: brew install boost hidapi zmq libpgm ldns expat libunwind-headers protobuf
+      run: brew install boost hidapi zmq libpgm ldns expat libunwind-headers protobuf ccache
     - name: build
-      run: make -j3
+      run: |
+        ccache --max-size=150M
+        make -j3
 
   macOS-cross-on-bionic:
     runs-on: ubuntu-18.04
@@ -87,8 +97,16 @@ jobs:
 
   build-ubuntu-bionic-native:
     runs-on: ubuntu-18.04
+    env:
+      CCACHE_COMPRESS: 1
+      CCACHE_TEMPDIR: /tmp/.ccache-temp    
     steps:
     - uses: actions/checkout@v1
+    - uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ccache-ubuntu-bionic-build-${{ github.sha }}
+        restore-keys: ccache-ubuntu-bionic-build-      
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -101,12 +119,19 @@ jobs:
     - name: install sumokoin dependencies
       run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev libevent-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
     - name: build sumokoin
-      run: make -j 3
+      run: |
+        ccache --max-size=150M
+        make -j3
 
   build-bionic-debug-native:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
+    - uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ccache-ubuntu-debug-build-${{ github.sha }}
+        restore-keys: ccache-ubuntu-debug-build-      
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -119,12 +144,19 @@ jobs:
     - name: install sumokoin dependencies
       run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
     - name: build sumokoin
-      run: make debug -j 3
+      run: |
+        ccache --max-size=150M
+        make -j3
 
   build-ubuntu-focal-fossa-native:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v1
+    - uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ccache-ubuntu-focal-build-${{ github.sha }}
+        restore-keys: ccache-ubuntu-focal-build-      
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -137,12 +169,19 @@ jobs:
     - name: install sumokoin dependencies
       run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
     - name: build sumokoin
-      run: make -j 3
+      run: |
+        ccache --max-size=150M
+        make -j3
 
   build-ubuntu-bionic-static-native:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
+    - uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ccache-ubuntu-bionic-static-build-${{ github.sha }}
+        restore-keys: ccache-ubuntu-bionic-static-build-      
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -153,7 +192,7 @@ jobs:
     - name: update apt
       run: sudo apt update
     - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake miniupnpc libunbound-dev libevent-dev graphviz doxygen pkg-config libssl-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libudev-dev ccache libtool autoconf automake python libtinfo5
+      run: sudo apt -y install build-essential cmake miniupnpc libunbound-dev libevent-dev graphviz doxygen pkg-config libssl-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libudev-dev ccache libtool autoconf automake python libtinfo5 ccache
     - name: build boost 1_74
       run: |
         wget https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
@@ -183,7 +222,9 @@ jobs:
         sudo make install
         cd ..
     - name: build sumokoin
-      run: make release-static -j 3
+      run: |
+        ccache --max-size=150M
+        make release-static -j 3
 
   FreeBSD-cross-on-bionic:
     runs-on: ubuntu-18.04
