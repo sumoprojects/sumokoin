@@ -114,6 +114,8 @@ namespace cryptonote
     std::string get_peers_overview() const;
     std::pair<uint32_t, uint32_t> get_next_needed_pruning_stripe() const;
     bool needs_new_sync_connections() const;
+    bool is_busy_syncing();
+				
   private:
     //----------------- commands handlers ----------------------------------------------
     int handle_notify_new_block(int command, NOTIFY_NEW_BLOCK::request& arg, cryptonote_connection_context& context);
@@ -139,7 +141,7 @@ namespace cryptonote
     bool should_ask_for_pruned_data(cryptonote_connection_context& context, uint64_t first_block_height, uint64_t nblocks, bool check_block_weights) const;
     void drop_connection(cryptonote_connection_context &context, bool add_fail, bool flush_all_spans);
     void drop_connection_with_score(cryptonote_connection_context &context, uint64_t score, bool flush_all_spans);
-    void drop_connections(const epee::net_utils::network_address address);		
+    void drop_connections(const epee::net_utils::network_address address);
     bool kick_idle_peers();
     bool check_standby_peers();
     bool update_sync_search();
