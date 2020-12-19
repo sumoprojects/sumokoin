@@ -42,8 +42,8 @@ const hardfork_t mainnet_hard_forks[] = {
   { 7, MAINNET_HARDFORK_V7_HEIGHT, 0, 1555234940 },
   { 8, MAINNET_HARDFORK_V8_HEIGHT, 0, 1555321375 },
   { 9, 350000, 0, 1574120819 }, // abt 6h47' Nov 19, 2019
-//{ 10, XXXXXX, 0, XXXXXXXXXX }, // CLSAG & EXACT COINBASE - ALLOW BOTH MLSAG AND CLSAG
-//{ 11, XXXXXX, 0, XXXXXXXXXX }, // FORBID MLSAG ALLOW CLSAG ONLY - SHOULD HAPPEN A DAY OR TWO AFTER HF 10
+  { 10, 498657, 0, 1609836171 }, // CLSAG & EXACT COINBASE - ALLOW BOTH MLSAG AND CLSAG (abt January 5, 2021 8:42:51 AM GMT)
+  { 11, 499017, 0, 1609922571 }, // FORBID MLSAG ALLOW CLSAG ONLY - A DAY AFTER HF 10
 };
 const size_t num_mainnet_hard_forks = sizeof(mainnet_hard_forks) / sizeof(mainnet_hard_forks[0]);
 
