@@ -49,7 +49,7 @@
 //checkpoints
 
 // per block checkpoint expectod blocks hashes file hash
-#define EXPECTED_BLOCK_HASHES_HASH  "0df1372e29f47c892cec03f346a43d0d38ab541563388887051ba0320e3f9cea"
+#define EXPECTED_BLOCK_HASHES_HASH  "0f19c0ef9139fe3c6a16dea345b21b372f3f188d348b49e9cf90d8920b148739"
 
 // mainnet checkpoints
 #define MAINNET_CHECKPOINTS \
@@ -84,7 +84,7 @@
     ADD_CHECKPOINT(435000, "ee11193a62f74d2ed681fd2e9212e9e4061774d9dd90039cc5a4d0b65f2c5522"); \
     ADD_CHECKPOINT(446000, "c50f8599b0c0cf5ad620217e9a496fdfa1f82b485995cfd73a04a1509bb902a2"); \
     ADD_CHECKPOINT(465000, "985a03585380e5a8ba30a2515174c05afbc71a858ec171a1c1a8658df322935e"); \
-    ADD_CHECKPOINT(492000, "a2efbec083be4f1aadb1e368e85fc861a3014bcef6e58dad2161b46cc6fa0cea"); \    
+    ADD_CHECKPOINT(492000, "a2efbec083be4f1aadb1e368e85fc861a3014bcef6e58dad2161b46cc6fa0cea"); \
 
 // testnet checkpoints
 #define TESTNET_CHECKPOINTS \
