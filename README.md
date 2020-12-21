@@ -96,7 +96,7 @@ library archives (`.a`).
 | OpenSSL      | basically any | NO       | `libssl-dev`         | `openssl`    | `openssl-devel`     | NO       | sha256 sum      |
 | libzmq       | 3.0.0         | NO       | `libzmq3-dev`        | `zeromq`     | `zeromq-devel`      | NO       | ZeroMQ library  |
 | OpenPGM      | ?             | NO       | `libpgm-dev`         | `libpgm`     | `openpgm-devel`     | NO       | For ZeroMQ      |
-| libnorm[2]   | ?             | NO       | `libnorm-dev`        |              |                     | YES      | For ZeroMQ      |    
+| libnorm[2]   | ?             | NO       | `libnorm-dev`        |              |                     | YES      | For ZeroMQ      |
 | libunbound   | 1.4.16        | YES      | `libunbound-dev`     | `unbound`    | `unbound-devel`     | NO       | DNS resolver    |
 | libevent     | ?             | NO       | `libevent-dev`       | `libevent`   | `libevent-devel`    | YES      | For unbound
 | libsodium    | ?             | NO       | `libsodium-dev`      | `libsodium`  | `libsodium-devel`   | NO       | cryptography    |
@@ -208,8 +208,8 @@ Tested on a Raspberry Pi Zero with a clean install of minimal Raspbian Stretch (
 * Increase the system swap size:
 
     ```bash
-    sudo /etc/init.d/dphys-swapfile stop  
-    sudo nano /etc/dphys-swapfile  
+    sudo /etc/init.d/dphys-swapfile stop
+    sudo nano /etc/dphys-swapfile
     CONF_SWAPSIZE=2048
     sudo /etc/init.d/dphys-swapfile start
     ```
@@ -221,7 +221,7 @@ Tested on a Raspberry Pi Zero with a clean install of minimal Raspbian Stretch (
     ```bash
     git clone https://github.com/sumoprojects/sumokoin.git
     cd sumokoin
-    git checkout tags/v0.7.0.0
+    git checkout tags/v0.8.0.0
     ```
 
 * Build:
@@ -268,7 +268,7 @@ If you are using the older Raspbian Jessie image, compiling Sumokoin is a bit mo
 
 * Wait ~8 hours
 
-    ```bash    
+    ```bash
     sudo ./bjam cxxflags=-fPIC cflags=-fPIC -a install
     ```
 
@@ -288,15 +288,15 @@ application.
 
 * Download and install the [MSYS2 installer](https://www.msys2.org), either the 64-bit or the 32-bit package, depending on your system.
 * Open the MSYS shell via the `MSYS2 Shell` shortcut
-* Update packages using pacman:  
+* Update packages using pacman:
 
     ```bash
     pacman -Syu
     ```
 
-* Exit the MSYS shell using Alt+F4  
+* Exit the MSYS shell using Alt+F4
 * Edit the properties for the `MSYS2 Shell` shortcut changing "msys2_shell.bat" to "msys2_shell.cmd -mingw64" for 64-bit builds or "msys2_shell.cmd -mingw32" for 32-bit builds
-* Restart MSYS shell via modified shortcut and update packages again using pacman:  
+* Restart MSYS shell via modified shortcut and update packages again using pacman:
 
     ```bash
     pacman -Syu
@@ -337,10 +337,10 @@ application.
     cd sumokoin
     ```
 
-* If you would like a specific [version/tag](https://github.com/sumoprojects/sumokoin/tags), do a git checkout for that version. eg. 'v0.7.0.0'. If you don't care about the version and just want binaries from master, skip this step:
+* If you would like a specific [version/tag](https://github.com/sumoprojects/sumokoin/tags), do a git checkout for that version. eg. 'v0.8.0.0'. If you don't care about the version and just want binaries from master, skip this step:
 
     ```bash
-    git checkout v0.7.0.0
+    git checkout v0.8.0.0
     ```
 
 * If you are on a 64-bit system, run:
