@@ -49,6 +49,7 @@ namespace config
 #define CRYPTONOTE_DNS_TIMEOUT_MS                       20000
 
 #define BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT          10000  //by default, blocks ids count in synchronizing
+#define BLOCKS_IDS_SYNCHRONIZING_MAX_COUNT              25000  //max blocks ids count in synchronizing
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              10     //by default, blocks count in blocks downloading
 
 #define COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT           1000
