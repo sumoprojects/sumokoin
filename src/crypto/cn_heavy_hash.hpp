@@ -78,29 +78,11 @@
 
 #if defined(_MSC_VER)
 #define cpuid(info,x)    __cpuidex(info,x,0)
-#else
-inline void cpuid(int CPUInfo[4], int InfoType)
-{
-    ASM __volatile__
-    (
-    "cpuid":
-        "=a" (CPUInfo[0]),
-        "=b" (CPUInfo[1]),
-        "=c" (CPUInfo[2]),
-        "=d" (CPUInfo[3]) :
-            "a" (InfoType), "c" (0)
-        );
-}
+
+
 #endif
 
-#ifdef HAS_INTEL_HW
-inline bool hw_check_aes()
-{
-    int32_t cpu_info[4];
-    cpuid(cpu_info, 1);
-    return (cpu_info[2] & (1 << 25)) != 0;
-}
-#endif
+
 
 #ifdef HAS_ARM_HW
 inline bool hw_check_aes()
@@ -200,10 +182,7 @@ public:
 
 	void hash(const void* in, size_t len, void* out, bool prehashed=false)
 	{
-		if(hw_check_aes() && !check_override())
-			hardware_hash(in, len, out, prehashed);
-		else
-			software_hash(in, len, out, prehashed);
+	
 	}
 
 	void software_hash(const void* in, size_t len, void* out, bool prehashed);
@@ -229,7 +208,7 @@ private:
 
 	inline bool check_override()
 	{
-		const char *env = getenv("SUMOKOIN_USE_SOFTWARE_AES");
+		const char *env = getenv("SUMO_USE_SOFTWARE_AES");
 		if (!env) {
 			return false;
 		}

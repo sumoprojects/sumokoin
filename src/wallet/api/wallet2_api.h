@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
@@ -218,9 +218,9 @@ public:
     AddressBookRow(std::size_t _rowId, const std::string &_address, const std::string &_paymentId, const std::string &_description):
         m_rowId(_rowId),
         m_address(_address),
-        m_paymentId(_paymentId), 
+        m_paymentId(_paymentId),
         m_description(_description) {}
- 
+
 private:
     std::size_t m_rowId;
     std::string m_address;
@@ -228,14 +228,14 @@ private:
     std::string m_description;
 public:
     std::string extra;
-    std::string getAddress() const {return m_address;} 
-    std::string getDescription() const {return m_description;} 
-    std::string getPaymentId() const {return m_paymentId;} 
+    std::string getAddress() const {return m_address;}
+    std::string getDescription() const {return m_description;}
+    std::string getPaymentId() const {return m_paymentId;}
     std::size_t getRowId() const {return m_rowId;}
 };
 
 /**
- * @brief The AddressBook - interface for 
+ * @brief The AddressBook - interface for
 Book
  */
 struct AddressBook
@@ -248,9 +248,9 @@ struct AddressBook
     };
     virtual ~AddressBook() = 0;
     virtual std::vector<AddressBookRow*> getAll() const = 0;
-    virtual bool addRow(const std::string &dst_addr , const std::string &payment_id, const std::string &description) = 0;  
+    virtual bool addRow(const std::string &dst_addr , const std::string &payment_id, const std::string &description) = 0;
     virtual bool deleteRow(std::size_t rowId) = 0;
-    virtual void refresh() = 0;  
+    virtual void refresh() = 0;
     virtual std::string errorString() const = 0;
     virtual int errorCode() const = 0;
     virtual int lookupPaymentID(const std::string &payment_id) const = 0;
@@ -262,7 +262,7 @@ public:
         m_rowId(_rowId),
         m_address(_address),
         m_label(_label) {}
- 
+
 private:
     std::size_t m_rowId;
     std::string m_address;
@@ -355,7 +355,7 @@ struct WalletListener
      * @param amount        - amount
      */
     virtual void moneyReceived(const std::string &txId, uint64_t amount) = 0;
-    
+
    /**
     * @brief unconfirmedMoneyReceived - called when payment arrived in tx pool
     * @param txId          - transaction id
@@ -464,7 +464,7 @@ struct Wallet
     //! returns current hard fork info
     virtual void hardForkInfo(uint8_t &version, uint64_t &earliest_height) const = 0;
     //! check if hard fork rules should be used
-    virtual bool useForkRules(uint8_t version, int64_t early_blocks) const = 0;  
+    virtual bool useForkRules(uint8_t version, int64_t early_blocks) const = 0;
     /*!
      * \brief integratedAddress - returns integrated address for current wallet address and given payment_id.
      *                            if passed "payment_id" param is an empty string or not-valid payment id string
@@ -475,7 +475,7 @@ struct Wallet
      * \return                  - 106 characters string representing integrated address
      */
     virtual std::string integratedAddress(const std::string &payment_id) const = 0;
-    
+
    /*!
     * \brief secretViewKey     - returns secret view key
     * \return                  - secret view key
@@ -631,7 +631,7 @@ struct Wallet
     * @brief estimateBlockChainHeight - returns estimate blockchain height. More accurate than approximateBlockChainHeight,
     *                                   uses daemon height and falls back to calculation from date/time
     * @return
-    **/ 
+    **/
     virtual uint64_t estimateBlockChainHeight() const = 0;
     /**
      * @brief daemonBlockChainHeight - returns daemon blockchain height
@@ -858,20 +858,20 @@ struct Wallet
      */
 
     virtual PendingTransaction * createSweepUnmixableTransaction() = 0;
-    
+
    /*!
     * \brief loadUnsignedTx  - creates transaction from unsigned tx file
     * \return                - UnsignedTransaction object. caller is responsible to check UnsignedTransaction::status()
     *                          after object returned
     */
     virtual UnsignedTransaction * loadUnsignedTx(const std::string &unsigned_filename) = 0;
-    
+
    /*!
     * \brief submitTransaction - submits transaction in signed tx file
     * \return                  - true on success
     */
     virtual bool submitTransaction(const std::string &fileName) = 0;
-    
+
 
     /*!
      * \brief disposeTransaction - destroys transaction object
@@ -879,13 +879,21 @@ struct Wallet
      */
     virtual void disposeTransaction(PendingTransaction * t) = 0;
 
+    /*!
+     * \brief Estimates transaction fee.
+     * \param destinations Vector consisting of <address, amount> pairs.
+     * \return Estimated fee.
+     */
+    virtual uint64_t estimateTransactionFee(const std::vector<std::pair<std::string, uint64_t>> &destinations,
+                                            PendingTransaction::Priority priority) const = 0;
+                                            
    /*!
     * \brief exportKeyImages - exports key images to file
     * \param filename
     * \return                  - true on success
     */
     virtual bool exportKeyImages(const std::string &filename) = 0;
-   
+
    /*!
     * \brief importKeyImages - imports key images from file
     * \param filename
@@ -982,13 +990,13 @@ struct Wallet
     virtual bool parse_uri(const std::string &uri, std::string &address, std::string &payment_id, uint64_t &amount, std::string &tx_description, std::string &recipient_name, std::vector<std::string> &unknown_parameters, std::string &error) = 0;
 
     virtual std::string getDefaultDataDir() const = 0;
-   
+
    /*
     * \brief rescanSpent - Rescan spent outputs - Can only be used with trusted daemon
     * \return true on success
     */
     virtual bool rescanSpent() = 0;
-    
+
     //! blackballs a set of outputs
     virtual bool blackballOutputs(const std::vector<std::string> &outputs, bool add) = 0;
 
@@ -1018,7 +1026,7 @@ struct Wallet
 
     //! Light wallet authenticate and login
     virtual bool lightWalletLogin(bool &isNewWallet) const = 0;
-    
+
     //! Initiates a light wallet import wallet request
     virtual bool lightWalletImportWalletRequest(std::string &payment_id, uint64_t &fee, bool &new_request, bool &request_fulfilled, std::string &payment_address, std::string &status) = 0;
 
@@ -1156,16 +1164,16 @@ struct WalletManager
     * \param  spendKeyString spend key (optional)
     * \return                Wallet instance (Wallet::status() needs to be called to check if recovered successfully)
     */
-    virtual Wallet * createWalletFromKeys(const std::string &path, 
+    virtual Wallet * createWalletFromKeys(const std::string &path,
                                                     const std::string &language,
-                                                    NetworkType nettype, 
+                                                    NetworkType nettype,
                                                     uint64_t restoreHeight,
                                                     const std::string &addressString,
                                                     const std::string &viewKeyString,
                                                     const std::string &spendKeyString = "") = 0;
-    Wallet * createWalletFromKeys(const std::string &path, 
+    Wallet * createWalletFromKeys(const std::string &path,
                                   const std::string &language,
-                                  bool testnet, 
+                                  bool testnet,
                                   uint64_t restoreHeight,
                                   const std::string &addressString,
                                   const std::string &viewKeyString,
@@ -1310,4 +1318,3 @@ struct WalletManagerFactory
 }
 
 namespace Bitmonero = Monero;
-

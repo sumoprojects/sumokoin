@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
@@ -543,13 +543,13 @@ private:
         FIELD(cache_data)
       END_SERIALIZE()
     };
-    
+
     // GUI Address book
     struct address_book_row
     {
       cryptonote::account_public_address m_address;
       crypto::hash8 m_payment_id;
-      std::string m_description;   
+      std::string m_description;
       bool m_is_subaddress;
       bool m_has_payment_id;
     };
@@ -599,7 +599,7 @@ private:
      * \param  create_address_file  Whether to create an address file
      */
     void generate(const std::string& wallet_, const epee::wipeable_string& password,
-      const epee::wipeable_string& multisig_data, bool create_address_file = false);
+      const epee::wipeable_string& multisig_data, bool create_address_file = true);
 
     /*!
      * \brief Generates a wallet or restores one.
@@ -613,7 +613,7 @@ private:
      */
     crypto::secret_key generate(const std::string& wallet, const epee::wipeable_string& password,
       const crypto::secret_key& recovery_param = crypto::secret_key(), bool recover = false,
-      bool two_random = false, bool create_address_file = false);
+      bool two_random = false, bool create_address_file = true);
     /*!
      * \brief Creates a wallet from a public address and a spend/view secret key pair.
      * \param  wallet_                 Name of wallet file
@@ -625,7 +625,7 @@ private:
      */
     void generate(const std::string& wallet, const epee::wipeable_string& password,
       const cryptonote::account_public_address &account_public_address,
-      const crypto::secret_key& spendkey, const crypto::secret_key& viewkey, bool create_address_file = false);
+      const crypto::secret_key& spendkey, const crypto::secret_key& viewkey, bool create_address_file = true);
     /*!
      * \brief Creates a watch only wallet from a public address and a view secret key.
      * \param  wallet_                 Name of wallet file
@@ -636,7 +636,7 @@ private:
      */
     void generate(const std::string& wallet, const epee::wipeable_string& password,
       const cryptonote::account_public_address &account_public_address,
-      const crypto::secret_key& viewkey = crypto::secret_key(), bool create_address_file = false);
+      const crypto::secret_key& viewkey = crypto::secret_key(), bool create_address_file = true);
     /*!
      * \brief Restore a wallet hold by an HW.
      * \param  wallet_        Name of wallet file
@@ -644,7 +644,7 @@ private:
      * \param  device_name    name of HW to use
      * \param  create_address_file     Whether to create an address file
      */
-    void restore(const std::string& wallet_, const epee::wipeable_string& password, const std::string &device_name, bool create_address_file = false);
+    void restore(const std::string& wallet_, const epee::wipeable_string& password, const std::string &device_name, bool create_address_file = true);
 
     /*!
      * \brief Creates a multisig wallet
@@ -821,13 +821,13 @@ private:
 
     // locked & unlocked balance of given or current subaddress account
     uint64_t balance(uint32_t subaddr_index_major, bool strict) const;
-    uint64_t unlocked_balance(uint32_t subaddr_index_major, bool strict, uint64_t *blocks_to_unlock = NULL) const;
+    uint64_t unlocked_balance(uint32_t subaddr_index_major, bool strict, uint64_t *blocks_to_unlock = NULL, uint64_t *time_to_unlock = NULL);
     // locked & unlocked balance per subaddress of given or current subaddress account
     std::map<uint32_t, uint64_t> balance_per_subaddress(uint32_t subaddr_index_major, bool strict) const;
-    std::map<uint32_t, std::pair<uint64_t, uint64_t>> unlocked_balance_per_subaddress(uint32_t subaddr_index_major, bool strict) const;
+    std::map<uint32_t, std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> unlocked_balance_per_subaddress(uint32_t subaddr_index_major, bool strict);
     // all locked & unlocked balances of all subaddress accounts
     uint64_t balance_all(bool strict) const;
-    uint64_t unlocked_balance_all(bool strict, uint64_t *blocks_to_unlock = NULL) const;
+    uint64_t unlocked_balance_all(bool strict, uint64_t *blocks_to_unlock = NULL, uint64_t *time_to_unlock = NULL);
     template<typename T>
     void transfer_selected(const std::vector<cryptonote::tx_destination_entry>& dsts, const std::vector<size_t>& selected_transfers, size_t fake_outputs_count,
       std::vector<std::vector<tools::wallet2::get_outs_entry>> &outs,
@@ -851,7 +851,7 @@ private:
     bool sign_tx(unsigned_tx_set &exported_txs, const std::string &signed_filename, std::vector<wallet2::pending_tx> &ptx, bool export_raw = false);
     bool sign_tx(unsigned_tx_set &exported_txs, std::vector<wallet2::pending_tx> &ptx, signed_tx_set &signed_txs);
     std::string sign_tx_dump_to_str(unsigned_tx_set &exported_txs, std::vector<wallet2::pending_tx> &ptx, signed_tx_set &signed_txes);
-    // load unsigned_tx_set from file. 
+    // load unsigned_tx_set from file.
     bool load_unsigned_tx(const std::string &unsigned_filename, unsigned_tx_set &exported_txs) const;
     bool parse_unsigned_tx_from_str(const std::string &unsigned_tx_st, unsigned_tx_set &exported_txs) const;
     bool load_tx(const std::string &signed_filename, std::vector<tools::wallet2::pending_tx> &ptx, std::function<bool(const signed_tx_set&)> accept_func = NULL);
@@ -885,8 +885,8 @@ private:
     uint64_t get_blockchain_current_height() const { return m_light_wallet_blockchain_height ? m_light_wallet_blockchain_height : m_blockchain.size(); }
     void rescan_spent();
     void rescan_blockchain(bool hard, bool refresh = true, bool keep_key_images = false);
-    bool is_transfer_unlocked(const transfer_details& td) const;
-    bool is_transfer_unlocked(uint64_t unlock_time, uint64_t block_height) const;
+    bool is_transfer_unlocked(const transfer_details& td);
+    bool is_transfer_unlocked(uint64_t unlock_time, uint64_t block_height);
 
     uint64_t get_last_block_reward() const { return m_last_block_reward; }
     uint64_t get_device_last_key_image_sync() const { return m_device_last_key_image_sync; }
@@ -1131,7 +1131,7 @@ private:
     bool add_address_book_row(const cryptonote::account_public_address &address, const crypto::hash8 *payment_id, const std::string &description, bool is_subaddress);
     bool set_address_book_row(size_t row_id, const cryptonote::account_public_address &address, const crypto::hash8 *payment_id, const std::string &description, bool is_subaddress);
     bool delete_address_book_row(std::size_t row_id);
-        
+
     uint64_t get_num_rct_outputs();
     size_t get_num_transfer_details() const { return m_transfers.size(); }
     const transfer_details &get_transfer_details(size_t idx) const;
@@ -1147,13 +1147,15 @@ private:
     const boost::optional<epee::net_utils::http::login>& get_daemon_login() const { return m_daemon_login; }
     uint64_t get_daemon_blockchain_height(std::string& err);
     uint64_t get_daemon_blockchain_target_height(std::string& err);
+    uint64_t get_daemon_adjusted_time();
+
    /*!
     * \brief Calculates the approximate blockchain height from current date/time.
     */
     uint64_t get_approximate_blockchain_height() const;
     uint64_t estimate_blockchain_height();
     std::vector<size_t> select_available_outputs_from_histogram(uint64_t count, bool atleast, bool unlocked, bool allow_rct);
-    std::vector<size_t> select_available_outputs(const std::function<bool(const transfer_details &td)> &f) const;
+    std::vector<size_t> select_available_outputs(const std::function<bool(const transfer_details &td)> &f);
     std::vector<size_t> select_available_unmixable_outputs();
     std::vector<size_t> select_available_mixable_outputs();
 
@@ -1170,7 +1172,7 @@ private:
     std::string get_description() const;
 
     /*!
-     * \brief  Get the list of registered account tags. 
+     * \brief  Get the list of registered account tags.
      * \return first.Key=(tag's name), first.Value=(tag's label), second[i]=(i-th account's tag)
      */
     const std::pair<std::map<std::string, std::string>, std::vector<std::string>>& get_account_tags();
@@ -1246,6 +1248,7 @@ private:
     std::vector<std::pair<uint64_t, uint64_t>> estimate_backlog(const std::vector<std::pair<double, double>> &fee_levels);
     std::vector<std::pair<uint64_t, uint64_t>> estimate_backlog(uint64_t min_tx_weight, uint64_t max_tx_weight, const std::vector<uint64_t> &fees);
 
+    uint64_t estimate_fee(bool use_per_byte_fee, bool use_rct, int n_inputs, int mixin, int n_outputs, size_t extra_size, bool bulletproof, bool clsag, uint64_t base_fee, uint64_t fee_multiplier, uint64_t fee_quantization_mask) const;
     uint64_t get_fee_multiplier(uint32_t priority, int fee_algorithm = -1);
     uint64_t get_base_fee();
     uint64_t get_fee_quantization_mask();
@@ -1379,7 +1382,7 @@ private:
 
     void set_tx_notify(const std::shared_ptr<tools::Notify> &notify) { m_tx_notify = notify; }
 
-    bool is_tx_spendtime_unlocked(uint64_t unlock_time, uint64_t block_height) const;
+    bool is_tx_spendtime_unlocked(uint64_t unlock_time, uint64_t block_height);
     void hash_m_transfer(const transfer_details & transfer, crypto::hash &hash) const;
     uint64_t hash_m_transfers(int64_t transfer_height, crypto::hash &hash) const;
     void finish_rescan_bc_keep_key_images(uint64_t transfer_height, const crypto::hash &hash);
@@ -1434,7 +1437,7 @@ private:
     std::vector<uint64_t> get_unspent_amounts_vector(bool strict);
     uint64_t get_dynamic_base_fee_estimate();
     float get_output_relatedness(const transfer_details &td0, const transfer_details &td1) const;
-    std::vector<size_t> pick_preferred_rct_inputs(uint64_t needed_money, uint32_t subaddr_account, const std::set<uint32_t> &subaddr_indices) const;
+    std::vector<size_t> pick_preferred_rct_inputs(uint64_t needed_money, uint32_t subaddr_account, const std::set<uint32_t> &subaddr_indices);
     void set_spent(size_t idx, uint64_t height);
     void set_unspent(size_t idx);
     bool is_spent(const transfer_details &td, bool strict = true) const;
@@ -1610,7 +1613,7 @@ private:
 
     uint64_t m_last_block_reward;
     std::unique_ptr<tools::file_locker> m_keys_file_locker;
-    
+
     mms::message_store m_message_store;
     bool m_original_keys_available;
     cryptonote::account_public_address m_original_address;

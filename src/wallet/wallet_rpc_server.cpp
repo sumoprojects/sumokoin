@@ -1,22 +1,22 @@
 // Copyright (c) 2017-2019, Sumokoin Project
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -26,7 +26,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 #include <boost/format.hpp>
 #include <boost/asio/ip/address.hpp>
@@ -429,10 +429,10 @@ namespace tools
     try
     {
       res.balance = req.all_accounts ? m_wallet->balance_all(req.strict) : m_wallet->balance(req.account_index, req.strict);
-      res.unlocked_balance = req.all_accounts ? m_wallet->unlocked_balance_all(req.strict, &res.blocks_to_unlock) : m_wallet->unlocked_balance(req.account_index, req.strict, &res.blocks_to_unlock);
+      res.unlocked_balance = req.all_accounts ? m_wallet->unlocked_balance_all(req.strict, &res.blocks_to_unlock, &res.time_to_unlock) : m_wallet->unlocked_balance(req.account_index, req.strict, &res.blocks_to_unlock, &res.time_to_unlock);
       res.multisig_import_needed = m_wallet->multisig() && m_wallet->has_multisig_partial_key_images();
       std::map<uint32_t, std::map<uint32_t, uint64_t>> balance_per_subaddress_per_account;
-      std::map<uint32_t, std::map<uint32_t, std::pair<uint64_t, uint64_t>>> unlocked_balance_per_subaddress_per_account;
+      std::map<uint32_t, std::map<uint32_t, std::pair<uint64_t, std::pair<uint64_t, uint64_t>>>> unlocked_balance_per_subaddress_per_account;
       if (req.all_accounts)
       {
         for (uint32_t account_index = 0; account_index < m_wallet->get_num_subaddress_accounts(); ++account_index)
@@ -452,7 +452,7 @@ namespace tools
       {
         uint32_t account_index = p.first;
         std::map<uint32_t, uint64_t> balance_per_subaddress = p.second;
-        std::map<uint32_t, std::pair<uint64_t, uint64_t>> unlocked_balance_per_subaddress = unlocked_balance_per_subaddress_per_account[account_index];
+        std::map<uint32_t, std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> unlocked_balance_per_subaddress = unlocked_balance_per_subaddress_per_account[account_index];
         std::set<uint32_t> address_indices;
         if (!req.all_accounts && !req.address_indices.empty())
         {
@@ -472,7 +472,8 @@ namespace tools
           info.address = m_wallet->get_subaddress_as_str(index);
           info.balance = balance_per_subaddress[i];
           info.unlocked_balance = unlocked_balance_per_subaddress[i].first;
-          info.blocks_to_unlock = unlocked_balance_per_subaddress[i].second;
+          info.blocks_to_unlock = unlocked_balance_per_subaddress[i].second.first;
+          info.time_to_unlock = unlocked_balance_per_subaddress[i].second.second;
           info.label = m_wallet->get_subaddress_label(index);
           info.num_unspent_outputs = std::count_if(transfers.begin(), transfers.end(), [&](const tools::wallet2::transfer_details& td) { return !td.m_spent && td.m_subaddr_index == index; });
           res.per_subaddress.emplace_back(std::move(info));
@@ -3003,7 +3004,7 @@ namespace tools
       return false;
     }
 
-    cryptonote::COMMAND_RPC_START_MINING::request daemon_req = AUTO_VAL_INIT(daemon_req); 
+    cryptonote::COMMAND_RPC_START_MINING::request daemon_req = AUTO_VAL_INIT(daemon_req);
     daemon_req.miner_address = m_wallet->get_account().get_public_address_str(m_wallet->nettype());
     daemon_req.threads_count        = req.threads_count;
     daemon_req.do_background_mining = req.do_background_mining;
@@ -4216,7 +4217,7 @@ namespace tools
       er.message = "Command unavailable in restricted mode.";
       return false;
     }
-   
+
     std::vector<std::vector<uint8_t>> ssl_allowed_fingerprints;
     ssl_allowed_fingerprints.reserve(req.ssl_allowed_fingerprints.size());
     for (const std::string &fp: req.ssl_allowed_fingerprints)

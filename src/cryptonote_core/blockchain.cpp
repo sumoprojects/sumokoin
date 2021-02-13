@@ -863,7 +863,7 @@ difficulty_type Blockchain::get_difficulty_for_next_block()
   if (m_nettype == MAINNET && (uint64_t)height >= MAINNET_HARDFORK_V7_HEIGHT && (uint64_t)height <= MAINNET_HARDFORK_V7_HEIGHT + (uint64_t)DIFFICULTY_BLOCKS_COUNT_V3){
     return (difficulty_type)240000000;
   }
-  
+
   size_t difficulty_blocks_count;
   uint8_t hf_version = get_current_hard_fork_version();
   if (hf_version == 1) {
@@ -1216,7 +1216,7 @@ bool Blockchain::validate_miner_transaction(const block& b, size_t cumulative_bl
   LOG_PRINT_L3("Blockchain::" << __func__);
 
   uint64_t money_in_use = 0;
-  
+
   if (m_nettype == MAINNET && height == config::EXCHANGE_FUND_RELEASE_HEIGHT){
     uint64_t exchange_fund_amount = 0;
     crypto::public_key tx_pub = get_tx_pub_key_from_extra(b.miner_tx);
@@ -1475,7 +1475,7 @@ bool Blockchain::create_block_template(block& b, const crypto::hash *from_block,
   }
 
   CHECK_AND_ASSERT_MES(diffic, false, "difficulty overhead.");
-  
+
   cal_height = height - height % COIN_EMISSION_HEIGHT_INTERVAL;
   already_generated_coins = cal_height ? m_db->get_block_already_generated_coins(cal_height - 1) : 0;
   size_t txs_weight;
@@ -2861,6 +2861,29 @@ bool Blockchain::check_tx_outputs(const transaction& tx, tx_verification_context
     }
   }
 
+  if (hf_version < HF_VERSION_CLSAG) {
+    if (tx.version >= 2) {
+      if (tx.rct_signatures.type == rct::RCTTypeCLSAG)
+      {
+        MERROR_VER("Ringct type " << (unsigned)rct::RCTTypeCLSAG << " is not allowed before v" << HF_VERSION_CLSAG);
+        tvc.m_invalid_output = true;
+        return false;
+      }
+    }
+  }
+
+  // from v14, allow only CLSAGs
+  if (hf_version > HF_VERSION_CLSAG) {
+    if (tx.version >= 2) {
+      if (tx.rct_signatures.type <= rct::RCTTypeBulletproof2)
+      {
+        MERROR_VER("Ringct type " << (unsigned)tx.rct_signatures.type << " is not allowed from v" << (HF_VERSION_CLSAG + 1));
+        tvc.m_invalid_output = true;
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 //------------------------------------------------------------------
@@ -2901,7 +2924,7 @@ bool Blockchain::expand_transaction_2(transaction &tx, const crypto::hash &tx_pr
       }
     }
   }
-  else if (rv.type == rct::RCTTypeSimple || rv.type == rct::RCTTypeBulletproof || rv.type == rct::RCTTypeBulletproof2)
+  else if (rv.type == rct::RCTTypeSimple || rv.type == rct::RCTTypeBulletproof || rv.type == rct::RCTTypeBulletproof2 || rv.type == rct::RCTTypeCLSAG)
   {
     CHECK_AND_ASSERT_MES(!pubkeys.empty() && !pubkeys[0].empty(), false, "empty pubkeys");
     rv.mixRing.resize(pubkeys.size());
@@ -2914,6 +2937,14 @@ bool Blockchain::expand_transaction_2(transaction &tx, const crypto::hash &tx_pr
       }
     }
   }
+  else if (rv.type == rct::RCTTypeCLSAG)
+ {
+   CHECK_AND_ASSERT_MES(rv.p.CLSAGs.size() == tx.vin.size(), false, "Bad CLSAGs size");
+   for (size_t n = 0; n < tx.vin.size(); ++n)
+   {
+     rv.p.CLSAGs[n].I = rct::ki2rct(boost::get<txin_to_key>(tx.vin[n]).k_image);
+   }
+ }
   else
   {
     CHECK_AND_ASSERT_MES(false, false, "Unsupported rct tx type: " + boost::lexical_cast<std::string>(rv.type));
@@ -2939,6 +2970,17 @@ bool Blockchain::expand_transaction_2(transaction &tx, const crypto::hash &tx_pr
       {
         rv.p.MGs[n].II.resize(1);
         rv.p.MGs[n].II[0] = rct::ki2rct(boost::get<txin_to_key>(tx.vin[n]).k_image);
+      }
+    }
+  }
+  else if (rv.type == rct::RCTTypeCLSAG)
+  {
+    if (!tx.pruned)
+    {
+      CHECK_AND_ASSERT_MES(rv.p.CLSAGs.size() == tx.vin.size(), false, "Bad CLSAGs size");
+      for (size_t n = 0; n < tx.vin.size(); ++n)
+      {
+        rv.p.CLSAGs[n].I = rct::ki2rct(boost::get<txin_to_key>(tx.vin[n]).k_image);
       }
     }
   }
@@ -2985,7 +3027,7 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
       }
     }
   }
-  
+
   size_t n_unmixable = 0, n_mixable = 0;
   size_t mixin = std::numeric_limits<size_t>::max();
   const size_t min_mixin = hf_version < 7 ? DEFAULT_MIXIN : DEFAULT_MIXIN_V2;
@@ -3056,7 +3098,7 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
     tvc.m_verifivation_failed = true;
     return false;
   }
-  
+
   // from v6, check for sorted ins
   if (hf_version >= 6) {
     const crypto::key_image *last_key_image = NULL;
@@ -3204,6 +3246,7 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
     case rct::RCTTypeSimple:
     case rct::RCTTypeBulletproof:
     case rct::RCTTypeBulletproof2:
+    case rct::RCTTypeCLSAG:
     {
       // check all this, either reconstructed (so should really pass), or not
       {
@@ -3239,14 +3282,20 @@ bool Blockchain::check_tx_inputs(transaction& tx, tx_verification_context &tvc, 
         }
       }
 
-      if (rv.p.MGs.size() != tx.vin.size())
+      const size_t n_sigs = rv.type == rct::RCTTypeCLSAG ? rv.p.CLSAGs.size() : rv.p.MGs.size();
+      if (n_sigs != tx.vin.size())
       {
         MERROR_VER("Failed to check ringct signatures: mismatched MGs/vin sizes");
         return false;
       }
       for (size_t n = 0; n < tx.vin.size(); ++n)
       {
-        if (rv.p.MGs[n].II.empty() || memcmp(&boost::get<txin_to_key>(tx.vin[n]).k_image, &rv.p.MGs[n].II[0], 32))
+        bool error;
+        if (rv.type == rct::RCTTypeCLSAG)
+          error = memcmp(&boost::get<txin_to_key>(tx.vin[n]).k_image, &rv.p.CLSAGs[n].I, 32);
+        else
+          error = rv.p.MGs[n].II.empty() || memcmp(&boost::get<txin_to_key>(tx.vin[n]).k_image, &rv.p.MGs[n].II[0], 32);
+        if (error)
         {
           MERROR_VER("Failed to check ringct signatures: mismatched key image");
           return false;
@@ -3387,7 +3436,7 @@ uint64_t Blockchain::get_dynamic_base_fee(uint64_t block_reward, size_t median_b
     lo /= 5;
     return lo;
   }
-  
+
   if (median_block_weight < BLOCK_SIZE_GROWTH_FAVORED_ZONE)
     median_block_weight = BLOCK_SIZE_GROWTH_FAVORED_ZONE;
 
@@ -3421,7 +3470,7 @@ bool Blockchain::check_fee(size_t tx_weight, uint64_t fee) const
   uint64_t base_reward;
   if (!get_block_reward(median, 1, cal_generated_coins, base_reward, height))
     return false;
- 
+
   MDEBUG("Using " << print_money(fee) << "/kB fee");
 
   uint64_t needed_fee;

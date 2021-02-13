@@ -1,22 +1,22 @@
 // Copyright (c) 2017-2019, Sumokoin Project
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -26,7 +26,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
@@ -174,8 +174,8 @@
 #define PEAK_COIN_EMISSION_HEIGHT                       ((uint64_t) (((12 * 30.4375 * 24 * 3600)/DIFFICULTY_TARGET) * PEAK_COIN_EMISSION_YEAR)) // = (# of heights emmitted per year) * PEAK_COIN_EMISSION_YEAR
 
 #define DEFAULT_MIXIN                                   12     // default & minimum mixin allowed
-#define MAX_MIXIN                                       240 
-#define DEFAULT_MIXIN_V2                                48   
+#define MAX_MIXIN                                       240
+#define DEFAULT_MIXIN_V2                                48
 
 #define TRANSACTION_WEIGHT_LIMIT                        ((uint64_t) ((CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 110 / 100) - CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE))
 #define BLOCK_SIZE_GROWTH_FAVORED_ZONE                  ((uint64_t) (CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE * 4))
@@ -189,6 +189,8 @@
 #define HF_VERSION_MIN_2_OUTPUTS                9
 #define HF_VERSION_ENFORCE_MIN_AGE              9
 #define HF_VERSION_EFFECTIVE_SHORT_TERM_MEDIAN_IN_PENALTY 9
+#define HF_VERSION_CLSAG                                  10
+#define HF_VERSION_DETERMINISTIC_UNLOCK_TIME              10
 
 #define PER_KB_FEE_QUANTIZATION_DECIMALS        6
 #define HASH_OF_HASHES_STEP                     512
@@ -222,7 +224,7 @@ namespace config
     } }; // Bender's nightmare
   std::string const GENESIS_TX = "023c01ff0001808098d0daf1d00f028be379aa57a70fa19c0ee5765fdc3d2aae0b1034158f4963e157d9042c24fbec21013402fc7071230f1f86f33099119105a7b1f64a898526060ab871e685059c223100";
   uint32_t const GENESIS_NONCE = 10000;
-  
+
   // Funding for exchange burned coins
   static constexpr const char* EXCHANGE_FUND_ADDRESS = "Sumoo2y7AAteNGJ5yepUUFX3taqDRfM5eYHmCc1qnhwx6cJp3htcjTbKWH7NxkcADcT82pRwns9Us7NdCmuw3gx8bnzYGg14L2o";
   // aa0d3ec96e05fd154235fdcff4c2ebce79f49f4ce76f0aeabeb4a40cf64cc30b
@@ -231,7 +233,11 @@ namespace config
   static constexpr uint64_t EXCHANGE_BURNED_AMOUNT = 1044138500000000;   // 1,044,138.5 coins burned
   static constexpr uint64_t EXCHANGE_FUND_AMOUNT = EXCHANGE_BURNED_AMOUNT; // fund amount = burned coins
   static constexpr uint64_t EXCHANGE_FUND_RELEASE_HEIGHT = 199800;  // equal v6 hardfork
-    
+
+  const unsigned char HASH_KEY_CLSAG_ROUND[] = "CLSAG_round";
+  const unsigned char HASH_KEY_CLSAG_AGG_0[] = "CLSAG_agg_0";
+  const unsigned char HASH_KEY_CLSAG_AGG_1[] = "CLSAG_agg_1";
+
   namespace testnet
   {
     uint64_t const CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX = 0x37751a; // Suto

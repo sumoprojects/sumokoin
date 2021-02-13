@@ -146,6 +146,7 @@ enum TransferType {
 };
 
 static std::string get_human_readable_timespan(std::chrono::seconds seconds);
+static std::string get_human_readable_timespan(uint64_t seconds);
 
 namespace
 {
@@ -3119,7 +3120,7 @@ simple_wallet::simple_wallet()
   m_cmd_binder.set_handler("locked_sweep_all",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::locked_sweep_all,_1),
                            tr(USAGE_LOCKED_SWEEP_ALL),
-                           tr("Send all unlocked balance to an address and lock it for <lockblocks> (max. 500000). If the parameter \"index=<N1>[,<N2>,...]\" or \"index=all\" is specified, the wallet sweeps outputs received by those or all address indices, respectively. If omitted, the wallet randomly chooses an address index to be used. <priority> is the priority of the sweep. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability."));  
+                           tr("Send all unlocked balance to an address and lock it for <lockblocks> (max. 500000). If the parameter \"index=<N1>[,<N2>,...]\" or \"index=all\" is specified, the wallet sweeps outputs received by those or all address indices, respectively. If omitted, the wallet randomly chooses an address index to be used. <priority> is the priority of the sweep. The higher the priority, the higher the transaction fee. Valid values in priority order (from lowest to highest) are: unimportant, normal, elevated, priority. If omitted, the default value (see the command \"set priority\") is used. <ring_size> is the number of inputs to include for untraceability."));
   m_cmd_binder.set_handler("sweep_unmixable",
                            boost::bind(&simple_wallet::on_command, this, &simple_wallet::sweep_unmixable, _1),
                            tr("Send all unmixable outputs to yourself with ring_size 1"));
@@ -5747,15 +5748,19 @@ bool simple_wallet::show_balance_unlocked(bool detailed)
   success_msg_writer() << tr("Currently selected account: [") << m_current_subaddress_account << tr("] ") << m_wallet->get_subaddress_label({m_current_subaddress_account, 0});
   const std::string tag = m_wallet->get_account_tags().second[m_current_subaddress_account];
   success_msg_writer() << tr("Tag: ") << (tag.empty() ? std::string{tr("(No tag assigned)")} : tag);
-  uint64_t blocks_to_unlock;
-  uint64_t unlocked_balance = m_wallet->unlocked_balance(m_current_subaddress_account, false, &blocks_to_unlock);
+  uint64_t blocks_to_unlock, time_to_unlock;
+  uint64_t unlocked_balance = m_wallet->unlocked_balance(m_current_subaddress_account, false, &blocks_to_unlock, &time_to_unlock);
   std::string unlock_time_message;
-  if (blocks_to_unlock > 0)
+  if (blocks_to_unlock > 0 && time_to_unlock > 0)
+    unlock_time_message = (boost::format(" (%lu block(s) and %s to unlock)") % blocks_to_unlock % get_human_readable_timespan(time_to_unlock)).str();
+  else if (blocks_to_unlock > 0)
     unlock_time_message = (boost::format(" (%lu block(s) to unlock)") % blocks_to_unlock).str();
+  else if (time_to_unlock > 0)
+    unlock_time_message = (boost::format(" (%s to unlock)") % get_human_readable_timespan(time_to_unlock)).str();
   success_msg_writer() << tr("Balance: ") << print_money(m_wallet->balance(m_current_subaddress_account, false)) << ", "
     << tr("unlocked balance: ") << print_money(unlocked_balance) << unlock_time_message << extra;
   std::map<uint32_t, uint64_t> balance_per_subaddress = m_wallet->balance_per_subaddress(m_current_subaddress_account, false);
-  std::map<uint32_t, std::pair<uint64_t, uint64_t>> unlocked_balance_per_subaddress = m_wallet->unlocked_balance_per_subaddress(m_current_subaddress_account, false);
+  std::map<uint32_t, std::pair<uint64_t, std::pair<uint64_t, uint64_t>>> unlocked_balance_per_subaddress = m_wallet->unlocked_balance_per_subaddress(m_current_subaddress_account, false);
   if (!detailed || balance_per_subaddress.empty())
     return true;
   success_msg_writer() << tr("Balance per address:");
@@ -6263,7 +6268,7 @@ void simple_wallet::check_for_inactivity_lock(bool user)
       {
         if (get_and_verify_password())
           break;
-        else 
+        else
         {
           ++attempt;
           int left = 3 - attempt;
@@ -6271,7 +6276,7 @@ void simple_wallet::check_for_inactivity_lock(bool user)
         }
         if (attempt > 2)
         {
-          close_wallet(); 
+          close_wallet();
           message_writer(console_color_red, true) << "Your wallet is now closed, press Ctrl^C to exit to terminal" << std::endl;
           break;
         }
@@ -8262,6 +8267,11 @@ static std::string get_human_readable_timespan(std::chrono::seconds seconds)
   return sw::tr("a long time");
 }
 //----------------------------------------------------------------------------------------------------
+static std::string get_human_readable_timespan(uint64_t seconds)
+{
+  return get_human_readable_timespan(std::chrono::seconds(seconds));
+}
+//----------------------------------------------------------------------------------------------------
 // mutates local_args as it parses and consumes arguments
 bool simple_wallet::get_transfers(std::vector<std::string>& local_args, std::vector<transfer_view>& transfers)
 {
@@ -8368,8 +8378,8 @@ bool simple_wallet::get_transfers(std::vector<std::string>& local_args, std::vec
         }
         else
         {
-          uint64_t current_time = static_cast<uint64_t>(time(NULL));
-          uint64_t threshold = current_time + CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS;
+          const uint64_t adjusted_time = m_wallet->get_daemon_adjusted_time();
+          uint64_t threshold = adjusted_time + CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS;
           if (threshold < pd.m_unlock_time)
             locked_msg = get_human_readable_timespan(std::chrono::seconds(pd.m_unlock_time - threshold));
         }
@@ -8565,7 +8575,7 @@ bool simple_wallet::show_transfers(const std::vector<std::string> &args_)
      }
 
     std::string payment_id;
-  
+
     auto formatter = boost::format("%7.7llu %6.6s %20.20s %10.10s %s %-9.9s %s %s - %s %4.4s");
 
     message_writer(color, false) << formatter
@@ -8579,7 +8589,7 @@ bool simple_wallet::show_transfers(const std::vector<std::string> &args_)
       % boost::algorithm::join(transfer.index | boost::adaptors::transformed([](uint32_t i) { return std::to_string(i); }), ", ")
       % transfer.note
       % lock_status;
-    
+
    if (!transfer.payment_id.empty() && transfer.payment_id != "0000000000000000")
     {
      payment_id = "payment id: "+transfer.payment_id;
@@ -10070,8 +10080,8 @@ bool simple_wallet::show_transfer(const std::vector<std::string> &args)
       }
       else
       {
-        uint64_t current_time = static_cast<uint64_t>(time(NULL));
-        uint64_t threshold = current_time + CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS;
+        const uint64_t adjusted_time = m_wallet->get_daemon_adjusted_time();
+        uint64_t threshold = adjusted_time + CRYPTONOTE_LOCKED_TX_ALLOWED_DELTA_SECONDS;
         if (threshold >= pd.m_unlock_time)
           success_msg_writer() << "unlocked for " << get_human_readable_timespan(std::chrono::seconds(threshold - pd.m_unlock_time));
         else

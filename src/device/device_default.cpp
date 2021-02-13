@@ -1,21 +1,21 @@
 // Copyright (c) 2017-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -68,7 +68,7 @@ namespace hw {
         const std::string device_default::get_name()  const {
             return this->name;
         }
-        
+
         bool device_default::init(void) {
             return true;
         }
@@ -89,8 +89,8 @@ namespace hw {
 
         /* ======================================================================= */
         /*  LOCKER                                                                 */
-        /* ======================================================================= */ 
-    
+        /* ======================================================================= */
+
         void device_default::lock() { }
 
         bool device_default::try_lock() { return true; }
@@ -272,8 +272,8 @@ namespace hw {
         /* ======================================================================= */
         /*                               TRANSACTION                               */
         /* ======================================================================= */
-        void device_default::generate_tx_proof(const crypto::hash &prefix_hash, 
-                                               const crypto::public_key &R, const crypto::public_key &A, const boost::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r, 
+        void device_default::generate_tx_proof(const crypto::hash &prefix_hash,
+                                               const crypto::public_key &R, const crypto::public_key &A, const boost::optional<crypto::public_key> &B, const crypto::public_key &D, const crypto::secret_key &r,
                                                crypto::signature &sig) {
             crypto::generate_tx_proof(prefix_hash, R, A, B, D, r, sig);
         }
@@ -400,6 +400,29 @@ namespace hw {
             return true;
         }
 
+        bool device_default::clsag_prepare(const rct::key &p, const rct::key &z, rct::key &I, rct::key &D, const rct::key &H, rct::key &a, rct::key &aG, rct::key &aH) {
+            rct::skpkGen(a,aG); // aG = a*G
+            rct::scalarmultKey(aH,H,a); // aH = a*H
+            rct::scalarmultKey(I,H,p); // I = p*H
+            rct::scalarmultKey(D,H,z); // D = z*H
+            return true;
+        }
+
+        bool device_default::clsag_hash(const rct::keyV &data, rct::key &hash) {
+            hash = rct::hash_to_scalar(data);
+            return true;
+        }
+
+        bool device_default::clsag_sign(const rct::key &c, const rct::key &a, const rct::key &p, const rct::key &z, const rct::key &mu_P, const rct::key &mu_C, rct::key &s) {
+            rct::key s0_p_mu_P;
+            sc_mul(s0_p_mu_P.bytes,mu_P.bytes,p.bytes);
+            rct::key s0_add_z_mu_C;
+            sc_muladd(s0_add_z_mu_C.bytes,mu_C.bytes,z.bytes,s0_p_mu_P.bytes);
+            sc_mulsub(s.bytes,c.bytes,s0_add_z_mu_C.bytes,a.bytes);
+
+            return true;
+        }
+        
         bool device_default::close_tx() {
             return true;
         }
