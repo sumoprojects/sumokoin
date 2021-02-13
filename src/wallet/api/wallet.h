@@ -73,7 +73,7 @@ public:
     // deprecated: use recoverFromKeysWithPassword() instead
     bool recoverFromKeys(const std::string &path,
                             const std::string &language,
-                            const std::string &address_string, 
+                            const std::string &address_string,
                             const std::string &viewkey_string,
                             const std::string &spendkey_string = "");
     bool recoverFromDevice(const std::string &path,
@@ -118,7 +118,7 @@ public:
     bool refresh() override;
     void refreshAsync() override;
     bool rescanBlockchain() override;
-    void rescanBlockchainAsync() override;    
+    void rescanBlockchainAsync() override;
     void setAutoRefreshInterval(int millis) override;
     int autoRefreshInterval() const override;
     void setRefreshFromBlockHeight(uint64_t refresh_from_block_height) override;
@@ -166,6 +166,8 @@ public:
     bool importKeyImages(const std::string &filename) override;
 
     virtual void disposeTransaction(PendingTransaction * t) override;
+    virtual uint64_t estimateTransactionFee(const std::vector<std::pair<std::string, uint64_t>> &destinations,
+                                            PendingTransaction::Priority priority) const override;    
     virtual TransactionHistory * history() override;
     virtual AddressBook * addressBook() override;
     virtual Subaddress * subaddress() override;
@@ -227,7 +229,7 @@ private:
 
 private:
     friend class PendingTransactionImpl;
-    friend class UnsignedTransactionImpl;    
+    friend class UnsignedTransactionImpl;
     friend class TransactionHistoryImpl;
     friend struct Wallet2CallbackImpl;
     friend class AddressBookImpl;
@@ -275,4 +277,3 @@ private:
 namespace Bitmonero = Monero;
 
 #endif
-

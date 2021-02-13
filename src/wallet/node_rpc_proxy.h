@@ -1,21 +1,21 @@
 // Copyright (c) 2017-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -52,6 +52,7 @@ public:
   void set_height(uint64_t h);
   boost::optional<std::string> get_target_height(uint64_t &height);
   boost::optional<std::string> get_block_weight_limit(uint64_t &block_weight_limit);
+  boost::optional<std::string> get_adjusted_time(uint64_t &adjusted_time);
   boost::optional<std::string> get_earliest_height(uint8_t version, uint64_t &earliest_height);
   boost::optional<std::string> get_dynamic_base_fee_estimate(uint64_t grace_blocks, uint64_t &fee);
   boost::optional<std::string> get_fee_quantization_mask(uint64_t &fee_quantization_mask);
@@ -84,6 +85,7 @@ private:
   uint64_t m_dynamic_base_fee_estimate_cached_height;
   uint64_t m_dynamic_base_fee_estimate_grace_blocks;
   uint64_t m_fee_quantization_mask;
+  uint64_t m_adjusted_time;  
   uint32_t m_rpc_version;
   uint64_t m_target_height;
   uint64_t m_block_weight_limit;

@@ -308,9 +308,9 @@ namespace rct {
         addKeys(pk.mask, pk.mask, bH);
         return make_tuple(sk, pk);
     }
-    
-    
-    //generates a <secret , public> / Pedersen commitment but takes bH as input 
+
+
+    //generates a <secret , public> / Pedersen commitment but takes bH as input
     tuple<ctkey, ctkey> ctskpkGen(const key &bH) {
         ctkey sk, pk;
         skpkGen(sk.dest, pk.dest);
@@ -318,7 +318,7 @@ namespace rct {
         addKeys(pk.mask, pk.mask, bH);
         return make_tuple(sk, pk);
     }
-    
+
     key zeroCommit(xmr_amount amount) {
         const zero_commitment *begin = zero_commitments;
         const zero_commitment *end = zero_commitments + sizeof(zero_commitments) / sizeof(zero_commitments[0]);
@@ -499,7 +499,24 @@ namespace rct {
         ge_tobytes(aAbB.bytes, &rv);
     }
 
+    // addKeys_aGbBcC
+    // computes aG + bB + cC
+    // G is the fixed basepoint and B,C require precomputation
+    void addKeys_aGbBcC(key &aGbBcC, const key &a, const key &b, const ge_dsmp B, const key &c, const ge_dsmp C) {
+        ge_p2 rv;
+        ge_triple_scalarmult_base_vartime(&rv, a.bytes, b.bytes, B, c.bytes, C);
+        ge_tobytes(aGbBcC.bytes, &rv);
+    }
 
+    // addKeys_aAbBcC
+    // computes aA + bB + cC
+    // A,B,C require precomputation
+    void addKeys_aAbBcC(key &aAbBcC, const key &a, const ge_dsmp A, const key &b, const ge_dsmp B, const key &c, const ge_dsmp C) {
+        ge_p2 rv;
+        ge_triple_scalarmult_precomp_vartime(&rv, a.bytes, A, b.bytes, B, c.bytes, C);
+        ge_tobytes(aAbBcC.bytes, &rv);
+    }
+    
     //subtract Keys (subtracts curve points)
     //AB = A - B where A, B are curve points
     void subKeys(key & AB, const key &A, const key &B) {
@@ -532,7 +549,7 @@ namespace rct {
     void cn_fast_hash(key &hash, const void * data, const std::size_t l) {
         keccak((const uint8_t *)data, l, hash.bytes, 32);
     }
-    
+
     void hash_to_scalar(key &hash, const void * data, const std::size_t l) {
         cn_fast_hash(hash, data, l);
         sc_reduce32(hash.bytes);
@@ -542,7 +559,7 @@ namespace rct {
     void cn_fast_hash(key & hash, const key & in) {
         keccak((const uint8_t *)in.bytes, 32, hash.bytes, 32);
     }
-    
+
     void hash_to_scalar(key & hash, const key & in) {
         cn_fast_hash(hash, in);
         sc_reduce32(hash.bytes);
@@ -554,26 +571,26 @@ namespace rct {
         keccak((const uint8_t *)in.bytes, 32, hash.bytes, 32);
         return hash;
     }
-    
+
      key hash_to_scalar(const key & in) {
         key hash = cn_fast_hash(in);
         sc_reduce32(hash.bytes);
         return hash;
      }
-    
+
     //cn_fast_hash for a 128 byte unsigned char
     key cn_fast_hash128(const void * in) {
         key hash;
         keccak((const uint8_t *)in, 128, hash.bytes, 32);
         return hash;
     }
-    
+
     key hash_to_scalar128(const void * in) {
         key hash = cn_fast_hash128(in);
         sc_reduce32(hash.bytes);
         return hash;
     }
-    
+
     //cn_fast_hash for multisig purpose
     //This takes the outputs and commitments
     //and hashes them into a 32 byte sized key
@@ -583,13 +600,13 @@ namespace rct {
         cn_fast_hash(rv, &PC[0], 64*PC.size());
         return rv;
     }
-    
+
     key hash_to_scalar(const ctkeyV &PC) {
         key rv = cn_fast_hash(PC);
         sc_reduce32(rv.bytes);
         return rv;
     }
-    
+
    //cn_fast_hash for a key-vector of arbitrary length
    //this is useful since you take a number of keys
    //put them in the key vector and it concatenates them
@@ -601,7 +618,7 @@ namespace rct {
        //dp(rv);
        return rv;
    }
-   
+
    key hash_to_scalar(const keyV &keys) {
        key rv = cn_fast_hash(keys);
        sc_reduce32(rv.bytes);
@@ -620,7 +637,7 @@ namespace rct {
        sc_reduce32(rv.bytes);
        return rv;
    }
-    
+
     // Hash a key to p3 representation
     void hash_to_p3(ge_p3 &hash8_p3, const key &k) {
       key hash_key = cn_fast_hash(k);

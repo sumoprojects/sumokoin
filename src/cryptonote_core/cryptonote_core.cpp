@@ -897,6 +897,7 @@ namespace cryptonote
           break;
         case rct::RCTTypeBulletproof:
         case rct::RCTTypeBulletproof2:
+        case rct::RCTTypeCLSAG:
           if (!is_canonical_bulletproof_layout(rv.p.bulletproofs))
           {
             MERROR_VER("Bulletproof does not have canonical form");
@@ -924,7 +925,7 @@ namespace cryptonote
       {
         if (!tx_info[n].result)
           continue;
-        if (tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof && tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof2)
+        if (tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof && tx_info[n].tx->rct_signatures.type != rct::RCTTypeBulletproof2 && tx_info[n].tx->rct_signatures.type != rct::RCTTypeCLSAG)
           continue;
         if (assumed_bad || !rct::verRctSemanticsSimple(tx_info[n].tx->rct_signatures))
         {
@@ -1156,8 +1157,8 @@ namespace cryptonote
       return block_sync_size;
     if (get_current_blockchain_height() <= LAST_CHECKPOINT)
     return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT;
-    else 
-    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4;    
+    else
+    return BLOCKS_SYNCHRONIZING_DEFAULT_COUNT_V4;
   }
   //-----------------------------------------------------------------------------------------------
   bool core::are_key_images_spent_in_pool(const std::vector<crypto::key_image>& key_im, std::vector<bool> &spent) const
@@ -1179,18 +1180,18 @@ namespace cryptonote
       std::vector<transaction> txs;
       std::vector<crypto::hash> missed_txs;
       uint64_t coinbase_amount = get_outs_money_amount(b.miner_tx);
-      this->get_transactions(b.tx_hashes, txs, missed_txs);      
+      this->get_transactions(b.tx_hashes, txs, missed_txs);
       uint64_t tx_fee_amount = 0;
       for(const auto& tx: txs)
       {
         tx_fee_amount += get_tx_fee(tx);
       }
-      
+
       emission_amount += coinbase_amount - tx_fee_amount;
       total_fee_amount += tx_fee_amount;
       return true;
       });
-      
+
       // subtract burned coins
       if (start_offset <= config::EXCHANGE_FUND_RELEASE_HEIGHT && end >= config::EXCHANGE_FUND_RELEASE_HEIGHT)
         emission_amount -= config::EXCHANGE_BURNED_AMOUNT;
@@ -1587,7 +1588,7 @@ namespace cryptonote
   bool core::get_pool_transaction(const crypto::hash &id, cryptonote::blobdata& tx, relay_category tx_category) const
   {
     return m_mempool.get_transaction(id, tx, tx_category);
-  }  
+  }
   //-----------------------------------------------------------------------------------------------
   bool core::pool_has_tx(const crypto::hash &id) const
   {
@@ -1678,13 +1679,13 @@ namespace cryptonote
     hours = minutes / 60;
     if((get_blockchain_storage().get_current_blockchain_height() >= m_target_blockchain_height) && (m_target_blockchain_height > 0))
     {
-     MGINFO_GREEN(ENDL << "Sumokoin node is on idle and fully synchronized | Height: " << get_blockchain_storage().get_current_blockchain_height() 
-       << " | Uptime: " << int(hours) << " hours " << int(minutes%60) << " minutes " 
+     MGINFO_GREEN(ENDL << "Sumokoin node is on idle and fully synchronized | Height: " << get_blockchain_storage().get_current_blockchain_height()
+       << " | Uptime: " << int(hours) << " hours " << int(minutes%60) << " minutes "
        << int(seconds%60) << " seconds" << ENDL);
     }
    return true;
   }
-  //----------------------------------------------------------------------------------------------- 
+  //-----------------------------------------------------------------------------------------------
   bool core::check_fork_time()
   {
     if (m_nettype == FAKECHAIN)

@@ -1,80 +1,116 @@
-name: continuous-integration/gh-actions/cli
+name: Continuous_Integration_Testing
 
 on: [push, pull_request]
 
 jobs:
-  build-macos:
-    runs-on: macOS-latest
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - name: update brew and install dependencies
-      run: brew update && brew install boost hidapi zmq libpgm miniupnpc ldns expat libunwind-headers protobuf
-    - name: build
-      run: make -j3
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - uses: numworks/setup-msys2@v1
-    - name: update pacman
-      run: msys2do pacman -Syu --noconfirm
-    - name: install sumokoin dependencies
-      run: msys2do pacman -S --noconfirm mingw-w64-x86_64-toolchain make mingw-w64-x86_64-cmake mingw-w64-x86_64-boost mingw-w64-x86_64-openssl mingw-w64-x86_64-zeromq mingw-w64-x86_64-libsodium mingw-w64-x86_64-hidapi mingw-w64-x86_64-protobuf-c mingw-w64-x86_64-libusb git
-    - name: build
-      run: msys2do make release-static-win64 -j2
-
-  build-ubuntu:
+  build-android-libs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - name: build sumokoin for android all archs
+      run: |
+        cd ~
+        cd ..
+        cd ..
+        cd opt
+        sudo mkdir android
+        cd android
+        curl -s -O https://cmake.org/files/v3.12/cmake-3.12.1.tar.gz
+        tar -xzf cmake-3.12.1.tar.gz
+        sudo apt-get update
+        sudo apt-get install -y cmake automake build-essential curl file pkg-config git python libtool
+        cd cmake-3.12.1
+        ./configure
+        make -j 4
+        sudo make install -j 4
+        cd ..
+        git clone https://github.com/sumogr/android-ndk-r17b
+        sudo chmod -R 777 android-ndk-r17b
+        cd android-ndk-r17b
+        cd ..
+        sudo ln -s android-ndk-r17b ndk
+        sudo ndk/build/tools/make_standalone_toolchain.py --api 21 --stl=libc++ --arch arm --install-dir /opt/android/tool/arm
+        sudo ndk/build/tools/make_standalone_toolchain.py --api 21 --stl=libc++ --arch arm64 --install-dir /opt/android/tool/arm64
+        sudo ndk/build/tools/make_standalone_toolchain.py --api 21 --stl=libc++ --arch x86 --install-dir /opt/android/tool/x86
+        sudo ndk/build/tools/make_standalone_toolchain.py --api 21 --stl=libc++ --arch x86_64 --install-dir /opt/android/tool/x86_64
+        git clone https://github.com/m2049r/android-openssl.git --depth=1
+        sudo curl -L -s -O https://github.com/openssl/openssl/archive/OpenSSL_1_0_2l.tar.gz
+        sudo chmod -R 777 android-openssl
+        cd android-openssl
+        sudo tar xfz ../OpenSSL_1_0_2l.tar.gz
+        sudo rm -f ../OpenSSL_1_0_2l.tar.gz
+        ANDROID_NDK_ROOT=/opt/android/ndk ./build-all-arch.sh
+        sudo mkdir -p /opt/android/build/openssl/{arm,arm64,x86,x86_64}
+        sudo cp -a /opt/android/android-openssl/prebuilt/armeabi /opt/android/build/openssl/arm/lib
+        sudo cp -a /opt/android/android-openssl/prebuilt/arm64-v8a /opt/android/build/openssl/arm64/lib
+        sudo cp -a /opt/android/android-openssl/prebuilt/x86 /opt/android/build/openssl/x86/lib
+        sudo cp -a /opt/android/android-openssl/prebuilt/x86_64 /opt/android/build/openssl/x86_64/lib
+        sudo cp -aL /opt/android/android-openssl/openssl-OpenSSL_1_0_2l/include/openssl/ /opt/android/build/openssl/include
+        sudo ln -s /opt/android/build/openssl/include /opt/android/build/openssl/arm/include
+        sudo ln -s /opt/android/build/openssl/include /opt/android/build/openssl/arm64/include
+        sudo ln -s /opt/android/build/openssl/include /opt/android/build/openssl/x86/include
+        sudo ln -s /opt/android/build/openssl/include /opt/android/build/openssl/x86_64/include
+        sudo ln -sf /opt/android/build/openssl/include /opt/android/tool/arm/sysroot/usr/include/openssl
+        sudo ln -sf /opt/android/build/openssl/arm/lib/*.so /opt/android/tool/arm/sysroot/usr/lib
+        sudo ln -sf /opt/android/build/openssl/include /opt/android/tool/arm64/sysroot/usr/include/openssl
+        sudo ln -sf /opt/android/build/openssl/arm64/lib/*.so /opt/android/tool/arm64/sysroot/usr/lib
+        sudo ln -sf /opt/android/build/openssl/include /opt/android/tool/x86/sysroot/usr/include/openssl
+        sudo ln -sf /opt/android/build/openssl/x86/lib/*.so /opt/android/tool/x86/sysroot/usr/lib
+        sudo ln -sf /opt/android/build/openssl/include /opt/android/tool/x86_64/sysroot/usr/include/openssl
+        sudo ln -sf /opt/android/build/openssl/x86_64/lib/*.so /opt/android/tool/x86_64/sysroot/usr/lib64
+        cd ..
+        sudo curl -s -L -o  boost_1_67_0.tar.bz2 https://sourceforge.net/projects/boost/files/boost/1.67.0/boost_1_67_0.tar.bz2/download
+        sudo tar -xvf boost_1_67_0.tar.bz2
+        sudo rm -f /usr/boost_1_67_0.tar.bz2
+        sudo chmod -R 777 boost_1_67_0   
+        cd boost_1_67_0
+        ./bootstrap.sh
+        sudo PATH=/opt/android/tool/arm/arm-linux-androideabi/bin:/opt/android/tool/arm/bin:$PATH ./b2 --build-type=minimal link=static runtime-link=static --with-chrono --with-date_time --with-filesystem --with-program_options --with-regex --with-serialization --with-system --with-thread --build-dir=android-arm --prefix=/opt/android/build/boost/arm --includedir=/opt/android/build/boost/include toolset=clang threading=multi threadapi=pthread target-os=android install
+        sudo PATH=/opt/android/tool/arm64/aarch64-linux-android/bin:/opt/android/tool/arm64/bin:$PATH ./b2 --build-type=minimal link=static runtime-link=static --with-chrono --with-date_time --with-filesystem --with-program_options --with-regex --with-serialization --with-system --with-thread --build-dir=android-arm64 --prefix=/opt/android/build/boost/arm64 --includedir=/opt/android/build/boost/include toolset=clang threading=multi threadapi=pthread target-os=android install
+        sudo PATH=/opt/android/tool/x86/i686-linux-android/bin:/opt/android/tool/x86/bin:$PATH ./b2 --build-type=minimal link=static runtime-link=static --with-chrono --with-date_time --with-filesystem --with-program_options --with-regex --with-serialization --with-system --with-thread --build-dir=android-x86 --prefix=/opt/android/build/boost/x86 --includedir=/opt/android/build/boost/include toolset=clang threading=multi threadapi=pthread target-os=android install
+        sudo PATH=/opt/android/tool/x86_64/x86_64-linux-android/bin:/opt/android/tool/x86_64/bin:$PATH ./b2 --build-type=minimal link=static runtime-link=static --with-chrono --with-date_time --with-filesystem --with-program_options --with-regex --with-serialization --with-system --with-thread --build-dir=android-x86_64 --prefix=/opt/android/build/boost/x86_64 --includedir=/opt/android/build/boost/include toolset=clang threading=multi threadapi=pthread target-os=android install
+        sudo ln -sf ../include /opt/android/build/boost/arm
+        sudo ln -sf ../include /opt/android/build/boost/arm64
+        sudo ln -sf ../include /opt/android/build/boost/x86
+        sudo ln -sf ../include /opt/android/build/boost/x86_64
+        cd ..
+        git clone https://github.com/jedisct1/libsodium.git -b 1.0.17 --depth=1
+        sudo chmod -R 777 libsodium
+        cd libsodium
+        ./autogen.sh
+        PATH=/opt/android/tool/arm/arm-linux-androideabi/bin:/opt/android/tool/arm/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libsodium/arm --host=arm-linux-androideabi --enable-static --disable-shared && make && make install && make clean
+        PATH=/opt/android/tool/arm64/aarch64-linux-android/bin:/opt/android/tool/arm64/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libsodium/arm64 --host=aarch64-linux-android --enable-static --disable-shared && make && make install && make clean
+        PATH=/opt/android/tool/x86/i686-linux-android/bin:/opt/android/tool/x86/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libsodium/x86 --host=i686-linux-android --enable-static --disable-shared && make && make install && make clean
+        PATH=/opt/android/tool/x86_64/x86_64-linux-android/bin:/opt/android/tool/x86_64/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libsodium/x86_64 --host=x86_64-linux-android --enable-static --disable-shared && make && make install && make clean
+        cd ..
+        git clone https://github.com/zeromq/libzmq.git -b v4.3.1 --depth=1
+        sudo chmod -R 777 libzmq
+        cd libzmq
+        ./autogen.sh
+        PATH=/opt/android/tool/arm/arm-linux-androideabi/bin:/opt/android/tool/arm/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libzmq/arm --host=arm-linux-androideabi --enable-static --disable-shared && make && make install && ldconfig && make clean
+        PATH=/opt/android/tool/arm64/aarch64-linux-android/bin:/opt/android/tool/arm64/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libzmq/arm64 --host=aarch64-linux-android --enable-static --disable-shared && make && make install && ldconfig && make clean
+        PATH=/opt/android/tool/x86/i686-linux-android/bin:/opt/android/tool/x86/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libzmq/x86 --host=i686-linux-android --enable-static --disable-shared && make && make install && ldconfig && make clean
+        PATH=/opt/android/tool/x86_64/x86_64-linux-android/bin:/opt/android/tool/x86_64/bin:$PATH ; CC=clang CXX=clang++ CFLAGS="-fPIC" CXXFLAGS="-fPIC" ./configure --prefix=/opt/android/build/libzmq/x86_64 --host=x86_64-linux-android --enable-static --disable-shared && make && make install && ldconfig && make clean
+        cd ..
+        git clone https://github.com/sumoprojects/sumokoin -b android-wallet
+        sudo mv sumokoin monero
+        cd monero
+        sudo apt update
+        sudo apt install build-essential cmake pkg-config libunbound-dev libunwind8-dev liblzma-dev libreadline6-dev libldns-dev libexpat1-dev doxygen graphviz libpgm-dev qttools5-dev-tools libhidapi-dev libusb-dev libprotobuf-dev protobuf-compiler
+        sudo chmod u+x build-all-archs.sh
+        ./build-all-archs.sh
+        cd ..
+        git clone --recursive https://github.com/sumoprojects/sumo-android-wallet
+        cd sumo-android-wallet
+        cd external-libs
+        sudo find . -type f -name "*.a" -exec rm -f {} \;
+        sudo find . -type f -name "*.h" -exec rm -f {} \;
+        sudo chmod u+x collect.sh
+        ./collect.sh
+        cd ..
+        cd ..
+        sudo cp -avr /opt/android/sumo-android-wallet/external-libs/ /home/external-libs/
+    - name: upload libraries
+      uses: actions/upload-artifact@v2
       with:
-        submodules: recursive
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev
-    - name: build
-      run: make -j3
-
-  libwallet-ubuntu:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev
-    - name: build
-      run: cmake -DBUILD_GUI_DEPS=ON && make -j3
-
-  test-ubuntu:
-    needs: build-ubuntu
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - name: remove bundled boost
-      run: sudo rm -rf /usr/local/share/boost
-    - name: update apt
-      run: sudo apt update
-    - name: install sumokoin dependencies
-      run: sudo apt -y install build-essential cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev
-    - name: install requests
-      run: pip install requests
-    - name: tests
-      env:
-        CTEST_OUTPUT_ON_FAILURE: ON
-      run: make release-test -j3
-
+        name: upload external libs
+        path: /home/external-libs/

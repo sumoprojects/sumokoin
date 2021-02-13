@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2019, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #pragma once
@@ -46,7 +46,6 @@
 #include "ringct/rctTypes.h"
 #include "ringct/rctOps.h"
 
-//namespace cryptonote {
 namespace boost
 {
   namespace serialization
@@ -246,6 +245,15 @@ namespace boost
   }
 
   template <class Archive>
+  inline void serialize(Archive &a, rct::clsag &x, const boost::serialization::version_type ver)
+  {
+    a & x.s;
+    a & x.c1;
+    // a & x.I; // not serialized, we can recover it from the tx vin
+    a & x.D;
+  }
+
+  template <class Archive>
   inline void serialize(Archive &a, rct::ecdhTuple &x, const boost::serialization::version_type ver)
   {
     a & x.mask;
@@ -265,6 +273,9 @@ namespace boost
   inline void serialize(Archive &a, rct::multisig_out &x, const boost::serialization::version_type ver)
   {
     a & x.c;
+    if (ver < 1)
+      return;
+    a & x.mu_p;
   }
 
   template <class Archive>
@@ -295,7 +306,7 @@ namespace boost
     a & x.type;
     if (x.type == rct::RCTTypeNull)
       return;
-    if (x.type != rct::RCTTypeFull && x.type != rct::RCTTypeSimple && x.type != rct::RCTTypeBulletproof && x.type != rct::RCTTypeBulletproof2)
+    if (x.type != rct::RCTTypeFull && x.type != rct::RCTTypeSimple && x.type != rct::RCTTypeBulletproof && x.type != rct::RCTTypeBulletproof2 && x.type != rct::RCTTypeCLSAG)
       throw boost::archive::archive_exception(boost::archive::archive_exception::other_exception, "Unsupported rct type");
     // a & x.message; message is not serialized, as it can be reconstructed from the tx data
     // a & x.mixRing; mixRing is not serialized, as it can be reconstructed from the offsets
@@ -313,6 +324,8 @@ namespace boost
     if (x.rangeSigs.empty())
       a & x.bulletproofs;
     a & x.MGs;
+    if (ver >= 1u)
+      a & x.CLSAGs;
     if (x.rangeSigs.empty())
       a & x.pseudoOuts;
   }
@@ -323,7 +336,7 @@ namespace boost
     a & x.type;
     if (x.type == rct::RCTTypeNull)
       return;
-    if (x.type != rct::RCTTypeFull && x.type != rct::RCTTypeSimple && x.type != rct::RCTTypeBulletproof && x.type != rct::RCTTypeBulletproof2)
+    if (x.type != rct::RCTTypeFull && x.type != rct::RCTTypeSimple && x.type != rct::RCTTypeBulletproof && x.type != rct::RCTTypeBulletproof2 && x.type != rct::RCTTypeCLSAG)
       throw boost::archive::archive_exception(boost::archive::archive_exception::other_exception, "Unsupported rct type");
     // a & x.message; message is not serialized, as it can be reconstructed from the tx data
     // a & x.mixRing; mixRing is not serialized, as it can be reconstructed from the offsets
@@ -337,7 +350,9 @@ namespace boost
     if (x.p.rangeSigs.empty())
       a & x.p.bulletproofs;
     a & x.p.MGs;
-    if (x.type == rct::RCTTypeBulletproof || x.type == rct::RCTTypeBulletproof2)
+    if (ver >= 1u)
+      a & x.p.CLSAGs;
+    if (x.type == rct::RCTTypeBulletproof || x.type == rct::RCTTypeBulletproof2 || x.type == rct::RCTTypeCLSAG)
       a & x.p.pseudoOuts;
   }
 
@@ -378,4 +393,6 @@ namespace boost
 }
 }
 
-//}
+BOOST_CLASS_VERSION(rct::rctSigPrunable, 1)
+BOOST_CLASS_VERSION(rct::rctSig, 1)
+BOOST_CLASS_VERSION(rct::multisig_out, 1)
