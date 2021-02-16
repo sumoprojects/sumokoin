@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,15 +22,17 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 #pragma once
 
 #include <string>
 
+#include "byte_slice.h"
 #include "parserse_base_utils.h"
 #include "portable_storage.h"
 #include "file_io_utils.h"
+#include "span.h"
 
 namespace epee
 {
@@ -84,10 +86,10 @@ namespace epee
     }
     //-----------------------------------------------------------------------------------------------------------
     template<class t_struct>
-    bool load_t_from_binary(t_struct& out, const epee::span<const uint8_t> binary_buff)
+    bool load_t_from_binary(t_struct& out, const epee::span<const uint8_t> binary_buff, const epee::serialization::portable_storage::limits_t *limits = NULL)
     {
       portable_storage ps;
-      bool rs = ps.load_from_binary(binary_buff);
+      bool rs = ps.load_from_binary(binary_buff, limits);
       if(!rs)
         return false;
 
@@ -111,18 +113,18 @@ namespace epee
     }
     //-----------------------------------------------------------------------------------------------------------
     template<class t_struct>
-    bool store_t_to_binary(t_struct& str_in, std::string& binary_buff, size_t indent = 0)
+    bool store_t_to_binary(t_struct& str_in, byte_slice& binary_buff, size_t initial_buffer_size = 8192)
     {
       portable_storage ps;
       str_in.store(ps);
-      return ps.store_to_binary(binary_buff);
+      return ps.store_to_binary(binary_buff, initial_buffer_size);
     }
     //-----------------------------------------------------------------------------------------------------------
     template<class t_struct>
-    std::string store_t_to_binary(t_struct& str_in, size_t indent = 0)
+    byte_slice store_t_to_binary(t_struct& str_in, size_t initial_buffer_size = 8192)
     {
-      std::string binary_buff;
-      store_t_to_binary(str_in, binary_buff, indent);
+      byte_slice binary_buff;
+      store_t_to_binary(str_in, binary_buff, initial_buffer_size);
       return binary_buff;
     }
   }

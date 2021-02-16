@@ -28,19 +28,24 @@
 
 #pragma once
 
-#include <time.h>
 #include <boost/regex.hpp>
 
 #include "misc_language.h"
 #include "portable_storage_base.h"
+#include "parserse_base_utils.h"
 #include "warnings.h"
+#include "misc_log_ex.h"
+
+#include <boost/lexical_cast.hpp>
+#include <typeinfo>
+#include <iomanip>
 
 namespace epee
 {
   namespace serialization
   {
 #define ASSERT_AND_THROW_WRONG_CONVERSION() ASSERT_MES_AND_THROW("WRONG DATA CONVERSION: from type=" << typeid(from).name() << " to type " << typeid(to).name())
-	
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-compare"
 
@@ -141,7 +146,7 @@ POP_WARNINGS
 
     // For MyMonero/OpenMonero backend compatibility
     // MyMonero backend sends amount, fees and timestamp values as strings.
-    // Until MM backend is updated, this is needed for compatibility between OpenMonero and MyMonero. 
+    // Until MM backend is updated, this is needed for compatibility between OpenMonero and MyMonero.
     template<>
     struct convert_to_integral<std::string, uint64_t, false>
     {

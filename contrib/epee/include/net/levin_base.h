@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
@@ -31,7 +31,6 @@
 
 #include <cstdint>
 
-#include "byte_slice.h"
 #include "net_utils_base.h"
 #include "span.h"
 
@@ -39,6 +38,7 @@
 
 namespace epee
 {
+class byte_slice;
 namespace levin
 {
 #pragma pack(push)
@@ -72,21 +72,22 @@ namespace levin
 
 
 #define LEVIN_DEFAULT_TIMEOUT_PRECONFIGURED 0
-#define LEVIN_DEFAULT_MAX_PACKET_SIZE 100000000      //100MB by default
+#define LEVIN_INITIAL_MAX_PACKET_SIZE  256*1024      // 256 KiB before handshake
+#define LEVIN_DEFAULT_MAX_PACKET_SIZE 100000000      //100MB by default after handshake
 
 #define LEVIN_PACKET_REQUEST			0x00000001
 #define LEVIN_PACKET_RESPONSE		0x00000002
 #define LEVIN_PACKET_BEGIN		0x00000004
 #define LEVIN_PACKET_END		0x00000008
-  
+
 
 #define LEVIN_PROTOCOL_VER_0         0
 #define LEVIN_PROTOCOL_VER_1         1
- 
+
   template<class t_connection_context = net_utils::connection_context_base>
   struct levin_commands_handler
   {
-    virtual int invoke(int command, const epee::span<const uint8_t> in_buff, std::string& buff_out, t_connection_context& context)=0;
+    virtual int invoke(int command, const epee::span<const uint8_t> in_buff, byte_slice& buff_out, t_connection_context& context)=0;
     virtual int notify(int command, const epee::span<const uint8_t> in_buff, t_connection_context& context)=0;
     virtual void callback(t_connection_context& context){};
 
@@ -150,4 +151,3 @@ namespace levin
 
 
 #endif //_LEVIN_BASE_H_
-
