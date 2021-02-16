@@ -40,6 +40,8 @@
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp> // TODO
 #include <boost/thread/condition_variable.hpp> // TODO
+#include <boost/make_shared.hpp>
+#include <boost/thread.hpp>
 #include "warnings.h"
 #include "string_tools.h"
 #include "misc_language.h"
@@ -208,7 +210,6 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     buffer_ssl_init_fill = 0;
     if (is_income && m_ssl_support != epee::net_utils::ssl_support_t::e_ssl_support_disabled)
       socket().async_receive(boost::asio::buffer(buffer_),
-        boost::asio::socket_base::message_peek,
         strand_.wrap(
           boost::bind(&connection<t_protocol_handler>::handle_receive, self,
             boost::asio::placeholders::error,
@@ -271,8 +272,6 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     //_dbg3("[sock " << socket().native_handle() << "] add_ref, m_peer_number=" << mI->m_peer_number);
     CRITICAL_REGION_LOCAL(self->m_self_refs_lock);
     //_dbg3("[sock " << socket().native_handle() << "] add_ref 2, m_peer_number=" << mI->m_peer_number);
-    if(m_was_shutdown)
-      return false;
     ++m_reference_count;
     m_self_ref = std::move(self);
     return true;
@@ -335,6 +334,9 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     TRY_ENTRY();
     //_info("[sock " << socket().native_handle() << "] Async read calledback.");
 
+    if (m_was_shutdown)
+        return;
+
     if (!e)
     {
         double current_speed_down;
@@ -361,6 +363,9 @@ PRAGMA_WARNING_DISABLE_VS(4355)
 					CRITICAL_REGION_LOCAL(	epee::net_utils::network_throttle_manager::m_lock_get_global_throttle_in );
 					delay = epee::net_utils::network_throttle_manager::get_global_throttle_in().get_sleep_time_after_tick( bytes_transferred );
 				}
+
+        if (m_was_shutdown)
+					return;
 
 				delay *= 0.5;
 				long int ms = (long int)(delay * 100);
@@ -433,6 +438,9 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     std::size_t bytes_transferred)
   {
     TRY_ENTRY();
+
+    if (m_was_shutdown) return;
+
     if (e)
     {
       // offload the error case
@@ -440,13 +448,11 @@ PRAGMA_WARNING_DISABLE_VS(4355)
       return;
     }
 
-    reset_timer(get_timeout_from_bytes_read(bytes_transferred), false);
-
     buffer_ssl_init_fill += bytes_transferred;
-    if (buffer_ssl_init_fill <= get_ssl_magic_size())
+    MTRACE("we now have " << buffer_ssl_init_fill << "/" << get_ssl_magic_size() << " bytes needed to detect SSL");
+    if (buffer_ssl_init_fill < get_ssl_magic_size())
     {
       socket().async_receive(boost::asio::buffer(buffer_.data() + buffer_ssl_init_fill, buffer_.size() - buffer_ssl_init_fill),
-        boost::asio::socket_base::message_peek,
         strand_.wrap(
           boost::bind(&connection<t_protocol_handler>::handle_receive, connection<t_protocol_handler>::shared_from_this(),
             boost::asio::placeholders::error,
@@ -472,7 +478,7 @@ PRAGMA_WARNING_DISABLE_VS(4355)
     if (m_ssl_support == epee::net_utils::ssl_support_t::e_ssl_support_enabled)
     {
       // Handshake
-      if (!handshake(boost::asio::ssl::stream_base::server))
+      if (!handshake(boost::asio::ssl::stream_base::server, boost::asio::const_buffer(buffer_.data(), buffer_ssl_init_fill)))
       {
         MERROR("SSL handshake failed");
         boost::interprocess::ipcdetail::atomic_write32(&m_want_close_connection, 1);
@@ -486,6 +492,11 @@ PRAGMA_WARNING_DISABLE_VS(4355)
           shutdown();
         return;
       }
+    }
+    else
+    {
+      handle_read(e, buffer_ssl_init_fill);
+      return;
     }
 
     async_read_some(boost::asio::buffer(buffer_),
@@ -653,6 +664,8 @@ PRAGMA_WARNING_DISABLE_VS(4355)
         boost::this_thread::sleep(boost::posix_time::milliseconds( ms ) );
         m_send_que_lock.lock();
         _dbg1("sleep for queue: " << ms);
+      if (m_was_shutdown)
+      		    return false;
 
         if (retry > retry_limit) {
             MWARNING("send que size is more than ABSTRACT_SERVER_SEND_QUE_MAX_COUNT(" << ABSTRACT_SERVER_SEND_QUE_MAX_COUNT << "), shutting down connection");
@@ -750,7 +763,8 @@ PRAGMA_WARNING_DISABLE_VS(4355)
   template<class t_protocol_handler>
   void connection<t_protocol_handler>::reset_timer(boost::posix_time::milliseconds ms, bool add)
   {
-    if (ms.total_milliseconds() < 0)
+    const auto tms = ms.total_milliseconds();
+    if (tms < 0 || (add && tms == 0))
     {
       MWARNING("Ignoring negative timeout " << ms);
       return;

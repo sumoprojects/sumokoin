@@ -1,21 +1,21 @@
 // Copyright (c) 2014-2020, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -25,7 +25,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // Parts of this file are originally copyright (c) 2012-2013 The Cryptonote developers
 
 #include <boost/thread/mutex.hpp>
@@ -43,6 +43,9 @@ namespace
 {
   struct test_levin_connection_context : public epee::net_utils::connection_context_base
   {
+    static constexpr int handshake_command() noexcept { return 1001; }
+    static constexpr bool handshake_complete() noexcept { return true; }
+    size_t get_max_bytes(int command) const { return LEVIN_DEFAULT_MAX_PACKET_SIZE; }
   };
 
   typedef epee::levin::async_protocol_handler_config<test_levin_connection_context> test_levin_protocol_handler_config;
@@ -56,13 +59,13 @@ namespace
     {
     }
 
-    virtual int invoke(int command, const epee::span<const uint8_t> in_buff, std::string& buff_out, test_levin_connection_context& context)
+    virtual int invoke(int command, const epee::span<const uint8_t> in_buff, epee::byte_slice& buff_out, test_levin_connection_context& context)
     {
       m_invoke_counter.inc();
       boost::unique_lock<boost::mutex> lock(m_mutex);
       m_last_command = command;
       m_last_in_buf = std::string((const char*)in_buff.data(), in_buff.size());
-      buff_out = m_invoke_out_buf;
+      buff_out = m_invoke_out_buf.clone();
       return m_return_code;
     }
 
@@ -102,8 +105,7 @@ namespace
     int return_code() const { return m_return_code; }
     void return_code(int v) { m_return_code = v; }
 
-    const std::string& invoke_out_buf() const { return m_invoke_out_buf; }
-    void invoke_out_buf(const std::string& v) { m_invoke_out_buf = v; }
+    void invoke_out_buf(std::string v) { m_invoke_out_buf = epee::byte_slice{std::move(v)}; }
 
     int last_command() const { return m_last_command; }
     const std::string& last_in_buf() const { return m_last_in_buf; }
@@ -118,7 +120,7 @@ namespace
     boost::mutex m_mutex;
 
     int m_return_code;
-    std::string m_invoke_out_buf;
+    epee::byte_slice m_invoke_out_buf;
 
     int m_last_command;
     std::string m_last_in_buf;
@@ -194,6 +196,7 @@ namespace
     {
       m_handler_config.set_handler(m_pcommands_handler, [](epee::levin::levin_commands_handler<test_levin_connection_context> *handler) { delete handler; });
       m_handler_config.m_invoke_timeout = invoke_timeout;
+      m_handler_config.m_initial_max_packet_size = max_packet_size;
       m_handler_config.m_max_packet_size = max_packet_size;
     }
 
@@ -587,7 +590,7 @@ TEST_F(test_levin_protocol_handler__hanle_recv_with_invalid_data, handles_chunke
 
   ASSERT_TRUE(m_conn->m_protocol_handler.handle_recv(buf2.data(), buf2.size()));
   ASSERT_EQ(1, m_commands_handler.invoke_counter());
-} 
+}
 
 
 TEST_F(test_levin_protocol_handler__hanle_recv_with_invalid_data, handles_chunked_body)

@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,10 +22,11 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 #pragma once
 #include <boost/lexical_cast.hpp>
+#include <boost/utility/string_ref.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include "parserse_base_utils.h"
 #include "file_io_utils.h"
@@ -51,26 +52,26 @@ namespace epee
         CHECK_AND_ASSERT_THROW_MES(recursion < EPEE_JSON_RECURSION_LIMIT_INTERNAL, "Wrong JSON data: recursion limitation (" << EPEE_JSON_RECURSION_LIMIT_INTERNAL << ") exceeded");
 
         std::string::const_iterator sub_element_start;
-        std::string name;        
+        std::string name;
         typename t_storage::harray h_array = nullptr;
         enum match_state
         {
-          match_state_lookup_for_section_start, 
-          match_state_lookup_for_name, 
-          match_state_waiting_separator, 
-          match_state_wonder_after_separator, 
-          match_state_wonder_after_value, 
-          match_state_wonder_array, 
+          match_state_lookup_for_section_start,
+          match_state_lookup_for_name,
+          match_state_waiting_separator,
+          match_state_wonder_after_separator,
+          match_state_wonder_after_value,
+          match_state_wonder_array,
           match_state_array_after_value,
-          match_state_array_waiting_value, 
+          match_state_array_waiting_value,
           match_state_error
         };
 
         enum array_mode
         {
           array_mode_undifined = 0,
-          array_mode_sections, 
-          array_mode_string, 
+          array_mode_sections,
+          array_mode_string,
           array_mode_numbers,
           array_mode_booleans
         };
@@ -113,7 +114,7 @@ namespace epee
             {//just a named string value started
               std::string val;
               match_string2(it, buf_end, val);
-              //insert text value 
+              //insert text value
               stg.set_value(name, std::move(val), current_section);
               state = match_state_wonder_after_value;
             }else if (epee::misc_utils::parse::isdigit(*it) || *it == '-')
@@ -128,20 +129,20 @@ namespace epee
                   errno = 0;
                   int64_t nval = strtoll(val.data(), NULL, 10);
                   if (errno) throw std::runtime_error("Invalid number: " + std::string(val));
-                  stg.set_value(name, int64_t(nval), current_section);              
+                  stg.set_value(name, int64_t(nval), current_section);
                 }else
                 {
                   errno = 0;
                   uint64_t nval = strtoull(val.data(), NULL, 10);
                   if (errno) throw std::runtime_error("Invalid number: " + std::string(val));
-                  stg.set_value(name, uint64_t(nval), current_section);              
+                  stg.set_value(name, uint64_t(nval), current_section);
                 }
               }else
               {
                 errno = 0;
                 double nval = strtod(val.data(), NULL);
                 if (errno) throw std::runtime_error("Invalid number: " + std::string(val));
-                stg.set_value(name, double(nval), current_section);              
+                stg.set_value(name, double(nval), current_section);
               }
               state = match_state_wonder_after_value;
             }else if(isalpha(*it) )
@@ -151,14 +152,14 @@ namespace epee
               if(boost::iequals(word, "null"))
               {
                 state = match_state_wonder_after_value;
-                //just skip this, 
+                //just skip this,
               }else if(boost::iequals(word, "true"))
               {
-                stg.set_value(name, true, current_section);              
+                stg.set_value(name, true, current_section);
                 state = match_state_wonder_after_value;
               }else if(boost::iequals(word, "false"))
               {
-                stg.set_value(name, false, current_section);              
+                stg.set_value(name, false, current_section);
                 state = match_state_wonder_after_value;
               }else ASSERT_MES_AND_THROW("Unknown value keyword " << word);
             }else if(*it == '{')
@@ -186,7 +187,7 @@ namespace epee
           case match_state_wonder_array:
             if(*it == '[')
             {
-              ASSERT_MES_AND_THROW("array of array not suppoerted yet :( sorry"); 
+              ASSERT_MES_AND_THROW("array of array not suppoerted yet :( sorry");
               //mean array of array
             }
             if(*it == '{')
@@ -249,13 +250,13 @@ namespace epee
               match_word2(it, buf_end, word);
               if(boost::iequals(word, "true"))
               {
-                h_array = stg.insert_first_value(name, true, current_section);              
+                h_array = stg.insert_first_value(name, true, current_section);
                 CHECK_AND_ASSERT_THROW_MES(h_array, " failed to insert values section entry");
                 state = match_state_array_after_value;
                 array_md = array_mode_booleans;
               }else if(boost::iequals(word, "false"))
               {
-                h_array = stg.insert_first_value(name, false, current_section);              
+                h_array = stg.insert_first_value(name, false, current_section);
                 CHECK_AND_ASSERT_THROW_MES(h_array, " failed to insert values section entry");
                 state = match_state_array_after_value;
                 array_md = array_mode_booleans;
@@ -323,7 +324,7 @@ namespace epee
                   errno = 0;
                   double nval = strtod(val.data(), NULL);
                   if (errno) throw std::runtime_error("Invalid number: " + std::string(val));
-                  insert_res = stg.insert_next_value(h_array, double(nval));              
+                  insert_res = stg.insert_next_value(h_array, double(nval));
                 }
                 CHECK_AND_ASSERT_THROW_MES(insert_res, "Failed to insert next value");
                 state = match_state_array_after_value;
@@ -337,7 +338,7 @@ namespace epee
                 match_word2(it, buf_end, word);
                 if(boost::iequals(word, "true"))
                 {
-                  bool r = stg.insert_next_value(h_array, true);              
+                  bool r = stg.insert_next_value(h_array, true);
                   CHECK_AND_ASSERT_THROW_MES(r, " failed to insert values section entry");
                   state = match_state_array_after_value;
                 }else if(boost::iequals(word, "false"))
@@ -369,9 +370,9 @@ namespace epee
         "streetAddress": "21 2nd Street",
         "city": "New York",
         "state": "NY",
-        "postalCode": -10021, 
-        "have_boobs": true, 
-        "have_balls": false 
+        "postalCode": -10021,
+        "have_boobs": true,
+        "have_balls": false
     },
     "phoneNumber": [
         {
@@ -382,7 +383,7 @@ namespace epee
             "type": "fax",
             "number": "646 555-4567"
         }
-    ], 
+    ],
     "phoneNumbers": [
     "812 123-1234",
     "916 123-4567"

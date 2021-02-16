@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,34 +22,34 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
-#pragma once 
+#pragma once
 
 #include <boost/variant.hpp>
-#include <boost/any.hpp>
 #include <string>
 #include <vector>
 #include <deque>
+#include <map>
 #include "misc_log_ex.h"
 
 #define PORTABLE_STORAGE_SIGNATUREA 0x01011101
-#define PORTABLE_STORAGE_SIGNATUREB 0x01020101 // bender's nightmare 
+#define PORTABLE_STORAGE_SIGNATUREB 0x01020101 // bender's nightmare
 #define PORTABLE_STORAGE_FORMAT_VER 1
 
-#define PORTABLE_RAW_SIZE_MARK_MASK   0x03 
+#define PORTABLE_RAW_SIZE_MARK_MASK   0x03
 #define PORTABLE_RAW_SIZE_MARK_BYTE   0
 #define PORTABLE_RAW_SIZE_MARK_WORD   1
 #define PORTABLE_RAW_SIZE_MARK_DWORD  2
 #define PORTABLE_RAW_SIZE_MARK_INT64  3
 
-#ifndef MAX_STRING_LEN_POSSIBLE       
+#ifndef MAX_STRING_LEN_POSSIBLE
 #define MAX_STRING_LEN_POSSIBLE       2000000000 //do not let string be so big
 #endif
 
-//data types 
+//data types
 #define SERIALIZE_TYPE_INT64                1
 #define SERIALIZE_TYPE_INT32                2
 #define SERIALIZE_TYPE_INT16                3
@@ -82,7 +82,7 @@ namespace epee
     template<class t_entry_type>
     struct array_entry_t
     {
-      array_entry_t():m_it(m_array.end()){}        
+      array_entry_t():m_it(m_array.end()){}
       array_entry_t(const array_entry_t& other):m_array(other.m_array), m_it(m_array.end()){}
 
       array_entry_t& operator=(const array_entry_t& other)
@@ -91,28 +91,28 @@ namespace epee
         m_it = m_array.end();
         return *this;
       }
-        
-      const t_entry_type* get_first_val() const 
+
+      const t_entry_type* get_first_val() const
       {
         m_it = m_array.begin();
         return get_next_val();
       }
 
-      t_entry_type* get_first_val() 
+      t_entry_type* get_first_val()
       {
         m_it = m_array.begin();
         return get_next_val();
       }
 
 
-      const t_entry_type* get_next_val() const 
+      const t_entry_type* get_next_val() const
       {
         if(m_it == m_array.end())
           return nullptr;
         return &(*(m_it++));
       }
 
-      t_entry_type* get_next_val() 
+      t_entry_type* get_next_val()
       {
         if(m_it == m_array.end())
           return nullptr;
@@ -143,25 +143,25 @@ namespace epee
 
 
     typedef  boost::make_recursive_variant<
-      array_entry_t<section>, 
-      array_entry_t<uint64_t>, 
-      array_entry_t<uint32_t>, 
-      array_entry_t<uint16_t>, 
-      array_entry_t<uint8_t>, 
-      array_entry_t<int64_t>, 
-      array_entry_t<int32_t>, 
-      array_entry_t<int16_t>, 
-      array_entry_t<int8_t>, 
-      array_entry_t<double>, 
-      array_entry_t<bool>, 
+      array_entry_t<section>,
+      array_entry_t<uint64_t>,
+      array_entry_t<uint32_t>,
+      array_entry_t<uint16_t>,
+      array_entry_t<uint8_t>,
+      array_entry_t<int64_t>,
+      array_entry_t<int32_t>,
+      array_entry_t<int16_t>,
+      array_entry_t<int8_t>,
+      array_entry_t<double>,
+      array_entry_t<bool>,
       array_entry_t<std::string>,
-      array_entry_t<section>, 
-      array_entry_t<boost::recursive_variant_> 
+      array_entry_t<section>,
+      array_entry_t<boost::recursive_variant_>
     >::type array_entry;
 
     typedef boost::variant<uint64_t, uint32_t, uint16_t, uint8_t, int64_t, int32_t, int16_t, int8_t, double, bool, std::string, section, array_entry> storage_entry;
 
-    typedef std::string binarybuffer;//it's ok      
+    typedef std::string binarybuffer;//it's ok
 
     /************************************************************************/
     /*                                                                      */
@@ -172,7 +172,7 @@ namespace epee
     };
 
     //handle-like aliases
-    typedef section*      hsection;  
+    typedef section*      hsection;
     typedef array_entry*  harray;
   }
 }

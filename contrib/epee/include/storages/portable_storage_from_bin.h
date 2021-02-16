@@ -1,6 +1,6 @@
 // Copyright (c) 2006-2013, Andrey N. Sabelnikov, www.sabelnikov.net
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // * Redistributions of source code must retain the above copyright
@@ -11,7 +11,7 @@
 // * Neither the name of the Andrey N. Sabelnikov nor the
 // names of its contributors may be used to endorse or promote products
 // derived from this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,19 +22,20 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 
 
-#pragma once 
+#pragma once
 
 #include "misc_language.h"
+#include "misc_log_ex.h"
 #include "portable_storage_base.h"
 #include "portable_storage_bin_utils.h"
 
 #ifdef EPEE_PORTABLE_STORAGE_RECURSION_LIMIT
 #define EPEE_PORTABLE_STORAGE_RECURSION_LIMIT_INTERNAL EPEE_PORTABLE_STORAGE_RECURSION_LIMIT
-#else 
+#else
 #define EPEE_PORTABLE_STORAGE_RECURSION_LIMIT_INTERNAL 100
 #endif
 
@@ -42,6 +43,24 @@ namespace epee
 {
   namespace serialization
   {
+    template<typename T>
+    struct ps_min_bytes {
+      static constexpr const size_t strict = 4096; // actual low bound
+    };
+    template<> struct ps_min_bytes<uint64_t> { static constexpr const size_t strict = 8; };
+    template<> struct ps_min_bytes<int64_t> { static constexpr const size_t strict = 8; };
+    template<> struct ps_min_bytes<uint32_t> { static constexpr const size_t strict = 4; };
+    template<> struct ps_min_bytes<int32_t> { static constexpr const size_t strict = 4; };
+    template<> struct ps_min_bytes<uint16_t> { static constexpr const size_t strict = 2; };
+    template<> struct ps_min_bytes<int16_t> { static constexpr const size_t strict = 2; };
+    template<> struct ps_min_bytes<uint8_t> { static constexpr const size_t strict = 1; };
+    template<> struct ps_min_bytes<int8_t> { static constexpr const size_t strict = 1; };
+    template<> struct ps_min_bytes<double> { static constexpr const size_t strict = 8; };
+    template<> struct ps_min_bytes<bool> { static constexpr const size_t strict = 1; };
+    template<> struct ps_min_bytes<std::string> { static constexpr const size_t strict = 2; };
+    template<> struct ps_min_bytes<section> { static constexpr const size_t strict = 1; };
+    template<> struct ps_min_bytes<array_entry> { static constexpr const size_t strict = 1; };
+
     struct throwable_buffer_reader
     {
       throwable_buffer_reader(const void* ptr, size_t sz);
@@ -61,6 +80,9 @@ namespace epee
       void read(section& sec);
       void read(std::string& str);
       void read(array_entry &ae);
+      template<class t_type>
+      size_t min_bytes() const;
+      void set_limits(size_t objects, size_t fields, size_t strings);
     private:
       struct recursuion_limitation_guard
       {
@@ -81,19 +103,32 @@ namespace epee
       const uint8_t* m_ptr;
       size_t m_count;
       size_t m_recursion_count;
+      size_t m_objects;
+      size_t m_fields;
+      size_t m_strings;
+
+      size_t max_objects;
+      size_t max_fields;
+      size_t max_strings;
     };
 
     inline throwable_buffer_reader::throwable_buffer_reader(const void* ptr, size_t sz)
     {
-      if(!ptr) 
+      if(!ptr)
         throw std::runtime_error("throwable_buffer_reader: ptr==nullptr");
       if(!sz)
         throw std::runtime_error("throwable_buffer_reader: sz==0");
       m_ptr = (uint8_t*)ptr;
       m_count = sz;
       m_recursion_count = 0;
+      m_objects = 0;
+      m_fields = 0;
+      m_strings = 0;
+      max_objects = std::numeric_limits<size_t>::max();
+      max_fields = std::numeric_limits<size_t>::max();
+      max_strings = std::numeric_limits<size_t>::max();
     }
-    inline 
+    inline
     void throwable_buffer_reader::read(void* target, size_t count)
     {
       RECURSION_LIMITATION();
@@ -102,12 +137,13 @@ namespace epee
       m_ptr += count;
       m_count -= count;
     }
-    inline 
+    inline
     void throwable_buffer_reader::read_sec_name(std::string& sce_name)
     {
       RECURSION_LIMITATION();
       uint8_t name_len = 0;
       read(name_len);
+      CHECK_AND_ASSERT_THROW_MES(name_len > 0, "Section name is missing");
       sce_name.resize(name_len);
       read((void*)sce_name.data(), name_len);
     }
@@ -120,7 +156,7 @@ namespace epee
       read(&pod_val, sizeof(pod_val));
       pod_val = CONVERT_POD(pod_val);
     }
-    
+
     template<class t_type>
     t_type throwable_buffer_reader::read()
     {
@@ -138,7 +174,18 @@ namespace epee
       //for pod types
       array_entry_t<type_name> sa;
       size_t size = read_varint();
-      CHECK_AND_ASSERT_THROW_MES(size <= m_count, "Size sanity check failed");
+      CHECK_AND_ASSERT_THROW_MES(size <= m_count / ps_min_bytes<type_name>::strict, "Size sanity check failed");
+      if (std::is_same<type_name, section>())
+      {
+        CHECK_AND_ASSERT_THROW_MES(size <= max_objects - m_objects, "Too many objects");
+        m_objects += size;
+      }
+      else if (std::is_same<type_name, std::string>())
+      {
+        CHECK_AND_ASSERT_THROW_MES(size <= max_strings - m_strings, "Too many strings");
+        m_strings += size;
+      }
+
       sa.reserve(size);
       //TODO: add some optimization here later
       while(size--)
@@ -146,7 +193,7 @@ namespace epee
       return storage_entry(array_entry(std::move(sa)));
     }
 
-    inline 
+    inline
     storage_entry throwable_buffer_reader::load_storage_array_entry(uint8_t type)
     {
       RECURSION_LIMITATION();
@@ -166,12 +213,12 @@ namespace epee
       case SERIALIZE_TYPE_STRING: return read_ae<std::string>();
       case SERIALIZE_TYPE_OBJECT: return read_ae<section>();
       case SERIALIZE_TYPE_ARRAY:  return read_ae<array_entry>();
-      default: 
+      default:
         CHECK_AND_ASSERT_THROW_MES(false, "unknown entry_type code = " << type);
       }
     }
 
-    inline 
+    inline
     size_t throwable_buffer_reader::read_varint()
     {
       RECURSION_LIMITATION();
@@ -204,6 +251,8 @@ namespace epee
     inline storage_entry throwable_buffer_reader::read_se<std::string>()
     {
       RECURSION_LIMITATION();
+      CHECK_AND_ASSERT_THROW_MES(m_strings + 1 <= max_strings, "Too many strings");
+      m_strings += 1;
       return storage_entry(read<std::string>());
     }
 
@@ -212,6 +261,8 @@ namespace epee
     inline storage_entry throwable_buffer_reader::read_se<section>()
     {
       RECURSION_LIMITATION();
+      CHECK_AND_ASSERT_THROW_MES(m_objects < max_objects, "Too many objects");
+      ++m_objects;
       section s;//use extra variable due to vs bug, line "storage_entry se(section()); " can't be compiled in visual studio
       storage_entry se(std::move(s));
       section& section_entry = boost::get<section>(se);
@@ -229,7 +280,7 @@ namespace epee
       return load_storage_array_entry(ent_type);
     }
 
-    inline 
+    inline
     storage_entry throwable_buffer_reader::load_storage_entry()
     {
       RECURSION_LIMITATION();
@@ -253,25 +304,29 @@ namespace epee
       case SERIALIZE_TYPE_STRING: return read_se<std::string>();
       case SERIALIZE_TYPE_OBJECT: return read_se<section>();
       case SERIALIZE_TYPE_ARRAY:  return read_se<array_entry>();
-      default: 
+      default:
         CHECK_AND_ASSERT_THROW_MES(false, "unknown entry_type code = " << ent_type);
       }
     }
-    inline 
+    inline
     void throwable_buffer_reader::read(section& sec)
     {
       RECURSION_LIMITATION();
       sec.m_entries.clear();
       size_t count = read_varint();
+      CHECK_AND_ASSERT_THROW_MES(count <= max_fields - m_fields, "Too many object fields");
+      m_fields += count;
       while(count--)
       {
         //read section name string
         std::string sec_name;
         read_sec_name(sec_name);
-        sec.m_entries.emplace(std::move(sec_name), load_storage_entry());
+        const auto insert_loc = sec.m_entries.lower_bound(sec_name);
+        CHECK_AND_ASSERT_THROW_MES(insert_loc == sec.m_entries.end() || insert_loc->first != sec_name, "duplicate key: " << sec_name);
+        sec.m_entries.emplace_hint(insert_loc, std::move(sec_name), load_storage_entry());
       }
     }
-    inline 
+    inline
     void throwable_buffer_reader::read(std::string& str)
     {
       RECURSION_LIMITATION();
@@ -288,6 +343,13 @@ namespace epee
     {
       RECURSION_LIMITATION();
       CHECK_AND_ASSERT_THROW_MES(false, "Reading array entry is not supported");
+    }
+    inline
+    void throwable_buffer_reader::set_limits(size_t objects, size_t fields, size_t strings)
+    {
+      max_objects = objects;
+      max_fields = fields;
+      max_strings = strings;
     }
   }
 }
