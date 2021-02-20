@@ -137,7 +137,7 @@ namespace cryptonote
     CHECK_AND_ASSERT_MES_CC( context.m_callback_request_count > 0, false, "false callback fired, but context.m_callback_request_count=" << context.m_callback_request_count);
     --context.m_callback_request_count;
 
-    if(context.m_state == cryptonote_connection_context::state_synchronizing)
+    if(context.m_state == cryptonote_connection_context::state_synchronizing && context.m_last_request_time == boost::posix_time::not_a_date_time)
     {
       NOTIFY_REQUEST_CHAIN::request r = {};
       context.m_needed_objects.clear();
@@ -338,10 +338,6 @@ namespace cryptonote
     }
     context.m_remote_blockchain_height = hshd.current_height;
     context.m_pruning_seed = hshd.pruning_seed;
-#ifdef CRYPTONOTE_PRUNING_DEBUG_SPOOF_SEED
-    context.m_pruning_seed = tools::make_pruning_seed(1 + (context.m_remote_address.as<epee::net_utils::ipv4_network_address>().ip()) % (1 << CRYPTONOTE_PRUNING_LOG_STRIPES), CRYPTONOTE_PRUNING_LOG_STRIPES);
-    LOG_INFO_CC(context, "New connection posing as pruning seed " << epee::string_tools::to_string_hex(context.m_pruning_seed) << ", seed address " << &context.m_pruning_seed);
-#endif
 
     uint64_t target = m_core.get_target_blockchain_height();
     if (target == 0)
@@ -407,6 +403,7 @@ namespace cryptonote
     ++context.m_callback_request_count;
     m_p2p->request_callback(context);
     MLOG_PEER_STATE("requesting callback");
+    context.m_num_requested = 0;
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------
@@ -424,7 +421,7 @@ namespace cryptonote
   }
   //------------------------------------------------------------------------------------------------------------------------
     template<class t_core>
-    bool t_cryptonote_protocol_handler<t_core>::get_payload_sync_data(blobdata& data)
+    bool t_cryptonote_protocol_handler<t_core>::get_payload_sync_data(epee::byte_slice& data)
   {
     CORE_SYNC_DATA hsd = {};
     get_payload_sync_data(hsd);
@@ -1946,7 +1943,7 @@ skip:
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>
-  void t_cryptonote_protocol_handler<t_core>::skip_unneeded_hashes(cryptonote_connection_context& context, bool check_block_queue) const
+  size_t t_cryptonote_protocol_handler<t_core>::skip_unneeded_hashes(cryptonote_connection_context& context, bool check_block_queue) const
   {
     // take out blocks we already have
     size_t skip = 0;
@@ -1963,6 +1960,7 @@ skip:
       MDEBUG(context << "skipping " << skip << "/" << context.m_needed_objects.size() << " blocks");
       context.m_needed_objects = std::vector<std::pair<crypto::hash, uint64_t>>(context.m_needed_objects.begin() + skip, context.m_needed_objects.end());
     }
+    return skip;
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>
@@ -2016,7 +2014,17 @@ skip:
         const size_t block_queue_size_threshold = m_block_download_max_size ? m_block_download_max_size : BLOCK_QUEUE_SIZE_THRESHOLD;
         bool queue_proceed = nspans < BLOCK_QUEUE_NSPANS_THRESHOLD || size < block_queue_size_threshold;
         // get rid of blocks we already requested, or already have
-        skip_unneeded_hashes(context, true);
+        if (skip_unneeded_hashes(context, true) && context.m_needed_objects.empty() && context.m_num_requested == 0)
+        {
+          if (context.m_remote_blockchain_height > m_block_queue.get_next_needed_height(bc_height))
+          {
+            MERROR(context << "Nothing we can request from this peer, and we did not request anything previously");
+            return false;
+          }
+          MDEBUG(context << "Nothing to get from this peer, and it's not ahead of us, all done");
+          context.m_state = cryptonote_connection_context::state_normal;
+          return true;
+        }
         uint64_t next_needed_height = m_block_queue.get_next_needed_height(bc_height);
         uint64_t next_block_height;
         if (context.m_needed_objects.empty())
@@ -2150,7 +2158,17 @@ skip:
           context.m_last_response_height = 0;
           goto skip;
         }
-        skip_unneeded_hashes(context, false);
+        if (skip_unneeded_hashes(context, false) && context.m_needed_objects.empty() && context.m_num_requested == 0)
+        {
+          if (context.m_remote_blockchain_height > m_block_queue.get_next_needed_height(m_core.get_current_blockchain_height()))
+          {
+            MERROR(context << "Nothing we can request from this peer, and we did not request anything previously");
+            return false;
+          }
+          MDEBUG(context << "Nothing to get from this peer, and it's not ahead of us, all done");
+          context.m_state = cryptonote_connection_context::state_normal;
+          return true;
+        }
 
         const uint64_t first_block_height = context.m_last_response_height - context.m_needed_objects.size() + 1;
         static const uint64_t bp_fork_height = m_core.get_earliest_ideal_height_for_version(7);
@@ -2247,35 +2265,22 @@ skip:
           << "/" << tools::get_pruning_stripe(span.first + span.second - 1, context.m_remote_blockchain_height, CRYPTONOTE_PRUNING_LOG_STRIPES)
           << ", ours " << tools::get_pruning_stripe(m_core.get_blockchain_pruning_seed()) << ", peer stripe " << tools::get_pruning_stripe(context.m_pruning_seed));
 
+        context.m_num_requested += req.blocks.size();
         post_notify<NOTIFY_REQUEST_GET_OBJECTS>(req, context);
         MLOG_PEER_STATE("requesting objects");
         return true;
       }
 
-      // if we're still around, we might be at a point where the peer is pruned, so we could either
-      // drop it to make space for other peers, or ask for a span further down the line
-      const uint32_t next_stripe = get_next_needed_pruning_stripe().first;
-      const uint32_t peer_stripe = tools::get_pruning_stripe(context.m_pruning_seed);
-      const uint32_t local_stripe = tools::get_pruning_stripe(m_core.get_blockchain_pruning_seed());
-      if (!(m_sync_pruned_blocks && peer_stripe == local_stripe) && next_stripe && peer_stripe && next_stripe != peer_stripe)
+      // we can do nothing, so drop this peer to make room for others unless we think we've downloaded all we need
+      const uint64_t blockchain_height = m_core.get_current_blockchain_height();
+      if (std::max(blockchain_height, m_block_queue.get_next_needed_height(blockchain_height)) >= m_core.get_target_blockchain_height())
       {
-        // at this point, we have to either close the connection, or start getting blocks past the
-        // current point, or become dormant
-        MDEBUG(context << "this peer is pruned at seed " << epee::string_tools::to_string_hex(context.m_pruning_seed) <<
-            ", next stripe needed is " << next_stripe);
-        if (!context.m_is_income)
-        {
-          if (should_drop_connection(context, next_stripe))
-          {
-            m_p2p->add_used_stripe_peer(context);
-            return false; // drop outgoing connections
-          }
-        }
-        // we'll get back stuck waiting for the go ahead
         context.m_state = cryptonote_connection_context::state_normal;
         MLOG_PEER_STATE("Nothing to do for now, switching to normal state");
         return true;
       }
+      MLOG_PEER_STATE("We can download nothing from this peer, dropping");
+      return false;
     }
 
 skip:
@@ -2505,17 +2510,6 @@ skip:
       return 1;
     }
 
-    std::unordered_set<crypto::hash> hashes;
-    for (const auto &h: arg.m_block_ids)
-    {
-      if (!hashes.insert(h).second)
-      {
-        LOG_ERROR_CCONTEXT("sent duplicate block, dropping connection");
-        drop_connection(context, true, false);
-        return 1;
-      }
-    }
-
     uint64_t n_use_blocks = m_core.prevalidate_block_hashes(arg.start_height, arg.m_block_ids, arg.m_block_weights);
     if (n_use_blocks == 0 || n_use_blocks + HASH_OF_HASHES_STEP <= arg.m_block_ids.size())
     {
@@ -2527,18 +2521,74 @@ skip:
     context.m_needed_objects.clear();
     uint64_t added = 0;
     std::unordered_set<crypto::hash> blocks_found;
+    bool first = true;
+    bool expect_unknown = false;
     for (size_t i = 0; i < arg.m_block_ids.size(); ++i)
     {
       if (!blocks_found.insert(arg.m_block_ids[i]).second)
       {
         LOG_ERROR_CCONTEXT("Duplicate blocks in chain entry response, dropping connection");
-        drop_connection(context, true, false);
+        drop_connection_with_score(context, 5, false);
         return 1;
+      }
+      int where;
+      const bool have_block = m_core.have_block_unlocked(arg.m_block_ids[i], &where);
+      if (first)
+      {
+        if (!have_block && !m_block_queue.requested(arg.m_block_ids[i]) && !m_block_queue.have(arg.m_block_ids[i]))
+        {
+          LOG_ERROR_CCONTEXT("First block hash is unknown, dropping connection");
+          drop_connection_with_score(context, 5, false);
+          return 1;
+        }
+        if (!have_block)
+          expect_unknown = true;
+      }
+      if (!first)
+      {
+        // after the first, blocks may be known or unknown, but if they are known,
+        // they should be at the same height if on the main chain
+        if (have_block)
+        {
+          switch (where)
+          {
+            default:
+            case HAVE_BLOCK_INVALID:
+              LOG_ERROR_CCONTEXT("Block is invalid or known without known type, dropping connection");
+              drop_connection(context, true, false);
+              return 1;
+            case HAVE_BLOCK_MAIN_CHAIN:
+              if (expect_unknown)
+              {
+                LOG_ERROR_CCONTEXT("Block is on the main chain, but we did not expect a known block, dropping connection");
+                drop_connection_with_score(context, 5, false);
+                return 1;
+              }
+              if (m_core.get_block_id_by_height(arg.start_height + i) != arg.m_block_ids[i])
+              {
+                LOG_ERROR_CCONTEXT("Block is on the main chain, but not at the expected height, dropping connection");
+                drop_connection_with_score(context, 5, false);
+                return 1;
+              }
+              break;
+            case HAVE_BLOCK_ALT_CHAIN:
+              if (expect_unknown)
+              {
+                LOG_ERROR_CCONTEXT("Block is on the main chain, but we did not expect a known block, dropping connection");
+                drop_connection_with_score(context, 5, false);
+                return 1;
+              }
+              break;
+          }
+        }
+        else
+          expect_unknown = true;
       }
       const uint64_t block_weight = arg.m_block_weights.empty() ? 0 : arg.m_block_weights[i];
       context.m_needed_objects.push_back(std::make_pair(arg.m_block_ids[i], block_weight));
       if (++added == n_use_blocks)
         break;
+      first = false;
     }
     context.m_last_response_height -= arg.m_block_ids.size() - n_use_blocks;
 
@@ -2552,6 +2602,7 @@ skip:
     if (arg.total_height > m_core.get_target_blockchain_height())
       m_core.set_target_blockchain_height(arg.total_height);
 
+    context.m_num_requested = 0;
     return 1;
   }
   //------------------------------------------------------------------------------------------------------------------------
@@ -2568,6 +2619,7 @@ skip:
     std::vector<std::pair<epee::net_utils::zone, boost::uuids::uuid>> fullConnections, fluffyConnections;
     m_p2p->for_each_connection([this, &exclude_context, &fullConnections, &fluffyConnections](connection_context& context, nodetool::peerid_type peer_id, uint32_t support_flags)
     {
+      // peer_id also filters out connections before handshake
       if (peer_id && exclude_context.m_connection_id != context.m_connection_id && context.m_remote_address.get_zone() == epee::net_utils::zone::public_)
       {
         if(m_core.fluffy_blocks_enabled() && (support_flags & P2P_SUPPORT_FLAG_FLUFFY_BLOCKS))
@@ -2587,15 +2639,15 @@ skip:
     // send fluffy ones first, we want to encourage people to run that
     if (!fluffyConnections.empty())
     {
-      std::string fluffyBlob;
-      epee::serialization::store_t_to_binary(fluffy_arg, fluffyBlob);
-      m_p2p->relay_notify_to_list(NOTIFY_NEW_FLUFFY_BLOCK::ID, epee::strspan<uint8_t>(fluffyBlob), std::move(fluffyConnections));
+      epee::byte_slice fluffyBlob;
+      epee::serialization::store_t_to_binary(fluffy_arg, fluffyBlob, 32 * 1024);
+      m_p2p->relay_notify_to_list(NOTIFY_NEW_FLUFFY_BLOCK::ID, epee::to_span(fluffyBlob), std::move(fluffyConnections));
     }
     if (!fullConnections.empty())
     {
-      std::string fullBlob;
-      epee::serialization::store_t_to_binary(arg, fullBlob);
-      m_p2p->relay_notify_to_list(NOTIFY_NEW_BLOCK::ID, epee::strspan<uint8_t>(fullBlob), std::move(fullConnections));
+      epee::byte_slice fullBlob;
+      epee::serialization::store_t_to_binary(arg, fullBlob, 128 * 1024);
+      m_p2p->relay_notify_to_list(NOTIFY_NEW_BLOCK::ID, epee::to_span(fullBlob), std::move(fullConnections));
     }
 
     return true;
@@ -2721,19 +2773,22 @@ template<class t_core>
     return !sync.owns_lock();
   }
   //------------------------------------------------------------------------------------------------------------------------
-  template<class t_core>  
+  template<class t_core>
   void t_cryptonote_protocol_handler<t_core>::drop_connection_with_score(cryptonote_connection_context &context, uint64_t score, bool flush_all_spans)
   {
     LOG_DEBUG_CC(context, "dropping connection id " << context.m_connection_id << " (pruning seed " <<
         epee::string_tools::to_string_hex(context.m_pruning_seed) <<
         "), score " << score << ", flush_all_spans " << flush_all_spans);
 
-    if (score > 0)
-      m_p2p->add_host_fail(context.m_remote_address, score);
-
     m_block_queue.flush_spans(context.m_connection_id, flush_all_spans);
 
+    // copy since dropping the connection will invalidate the context, and thus the address
+    const auto remote_address = context.m_remote_address;
+
     m_p2p->drop_connection(context);
+
+    if (score > 0)
+      m_p2p->add_host_fail(remote_address, score);
   }
   //------------------------------------------------------------------------------------------------------------------------
   template<class t_core>

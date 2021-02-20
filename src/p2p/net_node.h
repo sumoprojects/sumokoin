@@ -139,6 +139,7 @@ namespace nodetool
 
     typedef COMMAND_HANDSHAKE_T<typename t_payload_net_handler::payload_type> COMMAND_HANDSHAKE;
     typedef COMMAND_TIMED_SYNC_T<typename t_payload_net_handler::payload_type> COMMAND_TIMED_SYNC;
+    static_assert(p2p_connection_context::handshake_command() == COMMAND_HANDSHAKE::ID, "invalid handshake command id");
 
     typedef epee::net_utils::boosted_tcp_server<epee::levin::async_protocol_handler<p2p_connection_context>> net_server;
 
@@ -249,7 +250,8 @@ namespace nodetool
         m_same_version(false),
         m_offline(false),
         is_closing(false),
-        m_network_id()
+        m_network_id(),
+        max_connections(1)
     {}
     virtual ~node_server();
 
@@ -496,6 +498,8 @@ namespace nodetool
     cryptonote::network_type m_nettype;
 
     epee::net_utils::ssl_support_t m_ssl_support;
+
+    uint32_t max_connections;
   };
 
     const int64_t default_limit_up = P2P_DEFAULT_LIMIT_RATE_UP;      // kB/s
@@ -529,7 +533,7 @@ namespace nodetool
     extern const command_line::arg_descriptor<int64_t> arg_limit_rate_down;
     extern const command_line::arg_descriptor<int64_t> arg_limit_rate;
     extern const command_line::arg_descriptor<bool> arg_pad_transactions;
-
+    extern const command_line::arg_descriptor<uint32_t> arg_max_connections_per_ip;
 }
 
 POP_WARNINGS

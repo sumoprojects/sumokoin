@@ -52,13 +52,13 @@ namespace config
 #define BLOCKS_IDS_SYNCHRONIZING_MAX_COUNT              25000  //max blocks ids count in synchronizing
 #define BLOCKS_SYNCHRONIZING_DEFAULT_COUNT              10     //by default, blocks count in blocks downloading
 
-#define COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT           1000
+#define COMMAND_RPC_GET_BLOCKS_FAST_MAX_BLOCK_COUNT     1000
+#define COMMAND_RPC_GET_BLOCKS_FAST_MAX_TX_COUNT        20000
 
 #define P2P_LOCAL_WHITE_PEERLIST_LIMIT                  1000
 #define P2P_LOCAL_GRAY_PEERLIST_LIMIT                   5000
 
-#define P2P_DEFAULT_CONNECTIONS_COUNT_OUT               12
-#define P2P_DEFAULT_CONNECTIONS_COUNT_IN                28
+#define P2P_DEFAULT_CONNECTIONS_COUNT	                24
 #define P2P_DEFAULT_HANDSHAKE_INTERVAL                  60           //seconds
 #define P2P_DEFAULT_PACKET_MAX_SIZE                     50000000     //50000000 bytes maximum packet size
 #define P2P_DEFAULT_PEERS_IN_HANDSHAKE                  250
@@ -74,10 +74,10 @@ namespace config
 #define P2P_DEFAULT_LIMIT_RATE_UP                       2048       // kB/s
 #define P2P_DEFAULT_LIMIT_RATE_DOWN                     8192       // kB/s
 
-#define P2P_FAILED_ADDR_FORGET_SECONDS                  (24*60*60)     //a day
+#define P2P_FAILED_ADDR_FORGET_SECONDS                  (60*60)     //1 hour
 #define P2P_IP_BLOCKTIME                                (2*60*60*24)  //two days
 #define P2P_IP_FAILS_BEFORE_BLOCK                       5
-#define P2P_IDLE_CONNECTION_KILL_INTERVAL               (30) //30 seconds
+#define P2P_IDLE_CONNECTION_KILL_INTERVAL               (5*60) //5 minutes
 
 #define P2P_SUPPORT_FLAG_FLUFFY_BLOCKS                  0x01
 #define P2P_SUPPORT_FLAGS                               P2P_SUPPORT_FLAG_FLUFFY_BLOCKS

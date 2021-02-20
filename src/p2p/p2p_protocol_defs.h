@@ -135,7 +135,7 @@ namespace nodetool
       FIELD(adr)
       FIELD(id)
       FIELD(is_income)
-    END_SERIALIZE()    
+    END_SERIALIZE()
   };
   typedef connection_entry_base<epee::net_utils::network_address> connection_entry;
 
@@ -188,6 +188,7 @@ namespace nodetool
     uint16_t rpc_port;
     uint32_t rpc_credits_per_hash;
     peerid_type peer_id;
+    uint32_t support_flags;
     std::string version;
 
     BEGIN_KV_SERIALIZE_MAP()
@@ -197,6 +198,7 @@ namespace nodetool
       KV_SERIALIZE(version)
       KV_SERIALIZE_OPT(rpc_port, (uint16_t)(0))
       KV_SERIALIZE_OPT(rpc_credits_per_hash, (uint32_t)0)
+      KV_SERIALIZE_OPT(support_flags, (uint32_t)0)      
     END_KV_SERIALIZE_MAP()
   };
 
