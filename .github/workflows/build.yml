@@ -184,6 +184,33 @@ jobs:
         ccache --max-size=150M
         make -j3
 
+  build-ubuntu-focal-fossa-native-with-clang-10:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/cache@v2
+      with:
+        path: ~/.ccache
+        key: ccache-ubuntu-focal-build-${{ github.sha }}
+        restore-keys: ccache-ubuntu-focal-build-
+    - name: remove bundled boost
+      run: sudo rm -rf /usr/local/share/boost
+    - name: set apt conf
+      run: |
+        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: update apt
+      run: sudo apt update
+    - name: install sumokoin dependencies
+      run: sudo apt -y install build-essential clang-10 cmake libboost-all-dev miniupnpc libunbound-dev graphviz doxygen libunwind8-dev pkg-config libssl-dev libzmq3-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
+    - name: build sumokoin
+      run: |
+        export CC=/usr/bin/clang
+        export CXX=/usr/bin/clang++      
+        ccache --max-size=150M
+        make -j3
+
   build-ubuntu-bionic-static-native:
     runs-on: ubuntu-18.04
     steps:
