@@ -1,21 +1,21 @@
 // Copyright (c) 2018, The Monero Project
-// 
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -189,20 +189,20 @@ TEST(wipeable_string, parse_hexstr)
 {
   std::optional<epee::wipeable_string> s;
 
-  ASSERT_EQ(std::nullopt, epee::wipeable_string("x").parse_hexstr());
-  ASSERT_EQ(std::nullopt, epee::wipeable_string("x0000000000000000").parse_hexstr());
-  ASSERT_EQ(std::nullopt, epee::wipeable_string("0000000000000000x").parse_hexstr());
-  ASSERT_EQ(std::nullopt, epee::wipeable_string("0").parse_hexstr());
-  ASSERT_EQ(std::nullopt, epee::wipeable_string("000").parse_hexstr());
+  ASSERT_TRUE(std::nullopt == epee::wipeable_string("x").parse_hexstr());
+  ASSERT_TRUE(std::nullopt == epee::wipeable_string("x0000000000000000").parse_hexstr());
+  ASSERT_TRUE(std::nullopt == epee::wipeable_string("0000000000000000x").parse_hexstr());
+  ASSERT_TRUE(std::nullopt == epee::wipeable_string("0").parse_hexstr());
+  ASSERT_TRUE(std::nullopt == epee::wipeable_string("000").parse_hexstr());
 
   ASSERT_TRUE((s = epee::wipeable_string("").parse_hexstr()) != std::nullopt);
-  ASSERT_EQ(*s, "");
+  ASSERT_TRUE(*s == "");
   ASSERT_TRUE((s = epee::wipeable_string("00").parse_hexstr()) != std::nullopt);
-  ASSERT_EQ(*s, epee::wipeable_string("", 1));
+  ASSERT_TRUE(*s == epee::wipeable_string("", 1));
   ASSERT_TRUE((s = epee::wipeable_string("41").parse_hexstr()) != std::nullopt);
-  ASSERT_EQ(*s, epee::wipeable_string("A"));
+  ASSERT_TRUE(*s == epee::wipeable_string("A"));
   ASSERT_TRUE((s = epee::wipeable_string("414243").parse_hexstr()) != std::nullopt);
-  ASSERT_EQ(*s, epee::wipeable_string("ABC"));
+  ASSERT_TRUE(*s == epee::wipeable_string("ABC"));
 }
 
 TEST(wipeable_string, to_hex)
