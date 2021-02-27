@@ -1157,7 +1157,7 @@ bool WalletImpl::submitTransaction(const string &fileName) {
   return true;
 }
 
-bool WalletImpl::exportKeyImages(const string &filename)
+bool WalletImpl::exportKeyImages(const string &filename, bool all)
 {
   if (m_wallet->watch_only())
   {
@@ -1167,7 +1167,7 @@ bool WalletImpl::exportKeyImages(const string &filename)
 
   try
   {
-    if (!m_wallet->export_key_images(filename))
+    if (!m_wallet->export_key_images(filename), all)
     {
       setStatusError(tr("failed to save file ") + filename);
       return false;
@@ -1686,7 +1686,7 @@ uint64_t WalletImpl::estimateTransactionFee(const std::vector<std::pair<std::str
         destinations.size() + 1,
         extra_size,
         m_wallet->use_fork_rules(7, 0),
-        m_wallet->use_fork_rules(HF_VERSION_CLSAG, 0),        
+        m_wallet->use_fork_rules(HF_VERSION_CLSAG, 0),
         m_wallet->get_base_fee(),
         m_wallet->get_fee_multiplier(m_wallet->adjust_priority(static_cast<uint32_t>(priority))),
         m_wallet->get_fee_quantization_mask());

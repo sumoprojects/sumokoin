@@ -892,9 +892,10 @@ struct Wallet
    /*!
     * \brief exportKeyImages - exports key images to file
     * \param filename
+    * \param all - export all key images or only those that have not yet been exported
     * \return                  - true on success
     */
-    virtual bool exportKeyImages(const std::string &filename) = 0;
+    virtual bool exportKeyImages(const std::string &filename, bool all = false) = 0;
 
    /*!
     * \brief importKeyImages - imports key images from file
@@ -1302,7 +1303,7 @@ struct WalletManager
         const char *current_version = nullptr);
 
     //! sets proxy address, empty string to disable
-    virtual bool setProxy(const std::string &address) = 0;        
+    virtual bool setProxy(const std::string &address) = 0;
 };
 
 
