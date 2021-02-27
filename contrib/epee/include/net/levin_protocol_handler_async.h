@@ -387,6 +387,9 @@ public:
     m_config.m_pcommands_handler->callback(m_connection_context);
   }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
+
   virtual bool handle_recv(const void* ptr, size_t cb)
   {
     if(boost::interprocess::ipcdetail::atomic_read32(&m_close_called))
@@ -617,6 +620,8 @@ public:
     }
     return true;
   }
+
+#pragma GCC diagnostic pop
 
   template<class callback_t>
   bool async_invoke(int command, const epee::span<const uint8_t> in_buff, const callback_t &cb, size_t timeout = LEVIN_DEFAULT_TIMEOUT_PRECONFIGURED)
