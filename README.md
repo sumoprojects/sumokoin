@@ -1,8 +1,8 @@
 # Sumokoin
 
-Copyright (c) 2017-2020, Sumokoin Project
+Copyright (c) 2017-2021, Sumokoin Projects
 
-Portions Copyright (c) 2014-2020, The Monero Project
+Portions Copyright (c) 2014-2021, The Monero Project
 
 Portions Copyright (c) 2012-2013, The Cryptonote developers
 
@@ -536,7 +536,7 @@ allow inbound connections. Full example:
 
 ## Pruning
 
-As of June 2020, the full Sumokoin blockchain file is on about 22 GB. One can store a pruned blockchain, which is **less than one
+As of June 2021, The full Sumokoin blockchain file is on about 22 GB. One can store a pruned blockchain, which is **less than one
 fourth** in size from the full blockchain size (June 2020 4.6 GB).
 A pruned blockchain can only serve part of the historical chain data to other peers, but is otherwise identical in
 functionality to the full blockchain.

@@ -1,5 +1,5 @@
-# Copyright (c) 2014-2020, The Monero Project
-# Copyright (c) 2017-2020, Sumokoin Projects
+# Copyright (c) 2014-2021, The Monero Project
+# Copyright (c) 2017-2021, Sumokoin Projectss
 #
 # All rights reserved.
 #

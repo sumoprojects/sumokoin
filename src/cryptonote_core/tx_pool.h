@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2017-2021, Sumokoin Projects
+// Copyright (c) 2014-2021, The Monero Project
 //
 // All rights reserved.
 //
@@ -615,7 +616,7 @@ private:
     std::unordered_map<crypto::hash, transaction> m_parsed_tx_cache;
 
     //! Next timestamp that a DB check for relayable txes is allowed
-    std::atomic<time_t> m_next_check;    
+    std::atomic<time_t> m_next_check;
   };
 }
 

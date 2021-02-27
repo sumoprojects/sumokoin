@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2017-2021, Sumokoin Projects
+// Copyright (c) 2014-2021, The Monero Project
 //
 // All rights reserved.
 //
@@ -129,7 +130,7 @@ namespace daemon_args
   const command_line::arg_descriptor<std::vector<std::string>> arg_zmq_pub = {
     "zmq-pub"
   , "Address for ZMQ pub - tcp://ip:port or ipc://path"
-  };  
+  };
 
 }  // namespace daemon_args
 
