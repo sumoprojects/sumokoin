@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2017-2021, Sumokoin Projects
+// Copyright (c) 2014-2021, The Monero Project
 //
 // All rights reserved.
 //
@@ -131,7 +132,7 @@ namespace cryptonote
     bool set_confirm_missing_payment_id(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_ask_password(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_unit(const std::vector<std::string> &args = std::vector<std::string>());
-    bool set_max_reorg_depth(const std::vector<std::string> &args = std::vector<std::string>());    
+    bool set_max_reorg_depth(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_min_output_count(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_min_output_value(const std::vector<std::string> &args = std::vector<std::string>());
     bool set_merge_destinations(const std::vector<std::string> &args = std::vector<std::string>());
@@ -158,6 +159,7 @@ namespace cryptonote
     bool set_credits_target(const std::vector<std::string> &args = std::vector<std::string>());
     bool help(const std::vector<std::string> &args = std::vector<std::string>());
     bool search_command(const std::vector<std::string> &args);
+    bool scan_tx(const std::vector<std::string> &args);
     bool start_mining(const std::vector<std::string> &args);
     bool stop_mining(const std::vector<std::string> &args);
     bool set_daemon(const std::vector<std::string> &args);

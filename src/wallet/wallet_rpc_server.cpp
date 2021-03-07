@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2020, Sumokoin Project
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2017-2021, Sumokoin Projects
+// Copyright (c) 2014-2021, The Monero Project
 //
 // All rights reserved.
 //
@@ -4402,7 +4402,14 @@ public:
         wal->stop();
       });
 
-      wal->refresh(wal->is_trusted_daemon());
+      try
+      {
+        wal->refresh(wal->is_trusted_daemon());
+      }
+      catch (const std::exception& e)
+      {
+        LOG_ERROR(tools::wallet_rpc_server::tr("Initial refresh failed: ") << e.what());
+      }
       // if we ^C during potentially length load/refresh, there's no server loop yet
       if (quit)
       {

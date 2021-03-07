@@ -1,5 +1,5 @@
-# Copyright (c) 2014-2020, The Monero Project
-# Copyright (c) 2017-2020, Sumokoin Projects
+# Copyright (c) 2014-2021, The Monero Project
+# Copyright (c) 2017-2021, Sumokoin Projectss
 #
 # All rights reserved.
 #
@@ -656,6 +656,9 @@ else()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH_FLAG}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH_FLAG}")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    add_definitions(-Wno-unused-command-line-argument)
+  endif()
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Wno-error=extra -Wno-error=deprecated-declarations -Wno-range-loop-analysis -Wno-unused-lambda-capture -Wno-unused-parameter -Wno-unused-variable -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized")
   else()

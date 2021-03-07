@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2017-2021, Sumokoin Projects
+// Copyright (c) 2014-2021, The Monero Project
 //
 // All rights reserved.
 //
@@ -84,7 +85,7 @@ namespace cryptonote
     std::string bind_ip;
     std::string bind_ipv6_address;
     std::string restricted_bind_ip;
-    std::string restricted_bind_ipv6_address;    
+    std::string restricted_bind_ipv6_address;
     bool use_ipv6;
     bool require_ipv4;
     std::vector<std::string> access_control_origins;

@@ -2,24 +2,25 @@
 /// @author rfree (current maintainer in monero.cc project)
 /// @brief This is the place to implement our handlers for protocol network actions, e.g. for ratelimit for download-requests
 
-// Copyright (c) 2014-2020, The Monero Project
-// 
+// Copyright (c) 2017-2021, Sumokoin Projects
+// Copyright (c) 2014-2021, The Monero Project
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -45,7 +46,7 @@
 
 // ################################################################################################
 // ################################################################################################
-// the "header part". Not separated out for .hpp because point of this modification is 
+// the "header part". Not separated out for .hpp because point of this modification is
 // to rebuild just 1 translation unit while working on this code.
 // (But maybe common parts will be separated out later though - if needed)
 // ################################################################################################
@@ -65,7 +66,7 @@ class cryptonote_protocol_handler_base_pimpl { // placeholer if needed
 // ################################################################################################
 // ################################################################################################
 
-namespace cryptonote { 
+namespace cryptonote {
 
 double cryptonote_protocol_handler_base::estimate_one_block_size() noexcept { // for estimating size of blocks to downloa
  const double size_min = 500; // XXX 500
@@ -94,22 +95,22 @@ void cryptonote_protocol_handler_base::handler_response_blocks_now(size_t packet
 	MDEBUG("Packet size: " << packet_size);
 	do
 	{ // rate limiting
-		//XXX 
-		/*if (::cryptonote::core::get_is_stopping()) { 
+		//XXX
+		/*if (::cryptonote::core::get_is_stopping()) {
 			MDEBUG("We are stopping - so abort sleep");
 			return;
 		}*/
-		/*if (m_was_shutdown) { 
+		/*if (m_was_shutdown) {
 			MDEBUG("m_was_shutdown - so abort sleep");
 			return;
 		}*/
 
-		{ 
+		{
 	  	CRITICAL_REGION_LOCAL(	network_throttle_manager::m_lock_get_global_throttle_out );
 			delay = network_throttle_manager::get_global_throttle_out().get_sleep_time_after_tick( packet_size );
 		}
 
-		
+
 		delay *= 0.50;
 		//delay = 0; // XXX
 		if (delay > 0) {
@@ -124,11 +125,9 @@ void cryptonote_protocol_handler_base::handler_response_blocks_now(size_t packet
 	{
 	  CRITICAL_REGION_LOCAL(	network_throttle_manager::m_lock_get_global_throttle_out );
 		network_throttle_manager::get_global_throttle_out().handle_trafic_tcp( packet_size ); // increase counter - global
-		//epee::critical_region_t<decltype(m_throttle_global_lock)> guard(m_throttle_global_lock); // *** critical *** 
+		//epee::critical_region_t<decltype(m_throttle_global_lock)> guard(m_throttle_global_lock); // *** critical ***
 		//m_throttle_global.m_out.handle_trafic_tcp( packet_size ); // increase counter - global
 	}
 }
 
 } // namespace
-
-

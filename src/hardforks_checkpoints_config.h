@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2020, Sumokoin Project
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2017-2021, Sumokoin Projects
+// Copyright (c) 2014-2021, The Monero Project
 //
 // All rights reserved.
 //
@@ -84,7 +84,8 @@
     ADD_CHECKPOINT(435000, "ee11193a62f74d2ed681fd2e9212e9e4061774d9dd90039cc5a4d0b65f2c5522"); \
     ADD_CHECKPOINT(446000, "c50f8599b0c0cf5ad620217e9a496fdfa1f82b485995cfd73a04a1509bb902a2"); \
     ADD_CHECKPOINT(465000, "985a03585380e5a8ba30a2515174c05afbc71a858ec171a1c1a8658df322935e"); \
-    ADD_CHECKPOINT(492000, "a2efbec083be4f1aadb1e368e85fc861a3014bcef6e58dad2161b46cc6fa0cea");
+    ADD_CHECKPOINT(492000, "a2efbec083be4f1aadb1e368e85fc861a3014bcef6e58dad2161b46cc6fa0cea"); \
+    ADD_CHECKPOINT(517000, "ea358273567df2cff386d45774f2d0db6aabcb97dc2cbbe8076a654c32ecd3b2");
 
 // testnet checkpoints
 #define TESTNET_CHECKPOINTS \

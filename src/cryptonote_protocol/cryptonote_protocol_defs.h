@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2017-2021, Sumokoin Projects
+// Copyright (c) 2014-2021, The Monero Project
 //
 // All rights reserved.
 //
@@ -310,7 +311,7 @@ namespace cryptonote
           KV_SERIALIZE_OPT(cumulative_difficulty_top64, (uint64_t)0)
         KV_SERIALIZE_CONTAINER_POD_AS_BLOB(m_block_ids)
         KV_SERIALIZE_CONTAINER_POD_AS_BLOB(m_block_weights)
-        KV_SERIALIZE(first_block)        
+        KV_SERIALIZE(first_block)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<request_t> request;

@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2020, Sumokoin Project
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2017-2021, Sumokoin Projects
+// Copyright (c) 2014-2021, The Monero Project
 //
 // All rights reserved.
 //
@@ -126,6 +126,7 @@ typedef cryptonote::simple_wallet sw;
 #define CREDITS_TARGET 50000
 #define MAX_PAYMENT_DIFF 10000
 #define MIN_PAYMENT_RATE 0.01f // per hash
+#define MAX_MNEW_ADDRESSES 1000
 
 enum TransferType {
   Transfer,
@@ -177,7 +178,7 @@ namespace
   const char* USAGE_SWEEP_BELOW("sweep_below <amount_threshold> [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] <address> [<payment_id (obsolete)>]");
   const char* USAGE_SWEEP_SINGLE("sweep_single [<priority>] [<ring_size>] [outputs=<N>] <key_image> <address> [<payment_id (obsolete)>]");
   const char* USAGE_DONATE("donate [index=<N1>[,<N2>,...]] [<priority>] [<ring_size>] <amount> [<payment_id (obsolete)>]");
-  const char* USAGE_SIGN_TRANSFER("sign_transfer [export_raw]");
+  const char* USAGE_SIGN_TRANSFER("sign_transfer [export_raw] [<filename>]");
   const char* USAGE_SET_LOG("set_log <level>|{+,-,}<categories>");
   const char* USAGE_ACCOUNT("account\n"
                             "  account new <label text with white spaces allowed>\n"
@@ -186,7 +187,7 @@ namespace
                             "  account tag <tag_name> <account_index_1> [<account_index_2> ...]\n"
                             "  account untag <account_index_1> [<account_index_2> ...]\n"
                             "  account tag_description <tag_name> <description>");
-  const char* USAGE_ADDRESS("address [ new <label text with white spaces allowed> | all | <index_min> [<index_max>] | label <index> <label text with white spaces allowed> | device [<index>] | one-off <account> <subaddress>]");
+  const char* USAGE_ADDRESS("address [ new <label text with white spaces allowed> | mnew <amount of new addresses> | all | <index_min> [<index_max>] | label <index> <label text with white spaces allowed> | device [<index>] | one-off <account> <subaddress>]");
   const char* USAGE_INTEGRATED_ADDRESS("integrated_address [device] [<payment_id> | <address>]");
   const char* USAGE_ADDRESS_BOOK("address_book [(show)|(export)|(export_csv)|(add (<address>|<integrated address>) [<description possibly with whitespaces>])|(delete <index>)]");
   const char* USAGE_SET_VARIABLE("set <option> [<value>]");
@@ -265,6 +266,7 @@ namespace
   const char* USAGE_VERSION("version");
   const char* USAGE_HELP("help [<command>] | all");
   const char* USAGE_SEARCH_COMMAND("search_command <keyword> [<keyword> ...]");
+  const char* USAGE_SCAN_TX("scan_tx <txid> [<txid> ...]");
 
   std::string input_line(const std::string& prompt, bool yesno = false)
   {
@@ -3159,6 +3161,45 @@ bool simple_wallet::search_command(const std::vector<std::string> &args)
   return true;
 }
 
+bool simple_wallet::scan_tx(const std::vector<std::string> &args)
+{
+  if (args.empty())
+  {
+    PRINT_USAGE(USAGE_SCAN_TX);
+    return true;
+  }
+
+  // Parse and dedup args
+  std::unordered_set<crypto::hash> txids;
+  for (const auto &s : args) {
+    crypto::hash txid;
+    if (!epee::string_tools::hex_to_pod(s, txid)) {
+      fail_msg_writer() << tr("Invalid txid specified: ") << s;
+      return true;
+    }
+    txids.insert(txid);
+  }
+  std::vector<crypto::hash> txids_v(txids.begin(), txids.end());
+
+  if (!m_wallet->is_trusted_daemon()) {
+    message_writer(console_color_red, true) << tr("WARNING: this operation may reveal the txids to the remote node and affect your privacy");
+    if (!command_line::is_yes(input_line("Do you want to continue?", true))) {
+      message_writer() << tr("You have canceled the operation");
+      return true;
+    }
+  }
+
+  LOCK_IDLE_SCOPE();
+  m_in_manual_refresh.store(true);
+  try {
+    m_wallet->scan_tx(txids_v);
+  } catch (const std::exception &e) {
+    fail_msg_writer() << e.what();
+  }
+  m_in_manual_refresh.store(false);
+  return true;
+}
+
 simple_wallet::simple_wallet()
   : m_allow_mismatched_daemon_version(false)
   , m_refresh_progress_reporter(*this)
@@ -3247,7 +3288,8 @@ simple_wallet::simple_wallet()
   m_cmd_binder.set_handler("sign_transfer",
                            std::bind(&simple_wallet::on_command, this, &simple_wallet::sign_transfer, std::placeholders::_1),
                            tr(USAGE_SIGN_TRANSFER),
-                           tr("Sign a transaction from a file. If the parameter \"export_raw\" is specified, transaction raw hex data suitable for the daemon RPC /sendrawtransaction is exported."));
+                           tr("Sign a transaction from a file. If the parameter \"export_raw\" is specified, transaction raw hex data suitable for the daemon RPC /sendrawtransaction is exported.\n"
+                              "Use the parameter <filename> to specify the file to read from. If not specified, the default \"unsigned_sumo_tx\" will be used."));
   m_cmd_binder.set_handler("submit_transfer",
                            std::bind(&simple_wallet::on_command, this, &simple_wallet::submit_transfer, std::placeholders::_1),
                            tr("Submit a signed transaction from a file."));
@@ -3268,7 +3310,7 @@ simple_wallet::simple_wallet()
   m_cmd_binder.set_handler("address",
                            std::bind(&simple_wallet::on_command, this, &simple_wallet::print_address, std::placeholders::_1),
                            tr(USAGE_ADDRESS),
-                           tr("If no arguments are specified or <index> is specified, the wallet shows the default or specified address. If \"all\" is specified, the wallet shows all the existing addresses in the currently selected account. If \"new \" is specified, the wallet creates a new address with the provided label text (which can be empty). If \"label\" is specified, the wallet sets the label of the address specified by <index> to the provided label text. If \"one-off\" is specified,the address for the specified index is generated and displayed, and remembered by the wallet"));
+                           tr("If no arguments are specified or <index> is specified, the wallet shows the default or specified address. If \"all\" is specified, the wallet shows all the existing addresses in the currently selected account. If \"new \" is specified, the wallet creates a new address with the provided label text (which can be empty). If \"mnew\" is specified, the wallet creates as many new addresses as specified by the argument; the default label is set for the new addresses. If \"label\" is specified, the wallet sets the label of the address specified by <index> to the provided label text. If \"one-off\" is specified,the address for the specified index is generated and displayed, and remembered by the wallet"));
   m_cmd_binder.set_handler("integrated_address",
                            std::bind(&simple_wallet::on_command, this, &simple_wallet::print_integrated_address, std::placeholders::_1),
                            tr(USAGE_INTEGRATED_ADDRESS),
@@ -3709,6 +3751,10 @@ simple_wallet::simple_wallet()
                            std::bind(&simple_wallet::on_command, this, &simple_wallet::search_command, std::placeholders::_1),
                             tr(USAGE_SEARCH_COMMAND),
                             tr("Search all command descriptions for keyword(s)"));
+  m_cmd_binder.set_handler("scan_tx",
+                           std::bind(&simple_wallet::on_command, this, &simple_wallet::scan_tx, std::placeholders::_1),
+                            tr(USAGE_SCAN_TX),
+                            tr("Scan the transactions given by <txid>(s), processing them and looking for outputs"));
   m_cmd_binder.set_unknown_command_handler(std::bind(&simple_wallet::on_command, this, &simple_wallet::on_unknown_command, std::placeholders::_1));
   m_cmd_binder.set_empty_command_handler(std::bind(&simple_wallet::on_empty_command, this));
   m_cmd_binder.set_cancel_handler(std::bind(&simple_wallet::on_cancelled_command, this));
@@ -3812,7 +3858,7 @@ bool simple_wallet::set_variable(const std::vector<std::string> &args)
     CHECK_SIMPLE_VARIABLE("priority", set_default_priority, tr("0, 1, 2, 3, or 4"));
     CHECK_SIMPLE_VARIABLE("ask-password", set_ask_password, tr("0|1|2 (or never|action|decrypt)"));
     CHECK_SIMPLE_VARIABLE("unit", set_unit, tr("sumo, sumosan, sumokun, sumoshi"));
-    CHECK_SIMPLE_VARIABLE("max-reorg-depth", set_max_reorg_depth, tr("unsigned integer"));    
+    CHECK_SIMPLE_VARIABLE("max-reorg-depth", set_max_reorg_depth, tr("unsigned integer"));
     CHECK_SIMPLE_VARIABLE("min-outputs-count", set_min_output_count, tr("unsigned integer"));
     CHECK_SIMPLE_VARIABLE("min-outputs-value", set_min_output_value, tr("amount"));
     CHECK_SIMPLE_VARIABLE("merge-destinations", set_merge_destinations, tr("0 or 1"));
@@ -4485,7 +4531,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm)
       password = *r;
       welcome = true;
       // if no block_height is specified, assume its a new account and start it "now"
-      if(m_wallet->get_refresh_from_block_height() == 0) {
+      if (command_line::is_arg_defaulted(vm, arg_restore_height)) {
         {
           tools::scoped_message_writer wrt = tools::msg_writer();
           wrt << tr("No restore height is specified.") << " ";
@@ -4727,9 +4773,14 @@ bool simple_wallet::try_connect_to_daemon(bool silent, uint32_t* version)
   if (!m_wallet->check_connection(version))
   {
     if (!silent)
-      fail_msg_writer() << tr("wallet failed to connect to daemon: ") << m_wallet->get_daemon_address() << ". " <<
-        tr("Daemon either is not started or wrong port was passed. "
-        "Please make sure daemon is running or change the daemon address using the 'set_daemon' command.");
+    {
+      if (m_wallet->is_offline())
+        fail_msg_writer() << tr("wallet failed to connect to daemon, because it is set to offline mode");
+      else
+        fail_msg_writer() << tr("wallet failed to connect to daemon: ") << m_wallet->get_daemon_address() << ". " <<
+          tr("Daemon either is not started or wrong port was passed. "
+          "Please make sure daemon is running or change the daemon address using the 'set_daemon' command.");
+    }
     return false;
   }
   if (!m_allow_mismatched_daemon_version && ((*version >> 16) != CORE_RPC_VERSION_MAJOR))
@@ -5756,7 +5807,7 @@ bool simple_wallet::show_balance_unlocked(bool detailed)
   if (m_wallet->has_multisig_partial_key_images())
     extra = tr(" (Some owned outputs have partial key images - import_multisig_info needed)");
   else if (m_wallet->has_unknown_key_images())
-    extra += tr(" (Some owned outputs have missing key images - import_key_images needed)");
+    extra += tr(" (Some owned outputs have missing key images - export_outputs, import_outputs, export_key_images, and import_key_images needed)");
   success_msg_writer() << tr("Currently selected account: [") << m_current_subaddress_account << tr("] ") << m_wallet->get_subaddress_label({m_current_subaddress_account, 0});
   const std::string tag = m_wallet->get_account_tags().second[m_current_subaddress_account];
   success_msg_writer() << tr("Tag: ") << (tag.empty() ? std::string{tr("(No tag assigned)")} : tag);
@@ -7547,7 +7598,7 @@ bool simple_wallet::donate(const std::vector<std::string> &args_)
   if (!payment_id_str.empty())
     local_args.push_back(payment_id_str);
   if (m_wallet->nettype() == cryptonote::MAINNET)
-    message_writer() << (boost::format(tr("Donating %s %s to Sumokoin Project (donate.sumokoin.org or %s).")) % amount_str % cryptonote::get_unit(cryptonote::get_default_decimal_point()) % SUMOKOIN_DONATION_ADDR).str();
+    message_writer() << (boost::format(tr("Donating %s %s to Sumokoin Projects (donate.sumokoin.org or %s).")) % amount_str % cryptonote::get_unit(cryptonote::get_default_decimal_point()) % SUMOKOIN_DONATION_ADDR).str();
   else
     message_writer() << (boost::format(tr("Donating %s %s to %s.")) % amount_str % cryptonote::get_unit(cryptonote::get_default_decimal_point()) % address_str).str();
   transfer(local_args);
@@ -7734,19 +7785,33 @@ bool simple_wallet::sign_transfer(const std::vector<std::string> &args_)
      fail_msg_writer() << tr("This is a watch only wallet");
      return true;
   }
-  if (args_.size() > 1 || (args_.size() == 1 && args_[0] != "export_raw"))
+
+  bool export_raw = false;
+  std::string unsigned_filename = "unsigned_sumo_tx";
+  if (args_.size() > 2 || (args_.size() == 2 && args_[0] != "export_raw"))
   {
     PRINT_USAGE(USAGE_SIGN_TRANSFER);
     return true;
   }
+  else if (args_.size() == 2)
+  {
+    export_raw = true;
+    unsigned_filename = args_[1];
+  }
+  else if (args_.size() == 1)
+  {
+    if (args_[0] == "export_raw")
+      export_raw = true;
+    else
+      unsigned_filename = args_[0];
+  }
 
   SCOPED_WALLET_UNLOCK();
-  const bool export_raw = args_.size() == 1;
 
   std::vector<tools::wallet2::pending_tx> ptx;
   try
   {
-    bool r = m_wallet->sign_tx("unsigned_sumo_tx", "signed_sumo_tx", ptx, [&](const tools::wallet2::unsigned_tx_set &tx){ return accept_loaded_tx(tx); }, export_raw);
+    bool r = m_wallet->sign_tx(unsigned_filename, "signed_sumo_tx", ptx, [&](const tools::wallet2::unsigned_tx_set &tx){ return accept_loaded_tx(tx); }, export_raw);
     if (!r)
     {
       fail_msg_writer() << tr("Failed to sign transaction");
@@ -9166,7 +9231,7 @@ bool simple_wallet::run()
 
   refresh_main(0, ResetNone, true);
 
-  m_auto_refresh_enabled = m_wallet->auto_refresh();
+  m_auto_refresh_enabled = !m_wallet->is_offline() && m_wallet->auto_refresh();
   m_idle_thread = boost::thread([&]{wallet_idle_thread();});
 
   message_writer(console_color_green, false) << "Background refresh thread started";
@@ -9428,6 +9493,31 @@ bool simple_wallet::print_address(const std::vector<std::string> &args/* = std::
     print_address_sub(m_wallet->get_num_subaddresses(m_current_subaddress_account) - 1);
     m_wallet->device_show_address(m_current_subaddress_account, m_wallet->get_num_subaddresses(m_current_subaddress_account) - 1, std::nullopt);
   }
+  else if (local_args[0] == "mnew")
+  {
+    local_args.erase(local_args.begin());
+    if (local_args.size() != 1)
+    {
+      fail_msg_writer() << tr("Expected exactly one argument for the amount of new addresses");
+      return true;
+    }
+    uint32_t n;
+    if (!epee::string_tools::get_xtype_from_string(n, local_args[0]))
+    {
+      fail_msg_writer() << tr("failed to parse the amount of new addresses: ") << local_args[0];
+      return true;
+    }
+    if (n > MAX_MNEW_ADDRESSES)
+    {
+      fail_msg_writer() << tr("the amount of new addresses must be lower or equal to ") << MAX_MNEW_ADDRESSES;
+      return true;
+    }
+    for (uint32_t i = 0; i < n; ++i)
+    {
+      m_wallet->add_subaddress(m_current_subaddress_account, tr("(Untitled address)"));
+      print_address_sub(m_wallet->get_num_subaddresses(m_current_subaddress_account) - 1);
+    }
+  }  
   else if (local_args[0] == "one-off")
   {
     local_args.erase(local_args.begin());

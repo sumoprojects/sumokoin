@@ -1,5 +1,5 @@
-// Copyright (c) 2017-2020, Sumokoin Project
-// Copyright (c) 2014-2020, The Monero Project
+// Copyright (c) 2017-2021, Sumokoin Projects
+// Copyright (c) 2014-2021, The Monero Project
 //
 // All rights reserved.
 //
@@ -31,6 +31,7 @@
 
 #include <numeric>
 #include <tuple>
+#include <queue>
 #include <optional>
 #include <cstddef>
 #include <boost/format.hpp>
@@ -1586,6 +1587,47 @@ std::string wallet2::get_subaddress_label(const cryptonote::subaddress_index& in
     return "";
   }
   return m_subaddress_labels[index.major][index.minor];
+}
+//----------------------------------------------------------------------------------------------------
+void wallet2::scan_tx(const std::vector<crypto::hash> &txids)
+{
+  // Get the transactions from daemon in batches and add them to a priority queue ordered in chronological order
+  auto cmp_tx_entry = [](const cryptonote::COMMAND_RPC_GET_TRANSACTIONS::entry& l, const cryptonote::COMMAND_RPC_GET_TRANSACTIONS::entry& r)
+  { return l.block_height > r.block_height; };
+
+  std::priority_queue<cryptonote::COMMAND_RPC_GET_TRANSACTIONS::entry, std::vector<COMMAND_RPC_GET_TRANSACTIONS::entry>, decltype(cmp_tx_entry)> txq(cmp_tx_entry);
+  const size_t SLICE_SIZE =  100; // RESTRICTED_TRANSACTIONS_COUNT as defined in rpc/core_rpc_server.cpp, hardcoded in daemon code
+  for(size_t slice = 0; slice < txids.size(); slice += SLICE_SIZE) {
+    cryptonote::COMMAND_RPC_GET_TRANSACTIONS::request req = AUTO_VAL_INIT(req);
+    cryptonote::COMMAND_RPC_GET_TRANSACTIONS::response res = AUTO_VAL_INIT(res);
+    req.decode_as_json = false;
+    req.prune = true;
+
+    size_t ntxes = slice + SLICE_SIZE > txids.size() ? txids.size() - slice : SLICE_SIZE;
+    for (size_t i = slice; i < slice + ntxes; ++i)
+     req.txs_hashes.push_back(epee::string_tools::pod_to_hex(txids[i]));
+
+    {
+      const boost::lock_guard<boost::recursive_mutex> lock{m_daemon_rpc_mutex};
+      req.client = get_client_signature();
+      bool r = epee::net_utils::invoke_http_json("/gettransactions", req, res, *m_http_client, rpc_timeout);
+      THROW_WALLET_EXCEPTION_IF(!r, error::wallet_internal_error, "Failed to get transaction from daemon");
+      THROW_WALLET_EXCEPTION_IF(res.txs.size() != req.txs_hashes.size(), error::wallet_internal_error, "Failed to get transaction from daemon");
+    }
+
+    for (auto& tx_info : res.txs)
+      txq.push(tx_info);
+  }
+
+  // Process the transactions in chronologically ascending order
+  while(!txq.empty()) {
+    auto& tx_info = txq.top();
+    cryptonote::transaction tx;
+    crypto::hash tx_hash;
+    THROW_WALLET_EXCEPTION_IF(!get_pruned_tx(tx_info, tx, tx_hash), error::wallet_internal_error, "Failed to get transaction from daemon (2)");
+    process_new_transaction(tx_hash, tx, tx_info.output_indices, tx_info.block_height, 0, tx_info.block_timestamp, false, tx_info.in_pool, tx_info.double_spend_seen, {}, {});
+    txq.pop();
+  }
 }
 //----------------------------------------------------------------------------------------------------
 void wallet2::set_subaddress_label(const cryptonote::subaddress_index& index, const std::string &label)
@@ -6027,6 +6069,13 @@ std::map<uint32_t, uint64_t> wallet2::balance_per_subaddress(uint32_t index_majo
         found->second += utx.second.m_change;
     }
    }
+   for (const auto& utx: m_unconfirmed_payments)
+   {
+    if (utx.second.m_pd.m_subaddr_index.major == index_major)
+    {
+      amount_per_subaddr[utx.second.m_pd.m_subaddr_index.minor] += utx.second.m_pd.m_amount;
+    }
+   }     
   }
   return amount_per_subaddr;
 }
@@ -9677,13 +9726,18 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_2(std::vector<cryp
 
     TX() : weight(0), needed_fee(0) {}
 
-    void add(const cryptonote::tx_destination_entry &de, uint64_t amount, unsigned int original_output_index, bool merge_destinations) {
+    /* Add an output to the transaction.
+     * Returns True if the output was added, False if there are no more available output slots.
+     */
+    bool add(const cryptonote::tx_destination_entry &de, uint64_t amount, unsigned int original_output_index, bool merge_destinations, size_t max_dsts) {
       if (merge_destinations)
       {
         std::vector<cryptonote::tx_destination_entry>::iterator i;
         i = std::find_if(dsts.begin(), dsts.end(), [&](const cryptonote::tx_destination_entry &d) { return !memcmp (&d.addr, &de.addr, sizeof(de.addr)); });
         if (i == dsts.end())
         {
+          if (dsts.size() >= max_dsts)
+            return false;
           dsts.push_back(de);
           i = dsts.end() - 1;
           i->amount = 0;
@@ -9696,12 +9750,15 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_2(std::vector<cryp
             std::string("original_output_index too large: ") + std::to_string(original_output_index) + " > " + std::to_string(dsts.size()));
         if (original_output_index == dsts.size())
         {
+          if (dsts.size() >= max_dsts)
+            return false;
           dsts.push_back(de);
           dsts.back().amount = 0;
         }
         THROW_WALLET_EXCEPTION_IF(memcmp(&dsts[original_output_index].addr, &de.addr, sizeof(de.addr)), error::wallet_internal_error, "Mismatched destination address");
         dsts[original_output_index].amount += amount;
       }
+      return true;
     }
   };
   std::vector<TX> txes;
@@ -9971,6 +10028,7 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_2(std::vector<cryp
     // clear any fake outs we'd already gathered, since we'll need a new set
     outs.clear();
 
+    bool out_slots_exhausted = false;
     if (adding_fee)
     {
       LOG_PRINT_L2("We need more fee, adding it to fee");
@@ -9983,20 +10041,32 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_2(std::vector<cryp
         // we can fully pay that destination
         LOG_PRINT_L2("We can fully pay " << get_account_address_as_str(m_nettype, dsts[0].is_subaddress, dsts[0].addr) <<
           " for " << print_money(dsts[0].amount));
-        tx.add(dsts[0], dsts[0].amount, original_output_index, m_merge_destinations);
+        if (!tx.add(dsts[0], dsts[0].amount, original_output_index, m_merge_destinations, BULLETPROOF_MAX_OUTPUTS-1))
+        {
+          LOG_PRINT_L2("Didn't pay: ran out of output slots");
+          out_slots_exhausted = true;
+          break;
+        }
         available_amount -= dsts[0].amount;
         dsts[0].amount = 0;
         pop_index(dsts, 0);
         ++original_output_index;
       }
 
-      if (available_amount > 0 && !dsts.empty() && estimate_tx_weight(use_rct, tx.selected_transfers.size(), fake_outs_count, tx.dsts.size()+1, extra.size(), bulletproof, clsag) < TX_WEIGHT_TARGET(upper_transaction_weight_limit)) {
+      if (!out_slots_exhausted && available_amount > 0 && !dsts.empty() && estimate_tx_weight(use_rct, tx.selected_transfers.size(), fake_outs_count, tx.dsts.size()+1, extra.size(), bulletproof, clsag) < TX_WEIGHT_TARGET(upper_transaction_weight_limit)) {
         // we can partially fill that destination
         LOG_PRINT_L2("We can partially pay " << get_account_address_as_str(m_nettype, dsts[0].is_subaddress, dsts[0].addr) <<
           " for " << print_money(available_amount) << "/" << print_money(dsts[0].amount));
-        tx.add(dsts[0], available_amount, original_output_index, m_merge_destinations);
-        dsts[0].amount -= available_amount;
-        available_amount = 0;
+        if (tx.add(dsts[0], available_amount, original_output_index, m_merge_destinations, BULLETPROOF_MAX_OUTPUTS-1))
+        {
+          dsts[0].amount -= available_amount;
+          available_amount = 0;
+        }
+        else
+        {
+          LOG_PRINT_L2("Didn't pay: ran out of output slots");
+          out_slots_exhausted = true;
+        }
       }
     }
 
@@ -10004,8 +10074,15 @@ std::vector<wallet2::pending_tx> wallet2::create_transactions_2(std::vector<cryp
     LOG_PRINT_L2("Considering whether to create a tx now, " << tx.selected_transfers.size() << " inputs, tx limit "
       << upper_transaction_weight_limit);
     bool try_tx = false;
+
+    // If the new transaction is full, create it and start a new one
+    if (out_slots_exhausted)
+    {
+      LOG_PRINT_L2("Transaction is full, will create it and start a new tx");
+      try_tx = true;
+    }
     // if we have preferred picks, but haven't yet used all of them, continue
-    if (preferred_inputs.empty())
+    else if (preferred_inputs.empty())
     {
       if (adding_fee)
       {
