@@ -1819,6 +1819,7 @@ namespace tools
         rpc_transfers.tx_hash      = epee::string_tools::pod_to_hex(td.m_txid);
         rpc_transfers.subaddr_index = {td.m_subaddr_index.major, td.m_subaddr_index.minor};
         rpc_transfers.key_image    = td.m_key_image_known ? epee::string_tools::pod_to_hex(td.m_key_image) : "";
+        rpc_transfers.pubkey       = epee::string_tools::pod_to_hex(td.get_public_key());        
         rpc_transfers.block_height = td.m_block_height;
         rpc_transfers.frozen       = td.m_frozen;
         rpc_transfers.unlocked     = m_wallet->is_transfer_unlocked(td);
@@ -2980,7 +2981,7 @@ namespace tools
       }
       return true;
   }
-  //------------------------------------------------------------------------------------------------------------------------------            
+  //------------------------------------------------------------------------------------------------------------------------------
   bool wallet_rpc_server::on_rescan_spent(const wallet_rpc::COMMAND_RPC_RESCAN_SPENT::request& req, wallet_rpc::COMMAND_RPC_RESCAN_SPENT::response& res, epee::json_rpc::error& er, const connection_context *ctx)
   {
     if (!m_wallet) return not_open(er);
