@@ -112,7 +112,7 @@ namespace epee
     explicit byte_slice(std::string&& buffer);
 
     //! Convert `stream` into a slice with zero allocations.
-    explicit byte_slice(byte_stream&& stream) noexcept;
+    explicit byte_slice(byte_stream&& stream, bool shrink = true);
 
     byte_slice(byte_slice&& source) noexcept;
     ~byte_slice() noexcept = default;
@@ -174,4 +174,3 @@ namespace epee
       allocation failure. */
   byte_buffer byte_buffer_increase(byte_buffer buf, std::size_t current, std::size_t more);
 } // epee
-
