@@ -340,7 +340,7 @@ namespace cryptonote
         MFATAL("Failed to store HTTP SSL cert/key for " << (restricted ? "restricted " : "") << "RPC server: " << error.message());
       return !bool(error);
     }
-    return inited;    
+    return inited;
   }
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::check_payment(const std::string &client_message, uint64_t payment, const std::string &rpc, bool same_ts, std::string &message, uint64_t &credits, std::string &top_hash)
