@@ -315,7 +315,7 @@ namespace cryptonote
     if (m_rpc_payment)
       m_net_server.add_idle_handler([this](){ return m_rpc_payment->on_idle(); }, 60 * 1000);
 
-    bool store_ssl_key = !restricted && rpc_config->ssl_options.auth.certificate_path.empty();
+    bool store_ssl_key = !restricted && rpc_config->ssl_options && rpc_config->ssl_options.auth.certificate_path.empty();
     const auto ssl_base_path = (boost::filesystem::path{data_dir} / "rpc_ssl").string();
     if (store_ssl_key && boost::filesystem::exists(ssl_base_path + ".crt"))
     {
@@ -340,7 +340,7 @@ namespace cryptonote
         MFATAL("Failed to store HTTP SSL cert/key for " << (restricted ? "restricted " : "") << "RPC server: " << error.message());
       return !bool(error);
     }
-    return inited;    
+    return inited;
   }
   //------------------------------------------------------------------------------------------------------------------------------
   bool core_rpc_server::check_payment(const std::string &client_message, uint64_t payment, const std::string &rpc, bool same_ts, std::string &message, uint64_t &credits, std::string &top_hash)

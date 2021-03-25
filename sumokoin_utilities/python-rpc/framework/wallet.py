@@ -1086,3 +1086,14 @@ class Wallet(object):
             'id': '0'
         }
         return self.rpc.send_json_rpc_request(get_version)
+
+    def scan_tx(self, txids):
+        scan_tx = {
+            'method': 'scan_tx',
+            'jsonrpc': '2.0',
+            'params' : {
+                'txids': txids,
+            },
+            'id': '0'
+        }
+        return self.rpc.send_json_rpc_request(scan_tx)        
