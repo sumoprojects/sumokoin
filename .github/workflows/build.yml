@@ -17,10 +17,10 @@ jobs:
         restore-keys: ccache-macos-build-
     - name: install dependencies
       run: brew install boost hidapi zmq libpgm ldns expat libunwind-headers protobuf ccache
-    - name: build
+    - name: build sumokoin
       run: |
         ccache --max-size=150M
-        make -j3
+        make -j 4
 
   macOS-cross-on-bionic:
     runs-on: ubuntu-18.04
@@ -51,7 +51,7 @@ jobs:
         sudo tar -xf Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz
         cd /home/runner/work/sumokoin/sumokoin
     - name: build sumokoin
-      run: make depends target=x86_64-apple-darwin14 -j3
+      run: make depends target=x86_64-apple-darwin14 -j 4
     - name: upload binaries
       uses: actions/upload-artifact@v2
       with:
@@ -81,7 +81,7 @@ jobs:
     - name: build sumokoin
       run: |
         ccache --max-size=150M
-        make release-static-win64 -j2
+        make release-static-win64 -j 4
 
   Windows64-cross-on-bionic:
     runs-on: ubuntu-18.04
@@ -99,7 +99,7 @@ jobs:
     - name: install sumokoin dependencies
       run: sudo apt -y install python3 g++-mingw-w64-x86-64 wine1.6 bc gperf autoconf automake libtool build-essential cmake graphviz doxygen libunwind8-dev pkg-config libssl-dev libnorm-dev libusb-1.0-0-dev libpgm-dev ccache
     - name: cross compile sumokoin windows binaries
-      run: make depends target=x86_64-w64-mingw32 -j 3
+      run: make depends target=x86_64-w64-mingw32 -j 4
     - name: upload binaries
       uses: actions/upload-artifact@v2
       with:
@@ -132,7 +132,7 @@ jobs:
     - name: build sumokoin
       run: |
         ccache --max-size=150M
-        make -j3
+        make -j 4
 
   build-bionic-debug-native:
     runs-on: ubuntu-18.04
@@ -157,7 +157,7 @@ jobs:
     - name: build sumokoin
       run: |
         ccache --max-size=150M
-        make -j3
+        make -j 4
 
   build-ubuntu-focal-fossa-native:
     runs-on: ubuntu-20.04
@@ -182,7 +182,7 @@ jobs:
     - name: build sumokoin
       run: |
         ccache --max-size=150M
-        make -j3
+        make -j 4
 
   build-ubuntu-focal-fossa-native-with-clang-10:
     runs-on: ubuntu-20.04
@@ -209,7 +209,7 @@ jobs:
         export CC=/usr/bin/clang
         export CXX=/usr/bin/clang++      
         ccache --max-size=150M
-        make -j3
+        make -j 4
 
   build-ubuntu-bionic-static-native:
     runs-on: ubuntu-18.04
@@ -238,7 +238,7 @@ jobs:
         rm -f /usr/boost_1_74_0.tar.bz2
         cd boost_1_74_0
         sudo ./bootstrap.sh
-        sudo ./b2 install -j 3
+        sudo ./b2 install -j 4
         cd ..
     - name: build zmq
       run: |
@@ -246,7 +246,7 @@ jobs:
         cd libzmq
         sudo ./autogen.sh
         sudo ./configure
-        sudo make -j 3
+        sudo make -j 4
         sudo make install
         sudo ldconfig
         cd ..
@@ -256,13 +256,13 @@ jobs:
         cd libunwind
         sudo ./autogen.sh
         sudo ./configure
-        sudo make -j 3
+        sudo make -j 4
         sudo make install
         cd ..
     - name: build sumokoin
       run: |
         ccache --max-size=150M
-        make release-static -j 3
+        make release-static -j 4
 
   FreeBSD-cross-on-bionic:
     runs-on: ubuntu-18.04
@@ -280,7 +280,7 @@ jobs:
     - name: install sumokoin dependencies
       run: sudo apt -y install autoconf automake libtool gperf cmake clang-8
     - name: cross compile sumokoin bins for FreeBSD
-      run: make depends target=x86_64-unknown-freebsd -j 3
+      run: make depends target=x86_64-unknown-freebsd -j 4
     - name: upload binaries
       uses: actions/upload-artifact@v2
       with:
@@ -310,14 +310,37 @@ jobs:
                         --slave /usr/bin/g++ g++ /usr/bin/g++-7
         sudo update-alternatives --config gcc
     - name: cross compile sumokoin bins for linux x64
-      run: make depends target=x86_64-linux-gnu -j 3
+      run: make depends target=x86_64-linux-gnu -j 4
     - name: upload binaries
       uses: actions/upload-artifact@v2
       with:
         name: linux64-release-binaries
         path: build/**/bin/
 
-  cross-build-armv8-binaries-on-xenial:
+  cross-build-armv7-binaries-on-bionic:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: remove bundled boost
+      run: sudo rm -rf /usr/local/share/boost
+    - name: set apt conf
+      run: |
+        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: update apt
+      run: sudo apt update
+    - name: install sumokoin dependencies
+      run: sudo apt -y install dpkg-dev cmake pkg-config libtool autoconf automake gperf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf
+    - name: cross compile sumokoin bins for armv7
+      run: make depends target=arm-linux-gnueabihf -j 4
+    - name: upload binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: armv7-release-binaries
+        path: build/**/bin/
+
+  cross-build-armv8-binaries-on-bionic:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
@@ -332,8 +355,8 @@ jobs:
       run: sudo apt update
     - name: install sumokoin dependencies
       run: sudo apt -y install dpkg-dev cmake pkg-config libtool autoconf automake gperf g++-aarch64-linux-gnu
-    - name: cross compile sumokoin bins for arm v8
-      run: make depends target=aarch64-linux-gnu -j 3
+    - name: cross compile sumokoin bins for armv8
+      run: make depends target=aarch64-linux-gnu -j 4
     - name: upload binaries
       uses: actions/upload-artifact@v2
       with:
@@ -356,7 +379,7 @@ jobs:
     - name: install sumokoin dependencies
       run: sudo apt -y install dpkg-dev cmake pkg-config libtool autoconf automake gperf g++-riscv64-linux-gnu
     - name: cross compile sumokoin bins for RISC V 64
-      run: make depends target=riscv64-linux-gnu -j 3
+      run: make depends target=riscv64-linux-gnu -j 4
     - name: upload binaries
       uses: actions/upload-artifact@v2
       with:
@@ -384,4 +407,4 @@ jobs:
     - name: tests
       env:
         CTEST_OUTPUT_ON_FAILURE: ON
-      run: make release-test -j 3
+      run: make release-test -j 4
