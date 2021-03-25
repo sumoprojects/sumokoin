@@ -83,6 +83,36 @@ jobs:
         ccache --max-size=150M
         make release-static-win64 -j 4
 
+  Windows32-cross-on-focal-fossa:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: remove bundled boost
+      run: sudo rm -rf /usr/local/share/boost
+    - name: set apt conf
+      run: |
+        echo "Acquire::Retries \"3\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::http::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+        echo "Acquire::ftp::Timeout \"120\";" | sudo tee -a /etc/apt/apt.conf.d/80-custom
+    - name: update apt
+      run: |
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+        sudo apt update
+    - name: install sumokoin dependencies
+      run: |
+        sudo apt -y install make automake cmake curl libtool binutils-gold g++-mingw-w64-i686 pkg-config python3 gperf 
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
+                        --slave /usr/bin/g++ g++ /usr/bin/g++-7
+        sudo update-alternatives --config gcc
+    - name: cross compile sumokoin bins for windows-32bit
+      run: make depends target=i686-w64-mingw32 -j 4
+    - name: upload binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: Windows32-release-binaries
+        path: build/**/bin/
+        
   Windows64-cross-on-bionic:
     runs-on: ubuntu-18.04
     steps:
