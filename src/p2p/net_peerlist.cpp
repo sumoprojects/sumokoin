@@ -158,7 +158,7 @@ namespace nodetool
     save_peers(a, boost::range::join(elem.ours.anchor, elem.other.anchor));
   }
 
-  boost::optional<peerlist_storage> peerlist_storage::open(std::istream& src, const bool new_format)
+  std::optional<peerlist_storage> peerlist_storage::open(std::istream& src, const bool new_format)
   {
     try
     {
@@ -185,17 +185,17 @@ namespace nodetool
     catch (const std::exception& e)
     {}
 
-    return boost::none;
+    return std::nullopt;
   }
 
-  boost::optional<peerlist_storage> peerlist_storage::open(const std::string& path)
+  std::optional<peerlist_storage> peerlist_storage::open(const std::string& path)
   {
     std::ifstream src_file{};
     src_file.open( path , std::ios_base::binary | std::ios_base::in);
     if(src_file.fail())
-      return boost::none;
+      return std::nullopt;
 
-    boost::optional<peerlist_storage> out = open(src_file, true);
+    std::optional<peerlist_storage> out = open(src_file, true);
     if (!out)
     {
       // if failed, try reading in unportable mode
@@ -203,12 +203,12 @@ namespace nodetool
       src_file.close();
       src_file.open( path , std::ios_base::binary | std::ios_base::in);
       if(src_file.fail())
-        return boost::none;
+        return std::nullopt;
 
       out = open(src_file, false);
       if (!out)
       {
-        // This is different from the `return boost::none` cases above. Those
+        // This is different from the `return std::nullopt` cases above. Those
         // cases could fail due to bad file permissions, so a shutdown is
         // likely more appropriate.
         MWARNING("Failed to load p2p config file, falling back to default config");

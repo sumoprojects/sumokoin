@@ -67,10 +67,10 @@ namespace nodetool
     {}
 
     //! \return Peers stored in stream `src` in `new_format` (portable archive or older non-portable).
-    static boost::optional<peerlist_storage> open(std::istream& src, const bool new_format);
+    static std::optional<peerlist_storage> open(std::istream& src, const bool new_format);
 
     //! \return Peers stored in file at `path`
-    static boost::optional<peerlist_storage> open(const std::string& path);
+    static std::optional<peerlist_storage> open(const std::string& path);
 
     peerlist_storage(peerlist_storage&&) = default;
     peerlist_storage(const peerlist_storage&) = delete;
