@@ -28,13 +28,20 @@
 
 #include "net_peerlist.h"
 
+#include <algorithm>
+#include <functional>
+#include <fstream>
+#include <iterator>
+
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/portable_binary_oarchive.hpp>
 #include <boost/archive/portable_binary_iarchive.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/range/join.hpp>
+#include <boost/serialization/version.hpp>
 
 #include "net_peerlist_boost_serialization.h"
+
 
 namespace nodetool
 {
@@ -151,7 +158,7 @@ namespace nodetool
     save_peers(a, boost::range::join(elem.ours.anchor, elem.other.anchor));
   }
 
-  std::optional<peerlist_storage> peerlist_storage::open(std::istream& src, const bool new_format)
+  boost::optional<peerlist_storage> peerlist_storage::open(std::istream& src, const bool new_format)
   {
     try
     {
@@ -178,17 +185,17 @@ namespace nodetool
     catch (const std::exception& e)
     {}
 
-    return std::nullopt;
+    return boost::none;
   }
 
-  std::optional<peerlist_storage> peerlist_storage::open(const std::string& path)
+  boost::optional<peerlist_storage> peerlist_storage::open(const std::string& path)
   {
     std::ifstream src_file{};
     src_file.open( path , std::ios_base::binary | std::ios_base::in);
     if(src_file.fail())
-      return std::nullopt;
+      return boost::none;
 
-    std::optional<peerlist_storage> out = open(src_file, true);
+    boost::optional<peerlist_storage> out = open(src_file, true);
     if (!out)
     {
       // if failed, try reading in unportable mode
@@ -196,12 +203,12 @@ namespace nodetool
       src_file.close();
       src_file.open( path , std::ios_base::binary | std::ios_base::in);
       if(src_file.fail())
-        return std::nullopt;
+        return boost::none;
 
       out = open(src_file, false);
       if (!out)
       {
-        // This is different from the `return std::nullopt` cases above. Those
+        // This is different from the `return boost::none` cases above. Those
         // cases could fail due to bad file permissions, so a shutdown is
         // likely more appropriate.
         MWARNING("Failed to load p2p config file, falling back to default config");
@@ -293,7 +300,7 @@ namespace nodetool
       else
         ++i;
     }
-  }  
+  }
 }
 
 BOOST_CLASS_VERSION(nodetool::peerlist_types, nodetool::CURRENT_PEERLIST_STORAGE_ARCHIVE_VER);

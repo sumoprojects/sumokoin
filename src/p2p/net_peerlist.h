@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2021, The Monero Project
+// Copyright (c) 2014-2020, The Monero Project
 //
 // All rights reserved.
 //
@@ -39,7 +39,7 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/identity.hpp>
 #include <boost/multi_index/member.hpp>
-#include <optional>
+#include <boost/optional/optional.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 
 
@@ -67,10 +67,10 @@ namespace nodetool
     {}
 
     //! \return Peers stored in stream `src` in `new_format` (portable archive or older non-portable).
-    static std::optional<peerlist_storage> open(std::istream& src, const bool new_format);
+    static boost::optional<peerlist_storage> open(std::istream& src, const bool new_format);
 
     //! \return Peers stored in file at `path`
-    static std::optional<peerlist_storage> open(const std::string& path);
+    static boost::optional<peerlist_storage> open(const std::string& path);
 
     peerlist_storage(peerlist_storage&&) = default;
     peerlist_storage(const peerlist_storage&) = delete;
@@ -110,7 +110,7 @@ namespace nodetool
     bool get_gray_peer_by_index(peerlist_entry& p, size_t i);
     template<typename F> bool foreach(bool white, const F &f);
     void evict_host_from_white_peerlist(const peerlist_entry& pr);
-    bool append_with_peer_white(const peerlist_entry& pr);
+    bool append_with_peer_white(const peerlist_entry& pr, bool trust_last_seen = false);
     bool append_with_peer_gray(const peerlist_entry& pr);
     bool append_with_peer_anchor(const anchor_peerlist_entry& ple);
     bool set_peer_just_seen(peerid_type peer, const epee::net_utils::network_address& addr, uint32_t pruning_seed, uint16_t rpc_port, uint32_t rpc_credits_per_hash);
@@ -271,7 +271,7 @@ namespace nodetool
     peers_indexed::index<by_time>::type& by_time_index=m_peers_white.get<by_time>();
     uint32_t cnt = 0;
 
-    // picks a random set of peers within the whole set, rather than pick the first depth elements.
+    // picks a random set of peers within the whole set, rather pick the first depth elements.
     // The intent is that if someone asks twice, they can't easily tell:
     // - this address was not in the first list, but is in the second, so the only way this can be
     // is if its last_seen was recently reset, so this means the target node recently had a new
@@ -329,12 +329,12 @@ namespace nodetool
     ple.pruning_seed = pruning_seed;
     ple.rpc_port = rpc_port;
     ple.rpc_credits_per_hash = rpc_credits_per_hash;
-    return append_with_peer_white(ple);
+    return append_with_peer_white(ple, true);
     CATCH_ENTRY_L0("peerlist_manager::set_peer_just_seen()", false);
   }
   //--------------------------------------------------------------------------------------------------
   inline
-  bool peerlist_manager::append_with_peer_white(const peerlist_entry& ple)
+  bool peerlist_manager::append_with_peer_white(const peerlist_entry& ple, bool trust_last_seen)
   {
     TRY_ENTRY();
     if(!is_host_allowed(ple.adr))
@@ -346,13 +346,20 @@ namespace nodetool
     if(by_addr_it_wt == m_peers_white.get<by_addr>().end())
     {
       //put new record into white list
-      evict_host_from_white_peerlist(ple);      
+      evict_host_from_white_peerlist(ple);
       m_peers_white.insert(ple);
       trim_white_peerlist();
     }else
     {
       //update record in white list
-      m_peers_white.replace(by_addr_it_wt, ple);
+      peerlist_entry new_ple = ple;
+      if (by_addr_it_wt->pruning_seed && ple.pruning_seed == 0) // guard against older nodes not passing pruning info around
+        new_ple.pruning_seed = by_addr_it_wt->pruning_seed;
+      if (by_addr_it_wt->rpc_port && ple.rpc_port == 0) // guard against older nodes not passing RPC port around
+        new_ple.rpc_port = by_addr_it_wt->rpc_port;
+      if (!trust_last_seen)
+        new_ple.last_seen = by_addr_it_wt->last_seen; // do not overwrite the last seen timestamp, incoming peer lists are untrusted
+      m_peers_white.replace(by_addr_it_wt, new_ple);
     }
     //remove from gray list, if need
     auto by_addr_it_gr = m_peers_gray.get<by_addr>().find(ple.adr);
