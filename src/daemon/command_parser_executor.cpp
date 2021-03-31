@@ -867,7 +867,7 @@ bool t_command_parser_executor::set_bootstrap_daemon(const std::vector<std::stri
     std::string proxy;
   };
 
-  std::optional<parsed_t> parsed = [&args]() -> boost::optional<parsed_t> {
+  std::optional<parsed_t> parsed = [&args]() -> std::optional<parsed_t> {
     const size_t args_count = args.size();
     if (args_count == 0)
     {
