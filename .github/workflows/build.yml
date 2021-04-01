@@ -63,7 +63,7 @@ jobs:
     env:
       CCACHE_COMPRESS: 1
       CCACHE_TEMPDIR: C:\Users\runneradmin\.ccache-temp
-      CCACHE_DIR: C:\Users\runneradmin\.ccache    
+      CCACHE_DIR: C:\Users\runneradmin\.ccache
     defaults:
       run:
         shell: msys2 {0}
@@ -73,7 +73,7 @@ jobs:
       with:
         path: C:\Users\runneradmin\.ccache
         key: ccache-windows-build-${{ github.sha }}
-        restore-keys: ccache-windows-build-    
+        restore-keys: ccache-windows-build-
     - uses: msys2/setup-msys2@v2
       with:
         update: true
@@ -237,7 +237,7 @@ jobs:
     - name: build sumokoin
       run: |
         export CC=/usr/bin/clang
-        export CXX=/usr/bin/clang++      
+        export CXX=/usr/bin/clang++
         ccache --max-size=150M
         make -j 4
 

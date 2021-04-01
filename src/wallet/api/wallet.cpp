@@ -785,11 +785,11 @@ bool WalletImpl::close(bool store)
     return result;
 }
 
-std::string WalletImpl::seed() const
+std::string WalletImpl::seed(const std::string& seed_offset) const
 {
     epee::wipeable_string seed;
     if (m_wallet)
-        m_wallet->get_seed(seed);
+        m_wallet->get_seed(seed, seed_offset);
     return std::string(seed.data(), seed.size()); // TODO
 }
 
@@ -2091,6 +2091,11 @@ bool WalletImpl::setProxy(const std::string &address)
 bool WalletImpl::watchOnly() const
 {
     return m_wallet->watch_only();
+}
+
+bool WalletImpl::isDeterministic() const
+{
+    return m_wallet->is_deterministic();
 }
 
 void WalletImpl::clearStatus() const

@@ -442,7 +442,7 @@ struct Wallet
     };
 
     virtual ~Wallet() = 0;
-    virtual std::string seed() const = 0;
+   virtual std::string seed(const std::string& seed_offset = "") const = 0;
     virtual std::string getSeedLanguage() const = 0;
     virtual void setSeedLanguage(const std::string &arg) = 0;
     //! returns wallet status (Status_Ok | Status_Error)
@@ -616,6 +616,12 @@ struct Wallet
     * @return - true if watch only
     */
     virtual bool watchOnly() const = 0;
+
+    /**
+     * @brief isDeterministic - checks if wallet keys are deterministic
+     * @return - true if deterministic
+     */
+    virtual bool isDeterministic() const = 0;
 
     /**
      * @brief blockChainHeight - returns current blockchain height
