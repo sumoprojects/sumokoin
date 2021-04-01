@@ -618,6 +618,12 @@ struct Wallet
     virtual bool watchOnly() const = 0;
 
     /**
+     * @brief isDeterministic - checks if wallet keys are deterministic
+     * @return - true if deterministic
+     */
+    virtual bool isDeterministic() const = 0;
+
+    /**
      * @brief blockChainHeight - returns current blockchain height
      * @return
      */
