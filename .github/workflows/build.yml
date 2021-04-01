@@ -101,7 +101,7 @@ jobs:
         sudo apt update
     - name: install sumokoin dependencies
       run: |
-        sudo apt -y install make automake cmake curl libtool binutils-gold g++-mingw-w64-i686 pkg-config python3 gperf
+        sudo apt -y install make automake cmake curl libtool binutils-gold g++-mingw-w64-i686 pkg-config python3 gperf 
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
                         --slave /usr/bin/g++ g++ /usr/bin/g++-7
         sudo update-alternatives --config gcc
@@ -112,7 +112,7 @@ jobs:
       with:
         name: Windows32-release-binaries
         path: build/**/bin/
-
+        
   Windows64-cross-on-bionic:
     runs-on: ubuntu-18.04
     steps:
