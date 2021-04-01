@@ -28,13 +28,20 @@
 
 #include "net_peerlist.h"
 
+#include <algorithm>
+#include <functional>
+#include <fstream>
+#include <iterator>
+
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/portable_binary_oarchive.hpp>
 #include <boost/archive/portable_binary_iarchive.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/range/join.hpp>
+#include <boost/serialization/version.hpp>
 
 #include "net_peerlist_boost_serialization.h"
+
 
 namespace nodetool
 {
@@ -293,7 +300,7 @@ namespace nodetool
       else
         ++i;
     }
-  }  
+  }
 }
 
 BOOST_CLASS_VERSION(nodetool::peerlist_types, nodetool::CURRENT_PEERLIST_STORAGE_ARCHIVE_VER);
