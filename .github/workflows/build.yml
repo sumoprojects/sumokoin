@@ -100,11 +100,7 @@ jobs:
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test
         sudo apt update
     - name: install sumokoin dependencies
-      run: |
-        sudo apt -y install make automake cmake curl libtool binutils-gold g++-mingw-w64-i686 pkg-config python3 gperf 
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
-                        --slave /usr/bin/g++ g++ /usr/bin/g++-7
-        sudo update-alternatives --config gcc
+      run: sudo apt -y install make automake cmake curl libtool binutils-gold g++-mingw-w64-i686 pkg-config python3 gperf 
     - name: cross compile sumokoin bins for windows-32bit
       run: make depends target=i686-w64-mingw32 -j 4
     - name: upload binaries
