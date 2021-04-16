@@ -33,6 +33,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/archive/portable_binary_iarchive.hpp>
 #include <boost/archive/portable_binary_oarchive.hpp>
+#include <boost/filesystem/path.hpp>
 #include "common/command_line.h"
 #include "common/varint.h"
 #include "cryptonote_basic/cryptonote_boost_serialization.h"

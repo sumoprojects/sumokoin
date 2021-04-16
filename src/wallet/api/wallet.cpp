@@ -42,9 +42,8 @@
 #include "mnemonics/english.h"
 #include <boost/format.hpp>
 
-#ifdef WIN32
 #include <boost/locale.hpp>
-#endif
+#include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace cryptonote;

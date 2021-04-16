@@ -32,6 +32,9 @@
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/range/adaptor/reversed.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/filesystem.hpp>
+#include <vector>
 
 #include "include_base_utils.h"
 #include "cryptonote_basic/cryptonote_basic_impl.h"
