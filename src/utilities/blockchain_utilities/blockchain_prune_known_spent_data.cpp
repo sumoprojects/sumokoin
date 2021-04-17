@@ -28,6 +28,7 @@
 
 #include <cinttypes>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 #include "common/command_line.h"
 #include "serialization/crypto.h"
 #include "cryptonote_core/tx_pool.h"

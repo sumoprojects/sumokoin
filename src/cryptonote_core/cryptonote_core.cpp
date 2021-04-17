@@ -31,6 +31,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/uuid/nil_generator.hpp>
+#include <boost/filesystem.hpp>
 
 #include "string_tools.h"
 using namespace epee;

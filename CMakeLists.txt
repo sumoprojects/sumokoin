@@ -1123,7 +1123,7 @@ option(BUILD_GUI_DEPS "Build GUI dependencies." OFF)
 option(INSTALL_VENDORED_LIBUNBOUND "Install libunbound binary built from source vendored with this repo." OFF)
 
 
-CHECK_C_COMPILER_FLAG(-std=c11 HAVE_C11)
+CHECK_C_COMPILER_FLAG(-std=c17 HAVE_C17)
 
 find_package(PythonInterp)
 find_program(iwyu_tool_path NAMES iwyu_tool.py iwyu_tool)

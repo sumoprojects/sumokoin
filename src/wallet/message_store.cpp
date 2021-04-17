@@ -29,6 +29,8 @@
 #include "message_store.h"
 #include <boost/archive/portable_binary_iarchive.hpp>
 #include <boost/format.hpp>
+#include <boost/system/error_code.hpp>
+#include <boost/filesystem.hpp>
 #include "storages/http_abstract_invoke.h"
 #include "wallet_errors.h"
 #include "common/base58.h"

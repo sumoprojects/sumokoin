@@ -46,6 +46,7 @@
 #include <boost/regex.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/thread/thread.hpp>
+#include <boost/filesystem.hpp>
 #include "common/command_line.h"
 #include "common/util.h"
 #include "common/dns_utils.h"
@@ -9515,7 +9516,7 @@ bool simple_wallet::print_address(const std::vector<std::string> &args/* = std::
       m_wallet->add_subaddress(m_current_subaddress_account, tr("(Untitled address)"));
       print_address_sub(m_wallet->get_num_subaddresses(m_current_subaddress_account) - 1);
     }
-  }  
+  }
   else if (local_args[0] == "one-off")
   {
     local_args.erase(local_args.begin());
