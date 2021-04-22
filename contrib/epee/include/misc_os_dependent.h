@@ -115,7 +115,7 @@ namespace misc_utils
 
 	}
 
-std::string get_thread_string_id();
+  std::string get_thread_string_id();
 
 	inline bool get_gmt_time(time_t t, struct tm &tm)
 	{

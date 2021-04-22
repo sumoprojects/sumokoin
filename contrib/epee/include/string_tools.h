@@ -31,6 +31,7 @@
 
 #include "hex.h"
 #include "mlocker.h"
+#include "misc_log_ex.h"
 
 #include <boost/utility/string_ref.hpp>
 #include <sstream>
@@ -60,7 +61,7 @@ namespace string_tools
     return from_hex::to_string(res, s);
   }
 
-	std::string get_ip_string_from_int32(uint32_t ip);
+  std::string get_ip_string_from_int32(uint32_t ip);
   bool get_ip_int32_from_string(uint32_t& ip, const std::string& ip_str);
   bool parse_peer_from_string(uint32_t& ip, uint16_t& port, const std::string& addres);
   std::string num_to_string_fast(int64_t val);
