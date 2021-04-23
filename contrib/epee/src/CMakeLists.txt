@@ -36,7 +36,7 @@ file(GLOB EPEE_HEADERS_PUBLIC
 
 add_library(epee STATIC byte_slice.cpp byte_stream.cpp hex.cpp abstract_http_client.cpp http_auth.cpp mlog.cpp net_helper.cpp net_utils_base.cpp string_tools.cpp
     wipeable_string.cpp levin_base.cpp memwipe.c connection_basic.cpp network_throttle.cpp network_throttle-detail.cpp mlocker.cpp buffer.cpp net_ssl.cpp
-    int-util.cpp portable_storage.cpp misc_language.cpp file_io_utils.cpp ${EPEE_HEADERS_PUBLIC} )
+    int-util.cpp portable_storage.cpp misc_language.cpp misc_os_dependent.cpp net_parse_helpers.cpp http_base.cpp tiny_ini.cpp file_io_utils.cpp ${EPEE_HEADERS_PUBLIC} )
 
 if (USE_READLINE AND (GNU_READLINE_FOUND OR (DEPENDS AND NOT MINGW)))
   add_library(epee_readline STATIC readline_buffer.cpp)

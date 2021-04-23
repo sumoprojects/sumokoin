@@ -31,10 +31,9 @@
 #include <boost/spirit/include/karma_generate.hpp>
 #include <boost/spirit/include/karma_uint.hpp>
 
-// #include "net/error.h" // already #included in net/i2p_address.h
 #include "serialization/keyvalue_serialization.h"
 #include "storages/portable_storage.h"
-#include "string_tools.h"
+#include "string_tools_lexical.h"
 
 namespace net
 {

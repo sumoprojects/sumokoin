@@ -24,18 +24,68 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#pragma once
-#include "http_base.h"
+#ifndef _STRING_TOOLS_LEXICAL_H_
+#define _STRING_TOOLS_LEXICAL_H_
 
-#undef MONERO_DEFAULT_LOG_CATEGORY
-#define MONERO_DEFAULT_LOG_CATEGORY "net"
+#include "warnings.h"
+#include "storages/parserse_base_utils.h"
+#include <boost/lexical_cast.hpp> // A heavy header, that was extracted from the rest
+
+#ifndef OUT
+	#define OUT
+#endif
 
 namespace epee
 {
-namespace net_utils
+namespace string_tools
 {
-  bool parse_uri(const std::string uri, http::uri_content& content);
-  bool parse_url_ipv6(const std::string url_str, http::url_content& content);
-  bool parse_url(const std::string url_str, http::url_content& content);
+PUSH_WARNINGS
+DISABLE_GCC_WARNING(maybe-uninitialized)
+    template<class XType>
+    inline bool get_xtype_from_string(OUT XType& val, const std::string& str_id)
+    {
+        if (std::is_integral<XType>::value && !std::numeric_limits<XType>::is_signed && !std::is_same<XType, bool>::value)
+        {
+            for (char c : str_id)
+            {
+                if (!epee::misc_utils::parse::isdigit(c))
+                    return false;
+            }
+        }
+
+        try
+        {
+            val = boost::lexical_cast<XType>(str_id);
+            return true;
+        }
+        catch(const std::exception& /*e*/)
+        {
+            //const char* pmsg = e.what();
+            return false;
+        }
+        catch(...)
+        {
+            return false;
+        }
+
+        return true;
+    }
+POP_WARNINGS
+
+    template<class XType>
+    inline bool xtype_to_string(const  XType& val, std::string& str)
+    {
+        try
+        {
+            str = boost::lexical_cast<std::string>(val);
+        }
+        catch(...)
+        {
+            return false;
+        }
+
+        return true;
+    }
 }
 }
+#endif //_STRING_TOOLS_LEXICAL_H_

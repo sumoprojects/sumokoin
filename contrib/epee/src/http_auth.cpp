@@ -28,6 +28,7 @@
 #include "net/http_auth.h"
 
 #include <boost/algorithm/string/find_iterator.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/fusion/adapted/std_tuple.hpp>
 #include <boost/fusion/algorithm/iteration/for_each.hpp>
 #include <boost/fusion/algorithm/iteration/iter_fold.hpp>
@@ -56,6 +57,7 @@
 
 #include "md5_l.h"
 #include "string_coding.h"
+#include "hex.h"
 
 /* This file uses the `u8` prefix and specifies all chars by ASCII numeric
 value. This is for maximum portability - C++ does not actually specify ASCII

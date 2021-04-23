@@ -30,8 +30,8 @@
 
 #pragma once
 
-#include "p2p/net_node_common.h"
 #include "cryptonote_protocol/cryptonote_protocol_defs.h"
+#include "cryptonote_protocol/enums.h"
 #include "cryptonote_basic/connection_context.h"
 namespace cryptonote
 {
@@ -54,7 +54,7 @@ namespace cryptonote
     virtual bool is_synchronized() const final
     {
       return false;
-    }    
+    }
     virtual bool relay_block(NOTIFY_NEW_BLOCK::request& arg, cryptonote_connection_context& exclude_context)
     {
       return false;
