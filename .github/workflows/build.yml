@@ -269,7 +269,7 @@ jobs:
       run: sudo apt -y install build-essential cmake miniupnpc libunbound-dev libevent-dev graphviz doxygen pkg-config libssl-dev libsodium-dev libhidapi-dev libnorm-dev libusb-1.0-0-dev libpgm-dev libudev-dev ccache libtool autoconf automake python libtinfo5 ccache
     - name: build boost 1_74
       run: |
-        wget https://dl.bintray.com/boostorg/release/1.74.0/source/boost_1_74_0.tar.bz2
+        wget https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.bz2
         tar -xvf boost_1_74_0.tar.bz2
         rm -f /usr/boost_1_74_0.tar.bz2
         cd boost_1_74_0
