@@ -34,6 +34,8 @@
 #include <queue>
 #include <optional>
 #include <cstddef>
+#include <stdexcept>
+#include <limits>
 #include <boost/format.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/trim.hpp>

@@ -31,6 +31,8 @@
 #include <memory>
 #include <string>
 #include <system_error>
+#include <stdexcept>
+#include <limits>
 #include <zmq.h>
 
 #include "common/expect.h"
