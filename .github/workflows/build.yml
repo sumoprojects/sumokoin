@@ -290,7 +290,7 @@ jobs:
       run: |
         git clone https://github.com/libunwind/libunwind
         cd libunwind
-        sudo ./autogen.sh
+        sudo autoreconf -i
         sudo ./configure
         sudo make -j 3
         sudo make install
