@@ -32,6 +32,7 @@
 #include <deque>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/contains_fwd.hpp>
+#include <boost/mpl/contains.hpp>
 
 #undef MONERO_DEFAULT_LOG_CATEGORY
 #define MONERO_DEFAULT_LOG_CATEGORY "serialization"
