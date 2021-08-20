@@ -1317,7 +1317,7 @@ bool wallet2::set_daemon(std::string daemon_address, std::optional<epee::net_uti
   {
     if (!m_persistent_rpc_client_id) {
       set_rpc_client_secret_key(rct::rct2sk(rct::skGen()));
-    }    
+    }
     m_rpc_payment_state.expected_spent = 0;
     m_rpc_payment_state.discrepancy = 0;
     m_node_rpc_proxy.invalidate();
@@ -3495,13 +3495,6 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
         blocks_fetched += added_blocks;
       }
       THROW_WALLET_EXCEPTION_IF(!waiter.wait(), error::wallet_internal_error, "Exception in thread pool");
-      if(!first && blocks_start_height == next_blocks_start_height)
-      {
-        m_node_rpc_proxy.set_height(m_blockchain.size());
-        break;
-      }
-
-      first = false;
 
       // handle error from async fetching thread
       if (error)
@@ -3512,6 +3505,15 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
           throw std::runtime_error("proxy exception in refresh thread");
       }
 
+      if(!first && blocks_start_height == next_blocks_start_height)
+      {
+        m_node_rpc_proxy.set_height(m_blockchain.size());
+        refreshed = true;
+        break;
+      }
+
+      first = false;
+      
       if (!next_blocks.empty())
       {
         const uint64_t expected_start_height = std::max(static_cast<uint64_t>(m_blockchain.size()), uint64_t(1)) - 1;
