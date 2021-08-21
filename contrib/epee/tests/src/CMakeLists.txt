@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.5)
 
 set(Boost_USE_MULTITHREADED ON)
 
@@ -30,4 +30,3 @@ source_group(general  FILES ${SRC})
 
 add_executable(tests ${SRC} )
 target_link_libraries( tests ${Boost_LIBRARIES} )
-

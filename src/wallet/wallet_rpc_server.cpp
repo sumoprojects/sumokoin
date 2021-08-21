@@ -695,6 +695,90 @@ namespace tools
     return true;
   }
   //------------------------------------------------------------------------------------------------------------------------------
+  bool wallet_rpc_server::on_freeze(const wallet_rpc::COMMAND_RPC_FREEZE::request& req, wallet_rpc::COMMAND_RPC_FREEZE::response& res, epee::json_rpc::error& er, const connection_context *ctx)
+  {
+    if (!m_wallet) return not_open(er);
+    try
+    {
+      if (req.key_image.empty())
+      {
+        er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
+        er.message = std::string("Must specify key image to freeze");
+        return false;
+      }
+      crypto::key_image ki;
+      if (!epee::string_tools::hex_to_pod(req.key_image, ki))
+      {
+        er.code = WALLET_RPC_ERROR_CODE_WRONG_KEY_IMAGE;
+        er.message = "failed to parse key image";
+        return false;
+      }
+      m_wallet->freeze(ki);
+    }
+    catch (const std::exception& e)
+    {
+      handle_rpc_exception(std::current_exception(), er, WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR);
+      return false;
+    }
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  bool wallet_rpc_server::on_thaw(const wallet_rpc::COMMAND_RPC_THAW::request& req, wallet_rpc::COMMAND_RPC_THAW::response& res, epee::json_rpc::error& er, const connection_context *ctx)
+  {
+    if (!m_wallet) return not_open(er);
+    try
+    {
+      if (req.key_image.empty())
+      {
+        er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
+        er.message = std::string("Must specify key image to thaw");
+        return false;
+      }
+      crypto::key_image ki;
+      if (!epee::string_tools::hex_to_pod(req.key_image, ki))
+      {
+        er.code = WALLET_RPC_ERROR_CODE_WRONG_KEY_IMAGE;
+        er.message = "failed to parse key image";
+        return false;
+      }
+      m_wallet->thaw(ki);
+    }
+    catch (const std::exception& e)
+    {
+      handle_rpc_exception(std::current_exception(), er, WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR);
+      return false;
+    }
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
+  bool wallet_rpc_server::on_frozen(const wallet_rpc::COMMAND_RPC_FROZEN::request& req, wallet_rpc::COMMAND_RPC_FROZEN::response& res, epee::json_rpc::error& er, const connection_context *ctx)
+  {
+    if (!m_wallet) return not_open(er);
+    try
+    {
+      if (req.key_image.empty())
+      {
+        er.code = WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR;
+        er.message = std::string("Must specify key image to check if frozen");
+        return false;
+      }
+      crypto::key_image ki;
+      if (!epee::string_tools::hex_to_pod(req.key_image, ki))
+      {
+        er.code = WALLET_RPC_ERROR_CODE_WRONG_KEY_IMAGE;
+        er.message = "failed to parse key image";
+        return false;
+      }
+      res.frozen = m_wallet->frozen(ki);
+    }
+    catch (const std::exception& e)
+    {
+      handle_rpc_exception(std::current_exception(), er, WALLET_RPC_ERROR_CODE_UNKNOWN_ERROR);
+      return false;
+    }
+    return true;
+  }
+  //------------------------------------------------------------------------------------------------------------------------------
   bool wallet_rpc_server::validate_transfer(const std::list<wallet_rpc::transfer_destination>& destinations, const std::string& payment_id, std::vector<cryptonote::tx_destination_entry>& dsts, std::vector<uint8_t>& extra, bool at_least_one_destination, epee::json_rpc::error& er)
   {
     crypto::hash8 integrated_payment_id = crypto::null_hash8;
@@ -810,10 +894,10 @@ namespace tools
     return amount;
   }
   //------------------------------------------------------------------------------------------------------------------------------
-  template<typename Ts, typename Tu>
+  template<typename Ts, typename Tu, typename Tk>
   bool wallet_rpc_server::fill_response(std::vector<tools::wallet2::pending_tx> &ptx_vector,
       bool get_tx_key, Ts& tx_key, Tu &amount, Tu &fee, Tu &weight, std::string &multisig_txset, std::string &unsigned_txset, bool do_not_relay,
-      Ts &tx_hash, bool get_tx_hex, Ts &tx_blob, bool get_tx_metadata, Ts &tx_metadata, epee::json_rpc::error &er)
+      Ts &tx_hash, bool get_tx_hex, Ts &tx_blob, bool get_tx_metadata, Ts &tx_metadata, Tk &spent_key_images, epee::json_rpc::error &er)
   {
     for (const auto & ptx : ptx_vector)
     {
@@ -828,6 +912,17 @@ namespace tools
       fill(amount, total_amount(ptx));
       fill(fee, ptx.fee);
       fill(weight, cryptonote::get_transaction_weight(ptx.tx));
+
+      // add spent key images
+      tools::wallet_rpc::key_image_list key_image_list;
+      bool all_are_txin_to_key = std::all_of(ptx.tx.vin.begin(), ptx.tx.vin.end(), [&](const cryptonote::txin_v& s_e) -> bool
+      {
+        CHECKED_GET_SPECIFIC_VARIANT(s_e, const cryptonote::txin_to_key, in, false);
+        key_image_list.key_images.push_back(epee::string_tools::pod_to_hex(in.k_image));
+        return true;
+      });
+      THROW_WALLET_EXCEPTION_IF(!all_are_txin_to_key, error::unexpected_txin_type, ptx.tx);
+      fill(spent_key_images, key_image_list);
     }
 
     if (m_wallet->multisig())
@@ -914,7 +1009,7 @@ namespace tools
       }
 
       return fill_response(ptx_vector, req.get_tx_key, res.tx_key, res.amount, res.fee, res.weight, res.multisig_txset, res.unsigned_txset, req.do_not_relay,
-          res.tx_hash, req.get_tx_hex, res.tx_blob, req.get_tx_metadata, res.tx_metadata, er);
+          res.tx_hash, req.get_tx_hex, res.tx_blob, req.get_tx_metadata, res.tx_metadata, res.spent_key_images, er);
     }
     catch (const std::exception& e)
     {
@@ -960,7 +1055,7 @@ namespace tools
       }
 
       return fill_response(ptx_vector, req.get_tx_keys, res.tx_key_list, res.amount_list, res.fee_list, res.weight_list, res.multisig_txset, res.unsigned_txset, req.do_not_relay,
-          res.tx_hash_list, req.get_tx_hex, res.tx_blob_list, req.get_tx_metadata, res.tx_metadata_list, er);
+          res.tx_hash_list, req.get_tx_hex, res.tx_blob_list, req.get_tx_metadata, res.tx_metadata_list, res.spent_key_images_list, er);
     }
     catch (const std::exception& e)
     {
@@ -1130,13 +1225,20 @@ namespace tools
     try
     {
       // gather info to ask the user
-      std::unordered_map<cryptonote::account_public_address, std::pair<std::string, uint64_t>> dests;
+      std::unordered_map<cryptonote::account_public_address, std::pair<std::string, uint64_t>> tx_dests;
+      std::unordered_map<cryptonote::account_public_address, std::pair<std::string, uint64_t>> all_dests;
       int first_known_non_zero_change_index = -1;
+      res.summary.amount_in = 0;
+      res.summary.amount_out = 0;
+      res.summary.change_amount = 0;
+      res.summary.fee = 0;
       for (size_t n = 0; n < tx_constructions.size(); ++n)
       {
         const tools::wallet2::tx_construction_data &cd = tx_constructions[n];
         res.desc.push_back({0, 0, std::numeric_limits<uint32_t>::max(), 0, {}, "", 0, "", 0, 0, ""});
         wallet_rpc::COMMAND_RPC_DESCRIBE_TRANSFER::transfer_description &desc = res.desc.back();
+        // Clear the recipients collection ready for this loop iteration
+        tx_dests.clear();
 
         std::vector<cryptonote::tx_extra_field> tx_extra_fields;
         bool has_encrypted_payment_id = false;
@@ -1175,17 +1277,17 @@ namespace tools
           std::string address = cryptonote::get_account_address_as_str(m_wallet->nettype(), entry.is_subaddress, entry.addr);
           if (has_encrypted_payment_id && !entry.is_subaddress && address != entry.original)
             address = cryptonote::get_account_integrated_address_as_str(m_wallet->nettype(), entry.addr, payment_id8);
-          auto i = dests.find(entry.addr);
-          if (i == dests.end())
-            dests.insert(std::make_pair(entry.addr, std::make_pair(address, entry.amount)));
+          auto i = tx_dests.find(entry.addr);
+          if (i == tx_dests.end())
+            tx_dests.insert(std::make_pair(entry.addr, std::make_pair(address, entry.amount)));
           else
             i->second.second += entry.amount;
           desc.amount_out += entry.amount;
         }
         if (cd.change_dts.amount > 0)
         {
-          auto it = dests.find(cd.change_dts.addr);
-          if (it == dests.end())
+          auto it = tx_dests.find(cd.change_dts.addr);
+          if (it == tx_dests.end())
           {
             er.code = WALLET_RPC_ERROR_CODE_BAD_UNSIGNED_TX_DATA;
             er.message = "Claimed change does not go to a paid address";
@@ -1212,30 +1314,46 @@ namespace tools
           desc.change_amount += cd.change_dts.amount;
           it->second.second -= cd.change_dts.amount;
           if (it->second.second == 0)
-            dests.erase(cd.change_dts.addr);
+            tx_dests.erase(cd.change_dts.addr);
         }
 
         size_t n_dummy_outputs = 0;
-        for (auto i = dests.begin(); i != dests.end(); )
+        for (auto i = tx_dests.begin(); i != tx_dests.end(); ++i)
         {
           if (i->second.second > 0)
           {
             desc.recipients.push_back({i->second.first, i->second.second});
+            auto it_in_all = all_dests.find(i->first);
+            if (it_in_all == all_dests.end())
+              all_dests.insert(std::make_pair(i->first, i->second));
+            else
+              it_in_all->second.second += i->second.second;
           }
           else
             ++desc.dummy_outputs;
-          ++i;
         }
 
         if (desc.change_amount > 0)
         {
           const tools::wallet2::tx_construction_data &cd0 = tx_constructions[0];
           desc.change_address = get_account_address_as_str(m_wallet->nettype(), cd0.subaddr_account > 0, cd0.change_dts.addr);
+          res.summary.change_address = desc.change_address;
         }
 
         desc.fee = desc.amount_in - desc.amount_out;
         desc.unlock_time = cd.unlock_time;
         desc.extra = epee::to_hex::string({cd.extra.data(), cd.extra.size()});
+
+        // Update summary items
+        res.summary.amount_in += desc.amount_in;
+        res.summary.amount_out += desc.amount_out;
+        res.summary.change_amount += desc.change_amount;
+        res.summary.fee += desc.fee;
+      }
+      // Populate the summary recipients list
+      for (auto i = all_dests.begin(); i != all_dests.end(); ++i)
+      {
+        res.summary.recipients.push_back({i->second.first, i->second.second});                
       }
     }
     catch (const std::exception &e)
@@ -1323,7 +1441,7 @@ namespace tools
       std::vector<wallet2::pending_tx> ptx_vector = m_wallet->create_unmixable_sweep_transactions();
 
       return fill_response(ptx_vector, req.get_tx_keys, res.tx_key_list, res.amount_list, res.fee_list, res.weight_list, res.multisig_txset, res.unsigned_txset, req.do_not_relay,
-          res.tx_hash_list, req.get_tx_hex, res.tx_blob_list, req.get_tx_metadata, res.tx_metadata_list, er);
+          res.tx_hash_list, req.get_tx_hex, res.tx_blob_list, req.get_tx_metadata, res.tx_metadata_list, res.spent_key_images_list, er);
     }
     catch (const std::exception& e)
     {
@@ -1381,7 +1499,7 @@ namespace tools
       std::vector<wallet2::pending_tx> ptx_vector = m_wallet->create_transactions_all(req.below_amount, dsts[0].addr, dsts[0].is_subaddress, req.outputs, mixin, req.unlock_time, priority, extra, req.account_index, subaddr_indices);
 
       return fill_response(ptx_vector, req.get_tx_keys, res.tx_key_list, res.amount_list, res.fee_list, res.weight_list, res.multisig_txset, res.unsigned_txset, req.do_not_relay,
-          res.tx_hash_list, req.get_tx_hex, res.tx_blob_list, req.get_tx_metadata, res.tx_metadata_list, er);
+          res.tx_hash_list, req.get_tx_hex, res.tx_blob_list, req.get_tx_metadata, res.tx_metadata_list, res.spent_key_images_list, er);
     }
     catch (const std::exception& e)
     {
@@ -1456,7 +1574,7 @@ namespace tools
       }
 
       return fill_response(ptx_vector, req.get_tx_key, res.tx_key, res.amount, res.fee, res.weight, res.multisig_txset, res.unsigned_txset, req.do_not_relay,
-          res.tx_hash, req.get_tx_hex, res.tx_blob, req.get_tx_metadata, res.tx_metadata, er);
+          res.tx_hash, req.get_tx_hex, res.tx_blob, req.get_tx_metadata, res.tx_metadata, res.spent_key_images, er);
     }
     catch (const std::exception& e)
     {
@@ -1489,8 +1607,7 @@ namespace tools
 
     try
     {
-      std::istringstream iss(blob);
-      binary_archive<false> ar(iss);
+      binary_archive<false> ar{epee::strspan<std::uint8_t>(blob)};
       if (::serialization::serialize(ar, ptx))
         loaded = true;
     }
@@ -3338,7 +3455,7 @@ namespace tools
     {
       er.code = WALLET_RPC_ERROR_CODE_ZERO_AMOUNT;
       er.message = e.what();
-    }    
+    }
     catch (const tools::error::zero_destination& e)
     {
       er.code = WALLET_RPC_ERROR_CODE_ZERO_DESTINATION;

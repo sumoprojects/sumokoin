@@ -26,9 +26,12 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "hex.h"
+#include <boost/utility/string_ref.hpp>
+#include <algorithm>
 
+#include "hex.h"
 #include "storages/parserse_base_utils.h"
+#include "misc_log_ex.h"
 
 namespace epee
 {

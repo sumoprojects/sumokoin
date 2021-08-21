@@ -47,7 +47,7 @@
 // advance which version they will stop working with
 // Don't go over 32767 for any of these
 #define WALLET_RPC_VERSION_MAJOR 1
-#define WALLET_RPC_VERSION_MINOR 23
+#define WALLET_RPC_VERSION_MINOR 25
 #define MAKE_WALLET_RPC_VERSION(major,minor) (((major)<<16)|(minor))
 #define WALLET_RPC_VERSION MAKE_WALLET_RPC_VERSION(WALLET_RPC_VERSION_MAJOR, WALLET_RPC_VERSION_MINOR)
 namespace tools
@@ -456,6 +456,78 @@ namespace wallet_rpc
     END_KV_SERIALIZE_MAP()
   };
 
+  struct COMMAND_RPC_FREEZE
+  {
+    struct request_t
+    {
+      std::string key_image;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(key_image)
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<request_t> request;
+
+    struct response_t
+    {
+      BEGIN_KV_SERIALIZE_MAP()
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<response_t> response;
+  };
+
+  struct COMMAND_RPC_THAW
+  {
+    struct request_t
+    {
+      std::string key_image;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(key_image)
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<request_t> request;
+
+    struct response_t
+    {
+      BEGIN_KV_SERIALIZE_MAP()
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<response_t> response;
+  };
+
+  struct COMMAND_RPC_FROZEN
+  {
+    struct request_t
+    {
+      std::string key_image;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(key_image)
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<request_t> request;
+
+    struct response_t
+    {
+      bool frozen;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(frozen)
+      END_KV_SERIALIZE_MAP()
+    };
+    typedef epee::misc_utils::struct_init<response_t> response;
+  };
+
+  struct key_image_list
+  {
+    std::list<std::string> key_images;
+
+    BEGIN_KV_SERIALIZE_MAP()
+      KV_SERIALIZE(key_images)
+    END_KV_SERIALIZE_MAP()
+  };
+
   struct COMMAND_RPC_TRANSFER
   {
     struct request_t
@@ -499,6 +571,7 @@ namespace wallet_rpc
       std::string tx_metadata;
       std::string multisig_txset;
       std::string unsigned_txset;
+      key_image_list spent_key_images;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(tx_hash)
@@ -510,6 +583,7 @@ namespace wallet_rpc
         KV_SERIALIZE(tx_metadata)
         KV_SERIALIZE(multisig_txset)
         KV_SERIALIZE(unsigned_txset)
+        KV_SERIALIZE(spent_key_images)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;
@@ -567,6 +641,7 @@ namespace wallet_rpc
       std::list<std::string> tx_metadata_list;
       std::string multisig_txset;
       std::string unsigned_txset;
+      std::list<key_image_list> spent_key_images_list;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(tx_hash_list)
@@ -578,6 +653,7 @@ namespace wallet_rpc
         KV_SERIALIZE(tx_metadata_list)
         KV_SERIALIZE(multisig_txset)
         KV_SERIALIZE(unsigned_txset)
+        KV_SERIALIZE(spent_key_images_list)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;
@@ -625,6 +701,25 @@ namespace wallet_rpc
       END_KV_SERIALIZE_MAP()
     };
 
+    struct txset_summary
+    {
+      uint64_t amount_in;
+      uint64_t amount_out;
+      std::list<recipient> recipients;
+      uint64_t change_amount;
+      std::string change_address;
+      uint64_t fee;
+
+      BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(amount_in)
+        KV_SERIALIZE(amount_out)
+        KV_SERIALIZE(recipients)
+        KV_SERIALIZE(change_amount)
+        KV_SERIALIZE(change_address)
+        KV_SERIALIZE(fee)
+      END_KV_SERIALIZE_MAP()
+    };
+
     struct request_t
     {
       std::string unsigned_txset;
@@ -640,8 +735,10 @@ namespace wallet_rpc
     struct response_t
     {
       std::list<transfer_description> desc;
+      struct txset_summary summary;
 
       BEGIN_KV_SERIALIZE_MAP()
+        KV_SERIALIZE(summary)      
         KV_SERIALIZE(desc)
       END_KV_SERIALIZE_MAP()
     };
@@ -742,6 +839,7 @@ namespace wallet_rpc
       std::list<std::string> tx_metadata_list;
       std::string multisig_txset;
       std::string unsigned_txset;
+      std::list<key_image_list> spent_key_images_list;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(tx_hash_list)
@@ -753,6 +851,7 @@ namespace wallet_rpc
         KV_SERIALIZE(tx_metadata_list)
         KV_SERIALIZE(multisig_txset)
         KV_SERIALIZE(unsigned_txset)
+        KV_SERIALIZE(spent_key_images_list)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;
@@ -816,6 +915,7 @@ namespace wallet_rpc
       std::list<std::string> tx_metadata_list;
       std::string multisig_txset;
       std::string unsigned_txset;
+      std::list<key_image_list> spent_key_images_list;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(tx_hash_list)
@@ -827,6 +927,7 @@ namespace wallet_rpc
         KV_SERIALIZE(tx_metadata_list)
         KV_SERIALIZE(multisig_txset)
         KV_SERIALIZE(unsigned_txset)
+        KV_SERIALIZE(spent_key_images_list)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;
@@ -875,6 +976,7 @@ namespace wallet_rpc
       std::string tx_metadata;
       std::string multisig_txset;
       std::string unsigned_txset;
+      key_image_list spent_key_images;
 
       BEGIN_KV_SERIALIZE_MAP()
         KV_SERIALIZE(tx_hash)
@@ -886,6 +988,7 @@ namespace wallet_rpc
         KV_SERIALIZE(tx_metadata)
         KV_SERIALIZE(multisig_txset)
         KV_SERIALIZE(unsigned_txset)
+        KV_SERIALIZE(spent_key_images)
       END_KV_SERIALIZE_MAP()
     };
     typedef epee::misc_utils::struct_init<response_t> response;
@@ -1022,7 +1125,7 @@ namespace wallet_rpc
       KV_SERIALIZE(tx_hash)
       KV_SERIALIZE(subaddr_index)
       KV_SERIALIZE(key_image)
-      KV_SERIALIZE(pubkey);      
+      KV_SERIALIZE(pubkey);
       KV_SERIALIZE(block_height)
       KV_SERIALIZE(frozen)
       KV_SERIALIZE(unlocked)

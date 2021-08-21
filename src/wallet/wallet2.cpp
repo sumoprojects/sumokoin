@@ -135,6 +135,9 @@ using namespace cryptonote;
 #define DEFAULT_INACTIVITY_LOCK_TIMEOUT 180 // three minutes
 #define IGNORE_LONG_PAYMENT_ID_FROM_BLOCK_VERSION 9
 
+#define DEFAULT_UNLOCK_TIME (CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE * DIFFICULTY_TARGET)
+#define RECENT_SPEND_WINDOW (50 * DIFFICULTY_TARGET)
+
 static const std::string MULTISIG_SIGNATURE_MAGIC = "SigMultisigPkV1";
 static const std::string MULTISIG_EXTRA_INFO_MAGIC = "MultisigxV1";
 
@@ -1015,9 +1018,13 @@ gamma_picker::gamma_picker(const std::vector<uint64_t> &rct_offsets, double shap
   end = rct_offsets.data() + rct_offsets.size() - CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE;
   num_rct_outputs = *(end - 1);
   THROW_WALLET_EXCEPTION_IF(num_rct_outputs == 0, error::wallet_internal_error, "No rct outputs");
+  THROW_WALLET_EXCEPTION_IF(outputs_to_consider == 0, error::wallet_internal_error, "No rct outputs to consider");
   average_output_time = DIFFICULTY_TARGET * blocks_to_consider / outputs_to_consider; // this assumes constant target over the whole rct range
-  if (average_output_time == 0)
-    average_output_time = DIFFICULTY_TARGET * blocks_to_consider / static_cast<double>(outputs_to_consider);   
+  if (average_output_time == 0) {
+     // TODO: apply this to all cases; do so alongside a hard fork, where all clients will update at the same time, preventing anonymity puddle formation
+    average_output_time = DIFFICULTY_TARGET * blocks_to_consider / static_cast<double>(outputs_to_consider);
+  }
+  THROW_WALLET_EXCEPTION_IF(average_output_time == 0, error::wallet_internal_error, "Average seconds per output cannot be 0.");    
 };
 
 gamma_picker::gamma_picker(const std::vector<uint64_t> &rct_offsets): gamma_picker(rct_offsets, GAMMA_SHAPE, GAMMA_SCALE) {}
@@ -1026,6 +1033,34 @@ uint64_t gamma_picker::pick()
 {
   double x = gamma(engine);
   x = exp(x);
+
+  if (x > DEFAULT_UNLOCK_TIME)
+  {
+    // We are trying to select an output from the chain that appeared 'x' seconds before the
+    // current chain tip, where 'x' is selected from the gamma distribution recommended in Miller et al.
+    // (https://arxiv.org/pdf/1704.04299/).
+    // Our method is to get the average time delta between outputs in the recent past, estimate the number of
+    // outputs 'n' that would have appeared between 'chain_tip - x' and 'chain_tip', select the real output at
+    // 'current_num_outputs - n', then randomly select an output from the block where that output appears.
+    // Source code to paper: https://github.com/maltemoeser/moneropaper
+    //
+    // Due to the 'default spendable age' mechanic in Monero, 'current_num_outputs' only contains
+    // currently *unlocked* outputs, which means the earliest output that can be selected is not at the chain tip!
+    // Therefore, we must offset 'x' so it matches up with the timing of the outputs being considered. We do
+    // this by saying if 'x` equals the expected age of the first unlocked output (compared to the current
+    // chain tip - i.e. DEFAULT_UNLOCK_TIME), then select the first unlocked output.
+    x -= DEFAULT_UNLOCK_TIME;
+  }
+  else
+  {
+    // If the spent time suggested by the gamma is less than the unlock time, that means the gamma is suggesting an output
+    // that is no longer feasible to be spent (possible since the gamma was constructed when consensus rules did not enforce the
+    // lock time). The assumption made in this code is that an output expected spent quicker than the unlock time would likely
+    // be spent within RECENT_SPEND_WINDOW after allowed. So it returns an output that falls between 0 and the RECENT_SPEND_WINDOW.
+    // The RECENT_SPEND_WINDOW was determined with empirical analysis of observed data.
+    x = crypto::rand_idx(static_cast<uint64_t>(RECENT_SPEND_WINDOW));
+  }
+
   uint64_t output_index = x / average_output_time;
   if (output_index >= num_rct_outputs)
     return std::numeric_limits<uint64_t>::max(); // bad pick
@@ -1315,6 +1350,9 @@ bool wallet2::set_daemon(std::string daemon_address, std::optional<epee::net_uti
   m_trusted_daemon = trusted_daemon;
   if (changed)
   {
+    if (!m_persistent_rpc_client_id) {
+      set_rpc_client_secret_key(rct::rct2sk(rct::skGen()));
+    }
     m_rpc_payment_state.expected_spent = 0;
     m_rpc_payment_state.discrepancy = 0;
     m_node_rpc_proxy.invalidate();
@@ -3389,6 +3427,7 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
   uint64_t blocks_start_height;
   std::vector<cryptonote::block_complete_entry> blocks;
   std::vector<parsed_block> parsed_blocks;
+	bool refreshed = false;
   std::shared_ptr<std::map<std::pair<uint64_t, uint64_t>, size_t>> output_tracker_cache;
   hw::device &hwdev = m_account.get_device();
 
@@ -3450,6 +3489,7 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
       if (!first && blocks.empty())
       {
         m_node_rpc_proxy.set_height(m_blockchain.size());
+        refreshed = true;
         break;
       }
       if (!last)
@@ -3492,13 +3532,6 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
         blocks_fetched += added_blocks;
       }
       THROW_WALLET_EXCEPTION_IF(!waiter.wait(), error::wallet_internal_error, "Exception in thread pool");
-      if(!first && blocks_start_height == next_blocks_start_height)
-      {
-        m_node_rpc_proxy.set_height(m_blockchain.size());
-        break;
-      }
-
-      first = false;
 
       // handle error from async fetching thread
       if (error)
@@ -3508,6 +3541,15 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
         else
           throw std::runtime_error("proxy exception in refresh thread");
       }
+
+      if(!first && blocks_start_height == next_blocks_start_height)
+      {
+        m_node_rpc_proxy.set_height(m_blockchain.size());
+        refreshed = true;
+        break;
+      }
+
+      first = false;
 
       if (!next_blocks.empty())
       {
@@ -5695,17 +5737,13 @@ void wallet2::load(const std::string& wallet_, const epee::wipeable_string& pass
 
         try
         {
-          std::stringstream iss;
-          iss << cache_data;
-          binary_archive<false> ar(iss);
+          binary_archive<false> ar{epee::strspan<std::uint8_t>(cache_data)};
           if (::serialization::serialize(ar, *this))
             if (::serialization::check_stream_state(ar))
               loaded = true;
           if (!loaded)
           {
-            std::stringstream iss;
-            iss << cache_data;
-            binary_archive<false> ar(iss);
+            binary_archive<false> ar{epee::strspan<std::uint8_t>(cache_data)};
             ar.enable_varint_bug_backward_compatibility();
             if (::serialization::serialize(ar, *this))
               if (::serialization::check_stream_state(ar))
@@ -6778,8 +6816,7 @@ bool wallet2::parse_unsigned_tx_from_str(const std::string &unsigned_tx_st, unsi
     catch(const std::exception &e) { LOG_PRINT_L0("Failed to decrypt unsigned tx: " << e.what()); return false; }
     try
     {
-      std::istringstream iss(s);
-      binary_archive<false> ar(iss);
+      binary_archive<false> ar{epee::strspan<std::uint8_t>(s)};
       if (!::serialization::serialize(ar, exported_txs))
       {
         LOG_PRINT_L0("Failed to parse data from unsigned tx");
@@ -7093,8 +7130,7 @@ bool wallet2::parse_tx_from_str(const std::string &signed_tx_st, std::vector<too
     catch (const std::exception &e) { LOG_PRINT_L0("Failed to decrypt signed transaction: " << e.what()); return false; }
     try
     {
-      std::istringstream iss(s);
-      binary_archive<false> ar(iss);
+      binary_archive<false> ar{epee::strspan<std::uint8_t>(s)};
       if (!::serialization::serialize(ar, signed_txs))
       {
         LOG_PRINT_L0("Failed to deserialize signed transaction");
@@ -7229,8 +7265,7 @@ bool wallet2::parse_multisig_tx_from_str(std::string multisig_tx_st, multisig_tx
   bool loaded = false;
   try
   {
-    std::istringstream iss(multisig_tx_st);
-    binary_archive<false> ar(iss);
+    binary_archive<false> ar{epee::strspan<std::uint8_t>(multisig_tx_st)};
     if (::serialization::serialize(ar, exported_txs))
       if (::serialization::check_stream_state(ar))
         loaded = true;
@@ -8504,18 +8539,30 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
     }
 
     // get the keys for those
-    req.get_txid = false;
-
+    // the response can get large and end up rejected by the anti DoS limits, so chunk it if needed
+    size_t offset = 0;
+    while (offset < req.outputs.size())
     {
+      static const size_t chunk_size = 1000;
+      COMMAND_RPC_GET_OUTPUTS_BIN::request chunk_req = AUTO_VAL_INIT(chunk_req);
+      COMMAND_RPC_GET_OUTPUTS_BIN::response chunk_daemon_resp = AUTO_VAL_INIT(chunk_daemon_resp);
+      chunk_req.get_txid = false;
+      for (size_t i = 0; i < std::min<size_t>(req.outputs.size() - offset, chunk_size); ++i)
+        chunk_req.outputs.push_back(req.outputs[offset + i]);
+
       const boost::lock_guard<boost::recursive_mutex> lock{m_daemon_rpc_mutex};
       uint64_t pre_call_credits = m_rpc_payment_state.credits;
-      req.client = get_client_signature();
-      bool r = epee::net_utils::invoke_http_bin("/get_outs.bin", req, daemon_resp, *m_http_client, rpc_timeout);
-      THROW_ON_RPC_RESPONSE_ERROR(r, {}, daemon_resp, "get_outs.bin", error::get_outs_error, get_rpc_status(daemon_resp.status));
-      THROW_WALLET_EXCEPTION_IF(daemon_resp.outs.size() != req.outputs.size(), error::wallet_internal_error,
+      chunk_req.client = get_client_signature();
+      bool r = epee::net_utils::invoke_http_bin("/get_outs.bin", chunk_req, chunk_daemon_resp, *m_http_client, rpc_timeout);
+      THROW_ON_RPC_RESPONSE_ERROR(r, {}, chunk_daemon_resp, "get_outs.bin", error::get_outs_error, get_rpc_status(chunk_daemon_resp.status));
+      THROW_WALLET_EXCEPTION_IF(chunk_daemon_resp.outs.size() != chunk_req.outputs.size(), error::wallet_internal_error,
         "daemon returned wrong response for get_outs.bin, wrong amounts count = " +
-        std::to_string(daemon_resp.outs.size()) + ", expected " +  std::to_string(req.outputs.size()));
-      check_rpc_cost("/get_outs.bin", daemon_resp.credits, pre_call_credits, daemon_resp.outs.size() * COST_PER_OUT);
+        std::to_string(chunk_daemon_resp.outs.size()) + ", expected " +  std::to_string(chunk_req.outputs.size()));
+      check_rpc_cost("/get_outs.bin", chunk_daemon_resp.credits, pre_call_credits, chunk_daemon_resp.outs.size() * COST_PER_OUT);
+
+      offset += chunk_size;
+      for (size_t i = 0; i < chunk_daemon_resp.outs.size(); ++i)
+        daemon_resp.outs.push_back(std::move(chunk_daemon_resp.outs[i]));
     }
 
     std::unordered_map<uint64_t, uint64_t> scanty_outs;
@@ -8558,6 +8605,7 @@ void wallet2::get_outs(std::vector<std::vector<tools::wallet2::get_outs_entry>> 
         if (req.outputs[i].index == td.m_global_output_index)
           if (daemon_resp.outs[i].key == boost::get<txout_to_key>(td.m_tx.vout[td.m_internal_output_index].target).key)
             if (daemon_resp.outs[i].mask == mask)
+            if (daemon_resp.outs[i].unlocked)
               real_out_found = true;
       }
       THROW_WALLET_EXCEPTION_IF(!real_out_found, error::wallet_internal_error,
@@ -11429,6 +11477,9 @@ void wallet2::check_tx_key_helper(const cryptonote::transaction &tx, const crypt
 
 void wallet2::check_tx_key_helper(const crypto::hash &txid, const crypto::key_derivation &derivation, const std::vector<crypto::key_derivation> &additional_derivations, const cryptonote::account_public_address &address, uint64_t &received, bool &in_pool, uint64_t &confirmations)
 {
+  uint32_t rpc_version;
+  THROW_WALLET_EXCEPTION_IF(!check_connection(&rpc_version), error::wallet_internal_error, "Failed to connect to daemon: " + get_daemon_address());
+
   COMMAND_RPC_GET_TRANSACTIONS::request req;
   COMMAND_RPC_GET_TRANSACTIONS::response res;
   req.txs_hashes.push_back(epee::string_tools::pod_to_hex(txid));
@@ -11474,10 +11525,17 @@ void wallet2::check_tx_key_helper(const crypto::hash &txid, const crypto::key_de
   confirmations = 0;
   if (!in_pool)
   {
-    std::string err;
-    uint64_t bc_height = get_daemon_blockchain_height(err);
-    if (err.empty())
-      confirmations = bc_height - res.txs.front().block_height;
+    if (rpc_version < MAKE_CORE_RPC_VERSION(3, 7))
+    {
+      std::string err;
+      uint64_t bc_height = get_daemon_blockchain_height(err);
+      if (err.empty() && bc_height > res.txs.front().block_height)
+        confirmations = bc_height - res.txs.front().block_height;
+    }
+    else
+    {
+      confirmations = res.txs.front().confirmations;
+    }
   }
 }
 
@@ -11940,8 +11998,7 @@ bool wallet2::check_reserve_proof(const cryptonote::account_public_address &addr
   serializable_unordered_map<crypto::public_key, crypto::signature> subaddr_spendkeys;
   try
   {
-    std::istringstream iss(sig_decoded);
-    binary_archive<false> ar(iss);
+    binary_archive<false> ar{epee::strspan<std::uint8_t>(sig_decoded)};
     if (::serialization::serialize_noeof(ar, proofs))
       if (::serialization::serialize_noeof(ar, subaddr_spendkeys))
         if (::serialization::check_stream_state(ar))
@@ -13061,6 +13118,8 @@ process:
     crypto::public_key tx_pub_key = get_tx_pub_key_from_received_outs(td);
     const std::vector<crypto::public_key> additional_tx_pub_keys = get_additional_tx_pub_keys_from_extra(td.m_tx);
 
+    THROW_WALLET_EXCEPTION_IF(td.m_internal_output_index >= td.m_tx.vout.size(),
+        error::wallet_internal_error, "Internal index is out of range");
     THROW_WALLET_EXCEPTION_IF(td.m_tx.vout[td.m_internal_output_index].target.type() != typeid(cryptonote::txout_to_key),
         error::wallet_internal_error, "Unsupported output type");
     const crypto::public_key& out_key = boost::get<cryptonote::txout_to_key>(td.m_tx.vout[td.m_internal_output_index].target).key;
@@ -13123,9 +13182,7 @@ size_t wallet2::import_outputs_from_str(const std::string &outputs_st)
     std::pair<uint64_t, std::vector<tools::wallet2::transfer_details>> outputs;
     try
     {
-      std::stringstream iss;
-      iss << body;
-      binary_archive<false> ar(iss);
+      binary_archive<false> ar{epee::strspan<std::uint8_t>(body)};
       if (::serialization::serialize(ar, outputs))
         if (::serialization::check_stream_state(ar))
           loaded = true;
@@ -13378,8 +13435,7 @@ size_t wallet2::import_multisig(std::vector<cryptonote::blobdata> blobs)
     bool loaded = false;
     try
     {
-      std::istringstream iss(body);
-      binary_archive<false> ar(iss);
+      binary_archive<false> ar{epee::strspan<std::uint8_t>(body)};
       if (::serialization::serialize(ar, i))
         if (::serialization::check_stream_state(ar))
           loaded = true;
