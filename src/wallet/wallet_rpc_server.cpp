@@ -778,7 +778,7 @@ namespace tools
     }
     return true;
   }
-  //------------------------------------------------------------------------------------------------------------------------------  
+  //------------------------------------------------------------------------------------------------------------------------------
   bool wallet_rpc_server::validate_transfer(const std::list<wallet_rpc::transfer_destination>& destinations, const std::string& payment_id, std::vector<cryptonote::tx_destination_entry>& dsts, std::vector<uint8_t>& extra, bool at_least_one_destination, epee::json_rpc::error& er)
   {
     crypto::hash8 integrated_payment_id = crypto::null_hash8;
@@ -1573,8 +1573,7 @@ namespace tools
 
     try
     {
-      std::istringstream iss(blob);
-      binary_archive<false> ar(iss);
+      binary_archive<false> ar{epee::strspan<std::uint8_t>(blob)};
       if (::serialization::serialize(ar, ptx))
         loaded = true;
     }

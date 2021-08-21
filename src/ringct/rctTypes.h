@@ -284,7 +284,7 @@ namespace rct {
         {
           FIELD(type)
           if (type == RCTTypeNull)
-            return ar.stream().good();
+            return ar.good();
           if (type != RCTTypeFull && type != RCTTypeSimple && type != RCTTypeBulletproof && type != RCTTypeBulletproof2 && type != RCTTypeCLSAG)
             return false;
           VARINT_FIELD(txnFee)
@@ -344,7 +344,7 @@ namespace rct {
               ar.delimit_array();
           }
           ar.end_array();
-          return ar.stream().good();
+          return ar.good();
         }
 
         BEGIN_SERIALIZE_OBJECT()
@@ -369,7 +369,7 @@ namespace rct {
         bool serialize_rctsig_prunable(Archive<W> &ar, uint8_t type, size_t inputs, size_t outputs, size_t mixin)
         {
           if (type == RCTTypeNull)
-            return ar.stream().good();
+              return ar.good();
           if (type != RCTTypeFull && type != RCTTypeSimple && type != RCTTypeBulletproof && type != RCTTypeBulletproof2 && type != RCTTypeCLSAG)
             return false;
           if (type == RCTTypeBulletproof || type == RCTTypeBulletproof2 || type == RCTTypeCLSAG)
@@ -516,14 +516,14 @@ namespace rct {
             }
             ar.end_array();
           }
-          return ar.stream().good();
+          return ar.good();
         }
 
         BEGIN_SERIALIZE_OBJECT()
           FIELD(rangeSigs)
           FIELD(bulletproofs)
           FIELD(MGs)
-          FIELD(CLSAGs)          
+          FIELD(CLSAGs)
           FIELD(pseudoOuts)
         END_SERIALIZE()
     };

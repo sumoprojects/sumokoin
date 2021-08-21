@@ -3392,7 +3392,7 @@ void wallet2::refresh(bool trusted_daemon, uint64_t start_height, uint64_t & blo
   uint64_t blocks_start_height;
   std::vector<cryptonote::block_complete_entry> blocks;
   std::vector<parsed_block> parsed_blocks;
-	bool refreshed = false;  
+	bool refreshed = false;
   std::shared_ptr<std::map<std::pair<uint64_t, uint64_t>, size_t>> output_tracker_cache;
   hw::device &hwdev = m_account.get_device();
 
@@ -5702,17 +5702,13 @@ void wallet2::load(const std::string& wallet_, const epee::wipeable_string& pass
 
         try
         {
-          std::stringstream iss;
-          iss << cache_data;
-          binary_archive<false> ar(iss);
+          binary_archive<false> ar{epee::strspan<std::uint8_t>(cache_data)};
           if (::serialization::serialize(ar, *this))
             if (::serialization::check_stream_state(ar))
               loaded = true;
           if (!loaded)
           {
-            std::stringstream iss;
-            iss << cache_data;
-            binary_archive<false> ar(iss);
+            binary_archive<false> ar{epee::strspan<std::uint8_t>(cache_data)};
             ar.enable_varint_bug_backward_compatibility();
             if (::serialization::serialize(ar, *this))
               if (::serialization::check_stream_state(ar))
@@ -6785,8 +6781,7 @@ bool wallet2::parse_unsigned_tx_from_str(const std::string &unsigned_tx_st, unsi
     catch(const std::exception &e) { LOG_PRINT_L0("Failed to decrypt unsigned tx: " << e.what()); return false; }
     try
     {
-      std::istringstream iss(s);
-      binary_archive<false> ar(iss);
+      binary_archive<false> ar{epee::strspan<std::uint8_t>(s)};
       if (!::serialization::serialize(ar, exported_txs))
       {
         LOG_PRINT_L0("Failed to parse data from unsigned tx");
@@ -7100,8 +7095,7 @@ bool wallet2::parse_tx_from_str(const std::string &signed_tx_st, std::vector<too
     catch (const std::exception &e) { LOG_PRINT_L0("Failed to decrypt signed transaction: " << e.what()); return false; }
     try
     {
-      std::istringstream iss(s);
-      binary_archive<false> ar(iss);
+      binary_archive<false> ar{epee::strspan<std::uint8_t>(s)};
       if (!::serialization::serialize(ar, signed_txs))
       {
         LOG_PRINT_L0("Failed to deserialize signed transaction");
@@ -7236,8 +7230,7 @@ bool wallet2::parse_multisig_tx_from_str(std::string multisig_tx_st, multisig_tx
   bool loaded = false;
   try
   {
-    std::istringstream iss(multisig_tx_st);
-    binary_archive<false> ar(iss);
+    binary_archive<false> ar{epee::strspan<std::uint8_t>(multisig_tx_st)};
     if (::serialization::serialize(ar, exported_txs))
       if (::serialization::check_stream_state(ar))
         loaded = true;
@@ -11958,8 +11951,7 @@ bool wallet2::check_reserve_proof(const cryptonote::account_public_address &addr
   serializable_unordered_map<crypto::public_key, crypto::signature> subaddr_spendkeys;
   try
   {
-    std::istringstream iss(sig_decoded);
-    binary_archive<false> ar(iss);
+    binary_archive<false> ar{epee::strspan<std::uint8_t>(sig_decoded)};
     if (::serialization::serialize_noeof(ar, proofs))
       if (::serialization::serialize_noeof(ar, subaddr_spendkeys))
         if (::serialization::check_stream_state(ar))
@@ -13141,9 +13133,7 @@ size_t wallet2::import_outputs_from_str(const std::string &outputs_st)
     std::pair<uint64_t, std::vector<tools::wallet2::transfer_details>> outputs;
     try
     {
-      std::stringstream iss;
-      iss << body;
-      binary_archive<false> ar(iss);
+      binary_archive<false> ar{epee::strspan<std::uint8_t>(body)};
       if (::serialization::serialize(ar, outputs))
         if (::serialization::check_stream_state(ar))
           loaded = true;
@@ -13396,8 +13386,7 @@ size_t wallet2::import_multisig(std::vector<cryptonote::blobdata> blobs)
     bool loaded = false;
     try
     {
-      std::istringstream iss(body);
-      binary_archive<false> ar(iss);
+      binary_archive<false> ar{epee::strspan<std::uint8_t>(body)};
       if (::serialization::serialize(ar, i))
         if (::serialization::check_stream_state(ar))
           loaded = true;
