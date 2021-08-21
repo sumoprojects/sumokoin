@@ -86,7 +86,7 @@ project(sumokoin)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0.0 AND NOT DEPENDS)
     message(FATAL_ERROR "GCC version must be at least 7.0!")
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0.0)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0.0)
     message(FATAL_ERROR "Clang version must be at least 8.0!")
 endif()
 
@@ -756,10 +756,10 @@ else()
 
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARCH_FLAG}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARCH_FLAG}")
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     add_definitions(-Wno-unused-command-line-argument)
   endif()
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Wno-error=extra -Wno-error=deprecated-declarations -Wno-range-loop-analysis -Wno-unused-lambda-capture -Wno-unused-parameter -Wno-unused-variable -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized")
   else()
     set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Wno-error=extra -Wno-error=deprecated-declarations -Wno-unused-but-set-variable -Wno-unused-parameter -Wno-unused-variable -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized")
@@ -851,11 +851,11 @@ else()
   endif()
 
   # linker
-  if (NOT WIN32 AND NOT (CMAKE_C_COMPILER_ID STREQUAL "Clang") AND NOT (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_LESS 9.1))
+  if (NOT WIN32 AND NOT (CMAKE_C_COMPILER_ID MATCHES "Clang") AND NOT (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_C_COMPILER_VERSION VERSION_LESS 9.1))
     # Windows binaries die on startup with PIE when compiled with GCC <9.x
     add_linker_flag_if_supported(-pie LD_SECURITY_FLAGS)
   endif()
-  if (CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  if (CMAKE_C_COMPILER_ID MATCHES "Clang")
     add_linker_flag_if_supported(-Wl, -pie LD_SECURITY_FLAGS)
   endif()
   add_linker_flag_if_supported(-Wl,-z,relro LD_SECURITY_FLAGS)
@@ -883,10 +883,10 @@ else()
   endif()
 
   # cleanup bins
-  if (NOT CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  if (NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
     set(LINKER_OPTIONS "${LINKER_OPTIONS} -ffunction-sections -fdata-sections -Wl,--gc-sections")
   endif()
-  if (CMAKE_C_COMPILER_ID STREQUAL "Clang" AND APPLE)
+  if (CMAKE_C_COMPILER_ID MATCHES "Clang" AND APPLE)
     set(LINKER_OPTIONS "${LINKER_OPTIONS} -ffunction-sections -fdata-sections -Wl,-dead_strip")
   # silence warning in link cases dead_strip cannot be used
     set(WARNINGS "${WARNINGS} -Wno-unused-command-line-argument")
