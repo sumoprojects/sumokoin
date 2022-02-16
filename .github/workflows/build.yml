@@ -16,7 +16,7 @@ jobs:
         key: ccache-macos-build-${{ github.sha }}
         restore-keys: ccache-macos-build-
     - name: install dependencies
-      run: brew install boost hidapi zmq libpgm ldns expat libunwind-headers protobuf ccache
+      run: brew install boost hidapi openssl zmq libpgm ldns expat libunwind-headers protobuf ccache
     - name: build sumokoin
       run: |
         ccache --max-size=150M
@@ -29,7 +29,7 @@ jobs:
       with:
         submodules: recursive
     - name: remove bundled zmq & libnorm & cmake & build-essential
-      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*              
+      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -43,8 +43,12 @@ jobs:
       run: sudo apt -y install cmake build-essential autoconf automake gperf libtool imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev python-pip
     - name: install setuptools
       run: pip install setuptools
-    - name: get SDK
-      run:  wget https://sumokoin.org/downloads/Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz
+    - name: get SDK (Xcode-11.3.1-11C505-extracted-SDK-with-libcxx-headers.tar.gz link created and uploaded by sumokoin devs - safe )
+      run: |
+        wget http://archive.ubuntu.com/ubuntu/pool/universe/m/megatools/megatools_1.10.3-1_amd64.deb
+        sudo dpkg -i megatools_1.10.3-1_amd64.deb
+        sudo apt-get install -f
+        megadl https://mega.nz/file/209VFYBa#tuiYeA395AIfmGiT2GYqq5Rmqm9sr2gIKfLRzEv32fU
     - name: create SDKs dir, move and extract SDK
       run: |
         sudo mkdir /home/runner/work/sumokoin/sumokoin/contrib/depends/SDKs
@@ -102,7 +106,7 @@ jobs:
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test
         sudo apt update
     - name: install sumokoin dependencies
-      run: sudo apt -y install make automake cmake curl libtool binutils-gold g++-mingw-w64-i686 pkg-config python3 gperf 
+      run: sudo apt -y install make automake cmake curl libtool binutils-gold g++-mingw-w64-i686 pkg-config python3 gperf
     - name: cross compile sumokoin bins for windows-32bit
       run: make depends target=i686-w64-mingw32 -j 3
     - name: upload binaries
@@ -110,13 +114,13 @@ jobs:
       with:
         name: Windows32-release-binaries
         path: build/**/bin/
-        
+
   Windows64-cross-on-bionic:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled zmq & libnorm & cmake & build-essential
-      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*          
+      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -149,7 +153,7 @@ jobs:
         key: ccache-ubuntu-bionic-build-${{ github.sha }}
         restore-keys: ccache-ubuntu-bionic-build-
     - name: remove bundled zmq & libnorm & cmake & build-essential
-      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*              
+      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -176,7 +180,7 @@ jobs:
         key: ccache-ubuntu-debug-build-${{ github.sha }}
         restore-keys: ccache-ubuntu-debug-build-
     - name: remove bundled zmq & libnorm & cmake & build-essential
-      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*              
+      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -255,7 +259,7 @@ jobs:
         key: ccache-ubuntu-bionic-static-build-${{ github.sha }}
         restore-keys: ccache-ubuntu-bionic-static-build-
     - name: remove bundled zmq & libnorm & cmake & build-essential
-      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*              
+      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -305,7 +309,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled zmq & libnorm & cmake & build-essential
-      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*          
+      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -360,7 +364,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled zmq & libnorm & cmake & build-essential
-      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*          
+      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -385,7 +389,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled zmq & libnorm & cmake & build-essential
-      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*          
+      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -410,7 +414,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled zmq & libnorm & cmake & build-essential
-      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*          
+      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
@@ -436,7 +440,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: remove bundled zmq & libnorm & cmake & build-essential
-      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*    
+      run:  sudo apt-get remove --purge --auto-remove libzmq5 libnorm1 libboost* cmake* build-essential*
     - name: remove bundled boost
       run: sudo rm -rf /usr/local/share/boost
     - name: set apt conf
