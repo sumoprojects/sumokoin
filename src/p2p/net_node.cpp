@@ -158,7 +158,7 @@ namespace nodetool
       "pad-transactions", "Pad relayed transactions to help defend against traffic volume analysis", false
     };
     const command_line::arg_descriptor<uint32_t> arg_max_connections_per_ip = {"max-connections-per-ip", "Maximum number of connections allowed from the same IP address", 1};
-    
+
     std::optional<std::vector<proxy>> get_proxies(boost::program_options::variables_map const& vm)
     {
         namespace ip = boost::asio::ip;
@@ -330,6 +330,7 @@ namespace nodetool
             }
         };
 
+        net::socks::client::close_on_exit close_client{};
         boost::unique_future<client_result> socks_result{};
         {
             boost::promise<client_result> socks_promise{};
@@ -338,6 +339,7 @@ namespace nodetool
             auto client = net::socks::make_connect_client(
                 boost::asio::ip::tcp::socket{service}, net::socks::version::v4a, notify{std::move(socks_promise)}
              );
+            close_client.self = client;
             if (!start_socks(std::move(client), proxy, remote))
                 return std::nullopt;
         }
@@ -359,7 +361,10 @@ namespace nodetool
         {
             auto result = socks_result.get();
             if (!result.first)
+            {
+                close_client.self.reset();
                 return {std::move(result.second)};
+            }                
 
             MERROR("Failed to make socks connection to " << remote.str() << " (via " << proxy << "): " << result.first.message());
         }
