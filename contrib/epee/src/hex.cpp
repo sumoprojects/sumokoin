@@ -28,6 +28,8 @@
 
 #include <boost/utility/string_ref.hpp>
 #include <algorithm>
+#include <stdexcept>
+#include <limits>
 
 #include "hex.h"
 #include "storages/parserse_base_utils.h"

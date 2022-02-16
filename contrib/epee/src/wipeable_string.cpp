@@ -28,6 +28,9 @@
 
 #include <optional>
 #include <cstring>
+#include <stdexcept>
+#include <limits>
+
 #include "memwipe.h"
 #include "misc_log_ex.h"
 #include "wipeable_string.h"
