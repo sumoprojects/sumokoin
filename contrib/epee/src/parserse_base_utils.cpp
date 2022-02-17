@@ -101,7 +101,7 @@ namespace misc_utils
           ++fi;
         val.assign(it, fi);
         it = fi;
-        for(;it != buf_end;it++)
+        for(;it != buf_end;++it)
         {
           if(escape_mode/*prev_ch == '\\'*/)
           {
@@ -196,7 +196,7 @@ namespace misc_utils
           ++chars;
           ++it;
         }
-        for(;it != buf_end;it++)
+        for(;it != buf_end;++it)
         {
           const uint8_t flags = lut[(uint8_t)*it];
           if (flags & 16)
@@ -223,7 +223,7 @@ namespace misc_utils
       {
         val.clear();
 
-        for(std::string::const_iterator it = star_end_string;it != buf_end;it++)
+        for(std::string::const_iterator it = star_end_string;it != buf_end;++it)
         {
           if (!(lut[(uint8_t)*it] & 4))
           {
@@ -242,7 +242,7 @@ namespace misc_utils
       {
         val.clear();
 
-        for(std::string::const_iterator it = star_end_string;it != buf_end;it++)
+        for(std::string::const_iterator it = star_end_string;it != buf_end;++it)
         {
           if(!isalnum(*it) && *it != '-' && *it != '_')
           {
@@ -261,7 +261,7 @@ namespace misc_utils
       {
         word_end = star_end_string;
 
-        for(std::string::const_iterator it = star_end_string;it != buf_end;it++)
+        for(std::string::const_iterator it = star_end_string;it != buf_end;++it)
         {
           if(isspace(*it))
           {
