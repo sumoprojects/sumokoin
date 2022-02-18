@@ -79,6 +79,10 @@ namespace wallet_args
   {
     return {"rpc-client-secret-key", wallet_args::tr("Set RPC client secret key for RPC payments"), ""};
   }
+  command_line::arg_descriptor<std::string> arg_password_file()
+  {
+    return {"password-file", wallet_args::tr("Wallet password file"), ""};
+  }  
 
   const char* tr(const char* str)
   {
@@ -94,7 +98,7 @@ namespace wallet_args
     const std::function<void(const std::string&, bool)> &print,
     const char *default_log_name,
     bool log_to_console)
-  
+
   {
     namespace bf = boost::filesystem;
     namespace po = boost::program_options;
