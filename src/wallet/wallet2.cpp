@@ -1231,7 +1231,7 @@ wallet2::wallet2(network_type nettype, uint64_t kdf_rounds, bool unattended, std
   m_unattended(unattended),
   m_devices_registered(false),
   m_device_last_key_image_sync(0),
-  m_use_dns(true),
+  m_use_dns(false),
   m_offline(false),
   m_rpc_version(0),
   m_export_format(ExportFormat::Binary),
